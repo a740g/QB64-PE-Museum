@@ -47,7 +47,7 @@ Const TRUE%% = Not FALSE
 ' PROGRAM ENTRY POINT
 
 ' Check the command line and then collect relevant data
-If Command$ = "" Or ArgVPresent("?") Then
+If CommandCount < 1 Or ArgVPresent("?") Then
     Print
     Print "Text file condenser. Version 5.0"
     Print
@@ -88,8 +88,8 @@ If Not FileExists(sTextFile) Then
 End If
 
 ' Perform solitary text file check if specified
-If (ArgVPresent("K")) Then
-    If (IsTextFile(sTextFile)) Then
+If ArgVPresent("K") Then
+    If IsTextFile(sTextFile) Then
         Print sTextFile; " is a text file."
     End If
 
@@ -100,7 +100,7 @@ End If
 lTextFileSizeOld = FileLen(sTextFile)
 
 ' Backup input file if specified
-If (ArgVPresent("B")) Then
+If ArgVPresent("B") Then
     If Not FileCopy(sTextFile, sTextFile + ".bak") Then
         Print "Backup failed to "; sTextFile + ".bak"
         System 1
@@ -108,22 +108,22 @@ If (ArgVPresent("B")) Then
 End If
 
 ' Check text file
-If (Not ArgVPresent("C") And Not ArgVPresent("X")) Then
-    If (Not IsTextFile(sTextFile)) Then
+If Not ArgVPresent("C") And Not ArgVPresent("X") Then
+    If Not IsTextFile(sTextFile) Then
         Print sTextFile; " is not a text file!"
         System 1
     End If
 End If
 
 ' Strip invalid characters
-If (ArgVPresent("C")) Then
+If ArgVPresent("C") Then
     TextClean sTextFile
 End If
 
 ' Expand tabs to spaces
-If (ArgVPresent("S8")) Then
+If ArgVPresent("S8") Then
     TextTabExpand sTextFile, 8
-ElseIf (ArgVPresent("S")) Then
+ElseIf ArgVPresent("S") Then
     ' no expansion
 Else
     TextTabExpand sTextFile, 4
@@ -133,9 +133,9 @@ End If
 TextCondense sTextFile
 
 ' Compress spaces to tabs
-If (ArgVPresent("T8")) Then
+If ArgVPresent("T8") Then
     TextSpaceCompress sTextFile, 8
-ElseIf (ArgVPresent("T")) Then
+ElseIf ArgVPresent("T") Then
     ' no compression
 Else
     TextSpaceCompress sTextFile, 4
@@ -207,23 +207,21 @@ Function FileCopy%% (fileSrc As String, fileDst As String)
     End If
 End Function
 
-
 ' Check if an atgument is present in the command line
-Function ArgVPresent% (argv As String)
+Function ArgVPresent%% (argv As String)
     Dim argc As Integer
     Dim As String a, b
 
     argc = 1
-    b = "/" + argv
+    b = UCase$(argv)
     Do
-        a = Command$(argc)
-        If (Len(a) = 0) Then Exit Do
+        a = UCase$(Command$(argc))
+        If Len(a) = 0 Then Exit Do
 
-        If UCase$(a) = UCase$(b) Then
+        If a = "/" + b Or a = "-" + b Then
             ArgVPresent = TRUE
             Exit Function
         End If
-
 
         argc = argc + 1
     Loop
@@ -249,7 +247,7 @@ Function IsTextFile% (sFileName As String)
     sBuffer = Space$(16384)
 
     Print "Scanning "; sFileName; " ..."
-    While (Not EOF(iTHandle))
+    While Not EOF(iTHandle)
         ' Read from source, noting the number of bytes read
         lLastPos = Loc(iTHandle)
         Get #iTHandle, , sBuffer
@@ -264,7 +262,7 @@ Function IsTextFile% (sFileName As String)
         ' Test the content
         For i = 1 To iBytesRead
             sChar = Asc(Mid$(sBuffer, i, 1))
-            If (sChar < 32 And sChar <> 9 And sChar <> 10 And sChar <> 13) Then
+            If sChar < 32 And sChar <> 9 And sChar <> 10 And sChar <> 13 Then
                 Locate , 1
                 Print sFileName; " is not a text file!"
                 IsTextFile = FALSE
@@ -312,7 +310,7 @@ Sub TextClean (sFileName As String)
 
     ' Start copying the file
     Print "Removing invalid characters from "; sFileName; " ..."
-    While (Not EOF(iHandleS))
+    While Not EOF(iHandleS)
         ' Read from source, noting the number of bytes read
         lLastPos = Loc(iHandleS)
         Get #iHandleS, , sBuffer1
@@ -427,7 +425,7 @@ Sub TextSpaceCompress (sFileName As String, iLen As Integer)
         j = Len(sIText)
         For i = 1 To (j - iLen + 1) Step iLen
             sStr = Mid$(sIText, i, iLen)
-            If (sStr = Space$(iLen)) Then
+            If sStr = Space$(iLen) Then
                 sOText = sOText + Chr$(9)
             Else
                 sOText = sOText + sStr
@@ -487,7 +485,7 @@ Sub TextTabExpand (sFileName As String, iLen As Integer)
 
     ' Start copying the file
     Print "Expanding tabs to spaces (1:"; Trim$(Str$(iLen)); ") in "; sFileName; " ..."
-    While (Not EOF(iHandleS))
+    While Not EOF(iHandleS)
         ' Read from source, noting the number of bytes read
         lLastPos = Loc(iHandleS)
         Get #iHandleS, , sBuffer1
@@ -503,7 +501,7 @@ Sub TextTabExpand (sFileName As String, iLen As Integer)
         sBuffer2 = ""
         For i = 1 To iBytesRead
             sChar = Mid$(sBuffer1, i, 1)
-            If (sChar = Chr$(9)) Then
+            If sChar = Chr$(9) Then
                 sBuffer2 = sBuffer2 + Space$(iLen)
             Else
                 sBuffer2 = sBuffer2 + sChar

@@ -33,9 +33,8 @@ Type XYPoint
 End Type
 
 'Constants
+Const FALSE = 0, TRUE = Not FALSE
 Const SPEEDCONST = 500
-Const TRUE = -1
-Const FALSE = Not TRUE
 Const HITSELF = 1
 Const BACKATTR = 0
 Const OBJECTCOLOR = 1

@@ -1,4 +1,3 @@
-'
 '                                QSHIPS.BAS
 '
 '         Copyright (C) 1990 Microsoft Corporation. All Rights Reserved.

@@ -1,4 +1,3 @@
-'
 '                         Q B a s i c   N i b b l e s
 '
 '                   Copyright (C) Microsoft Corporation 1990

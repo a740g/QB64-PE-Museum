@@ -1,4 +1,3 @@
-
 'For faster operation
 DefInt A-Z
 
