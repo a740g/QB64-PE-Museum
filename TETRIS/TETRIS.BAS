@@ -16,8 +16,8 @@ DefInt A-Z
 Option Explicit
 ' All arrays must be defined.
 Option ExplicitArray
-' All arrays should be allocated dynamically by default. This allows us to easily resize arrays.
-'$DYNAMIC
+' All arrays should be static by default. Allocate dynamic array using ReDim
+'$Static
 ' This allows the executable window & it's contents to be resized.
 $Resize:Smooth
 'FullScreen SquarePixels , Smooth

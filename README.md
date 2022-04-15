@@ -24,5 +24,6 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | REVERSI | Reversi game by Microsoft
 | SORTDEMO | Sort demo by Microsoft
 | SPACE64 | QB64 game by [Cyperium](https://wiki.qb64.org/wiki/A_Small_Game_Tutorial)
+| Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor)
 | TETRIS | Tertis clone by [fogleman](https://github.com/fogleman)
 | TORUS | Torus demo by Microsoft
