@@ -26,6 +26,8 @@ DefInt A-Z
 'Make all arrays Dynamic
 '$DYNAMIC
 
+$Resize:Smooth
+
 'User-Defined TYPEs
 Type XYPoint
     XCoor As Integer
@@ -230,8 +232,6 @@ Sub DoExplosion (x#, y#)
     Next c#
     For c# = Radius To 0 Step (-1 * Inc#)
         Circle (x#, y#), c#, BACKATTR
-        For i = 1 To 100
-        Next i
         Rest .005
     Next c#
 End Sub
