@@ -6,7 +6,10 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 
 | Name | Description |
 |------|-------------|
+| 4Pong | Four player Pong game by unknown |
+| Abacus | Abacus app by Bob Seguin |
 | Amongst | Among Us clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Animax |  A Graphics/Animation utility by Bob Seguin |
 | Blockout | Breakout clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Can't Contain Me | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by Microsoft |
@@ -25,6 +28,7 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | Phone | Simple phone directory by Microsoft |
 | Platform | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
+| QBasic Beautifier | QB code beautifier by Kewbie_newbie |
 | QBlocks | Tertis clone by Microsoft |
 | QBricks | Breakout clone by Microsoft |
 | QCards | A simple database using a cardfile user interface by Microsoft |
@@ -43,5 +47,6 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | Space64 | QB64 game by [Cyperium](https://wiki.qb64.org/wiki/A_Small_Game_Tutorial) |
 | Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Tetris | Tertis clone by [fogleman](https://github.com/fogleman) |
+| Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Torus | Torus demo by Microsoft |
 | Tower | Tower of Hanoi solver by unknown |
