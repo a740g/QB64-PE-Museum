@@ -12,6 +12,7 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | Castle | A turn-based artillery game by Microsoft |
 | Cloned Shades | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Condense | Text file condenser by [a740g](https://github.com/a740g) |
+| Demos | QB64 Demos from various sources |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Gorillas | A turn-based artillery game by Microsoft |
@@ -32,12 +33,15 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | QSpace | Space station defense game by Microsoft |
 | QSynth | Audio synthesizer by Microsoft |
 | QTrek | Startrek themed game by [strathausen](https://github.com/strathausen) |
+| RayCaster | QB64 ray casting demo by Antoni Gual |
 | RemLine | Line mumber removal utility by Microsoft |
 | Reversi | Reversi game by Microsoft |
 | Set Fire To The Rain | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Shooter | QB64 shooter demo game by unknown |
 | Sokoban | Sokoban game by [David Joffe](http://www.scorpioncity.com/) |
 | SortDemo | Sort demo by Microsoft |
 | Space64 | QB64 game by [Cyperium](https://wiki.qb64.org/wiki/A_Small_Game_Tutorial) |
 | Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Tetris | Tertis clone by [fogleman](https://github.com/fogleman) |
 | Torus | Torus demo by Microsoft |
+| Tower | Tower of Hanoi solver by unknown |
