@@ -10,6 +10,9 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | Abacus | Abacus app by Bob Seguin |
 | Amongst | Among Us clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Animax |  A Graphics/Animation utility by Bob Seguin |
+| ArcDemo | A 2D platformer game by Tsiplacov Sergey |
+| Assault | A turn-based artillery game by Glenn Powell |
+| Bin2Include | Binary to Include converter by [SpriggsySpriggs](https://github.com/SpriggsySpriggs) |
 | Blockout | Breakout clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Can't Contain Me | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by Microsoft |
