@@ -1,13 +1,13 @@
-CONST true = -1, false = NOT true
+Const true = -1, false = Not true
 
-CONST objHero = 1
-CONST objEnemy = 2
-CONST objFloor = 3
-CONST objBonus = 4
-CONST objBackground = 5
-CONST objBlock = 6
+Const objHero = 1
+Const objEnemy = 2
+Const objFloor = 3
+Const objBonus = 4
+Const objBackground = 5
+Const objBlock = 6
 
-DIM SHARED kinds(1 TO 6) AS STRING
+Dim Shared kinds(1 To 6) As String
 kinds(1) = "Hero"
 kinds(2) = "Enemy"
 kinds(3) = "Floor"
@@ -15,52 +15,52 @@ kinds(4) = "Bonus"
 kinds(5) = "Background"
 kinds(6) = "Block"
 
-CONST objShapeRect = 0
-CONST objShapeRound = 1
-CONST g = 1
+Const objShapeRect = 0
+Const objShapeRound = 1
+Const g = 1
 
-TYPE Objects
-    kind AS INTEGER
-    shape AS INTEGER
-    x AS INTEGER
-    xv AS SINGLE
-    y AS INTEGER
-    yv AS SINGLE
-    w AS INTEGER
-    h AS INTEGER
-    color AS _UNSIGNED LONG
-    landedOn AS LONG
-    taken AS _BYTE
-END TYPE
+Type Objects
+    kind As Integer
+    shape As Integer
+    x As Integer
+    xv As Single
+    y As Integer
+    yv As Single
+    w As Integer
+    h As Integer
+    color As _Unsigned Long
+    landedOn As Long
+    taken As _Byte
+End Type
 
-REDIM SHARED Object(1 TO 100) AS Objects
-DIM SHARED TotalObjects AS LONG
-DIM SHARED Hero AS LONG, NewObj AS LONG
-DIM SHARED Dead AS _BYTE, CameraX AS LONG, CameraY AS LONG
-DIM SHARED Points AS LONG
+ReDim Shared Object(1 To 100) As Objects
+Dim Shared TotalObjects As Long
+Dim Shared Hero As Long, NewObj As Long
+Dim Shared Dead As _Byte, CameraX As Long, CameraY As Long
+Dim Shared Points As Long
 
-SCREEN _NEWIMAGE(800, 600, 32)
-_PRINTMODE _KEEPBACKGROUND
+Screen _NewImage(800, 600, 32)
+_PrintMode _KeepBackground
 
-DO
+Do
     Level = Level + 1
     SetLevel Level
 
-    DO
+    Do
         ProcessInput
         DoPhysics
         UpdateScreen
-        _LIMIT 35
-    LOOP
-LOOP
+        _Limit 35
+    Loop
+Loop
 
-SYSTEM
+System
 
-FUNCTION AddObject (Kind AS INTEGER, x AS SINGLE, y AS SINGLE, w AS SINGLE, h AS SINGLE, c AS _UNSIGNED LONG)
+Function AddObject (Kind As Integer, x As Single, y As Single, w As Single, h As Single, c As _Unsigned Long)
     TotalObjects = TotalObjects + 1
-    IF TotalObjects > UBOUND(Object) THEN
-        REDIM _PRESERVE Object(1 TO UBOUND(Object) + 99) AS Objects
-    END IF
+    If TotalObjects > UBound(Object) Then
+        ReDim _Preserve Object(1 To UBound(Object) + 99) As Objects
+    End If
 
     Object(TotalObjects).kind = Kind
 
@@ -71,236 +71,236 @@ FUNCTION AddObject (Kind AS INTEGER, x AS SINGLE, y AS SINGLE, w AS SINGLE, h AS
     Object(TotalObjects).color = c
 
     AddObject = TotalObjects
-END FUNCTION
+End Function
 
-SUB ProcessInput
-    STATIC JumpButton AS _BYTE
-    IF _KEYDOWN(19712) AND NOT Dead THEN
-        IF _KEYDOWN(100306) THEN
+Sub ProcessInput
+    Static JumpButton As _Byte
+    If _KeyDown(19712) And Not Dead Then
+        If _KeyDown(100306) Then
             Object(Hero).x = Object(Hero).x + 1
-            DO WHILE _KEYDOWN(19712): LOOP
-        ELSE
-            IF Object(Hero).xv < 0 THEN
+            Do While _KeyDown(19712): Loop
+        Else
+            If Object(Hero).xv < 0 Then
                 Object(Hero).xv = Object(Hero).xv + 2
-            ELSE
+            Else
                 Object(Hero).xv = 4
-            END IF
-        END IF
-    END IF
-    IF _KEYDOWN(19200) AND NOT Dead THEN
-        IF _KEYDOWN(100306) THEN
+            End If
+        End If
+    End If
+    If _KeyDown(19200) And Not Dead Then
+        If _KeyDown(100306) Then
             Object(Hero).x = Object(Hero).x - 1
-            DO WHILE _KEYDOWN(19200): LOOP
-        ELSE
-            IF Object(Hero).xv > 0 THEN
+            Do While _KeyDown(19200): Loop
+        Else
+            If Object(Hero).xv > 0 Then
                 Object(Hero).xv = Object(Hero).xv - 2
-            ELSE
+            Else
                 Object(Hero).xv = -4
-            END IF
-        END IF
-    END IF
-    IF _KEYDOWN(18432) AND NOT Dead THEN
-        IF NOT JumpButton THEN
+            End If
+        End If
+    End If
+    If _KeyDown(18432) And Not Dead Then
+        If Not JumpButton Then
             JumpButton = true
-            IF Object(Hero).landedOn > 0 THEN Object(Hero).yv = -20: Object(Hero).landedOn = 0
-        END IF
-    ELSEIF NOT _KEYDOWN(18432) THEN
-        IF JumpButton THEN JumpButton = false
-    END IF
-    IF _KEYDOWN(13) AND Dead THEN
+            If Object(Hero).landedOn > 0 Then Object(Hero).yv = -20: Object(Hero).landedOn = 0
+        End If
+    ElseIf Not _KeyDown(18432) Then
+        If JumpButton Then JumpButton = false
+    End If
+    If _KeyDown(13) And Dead Then
         Dead = 0
         Object(Hero).x = 25
-        Object(Hero).y = _HEIGHT - _HEIGHT / 5 - 22
+        Object(Hero).y = _Height - _Height / 5 - 22
         Object(Hero).yv = 0
         Object(Hero).xv = 0
         Object(Hero).landedOn = 0
-    END IF
-    IF _KEYDOWN(27) THEN SYSTEM
-END SUB
+    End If
+    If _KeyDown(27) Then System
+End Sub
 
-SUB DoPhysics
-    FOR i = 1 TO TotalObjects
-        IF Object(i).kind = objHero OR Object(i).kind = objEnemy THEN
+Sub DoPhysics
+    For i = 1 To TotalObjects
+        If Object(i).kind = objHero Or Object(i).kind = objEnemy Then
 
-            IF Object(i).kind = objEnemy THEN
-                IF Object(Hero).x < Object(i).x THEN Object(i).xv = -1.5 ELSE Object(i).xv = 1.5
-            END IF
+            If Object(i).kind = objEnemy Then
+                If Object(Hero).x < Object(i).x Then Object(i).xv = -1.5 Else Object(i).xv = 1.5
+            End If
 
             Object(i).x = Object(i).x + Object(i).xv
             Object(i).y = Object(i).y + Object(i).yv
 
-            IF Object(i).landedOn = 0 THEN
+            If Object(i).landedOn = 0 Then
                 Object(i).yv = Object(i).yv + g
-            END IF
+            End If
 
-            FOR j = 1 TO TotalObjects
+            For j = 1 To TotalObjects
 
-                IF Object(i).yv < 0 THEN
-                    IF Object(j).kind = objBlock THEN
-                        IF Object(i).x + Object(i).w > Object(j).x AND Object(i).x < Object(j).x + Object(j).w THEN
-                            IF Object(i).y > Object(j).y AND Object(i).y < Object(j).y + Object(j).h + 1 THEN
+                If Object(i).yv < 0 Then
+                    If Object(j).kind = objBlock Then
+                        If Object(i).x + Object(i).w > Object(j).x And Object(i).x < Object(j).x + Object(j).w Then
+                            If Object(i).y > Object(j).y And Object(i).y < Object(j).y + Object(j).h + 1 Then
                                 Object(i).yv = 2
                                 Object(i).y = Object(i).y + 2
-                                IF Object(j).taken = false THEN
+                                If Object(j).taken = false Then
                                     Object(j).taken = true
                                     Object(j).color = _RGB32(122, 100, 78)
-                                END IF
-                                EXIT FOR
-                            END IF
-                        END IF
-                    END IF
-                END IF
+                                End If
+                                Exit For
+                            End If
+                        End If
+                    End If
+                End If
 
-                IF Object(i).kind = objHero AND Object(j).kind = objBonus AND Object(j).taken = false THEN
-                    IF Object(i).y + Object(i).h >= Object(j).y AND Object(i).y <= Object(j).y + Object(j).h THEN
-                        IF Object(i).x + Object(i).w > Object(j).x AND Object(i).x < Object(j).x + Object(j).w THEN
+                If Object(i).kind = objHero And Object(j).kind = objBonus And Object(j).taken = false Then
+                    If Object(i).y + Object(i).h >= Object(j).y And Object(i).y <= Object(j).y + Object(j).h Then
+                        If Object(i).x + Object(i).w > Object(j).x And Object(i).x < Object(j).x + Object(j).w Then
                             Object(j).taken = true
                             Points = Points + 10
-                            EXIT FOR
-                        END IF
-                    END IF
-                END IF
+                            Exit For
+                        End If
+                    End If
+                End If
 
-                IF Object(i).xv > 0 THEN
-                    IF Object(j).kind = objBlock OR Object(j).kind = objEnemy THEN
-                        IF Object(i).y + Object(i).h >= Object(j).y AND Object(i).y <= Object(j).y + Object(j).h THEN
-                            IF Object(i).x + Object(i).w > Object(j).x AND Object(i).x < Object(j).x + Object(j).w THEN
+                If Object(i).xv > 0 Then
+                    If Object(j).kind = objBlock Or Object(j).kind = objEnemy Then
+                        If Object(i).y + Object(i).h >= Object(j).y And Object(i).y <= Object(j).y + Object(j).h Then
+                            If Object(i).x + Object(i).w > Object(j).x And Object(i).x < Object(j).x + Object(j).w Then
                                 Object(i).x = Object(j).x - Object(i).w - 1
                                 Object(i).xv = 0
-                                IF Object(i).kind = objHero AND Object(j).kind = objEnemy AND Object(j).taken = false THEN Dead = true: Object(j).taken = true
-                                EXIT FOR
-                            END IF
-                        END IF
-                    END IF
-                ELSEIF Object(i).xv < 0 THEN
-                    IF Object(j).kind = objBlock THEN
-                        IF Object(i).y + Object(i).h >= Object(j).y AND Object(i).y <= Object(j).y + Object(j).h THEN
-                            IF Object(i).x + Object(i).w > Object(j).x AND Object(i).x < Object(j).x + Object(j).w THEN
+                                If Object(i).kind = objHero And Object(j).kind = objEnemy And Object(j).taken = false Then Dead = true: Object(j).taken = true
+                                Exit For
+                            End If
+                        End If
+                    End If
+                ElseIf Object(i).xv < 0 Then
+                    If Object(j).kind = objBlock Then
+                        If Object(i).y + Object(i).h >= Object(j).y And Object(i).y <= Object(j).y + Object(j).h Then
+                            If Object(i).x + Object(i).w > Object(j).x And Object(i).x < Object(j).x + Object(j).w Then
                                 Object(i).x = Object(j).x + Object(j).w + 1
                                 Object(i).xv = 0
-                                IF Object(i).kind = objHero AND Object(j).kind = objEnemy AND Object(j).taken = false THEN Dead = true: Object(j).taken = true
-                                EXIT FOR
-                            END IF
-                        END IF
-                    END IF
-                END IF
+                                If Object(i).kind = objHero And Object(j).kind = objEnemy And Object(j).taken = false Then Dead = true: Object(j).taken = true
+                                Exit For
+                            End If
+                        End If
+                    End If
+                End If
 
-                IF Object(i).yv >= 0 THEN
-                    IF Object(j).kind = objFloor OR Object(j).kind = objBlock THEN
-                        IF Object(i).x + Object(i).w >= Object(j).x AND Object(i).x <= Object(j).x + Object(j).w THEN
-                            IF Object(i).y + Object(i).h > Object(j).y AND Object(i).y < Object(j).y + Object(j).h THEN
+                If Object(i).yv >= 0 Then
+                    If Object(j).kind = objFloor Or Object(j).kind = objBlock Then
+                        If Object(i).x + Object(i).w >= Object(j).x And Object(i).x <= Object(j).x + Object(j).w Then
+                            If Object(i).y + Object(i).h > Object(j).y And Object(i).y < Object(j).y + Object(j).h Then
                                 Object(i).y = Object(j).y - Object(i).h - 1
                                 Object(i).yv = 0
                                 Object(i).landedOn = j
-                                EXIT FOR
-                            END IF
-                        ELSE
-                            IF Object(i).landedOn = j THEN
+                                Exit For
+                            End If
+                        Else
+                            If Object(i).landedOn = j Then
                                 Object(i).landedOn = 0
-                                EXIT FOR
-                            END IF
-                        END IF
-                    END IF
-                END IF
-            NEXT
+                                Exit For
+                            End If
+                        End If
+                    End If
+                End If
+            Next
 
-            IF Object(Hero).y > _HEIGHT THEN Dead = true
+            If Object(Hero).y > _Height Then Dead = true
 
-            IF Object(i).xv > 0 THEN Object(i).xv = Object(i).xv - 1
-            IF Object(i).xv < 0 THEN Object(i).xv = Object(i).xv + 1
-            IF Object(i).yv <> 0 THEN Object(i).yv = Object(i).yv + g
-        END IF
-    NEXT
+            If Object(i).xv > 0 Then Object(i).xv = Object(i).xv - 1
+            If Object(i).xv < 0 Then Object(i).xv = Object(i).xv + 1
+            If Object(i).yv <> 0 Then Object(i).yv = Object(i).yv + g
+        End If
+    Next
 
-    IF Object(Hero).x + CameraX > _WIDTH / 2 THEN
-        CameraX = _WIDTH / 2 - Object(Hero).x
-    ELSEIF Object(Hero).x + CameraX < _WIDTH / 5 THEN
-        CameraX = _WIDTH / 5 - Object(Hero).x
-    END IF
+    If Object(Hero).x + CameraX > _Width / 2 Then
+        CameraX = _Width / 2 - Object(Hero).x
+    ElseIf Object(Hero).x + CameraX < _Width / 5 Then
+        CameraX = _Width / 5 - Object(Hero).x
+    End If
 
-    IF Object(Hero).y + CameraY < _HEIGHT / 3 THEN
-        CameraY = -Object(Hero).y + _HEIGHT / 3
-    ELSEIF Object(Hero).y + CameraY > _HEIGHT / 2 THEN
-        CameraY = _HEIGHT / 2 - Object(Hero).y
-    END IF
+    If Object(Hero).y + CameraY < _Height / 3 Then
+        CameraY = -Object(Hero).y + _Height / 3
+    ElseIf Object(Hero).y + CameraY > _Height / 2 Then
+        CameraY = _Height / 2 - Object(Hero).y
+    End If
 
-    IF CameraX > 0 THEN CameraX = 0
-    IF CameraY < 0 THEN CameraY = 0
-END SUB
+    If CameraX > 0 Then CameraX = 0
+    If CameraY < 0 Then CameraY = 0
+End Sub
 
-SUB UpdateScreen
-    CLS
+Sub UpdateScreen
+    Cls
 
-    DIM this AS Objects
+    Dim this As Objects
 
-    FOR i = 1 TO TotalObjects
+    For i = 1 To TotalObjects
         this = Object(i)
-        IF this.kind > 0 THEN
-            IF this.kind = objBackground THEN
+        If this.kind > 0 Then
+            If this.kind = objBackground Then
                 thisCameraX = CameraX / 2
                 thisCameraY = CameraY / 2
-            ELSE
+            Else
                 thisCameraX = CameraX
                 thisCameraY = CameraY
-            END IF
-            IF (this.kind = objEnemy OR this.kind = objBonus) AND this.taken THEN GOTO Continue
-            IF this.x + this.w + thisCameraX < 0 AND this.shape <> objShapeRound THEN
-                GOTO Continue
-            ELSEIF thisCameraX + this.x + this.w + this.w / 2 < 0 AND this.shape = objShapeRound THEN
-                GOTO Continue
-            END IF
-            IF this.x + thisCameraX > _WIDTH THEN GOTO Continue
-            IF this.shape = objShapeRect THEN
-                LINE (this.x + thisCameraX, this.y + thisCameraY)-STEP(this.w, this.h), this.color, BF
-                LINE (this.x + thisCameraX, this.y + thisCameraY)-STEP(this.w, this.h), _RGB32(0, 0, 0), B
+            End If
+            If (this.kind = objEnemy Or this.kind = objBonus) And this.taken Then GoTo Continue
+            If this.x + this.w + thisCameraX < 0 And this.shape <> objShapeRound Then
+                GoTo Continue
+            ElseIf thisCameraX + this.x + this.w + this.w / 2 < 0 And this.shape = objShapeRound Then
+                GoTo Continue
+            End If
+            If this.x + thisCameraX > _Width Then GoTo Continue
+            If this.shape = objShapeRect Then
+                Line (this.x + thisCameraX, this.y + thisCameraY)-Step(this.w, this.h), this.color, BF
+                Line (this.x + thisCameraX, this.y + thisCameraY)-Step(this.w, this.h), _RGB32(0, 0, 0), B
                 '_PRINTSTRING (this.x + CameraX, this.y), LTRIM$(STR$(this.x)) + STR$(this.x + this.w)
-            ELSEIF this.shape = objShapeRound THEN
-                FOR k = 1 TO this.w
-                    CIRCLE (thisCameraX + this.x + this.w / 2, thisCameraY + this.y + this.h / 2), k, this.color, , , this.w / this.h
-                NEXT
-                CIRCLE (thisCameraX + this.x + this.w / 2, thisCameraY + this.y + this.h / 2), this.w, _RGB32(0, 0, 0), , , this.w / this.h
-            END IF
+            ElseIf this.shape = objShapeRound Then
+                For k = 1 To this.w
+                    Circle (thisCameraX + this.x + this.w / 2, thisCameraY + this.y + this.h / 2), k, this.color, , , this.w / this.h
+                Next
+                Circle (thisCameraX + this.x + this.w / 2, thisCameraY + this.y + this.h / 2), this.w, _RGB32(0, 0, 0), , , this.w / this.h
+            End If
             'IF this.kind = objHero AND this.landedOn > 0 THEN _PRINTSTRING (this.x + CameraX, this.y - _FONTHEIGHT), "Landed on" + STR$(this.landedOn)
-            PRINT i; kinds(this.kind)
-        END IF
+            Print i; kinds(this.kind)
+        End If
         Continue:
-    NEXT
+    Next
 
-    PRINT "CameraX"; CameraX
-    PRINT "CameraY"; CameraY
+    Print "CameraX"; CameraX
+    Print "CameraY"; CameraY
 
-    IF Dead THEN
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH("You're dead!") / 2, _HEIGHT / 2 - _FONTHEIGHT), "You're dead!"
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH("(hit ENTER)") / 2, _HEIGHT / 2 + _FONTHEIGHT), "(hit ENTER)"
-    END IF
+    If Dead Then
+        _PrintString (_Width / 2 - _PrintWidth("You're dead!") / 2, _Height / 2 - _FontHeight), "You're dead!"
+        _PrintString (_Width / 2 - _PrintWidth("(hit ENTER)") / 2, _Height / 2 + _FontHeight), "(hit ENTER)"
+    End If
 
-    IF Points > 0 THEN _PRINTSTRING (0, 0), STR$(Points)
+    If Points > 0 Then _PrintString (0, 0), Str$(Points)
 
-    _DISPLAY
-END SUB
+    _Display
+End Sub
 
-SUB SetLevel (__Level AS INTEGER)
-    DIM Level AS INTEGER, MaxLevels AS INTEGER
+Sub SetLevel (__Level As Integer)
+    Dim Level As Integer, MaxLevels As Integer
 
     MaxLevels = 1
 
-    IF __Level > MaxLevels THEN
-        Level = _CEIL(RND * MaxLevels)
-    ELSE
+    If __Level > MaxLevels Then
+        Level = _Ceil(Rnd * MaxLevels)
+    Else
         Level = __Level
-    END IF
+    End If
 
-    SELECT CASE Level
-        CASE 1
-            NewObj = AddObject(objBackground, 0, 0, _WIDTH * 2, _HEIGHT, _RGB32(61, 161, 222))
+    Select Case Level
+        Case 1
+            NewObj = AddObject(objBackground, 0, 0, _Width * 2, _Height, _RGB32(61, 161, 222))
 
-            FOR i = 1 TO 10
-                NewObj = AddObject(objBackground, RND * _WIDTH * 2, RND * -_HEIGHT, 50, 100, _RGB32(255, 255, 255))
+            For i = 1 To 10
+                NewObj = AddObject(objBackground, Rnd * _Width * 2, Rnd * -_Height, 50, 100, _RGB32(255, 255, 255))
                 Object(NewObj).shape = objShapeRound
-            NEXT
+            Next
 
-            NewObj = AddObject(objFloor, 20, _HEIGHT - _HEIGHT / 5, _WIDTH * 1.5, 150, _RGB32(111, 89, 50))
-            NewObj = AddObject(objFloor, 1300, _HEIGHT - _HEIGHT / 5, _WIDTH * 1.5, 150, _RGB32(111, 89, 50))
+            NewObj = AddObject(objFloor, 20, _Height - _Height / 5, _Width * 1.5, 150, _RGB32(111, 89, 50))
+            NewObj = AddObject(objFloor, 1300, _Height - _Height / 5, _Width * 1.5, 150, _RGB32(111, 89, 50))
 
             NewObj = AddObject(objFloor, 110, 400, 110, 10, _RGB32(111, 89, 50))
 
@@ -316,12 +316,12 @@ SUB SetLevel (__Level AS INTEGER)
 
             NewObj = AddObject(objBlock, 20, 400, 25, 25, _RGB32(216, 166, 50))
 
-            NewObj = AddObject(objBlock, 200, _HEIGHT - _HEIGHT / 5 - 16, 15, 15, _RGB32(216, 166, 50))
-            NewObj = AddObject(objBlock, 216, _HEIGHT - _HEIGHT / 5 - 16, 15, 15, _RGB32(216, 166, 50))
-            NewObj = AddObject(objBlock, 232, _HEIGHT - _HEIGHT / 5 - 16, 15, 15, _RGB32(216, 166, 50))
-            NewObj = AddObject(objBlock, 216, _HEIGHT - _HEIGHT / 5 - 32, 15, 15, _RGB32(216, 166, 50))
-            NewObj = AddObject(objBlock, 232, _HEIGHT - _HEIGHT / 5 - 32, 15, 15, _RGB32(216, 166, 50))
-            NewObj = AddObject(objBlock, 232, _HEIGHT - _HEIGHT / 5 - 48, 15, 15, _RGB32(216, 166, 50))
+            NewObj = AddObject(objBlock, 200, _Height - _Height / 5 - 16, 15, 15, _RGB32(216, 166, 50))
+            NewObj = AddObject(objBlock, 216, _Height - _Height / 5 - 16, 15, 15, _RGB32(216, 166, 50))
+            NewObj = AddObject(objBlock, 232, _Height - _Height / 5 - 16, 15, 15, _RGB32(216, 166, 50))
+            NewObj = AddObject(objBlock, 216, _Height - _Height / 5 - 32, 15, 15, _RGB32(216, 166, 50))
+            NewObj = AddObject(objBlock, 232, _Height - _Height / 5 - 32, 15, 15, _RGB32(216, 166, 50))
+            NewObj = AddObject(objBlock, 232, _Height - _Height / 5 - 48, 15, 15, _RGB32(216, 166, 50))
 
             NewObj = AddObject(objBonus, 800, 270, 15, 10, _RGB32(249, 244, 55))
             Object(NewObj).shape = objShapeRound
@@ -329,12 +329,12 @@ SUB SetLevel (__Level AS INTEGER)
             NewObj = AddObject(objBonus, 820, 320, 15, 10, _RGB32(249, 244, 55))
             Object(NewObj).shape = objShapeRound
 
-            NewObj = AddObject(objBonus, 1200, _HEIGHT - _HEIGHT / 5 - 22, 15, 10, _RGB32(249, 244, 55))
+            NewObj = AddObject(objBonus, 1200, _Height - _Height / 5 - 22, 15, 10, _RGB32(249, 244, 55))
             Object(NewObj).shape = objShapeRound
 
-            NewObj = AddObject(objEnemy, 1200, _HEIGHT - _HEIGHT / 5 - 22, 15, 10, _RGB32(150, 89, 238))
+            NewObj = AddObject(objEnemy, 1200, _Height - _Height / 5 - 22, 15, 10, _RGB32(150, 89, 238))
 
-            Hero = AddObject(objHero, 25, _HEIGHT - _HEIGHT / 5 - 22, 10, 20, _RGB32(127, 244, 127))
-    END SELECT
-END SUB
+            Hero = AddObject(objHero, 25, _Height - _Height / 5 - 22, 10, 20, _RGB32(127, 244, 127))
+    End Select
+End Sub
 

@@ -6,195 +6,195 @@
 '
 'Assets sources acknowledged inside SUB GameSetup
 
-OPTION _EXPLICIT
+Option _Explicit
 
-$EXEICON:'./assets/lightson.ico'
-_ICON
+$ExeIcon:'./assets/lightson.ico'
+_Icon
 
-CONST true = -1, false = NOT true
+Const true = -1, false = Not true
 
-TYPE obj
-    i AS INTEGER
-    j AS INTEGER
-    x AS INTEGER
-    y AS INTEGER
-    w AS INTEGER
-    h AS INTEGER
-    IsOn AS _BYTE
-    lastSwitch AS SINGLE
-    lastHint AS SINGLE
-END TYPE
+Type obj
+    i As Integer
+    j As Integer
+    x As Integer
+    y As Integer
+    w As Integer
+    h As Integer
+    IsOn As _Byte
+    lastSwitch As Single
+    lastHint As Single
+End Type
 
-RANDOMIZE TIMER
+Randomize Timer
 
-DIM SHARED Arena AS LONG, OverlayScreen AS LONG, Bg AS LONG
-DIM SHARED LightOn(1 TO 9) AS LONG, LightOff(1 TO 9) AS LONG
-DIM SHARED RestartIcon AS LONG, MouseCursor AS LONG
-DIM SHARED Ding AS LONG, Piano AS LONG, Switch AS LONG, Bonus AS LONG
-DIM SHARED Arial AS LONG, FontHeight AS INTEGER
-DIM SHARED maxGridW AS INTEGER, maxGridH AS INTEGER
-DIM SHARED lights(1 TO 20, 1 TO 20) AS obj
-DIM SHARED start!, moves AS INTEGER, m$
-DIM SHARED i AS INTEGER, j AS INTEGER, Level AS INTEGER
-DIM SHARED k AS LONG, Alpha AS INTEGER
-DIM SHARED maxW AS INTEGER, maxH AS INTEGER
-DIM SHARED MinMoves AS INTEGER, Score AS _UNSIGNED LONG
-DIM SHARED TryAgain AS _BYTE, TutorialMode AS _BYTE
-DIM SHARED lightID AS INTEGER
-REDIM SHARED Button(1 TO 1) AS obj, Caption(1 TO UBOUND(Button)) AS STRING
+Dim Shared Arena As Long, OverlayScreen As Long, Bg As Long
+Dim Shared LightOn(1 To 9) As Long, LightOff(1 To 9) As Long
+Dim Shared RestartIcon As Long, MouseCursor As Long
+Dim Shared Ding As Long, Piano As Long, Switch As Long, Bonus As Long
+Dim Shared Arial As Long, FontHeight As Integer
+Dim Shared maxGridW As Integer, maxGridH As Integer
+Dim Shared lights(1 To 20, 1 To 20) As obj
+Dim Shared start!, moves As Integer, m$
+Dim Shared i As Integer, j As Integer, Level As Integer
+Dim Shared k As Long, Alpha As Integer
+Dim Shared maxW As Integer, maxH As Integer
+Dim Shared MinMoves As Integer, Score As _Unsigned Long
+Dim Shared TryAgain As _Byte, TutorialMode As _Byte
+Dim Shared lightID As Integer
+ReDim Shared Button(1 To 1) As obj, Caption(1 To UBound(Button)) As String
 
 'from p5js.bas - sound system
-TYPE new_SoundHandle
-    handle AS LONG
-    sync AS _BYTE
-END TYPE
-REDIM SHARED loadedSounds(0) AS new_SoundHandle
+Type new_SoundHandle
+    handle As Long
+    sync As _Byte
+End Type
+ReDim Shared loadedSounds(0) As new_SoundHandle
 
 GameSetup
 Intro
 
-DO
+Do
     SetLevel
-    DO
+    Do
         UpdateScore
         UpdateArena
 
-        _DISPLAY
+        _Display
 
-        k = _KEYHIT
+        k = _KeyHit
 
-        IF k = 27 THEN SYSTEM
+        If k = 27 Then System
 
-        _LIMIT 30
-    LOOP UNTIL Victory
+        _Limit 30
+    Loop Until Victory
 
     'Give time for the last set of bulbs to light up
-    DIM LastBulbs AS SINGLE
-    LastBulbs = TIMER
-    DO
+    Dim LastBulbs As Single
+    LastBulbs = Timer
+    Do
         UpdateArena
-        _DISPLAY
-    LOOP UNTIL TIMER - LastBulbs > .3
+        _Display
+    Loop Until Timer - LastBulbs > .3
 
     EndScreen
-LOOP
+Loop
 
-SUB Intro
+Sub Intro
     'Show intro
-    IF isLoaded(LightOn(1)) AND isLoaded(LightOff(1)) THEN
-        _DEST OverlayScreen
-        CLS , 0
-        COLOR _RGB32(255, 255, 255), 0
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH("Lights On!") / 2, _HEIGHT - FontHeight * 2), "Lights On!"
-        _DEST 0
+    If isLoaded(LightOn(1)) And isLoaded(LightOff(1)) Then
+        _Dest OverlayScreen
+        Cls , 0
+        Color _RGB32(255, 255, 255), 0
+        _PrintString (_Width / 2 - _PrintWidth("Lights On!") / 2, _Height - FontHeight * 2), "Lights On!"
+        _Dest 0
 
-        _PUTIMAGE (_WIDTH / 2 - _WIDTH(LightOff(1)) / 2, 0), LightOff(1)
-        _DELAY .5
+        _PutImage (_Width / 2 - _Width(LightOff(1)) / 2, 0), LightOff(1)
+        _Delay .5
         Alpha = 0
         p5play Piano
-        _FONT 8
-        DO
-            IF Alpha < 255 THEN Alpha = Alpha + 5 ELSE EXIT DO
-            _SETALPHA Alpha, , OverlayScreen
-            _CLEARCOLOR _RGB32(0, 0, 0), OverlayScreen
-            _SETALPHA Alpha, , LightOn(1)
+        _Font 8
+        Do
+            If Alpha < 255 Then Alpha = Alpha + 5 Else Exit Do
+            _SetAlpha Alpha, , OverlayScreen
+            _ClearColor _RGB32(0, 0, 0), OverlayScreen
+            _SetAlpha Alpha, , LightOn(1)
 
-            _PUTIMAGE (_WIDTH / 2 - _WIDTH(LightOn(1)) / 2, 0), LightOn(1)
-            _PUTIMAGE , OverlayScreen
-            COLOR _RGBA32(255, 255, 255, Alpha), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH("Fellippe Heitor, 2017") / 2, _HEIGHT - FontHeight * 1.5), "Fellippe Heitor, 2017"
+            _PutImage (_Width / 2 - _Width(LightOn(1)) / 2, 0), LightOn(1)
+            _PutImage , OverlayScreen
+            Color _RGBA32(255, 255, 255, Alpha), 0
+            _PrintString (_Width / 2 - _PrintWidth("Fellippe Heitor, 2017") / 2, _Height - FontHeight * 1.5), "Fellippe Heitor, 2017"
 
-            _DISPLAY
-            _LIMIT 20
-        LOOP
+            _Display
+            _Limit 20
+        Loop
 
-        _FONT 16
+        _Font 16
 
-        IF _FILEEXISTS("lightson.dat") = false AND isLoaded(MouseCursor) THEN
+        If _FileExists("lightson.dat") = false And isLoaded(MouseCursor) Then
             'offer tutorial on the first run
-            DIM ii AS INTEGER
+            Dim ii As Integer
 
-            _DEST OverlayScreen
-            CLS , 0
+            _Dest OverlayScreen
+            Cls , 0
             m$ = "Show instructions?"
-            COLOR _RGB32(0, 0, 0), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 - FontHeight * 2 + 1), m$
-            COLOR _RGB32(255, 255, 255), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 - FontHeight * 2), m$
-            _DEST 0
+            Color _RGB32(0, 0, 0), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 - FontHeight * 2 + 1), m$
+            Color _RGB32(255, 255, 255), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 - FontHeight * 2), m$
+            _Dest 0
 
-            DO
-                _PUTIMAGE (_WIDTH / 2 - _WIDTH(LightOn(1)) / 2, 0), LightOn(1)
-                _PUTIMAGE , OverlayScreen
+            Do
+                _PutImage (_Width / 2 - _Width(LightOn(1)) / 2, 0), LightOn(1)
+                _PutImage , OverlayScreen
 
-                FOR ii = 4 TO 5
-                    IF Hovering(Button(ii)) THEN
-                        LINE (Button(ii).x + 5, Button(ii).y + 5)-STEP(Button(ii).w, Button(ii).h), _RGB32(0, 0, 0), BF
-                        LINE (Button(ii).x, Button(ii).y)-STEP(Button(ii).w, Button(ii).h), _RGB32(255, 255, 255), BF
-                    ELSE
-                        LINE (Button(ii).x, Button(ii).y)-STEP(Button(ii).w, Button(ii).h), _RGBA32(255, 255, 255, 170), BF
-                    END IF
-                    COLOR _RGB32(0, 0, 0), 0
-                    _PRINTSTRING (Button(ii).x + Button(ii).w / 2 - _PRINTWIDTH(Caption(ii)) / 2, Button(ii).y + Button(ii).h / 2 - FontHeight / 2), Caption(ii)
-                NEXT
+                For ii = 4 To 5
+                    If Hovering(Button(ii)) Then
+                        Line (Button(ii).x + 5, Button(ii).y + 5)-Step(Button(ii).w, Button(ii).h), _RGB32(0, 0, 0), BF
+                        Line (Button(ii).x, Button(ii).y)-Step(Button(ii).w, Button(ii).h), _RGB32(255, 255, 255), BF
+                    Else
+                        Line (Button(ii).x, Button(ii).y)-Step(Button(ii).w, Button(ii).h), _RGBA32(255, 255, 255, 170), BF
+                    End If
+                    Color _RGB32(0, 0, 0), 0
+                    _PrintString (Button(ii).x + Button(ii).w / 2 - _PrintWidth(Caption(ii)) / 2, Button(ii).y + Button(ii).h / 2 - FontHeight / 2), Caption(ii)
+                Next
 
-                IF _MOUSEBUTTON(1) THEN
-                    WHILE _MOUSEBUTTON(1): ii = _MOUSEINPUT: WEND
-                    IF Hovering(Button(5)) THEN
-                        EXIT DO
-                    ELSEIF Hovering(Button(4)) THEN
+                If _MouseButton(1) Then
+                    While _MouseButton(1): ii = _MouseInput: Wend
+                    If Hovering(Button(5)) Then
+                        Exit Do
+                    ElseIf Hovering(Button(4)) Then
                         TutorialMode = true
                         ShowTutorial
-                        OPEN "lightson.dat" FOR OUTPUT AS #1
-                        CLOSE #1
+                        Open "lightson.dat" For Output As #1
+                        Close #1
                         TutorialMode = false
-                        EXIT DO
-                    END IF
-                END IF
+                        Exit Do
+                    End If
+                End If
 
-                _DISPLAY
-                _LIMIT 30
-            LOOP
-        END IF
-    END IF
-END SUB
+                _Display
+                _Limit 30
+            Loop
+        End If
+    End If
+End Sub
 
-SUB ClickPause
-    DO
-        k = _KEYHIT
+Sub ClickPause
+    Do
+        k = _KeyHit
 
-        WHILE _MOUSEINPUT: WEND
-        IF _MOUSEBUTTON(1) THEN
-            WHILE _MOUSEBUTTON(1): i = _MOUSEINPUT: WEND
-            EXIT DO
-        END IF
+        While _MouseInput: Wend
+        If _MouseButton(1) Then
+            While _MouseButton(1): i = _MouseInput: Wend
+            Exit Do
+        End If
 
-        _DISPLAY
-        _LIMIT 30
-    LOOP UNTIL k = 27 OR k = 13
-END SUB
+        _Display
+        _Limit 30
+    Loop Until k = 27 Or k = 13
+End Sub
 
-SUB CenteredText (Text$)
-    DIM tWidth AS INTEGER, tHeight AS INTEGER
+Sub CenteredText (Text$)
+    Dim tWidth As Integer, tHeight As Integer
 
-    tWidth = _PRINTWIDTH(Text$) + 20
+    tWidth = _PrintWidth(Text$) + 20
     tHeight = FontHeight * 3
 
-    LINE (_WIDTH / 2 - tWidth / 2, _HEIGHT / 2 - tHeight / 2)-STEP(tWidth - 1, tHeight - 1), _RGBA32(255, 255, 255, 200), BF
-    COLOR _RGB32(255, 255, 255), 0
-    _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(Text$) / 2 + 1, _HEIGHT / 2 - FontHeight / 2 + 1), Text$
-    COLOR _RGB32(0, 0, 0), 0
-    _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(Text$) / 2, _HEIGHT / 2 - FontHeight / 2), Text$
-END SUB
+    Line (_Width / 2 - tWidth / 2, _Height / 2 - tHeight / 2)-Step(tWidth - 1, tHeight - 1), _RGBA32(255, 255, 255, 200), BF
+    Color _RGB32(255, 255, 255), 0
+    _PrintString (_Width / 2 - _PrintWidth(Text$) / 2 + 1, _Height / 2 - FontHeight / 2 + 1), Text$
+    Color _RGB32(0, 0, 0), 0
+    _PrintString (_Width / 2 - _PrintWidth(Text$) / 2, _Height / 2 - FontHeight / 2), Text$
+End Sub
 
-SUB StatusText (Text$)
-    COLOR _RGB32(0, 0, 0), _RGB32(255, 255, 255)
-    CLS
+Sub StatusText (Text$)
+    Color _RGB32(0, 0, 0), _RGB32(255, 255, 255)
+    Cls
 
-    _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(Text$) / 2, _HEIGHT - FontHeight * 1.5), Text$
-END SUB
+    _PrintString (_Width / 2 - _PrintWidth(Text$) / 2, _Height - FontHeight * 1.5), Text$
+End Sub
 
-SUB GameSetup
+Sub GameSetup
     'Acknowledgements:
     '--------------------------------------------------------------------------------------------------------------------
     'Light bulb images from https://blog.1000bulbs.com/home/flip-the-switch-how-an-incandescent-light-bulb-works
@@ -209,7 +209,7 @@ SUB GameSetup
     '--------------------------------------------------------------------------------------------------------------------
 
     'Load assets:
-    Arena = _NEWIMAGE(600, 600, 32)
+    Arena = _NewImage(600, 600, 32)
 
     'Arial = _LOADFONT("arial.ttf", 24)
     LightOn(1) = loadImage("assets/lighton.png")
@@ -241,146 +241,146 @@ SUB GameSetup
     Switch = loadSound("assets/switch.wav")
     Bonus = loadSound("assets/bonus.wav")
 
-    IF isLoaded(Bg) THEN _SETALPHA 30, , Bg
-    IF Arial > 0 THEN FontHeight = _FONTHEIGHT(Arial) ELSE FontHeight = 16
+    If isLoaded(Bg) Then _SetAlpha 30, , Bg
+    If Arial > 0 Then FontHeight = _FontHeight(Arial) Else FontHeight = 16
 
-    IF Arial > 0 THEN
-        _FONT Arial
-        _DEST OverlayScreen
-        _FONT Arial
-        _DEST 0
-    END IF
+    If Arial > 0 Then
+        _Font Arial
+        _Dest OverlayScreen
+        _Font Arial
+        _Dest 0
+    End If
 
     'Screen setup:
-    SCREEN _NEWIMAGE(600, 600 + FontHeight * 2, 32)
-    DO UNTIL _SCREENEXISTS: _LIMIT 30: LOOP
-    _TITLE "Lights On" + CHR$(0)
+    Screen _NewImage(600, 600 + FontHeight * 2, 32)
+    Do Until _ScreenExists: _Limit 30: Loop
+    _Title "Lights On" + Chr$(0)
 
-    OverlayScreen = _NEWIMAGE(_WIDTH / 2, _HEIGHT / 2, 32)
+    OverlayScreen = _NewImage(_Width / 2, _Height / 2, 32)
 
     'Set buttons:
-    REDIM Button(1 TO 5) AS obj, Caption(1 TO UBOUND(Button)) AS STRING
+    ReDim Button(1 To 5) As obj, Caption(1 To UBound(Button)) As String
 
-    DIM b AS INTEGER
+    Dim b As Integer
     b = b + 1: Caption(b) = "Try again"
-    Button(b).y = _HEIGHT / 2 + FontHeight * 11.5
-    Button(b).w = _PRINTWIDTH(Caption(b)) + 40
-    Button(b).x = _WIDTH / 2 - 10 - Button(b).w
+    Button(b).y = _Height / 2 + FontHeight * 11.5
+    Button(b).w = _PrintWidth(Caption(b)) + 40
+    Button(b).x = _Width / 2 - 10 - Button(b).w
     Button(b).h = 40
 
     b = b + 1: Caption(b) = "Next level"
-    Button(b).y = _HEIGHT / 2 + FontHeight * 11.5
-    Button(b).w = _PRINTWIDTH(Caption(b)) + 40
-    Button(b).x = _WIDTH / 2 + 10
+    Button(b).y = _Height / 2 + FontHeight * 11.5
+    Button(b).w = _PrintWidth(Caption(b)) + 40
+    Button(b).x = _Width / 2 + 10
     Button(b).h = 40
 
     b = b + 1: Caption(b) = "Restart level"
-    IF isLoaded(RestartIcon) THEN
-        Button(b).w = _WIDTH(RestartIcon) + 20
+    If isLoaded(RestartIcon) Then
+        Button(b).w = _Width(RestartIcon) + 20
         Button(b).h = FontHeight * 2
-        Button(b).x = _WIDTH - Button(b).w - 10
-        Button(b).y = _HEIGHT - FontHeight - Button(b).h / 2
-    ELSE
+        Button(b).x = _Width - Button(b).w - 10
+        Button(b).y = _Height - FontHeight - Button(b).h / 2
+    Else
         Button(b).h = FontHeight * 2
-        Button(b).w = _PRINTWIDTH(Caption(b)) + 20
-        Button(b).x = _WIDTH - 10 - Button(b).w
-        Button(b).y = _HEIGHT - Button(b).h
-    END IF
+        Button(b).w = _PrintWidth(Caption(b)) + 20
+        Button(b).x = _Width - 10 - Button(b).w
+        Button(b).y = _Height - Button(b).h
+    End If
 
     b = b + 1: Caption(b) = "Yes"
-    Button(b).y = _HEIGHT / 2 - FontHeight / 2
-    Button(b).w = _PRINTWIDTH(Caption(b)) + 40
-    Button(b).x = _WIDTH / 2 - 10 - Button(b).w
+    Button(b).y = _Height / 2 - FontHeight / 2
+    Button(b).w = _PrintWidth(Caption(b)) + 40
+    Button(b).x = _Width / 2 - 10 - Button(b).w
     Button(b).h = 40
 
     b = b + 1: Caption(b) = "No"
-    Button(b).y = _HEIGHT / 2 - FontHeight / 2
-    Button(b).w = _PRINTWIDTH(Caption(b)) + 40
-    Button(b).x = _WIDTH / 2 + 10
+    Button(b).y = _Height / 2 - FontHeight / 2
+    Button(b).w = _PrintWidth(Caption(b)) + 40
+    Button(b).x = _Width / 2 + 10
     Button(b).h = 40
-END SUB
+End Sub
 
-FUNCTION loadImage& (file$)
-    DIM tempHandle&
+Function loadImage& (file$)
+    Dim tempHandle&
 
-    IF _FILEEXISTS(file$) = 0 THEN EXIT FUNCTION
+    If _FileExists(file$) = 0 Then Exit Function
 
-    tempHandle& = _LOADIMAGE(file$, 32)
-    IF tempHandle& = -1 THEN 'load failed
+    tempHandle& = _LoadImage(file$, 32)
+    If tempHandle& = -1 Then 'load failed
         tempHandle& = 0
-    END IF
+    End If
 
     loadImage& = tempHandle&
-END FUNCTION
+End Function
 
-FUNCTION isLoaded%% (imgHandle&)
+Function isLoaded%% (imgHandle&)
     isLoaded%% = imgHandle& < -1
-END FUNCTION
+End Function
 
-SUB SetLevel
-    IF NOT TryAgain THEN Level = Level + 1
+Sub SetLevel
+    If Not TryAgain Then Level = Level + 1
 
-    DIM LevelSettings AS INTEGER
-    IF Level <= 15 THEN LevelSettings = Level ELSE LevelSettings = _CEIL(RND * 13) + 2
+    Dim LevelSettings As Integer
+    If Level <= 15 Then LevelSettings = Level Else LevelSettings = _Ceil(Rnd * 13) + 2
 
-    SELECT CASE LevelSettings
-        CASE 1
+    Select Case LevelSettings
+        Case 1
             maxGridW = 1
             maxGridH = 2
             MinMoves = 2
             lightID = 2
-        CASE 2
+        Case 2
             maxGridW = 2
             maxGridH = 2
             MinMoves = 1
             lightID = 2
-        CASE 3, 4
+        Case 3, 4
             maxGridW = 4
             maxGridH = 5
             MinMoves = 11
             lightID = 3
-        CASE 5
+        Case 5
             maxGridW = 5
             maxGridH = 7
             MinMoves = 65
             lightID = 4
-        CASE 6
+        Case 6
             maxGridW = 10
             maxGridH = 10
             MinMoves = 65
             lightID = 6
-        CASE 7, 8
+        Case 7, 8
             maxGridW = 7
             maxGridH = 9
             MinMoves = 90
             lightID = 5
-        CASE 9, 10
+        Case 9, 10
             maxGridW = 7
             maxGridH = 11
             MinMoves = 130
             lightID = 7
-        CASE 11, 12
+        Case 11, 12
             maxGridW = 9
             maxGridH = 11
             MinMoves = 90
             lightID = 7
-        CASE 13, 14
+        Case 13, 14
             maxGridW = 11
             maxGridH = 17
             MinMoves = 180
             lightID = 8
-        CASE ELSE
+        Case Else
             maxGridW = 20
             maxGridH = 20
             MinMoves = 230
             lightID = 9
-    END SELECT
+    End Select
 
-    maxW = _WIDTH(Arena) / maxGridW
-    maxH = _HEIGHT(Arena) / maxGridH
+    maxW = _Width(Arena) / maxGridW
+    maxH = _Height(Arena) / maxGridH
 
-    FOR i = 1 TO maxGridW
-        FOR j = 1 TO maxGridH
+    For i = 1 To maxGridW
+        For j = 1 To maxGridH
             lights(i, j).x = i * maxW - maxW
             lights(i, j).y = j * maxH - maxH
             lights(i, j).w = maxW - 1
@@ -388,37 +388,37 @@ SUB SetLevel
             lights(i, j).i = i
             lights(i, j).j = j
             lights(i, j).IsOn = false
-        NEXT
-    NEXT
+        Next
+    Next
 
-    DIM rndState AS INTEGER
-    FOR rndState = 1 TO maxGridW / 3
-        i = _CEIL(RND * maxGridW)
-        j = _CEIL(RND * maxGridH)
+    Dim rndState As Integer
+    For rndState = 1 To maxGridW / 3
+        i = _Ceil(Rnd * maxGridW)
+        j = _Ceil(Rnd * maxGridH)
         SetState lights(i, j)
-    NEXT
+    Next
 
-    start! = TIMER
+    start! = Timer
     moves = 0
-END SUB
+End Sub
 
-SUB EndScreen
+Sub EndScreen
     UpdateArena
-    _DEST 0
-    _PUTIMAGE (0, 0), Arena
+    _Dest 0
+    _PutImage (0, 0), Arena
 
-    DIM EndAnimationStep AS INTEGER, FinalBonus AS _BYTE
-    DIM SlideOpen AS INTEGER, SlideVelocity AS SINGLE
-    DIM Snd1 AS _BYTE, Snd2 AS _BYTE, Snd3 AS _BYTE
-    DIM FinalLamp1!, FinalLamp2!, FinalLamp3!
-    DIM SkipEndAnimation AS _BYTE
-    DIM BgXOffset AS SINGLE, BgYOffset AS SINGLE
-    DIM BgXSpeed AS SINGLE, BgYSpeed AS SINGLE
+    Dim EndAnimationStep As Integer, FinalBonus As _Byte
+    Dim SlideOpen As Integer, SlideVelocity As Single
+    Dim Snd1 As _Byte, Snd2 As _Byte, Snd3 As _Byte
+    Dim FinalLamp1!, FinalLamp2!, FinalLamp3!
+    Dim SkipEndAnimation As _Byte
+    Dim BgXOffset As Single, BgYOffset As Single
+    Dim BgXSpeed As Single, BgYSpeed As Single
 
     Snd1 = false: Snd2 = false: Snd3 = false
     FinalBonus = false
 
-    IF isLoaded(LightOn(3)) THEN _SETALPHA 255, , LightOn(3)
+    If isLoaded(LightOn(3)) Then _SetAlpha 255, , LightOn(3)
 
     Alpha = 0
     TryAgain = false
@@ -427,357 +427,357 @@ SUB EndScreen
 
     BgXSpeed = .5
     BgYSpeed = .3
-    IF isLoaded(Bg) THEN
-        BgXOffset = _WIDTH(Bg) - _WIDTH * 1.5
-        BgYOffset = _HEIGHT(Bg) - _HEIGHT * 1.5
-    END IF
+    If isLoaded(Bg) Then
+        BgXOffset = _Width(Bg) - _Width * 1.5
+        BgYOffset = _Height(Bg) - _Height * 1.5
+    End If
 
     p5play Piano
-    DO
-        WHILE _MOUSEINPUT: WEND
+    Do
+        While _MouseInput: Wend
 
-        IF EndAnimationStep < 70 THEN
-            _DEST OverlayScreen
-            CLS , 0
-            m$ = "Level" + STR$(Level) + " - All Lights On!"
-            COLOR _RGB32(0, 0, 0), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 - 80 - FontHeight + 1), m$
-            COLOR _RGB32(255, 255, 255), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 - 80 - FontHeight), m$
+        If EndAnimationStep < 70 Then
+            _Dest OverlayScreen
+            Cls , 0
+            m$ = "Level" + Str$(Level) + " - All Lights On!"
+            Color _RGB32(0, 0, 0), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 - 80 - FontHeight + 1), m$
+            Color _RGB32(255, 255, 255), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 - 80 - FontHeight), m$
 
-            m$ = "Moves used:" + STR$(moves)
-            COLOR _RGB32(0, 0, 0), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 + FontHeight * 2.5 + 1), m$
-            COLOR _RGB32(255, 255, 255), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 + FontHeight * 2.5), m$
+            m$ = "Moves used:" + Str$(moves)
+            Color _RGB32(0, 0, 0), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 + FontHeight * 2.5 + 1), m$
+            Color _RGB32(255, 255, 255), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 + FontHeight * 2.5), m$
 
-            m$ = "Score:" + STR$(Score)
-            COLOR _RGB32(0, 0, 0), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 + FontHeight * 3.5 + 1), m$
-            COLOR _RGB32(255, 255, 255), 0
-            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 + FontHeight * 3.5), m$
-        END IF
+            m$ = "Score:" + Str$(Score)
+            Color _RGB32(0, 0, 0), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 + FontHeight * 3.5 + 1), m$
+            Color _RGB32(255, 255, 255), 0
+            _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 + FontHeight * 3.5), m$
+        End If
 
-        _DEST 0
+        _Dest 0
 
         BgXOffset = BgXOffset + BgXSpeed
         BgYOffset = BgYOffset + BgYSpeed
-        IF isLoaded(Bg) THEN
-            IF BgXOffset < 0 OR BgXOffset + _WIDTH - 1 > _WIDTH(Bg) THEN BgXSpeed = BgXSpeed * -1
-            IF BgYOffset < 0 OR BgYOffset + _HEIGHT - 1 > _HEIGHT(Bg) THEN BgYSpeed = BgYSpeed * -1
-            _PUTIMAGE (0, 0)-STEP(_WIDTH - 1, _HEIGHT - 1), Bg, , (BgXOffset, BgYOffset)-STEP(_WIDTH - 1, _HEIGHT - 1)
-        END IF
-        SELECT CASE EndAnimationStep
-            CASE 1
-                IF Alpha < 255 THEN Alpha = Alpha + 10 ELSE EndAnimationStep = 2: SlideOpen = 0: SlideVelocity = 30: Alpha = 0
-                IF NOT isLoaded(Bg) THEN
-                    LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(255, 255, 0, Alpha), BF
-                    LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(255, 255, 255, Alpha), BF
-                END IF
-                _PUTIMAGE , OverlayScreen
-            CASE 2
-                IF NOT isLoaded(Bg) THEN LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(255, 255, 255, 30), BF
+        If isLoaded(Bg) Then
+            If BgXOffset < 0 Or BgXOffset + _Width - 1 > _Width(Bg) Then BgXSpeed = BgXSpeed * -1
+            If BgYOffset < 0 Or BgYOffset + _Height - 1 > _Height(Bg) Then BgYSpeed = BgYSpeed * -1
+            _PutImage (0, 0)-Step(_Width - 1, _Height - 1), Bg, , (BgXOffset, BgYOffset)-Step(_Width - 1, _Height - 1)
+        End If
+        Select Case EndAnimationStep
+            Case 1
+                If Alpha < 255 Then Alpha = Alpha + 10 Else EndAnimationStep = 2: SlideOpen = 0: SlideVelocity = 30: Alpha = 0
+                If Not isLoaded(Bg) Then
+                    Line (0, 0)-(_Width, _Height), _RGBA32(255, 255, 0, Alpha), BF
+                    Line (0, 0)-(_Width, _Height), _RGBA32(255, 255, 255, Alpha), BF
+                End If
+                _PutImage , OverlayScreen
+            Case 2
+                If Not isLoaded(Bg) Then Line (0, 0)-(_Width, _Height), _RGBA32(255, 255, 255, 30), BF
                 SlideVelocity = SlideVelocity - .2
-                IF SlideVelocity < 1 THEN SlideVelocity = 1
-                IF SlideOpen < 600 THEN
+                If SlideVelocity < 1 Then SlideVelocity = 1
+                If SlideOpen < 600 Then
                     SlideOpen = SlideOpen + SlideVelocity
-                ELSE
+                Else
                     SlideOpen = 600
                     EndAnimationStep = 3
-                    i = _WIDTH / 2 - (SlideOpen / 3.5)
-                    j = _HEIGHT / 2 - SlideOpen / 5 + FontHeight * 1.5
-                END IF
+                    i = _Width / 2 - (SlideOpen / 3.5)
+                    j = _Height / 2 - SlideOpen / 5 + FontHeight * 1.5
+                End If
 
-                _PUTIMAGE , OverlayScreen
-                DIM b AS INTEGER
+                _PutImage , OverlayScreen
+                Dim b As Integer
                 b = map(SlideOpen, 0, 600, 255, 0)
-                LINE (0, _HEIGHT / 2 - 125 + FontHeight * 1.5)-STEP(SlideOpen, 130), _RGB32(255, 255, 255), BF
-                LINE (0, _HEIGHT / 2 - 120 + FontHeight * 1.5)-STEP(SlideOpen, 120), _RGB32(b * 1.5, b * 1.5 - 50, 0), BF
-            CASE IS >= 3
+                Line (0, _Height / 2 - 125 + FontHeight * 1.5)-Step(SlideOpen, 130), _RGB32(255, 255, 255), BF
+                Line (0, _Height / 2 - 120 + FontHeight * 1.5)-Step(SlideOpen, 120), _RGB32(b * 1.5, b * 1.5 - 50, 0), BF
+            Case Is >= 3
                 EndAnimationStep = EndAnimationStep + 1
-                IF NOT isLoaded(Bg) THEN LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(255, 255, 255, 40), BF
-                _PUTIMAGE , OverlayScreen
-                LINE (0, _HEIGHT / 2 - 125 + FontHeight * 1.5)-STEP(SlideOpen, 130), _RGB32(255, 255, 255), BF
-                LINE (0, _HEIGHT / 2 - 120 + FontHeight * 1.5)-STEP(SlideOpen, 120), _RGB32(b, b - 20, 0), BF
+                If Not isLoaded(Bg) Then Line (0, 0)-(_Width, _Height), _RGBA32(255, 255, 255, 40), BF
+                _PutImage , OverlayScreen
+                Line (0, _Height / 2 - 125 + FontHeight * 1.5)-Step(SlideOpen, 130), _RGB32(255, 255, 255), BF
+                Line (0, _Height / 2 - 120 + FontHeight * 1.5)-Step(SlideOpen, 120), _RGB32(b, b - 20, 0), BF
 
-                IF isLoaded(LightOff(3)) THEN
-                    _PUTIMAGE (i, j), LightOff(3)
-                    _PUTIMAGE (i + SlideOpen / 5, j), LightOff(3)
-                    _PUTIMAGE (i + (SlideOpen / 5) * 2, j), LightOff(3)
-                END IF
+                If isLoaded(LightOff(3)) Then
+                    _PutImage (i, j), LightOff(3)
+                    _PutImage (i + SlideOpen / 5, j), LightOff(3)
+                    _PutImage (i + (SlideOpen / 5) * 2, j), LightOff(3)
+                End If
 
-                IF EndAnimationStep >= 3 THEN
-                    IF MinMoves <= MinMoves * 3 THEN
-                        IF Snd1 = false THEN p5play Ding: Snd1 = true
-                        IF EndAnimationStep = 4 THEN FinalLamp1! = TIMER: Score = Score + 20
+                If EndAnimationStep >= 3 Then
+                    If MinMoves <= MinMoves * 3 Then
+                        If Snd1 = false Then p5play Ding: Snd1 = true
+                        If EndAnimationStep = 4 Then FinalLamp1! = Timer: Score = Score + 20
 
-                        IF EndAnimationStep <= 20 THEN
+                        If EndAnimationStep <= 20 Then
                             Score = Score + 10
-                            IF NOT SkipEndAnimation THEN p5play Switch
-                        END IF
+                            If Not SkipEndAnimation Then p5play Switch
+                        End If
 
-                        IF isLoaded(LightOn(3)) THEN
-                            _SETALPHA constrain(map(TIMER - FinalLamp1!, 0, .3, 0, 255), 0, 255), , LightOn(3)
-                            _PUTIMAGE (i, j), LightOn(3)
-                        ELSE
-                            LINE (i, j)-STEP(SlideOpen / 5, SlideOpen / 5), _RGB32(111, 227, 39), BF
-                            LINE (i, j)-STEP(SlideOpen / 5, SlideOpen / 5), _RGB32(0, 0, 0), B
-                        END IF
-                    END IF
-                END IF
+                        If isLoaded(LightOn(3)) Then
+                            _SetAlpha constrain(map(Timer - FinalLamp1!, 0, .3, 0, 255), 0, 255), , LightOn(3)
+                            _PutImage (i, j), LightOn(3)
+                        Else
+                            Line (i, j)-Step(SlideOpen / 5, SlideOpen / 5), _RGB32(111, 227, 39), BF
+                            Line (i, j)-Step(SlideOpen / 5, SlideOpen / 5), _RGB32(0, 0, 0), B
+                        End If
+                    End If
+                End If
 
-                IF EndAnimationStep > 20 THEN
-                    IF moves <= MinMoves * 2 THEN
-                        IF Snd2 = false THEN p5play Ding: Snd2 = true
-                        IF EndAnimationStep = 21 THEN FinalLamp2! = TIMER: Score = Score + 20
+                If EndAnimationStep > 20 Then
+                    If moves <= MinMoves * 2 Then
+                        If Snd2 = false Then p5play Ding: Snd2 = true
+                        If EndAnimationStep = 21 Then FinalLamp2! = Timer: Score = Score + 20
 
-                        IF EndAnimationStep <= 40 THEN
+                        If EndAnimationStep <= 40 Then
                             Score = Score + 10
-                            IF NOT SkipEndAnimation THEN p5play Switch
-                        END IF
+                            If Not SkipEndAnimation Then p5play Switch
+                        End If
 
-                        IF isLoaded(LightOn(3)) THEN
-                            _SETALPHA constrain(map(TIMER - FinalLamp2!, 0, .3, 0, 255), 0, 255), , LightOn(3)
-                            _PUTIMAGE (i + SlideOpen / 5, j), LightOn(3)
-                        ELSE
-                            LINE (i + SlideOpen / 5, j)-STEP(SlideOpen / 5, SlideOpen / 5), _RGB32(111, 227, 39), BF
-                            LINE (i + SlideOpen / 5, j)-STEP(SlideOpen / 5, SlideOpen / 5), _RGB32(0, 0, 0), B
-                        END IF
-                    END IF
-                END IF
+                        If isLoaded(LightOn(3)) Then
+                            _SetAlpha constrain(map(Timer - FinalLamp2!, 0, .3, 0, 255), 0, 255), , LightOn(3)
+                            _PutImage (i + SlideOpen / 5, j), LightOn(3)
+                        Else
+                            Line (i + SlideOpen / 5, j)-Step(SlideOpen / 5, SlideOpen / 5), _RGB32(111, 227, 39), BF
+                            Line (i + SlideOpen / 5, j)-Step(SlideOpen / 5, SlideOpen / 5), _RGB32(0, 0, 0), B
+                        End If
+                    End If
+                End If
 
-                IF EndAnimationStep > 40 THEN
-                    IF moves <= MinMoves THEN
-                        IF Snd3 = false THEN p5play Ding: Snd3 = true
-                        IF EndAnimationStep = 41 THEN FinalLamp3! = TIMER: Score = Score + 20
+                If EndAnimationStep > 40 Then
+                    If moves <= MinMoves Then
+                        If Snd3 = false Then p5play Ding: Snd3 = true
+                        If EndAnimationStep = 41 Then FinalLamp3! = Timer: Score = Score + 20
 
-                        IF EndAnimationStep <= 60 THEN
+                        If EndAnimationStep <= 60 Then
                             Score = Score + 10
-                            IF NOT SkipEndAnimation THEN p5play Switch
-                        END IF
+                            If Not SkipEndAnimation Then p5play Switch
+                        End If
 
-                        IF isLoaded(LightOn(3)) THEN
-                            _SETALPHA constrain(map(TIMER - FinalLamp3!, 0, .3, 0, 255), 0, 255), , LightOn(3)
-                            _PUTIMAGE (i + (SlideOpen / 5) * 2, j), LightOn(3)
-                        ELSE
-                            LINE (i + (SlideOpen / 5) * 2, j)-STEP(SlideOpen / 5, SlideOpen / 5), _RGB32(111, 227, 39), BF
-                            LINE (i + (SlideOpen / 5) * 2, j)-STEP(SlideOpen / 5, SlideOpen / 5), _RGB32(0, 0, 0), B
-                        END IF
-                    END IF
-                END IF
+                        If isLoaded(LightOn(3)) Then
+                            _SetAlpha constrain(map(Timer - FinalLamp3!, 0, .3, 0, 255), 0, 255), , LightOn(3)
+                            _PutImage (i + (SlideOpen / 5) * 2, j), LightOn(3)
+                        Else
+                            Line (i + (SlideOpen / 5) * 2, j)-Step(SlideOpen / 5, SlideOpen / 5), _RGB32(111, 227, 39), BF
+                            Line (i + (SlideOpen / 5) * 2, j)-Step(SlideOpen / 5, SlideOpen / 5), _RGB32(0, 0, 0), B
+                        End If
+                    End If
+                End If
 
-                IF EndAnimationStep > 60 THEN
-                    IF FinalBonus = false THEN
+                If EndAnimationStep > 60 Then
+                    If FinalBonus = false Then
                         FinalBonus = true
-                        IF moves < MinMoves THEN
+                        If moves < MinMoves Then
                             Score = Score + 50
                             p5play Bonus
-                        END IF
-                    ELSE
-                        IF moves < MinMoves THEN
+                        End If
+                    Else
+                        If moves < MinMoves Then
                             m$ = "Strategy master! +50 bonus points!"
-                            COLOR _RGB32(0, 0, 0), 0
-                            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 + FontHeight * 9.5 + 1), m$
-                            COLOR _RGB32(255, 255, 255), 0
-                            _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 + FontHeight * 9.5), m$
-                        END IF
-                    END IF
-                END IF
-        END SELECT
+                            Color _RGB32(0, 0, 0), 0
+                            _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 + FontHeight * 9.5 + 1), m$
+                            Color _RGB32(255, 255, 255), 0
+                            _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 + FontHeight * 9.5), m$
+                        End If
+                    End If
+                End If
+        End Select
 
         'Buttons
-        IF EndAnimationStep > 60 THEN
-            DIM ii AS INTEGER
-            FOR ii = 1 TO 2
-                IF Hovering(Button(ii)) THEN
-                    LINE (Button(ii).x + 5, Button(ii).y + 5)-STEP(Button(ii).w, Button(ii).h), _RGB32(0, 0, 0), BF
-                    LINE (Button(ii).x, Button(ii).y)-STEP(Button(ii).w, Button(ii).h), _RGB32(255, 255, 255), BF
-                ELSE
-                    LINE (Button(ii).x, Button(ii).y)-STEP(Button(ii).w, Button(ii).h), _RGBA32(255, 255, 255, 20), BF
-                END IF
+        If EndAnimationStep > 60 Then
+            Dim ii As Integer
+            For ii = 1 To 2
+                If Hovering(Button(ii)) Then
+                    Line (Button(ii).x + 5, Button(ii).y + 5)-Step(Button(ii).w, Button(ii).h), _RGB32(0, 0, 0), BF
+                    Line (Button(ii).x, Button(ii).y)-Step(Button(ii).w, Button(ii).h), _RGB32(255, 255, 255), BF
+                Else
+                    Line (Button(ii).x, Button(ii).y)-Step(Button(ii).w, Button(ii).h), _RGBA32(255, 255, 255, 20), BF
+                End If
                 'COLOR _RGB32(255, 255, 255), 0
                 '_PRINTSTRING (Button(ii).x + Button(ii).w / 2 - _PRINTWIDTH(Caption(ii)) / 2 + 1, Button(ii).y + Button(ii).h / 2 - FontHeight / 2 + 1), Caption(ii)
-                COLOR _RGB32(0, 0, 0), 0
-                _PRINTSTRING (Button(ii).x + Button(ii).w / 2 - _PRINTWIDTH(Caption(ii)) / 2, Button(ii).y + Button(ii).h / 2 - FontHeight / 2), Caption(ii)
-            NEXT
-        END IF
+                Color _RGB32(0, 0, 0), 0
+                _PrintString (Button(ii).x + Button(ii).w / 2 - _PrintWidth(Caption(ii)) / 2, Button(ii).y + Button(ii).h / 2 - FontHeight / 2), Caption(ii)
+            Next
+        End If
 
-        _DISPLAY
+        _Display
 
-        k = _KEYHIT
+        k = _KeyHit
 
-        IF k = 13 AND EndAnimationStep > 60 THEN EXIT DO
-        IF k = 27 THEN SYSTEM
+        If k = 13 And EndAnimationStep > 60 Then Exit Do
+        If k = 27 Then System
 
-        IF _MOUSEBUTTON(1) AND EndAnimationStep > 60 THEN
-            WHILE _MOUSEBUTTON(1): ii = _MOUSEINPUT: WEND
-            IF Hovering(Button(1)) THEN
+        If _MouseButton(1) And EndAnimationStep > 60 Then
+            While _MouseButton(1): ii = _MouseInput: Wend
+            If Hovering(Button(1)) Then
                 TryAgain = true
-                EXIT DO
-            ELSEIF Hovering(Button(2)) THEN
-                EXIT DO
-            END IF
-        ELSEIF _MOUSEBUTTON(1) THEN
+                Exit Do
+            ElseIf Hovering(Button(2)) Then
+                Exit Do
+            End If
+        ElseIf _MouseButton(1) Then
             SkipEndAnimation = true
-        END IF
+        End If
 
-        IF NOT SkipEndAnimation THEN _LIMIT 30
-    LOOP
-END SUB
+        If Not SkipEndAnimation Then _Limit 30
+    Loop
+End Sub
 
-SUB UpdateArena
-    DIM imgWidth AS INTEGER, imgHeight AS INTEGER
-    DIM FoundHover AS _BYTE
+Sub UpdateArena
+    Dim imgWidth As Integer, imgHeight As Integer
+    Dim FoundHover As _Byte
 
     imgHeight = lights(1, 1).h
     imgWidth = imgHeight
 
-    _DEST Arena
-    CLS
-    FOR i = 1 TO maxGridW
-        FOR j = 1 TO maxGridH
-            IF isLoaded(LightOff(lightID)) THEN
-                _PUTIMAGE (lights(i, j).x + lights(i, j).w / 2 - imgWidth / 2, lights(i, j).y), LightOff(lightID)
-            END IF
-            IF lights(i, j).IsOn THEN
-                IF isLoaded(LightOn(lightID)) THEN
-                    IF TIMER - lights(i, j).lastSwitch < .3 THEN
-                        _SETALPHA constrain(map(TIMER - lights(i, j).lastSwitch, 0, .3, 0, 255), 0, 255), , LightOn(lightID)
-                    ELSE
-                        _SETALPHA 255, , LightOn(lightID)
-                    END IF
-                    _PUTIMAGE (lights(i, j).x + lights(i, j).w / 2 - imgWidth / 2, lights(i, j).y), LightOn(lightID)
-                ELSE
-                    LINE (lights(i, j).x, lights(i, j).y)-STEP(lights(i, j).w, lights(i, j).h), _RGB32(111, 227, 39), BF
-                END IF
-            END IF
-            IF Hovering(lights(i, j)) AND FoundHover = false AND TutorialMode = false THEN
+    _Dest Arena
+    Cls
+    For i = 1 To maxGridW
+        For j = 1 To maxGridH
+            If isLoaded(LightOff(lightID)) Then
+                _PutImage (lights(i, j).x + lights(i, j).w / 2 - imgWidth / 2, lights(i, j).y), LightOff(lightID)
+            End If
+            If lights(i, j).IsOn Then
+                If isLoaded(LightOn(lightID)) Then
+                    If Timer - lights(i, j).lastSwitch < .3 Then
+                        _SetAlpha constrain(map(Timer - lights(i, j).lastSwitch, 0, .3, 0, 255), 0, 255), , LightOn(lightID)
+                    Else
+                        _SetAlpha 255, , LightOn(lightID)
+                    End If
+                    _PutImage (lights(i, j).x + lights(i, j).w / 2 - imgWidth / 2, lights(i, j).y), LightOn(lightID)
+                Else
+                    Line (lights(i, j).x, lights(i, j).y)-Step(lights(i, j).w, lights(i, j).h), _RGB32(111, 227, 39), BF
+                End If
+            End If
+            If Hovering(lights(i, j)) And FoundHover = false And TutorialMode = false Then
                 FoundHover = true
-                LINE (lights(i, j).x, lights(i, j).y)-STEP(lights(i, j).w, lights(i, j).h), _RGBA32(255, 255, 255, 100), BF
+                Line (lights(i, j).x, lights(i, j).y)-Step(lights(i, j).w, lights(i, j).h), _RGBA32(255, 255, 255, 100), BF
                 CheckState lights(i, j)
-            END IF
-            LINE (lights(i, j).x, lights(i, j).y)-STEP(lights(i, j).w, lights(i, j).h), , B
-        NEXT
-    NEXT
-    _DEST 0
-    _PUTIMAGE (0, 0), Arena
-END SUB
+            End If
+            Line (lights(i, j).x, lights(i, j).y)-Step(lights(i, j).w, lights(i, j).h), , B
+        Next
+    Next
+    _Dest 0
+    _PutImage (0, 0), Arena
+End Sub
 
-SUB UpdateScore
-    DIM seconds%
-    COLOR _RGB32(0, 0, 0), _RGB32(255, 255, 255)
-    CLS
+Sub UpdateScore
+    Dim seconds%
+    Color _RGB32(0, 0, 0), _RGB32(255, 255, 255)
+    Cls
 
-    IF TIMER > start! THEN
-        seconds% = TIMER - start!
-    ELSE
-        seconds% = 86400 - start: start! = TIMER
-    END IF
+    If Timer > start! Then
+        seconds% = Timer - start!
+    Else
+        seconds% = 86400 - start: start! = Timer
+    End If
 
-    m$ = "Level:" + STR$(Level) + " (" + LTRIM$(STR$(maxGridW)) + "x" + LTRIM$(STR$(maxGridH)) + ")    Moves:" + STR$(moves) + "    Time elapsed:" + STR$(seconds%) + "s"
-    _PRINTSTRING (10, _HEIGHT - FontHeight * 1.5), m$
+    m$ = "Level:" + Str$(Level) + " (" + LTrim$(Str$(maxGridW)) + "x" + LTrim$(Str$(maxGridH)) + ")    Moves:" + Str$(moves) + "    Time elapsed:" + Str$(seconds%) + "s"
+    _PrintString (10, _Height - FontHeight * 1.5), m$
 
-    IF Hovering(Button(3)) THEN
-        LINE (Button(3).x, Button(3).y)-STEP(Button(3).w - 1, Button(3).h - 1), _RGB32(127, 127, 127), BF
-        IF _MOUSEBUTTON(1) THEN
-            WHILE _MOUSEBUTTON(1): i = _MOUSEINPUT: WEND
-            IF Hovering(Button(3)) THEN
+    If Hovering(Button(3)) Then
+        Line (Button(3).x, Button(3).y)-Step(Button(3).w - 1, Button(3).h - 1), _RGB32(127, 127, 127), BF
+        If _MouseButton(1) Then
+            While _MouseButton(1): i = _MouseInput: Wend
+            If Hovering(Button(3)) Then
                 TryAgain = true: SetLevel
-            END IF
-        END IF
-    END IF
+            End If
+        End If
+    End If
 
-    IF isLoaded(RestartIcon) THEN
-        _PUTIMAGE (Button(3).x + Button(3).w / 2 - _WIDTH(RestartIcon) / 2, Button(3).y + Button(3).h / 2 - _HEIGHT(RestartIcon) / 2), RestartIcon
-    ELSE
-        COLOR _RGB32(0, 0, 0), 0
-        _PRINTSTRING (Button(3).x + Button(3).w / 2 - _PRINTWIDTH(Caption(3)) / 2, Button(3).y + Button(3).h / 2 - FontHeight / 2), Caption(3)
-    END IF
-END SUB
+    If isLoaded(RestartIcon) Then
+        _PutImage (Button(3).x + Button(3).w / 2 - _Width(RestartIcon) / 2, Button(3).y + Button(3).h / 2 - _Height(RestartIcon) / 2), RestartIcon
+    Else
+        Color _RGB32(0, 0, 0), 0
+        _PrintString (Button(3).x + Button(3).w / 2 - _PrintWidth(Caption(3)) / 2, Button(3).y + Button(3).h / 2 - FontHeight / 2), Caption(3)
+    End If
+End Sub
 
-FUNCTION Victory%%
-    DIM i AS INTEGER, j AS INTEGER
-    FOR i = 1 TO maxGridW
-        FOR j = 1 TO maxGridH
-            IF lights(i, j).IsOn = false THEN EXIT FUNCTION
-        NEXT
-    NEXT
+Function Victory%%
+    Dim i As Integer, j As Integer
+    For i = 1 To maxGridW
+        For j = 1 To maxGridH
+            If lights(i, j).IsOn = false Then Exit Function
+        Next
+    Next
 
     Victory%% = true
-END FUNCTION
+End Function
 
-SUB CheckState (object AS obj)
-    DIM i AS INTEGER
+Sub CheckState (object As obj)
+    Dim i As Integer
 
-    IF _MOUSEBUTTON(1) THEN
-        WHILE _MOUSEBUTTON(1): i = _MOUSEINPUT: WEND
-        IF Hovering(object) THEN
+    If _MouseButton(1) Then
+        While _MouseButton(1): i = _MouseInput: Wend
+        If Hovering(object) Then
             p5play Switch
             moves = moves + 1
             SetState object
-        END IF
-    END IF
-END SUB
+        End If
+    End If
+End Sub
 
-SUB SetState (object AS obj)
-    DIM ioff AS INTEGER, joff AS INTEGER
+Sub SetState (object As obj)
+    Dim ioff As Integer, joff As Integer
     ioff = -1
     joff = 0
-    IF object.i + ioff > 0 AND object.i + ioff < maxGridW + 1 AND object.j + joff > 0 AND object.j + joff < maxGridH + 1 THEN
-        lights(object.i + ioff, object.j + joff).IsOn = NOT lights(object.i + ioff, object.j + joff).IsOn
-        lights(object.i + ioff, object.j + joff).lastSwitch = TIMER
-    END IF
+    If object.i + ioff > 0 And object.i + ioff < maxGridW + 1 And object.j + joff > 0 And object.j + joff < maxGridH + 1 Then
+        lights(object.i + ioff, object.j + joff).IsOn = Not lights(object.i + ioff, object.j + joff).IsOn
+        lights(object.i + ioff, object.j + joff).lastSwitch = Timer
+    End If
 
     ioff = 1
     joff = 0
-    IF object.i + ioff > 0 AND object.i + ioff < maxGridW + 1 AND object.j + joff > 0 AND object.j + joff < maxGridH + 1 THEN
-        lights(object.i + ioff, object.j + joff).IsOn = NOT lights(object.i + ioff, object.j + joff).IsOn
-        lights(object.i + ioff, object.j + joff).lastSwitch = TIMER
-    END IF
+    If object.i + ioff > 0 And object.i + ioff < maxGridW + 1 And object.j + joff > 0 And object.j + joff < maxGridH + 1 Then
+        lights(object.i + ioff, object.j + joff).IsOn = Not lights(object.i + ioff, object.j + joff).IsOn
+        lights(object.i + ioff, object.j + joff).lastSwitch = Timer
+    End If
 
     ioff = 0
     joff = -1
-    IF object.i + ioff > 0 AND object.i + ioff < maxGridW + 1 AND object.j + joff > 0 AND object.j + joff < maxGridH + 1 THEN
-        lights(object.i + ioff, object.j + joff).IsOn = NOT lights(object.i + ioff, object.j + joff).IsOn
-        lights(object.i + ioff, object.j + joff).lastSwitch = TIMER
-    END IF
+    If object.i + ioff > 0 And object.i + ioff < maxGridW + 1 And object.j + joff > 0 And object.j + joff < maxGridH + 1 Then
+        lights(object.i + ioff, object.j + joff).IsOn = Not lights(object.i + ioff, object.j + joff).IsOn
+        lights(object.i + ioff, object.j + joff).lastSwitch = Timer
+    End If
 
     ioff = 0
     joff = 1
-    IF object.i + ioff > 0 AND object.i + ioff < maxGridW + 1 AND object.j + joff > 0 AND object.j + joff < maxGridH + 1 THEN
-        lights(object.i + ioff, object.j + joff).IsOn = NOT lights(object.i + ioff, object.j + joff).IsOn
-        lights(object.i + ioff, object.j + joff).lastSwitch = TIMER
-    END IF
-END SUB
+    If object.i + ioff > 0 And object.i + ioff < maxGridW + 1 And object.j + joff > 0 And object.j + joff < maxGridH + 1 Then
+        lights(object.i + ioff, object.j + joff).IsOn = Not lights(object.i + ioff, object.j + joff).IsOn
+        lights(object.i + ioff, object.j + joff).lastSwitch = Timer
+    End If
+End Sub
 
-FUNCTION Hovering%% (object AS obj)
-    WHILE _MOUSEINPUT: WEND
-    Hovering%% = _MOUSEX > object.x AND _MOUSEX < object.x + object.w AND _MOUSEY > object.y AND _MOUSEY < object.y + object.h
-END FUNCTION
+Function Hovering%% (object As obj)
+    While _MouseInput: Wend
+    Hovering%% = _MouseX > object.x And _MouseX < object.x + object.w And _MouseY > object.y And _MouseY < object.y + object.h
+End Function
 
-SUB MoveMouse (sx AS INTEGER, sy AS INTEGER, dx AS INTEGER, dy AS INTEGER)
-    DIM stepX AS SINGLE, stepY AS SINGLE
-    DIM i AS _BYTE
+Sub MoveMouse (sx As Integer, sy As Integer, dx As Integer, dy As Integer)
+    Dim stepX As Single, stepY As Single
+    Dim i As _Byte
 
-    CONST maxSteps = 30
+    Const maxSteps = 30
 
     stepX = (dx - sx) / maxSteps
     stepY = (dy - sy) / maxSteps
 
-    FOR i = 1 TO maxSteps
+    For i = 1 To maxSteps
         sx = sx + stepX
         sy = sy + stepY
         UpdateArena
-        _PUTIMAGE (sx, sy), MouseCursor
-        _DISPLAY
-        _LIMIT 30
-    NEXT
-END SUB
+        _PutImage (sx, sy), MouseCursor
+        _Display
+        _Limit 30
+    Next
+End Sub
 
-SUB ShowTutorial
-    DIM i AS INTEGER, j AS INTEGER
-    DIM mx AS INTEGER, my AS INTEGER
-    DIM StepNumber AS INTEGER, TotalSteps AS INTEGER
+Sub ShowTutorial
+    Dim i As Integer, j As Integer
+    Dim mx As Integer, my As Integer
+    Dim StepNumber As Integer, TotalSteps As Integer
 
     Level = 2
     SetLevel
@@ -786,134 +786,134 @@ SUB ShowTutorial
     StatusText "Tutorial Mode - Click to proceed"
     UpdateArena
     StepNumber = StepNumber + 1
-    CenteredText "(" + LTRIM$(STR$(StepNumber)) + "/" + LTRIM$(STR$(TotalSteps)) + ") Your goal is to turn all light bulbs on."
+    CenteredText "(" + LTrim$(Str$(StepNumber)) + "/" + LTrim$(Str$(TotalSteps)) + ") Your goal is to turn all light bulbs on."
 
     mx = 400
     my = 400
-    _PUTIMAGE (mx, my), MouseCursor
+    _PutImage (mx, my), MouseCursor
 
-    _DISPLAY
+    _Display
     ClickPause
-    IF k = 27 THEN Level = 0: EXIT SUB
+    If k = 27 Then Level = 0: Exit Sub
 
-    FOR i = 1 TO maxGridW
-        FOR j = 1 TO maxGridH
+    For i = 1 To maxGridW
+        For j = 1 To maxGridH
             lights(i, j).IsOn = false
-        NEXT
-    NEXT
+        Next
+    Next
 
     UpdateArena
     StepNumber = StepNumber + 1
-    CenteredText "(" + LTRIM$(STR$(StepNumber)) + "/" + LTRIM$(STR$(TotalSteps)) + ") However, you can't simply switch a light bulb on or off directly."
+    CenteredText "(" + LTrim$(Str$(StepNumber)) + "/" + LTrim$(Str$(TotalSteps)) + ") However, you can't simply switch a light bulb on or off directly."
 
     mx = 400
     my = 400
-    _PUTIMAGE (mx, my), MouseCursor
+    _PutImage (mx, my), MouseCursor
 
-    _DISPLAY
+    _Display
 
     ClickPause
-    IF k = 27 THEN Level = 0: EXIT SUB
+    If k = 27 Then Level = 0: Exit Sub
 
     UpdateArena
     StepNumber = StepNumber + 1
-    CenteredText "(" + LTRIM$(STR$(StepNumber)) + "/" + LTRIM$(STR$(TotalSteps)) + ") You click a light bulb to turn the surrounding ones on/off."
-    _PUTIMAGE (mx, my), MouseCursor
-    _DISPLAY
+    CenteredText "(" + LTrim$(Str$(StepNumber)) + "/" + LTrim$(Str$(TotalSteps)) + ") You click a light bulb to turn the surrounding ones on/off."
+    _PutImage (mx, my), MouseCursor
+    _Display
 
     ClickPause
-    IF k = 27 THEN Level = 0: EXIT SUB
+    If k = 27 Then Level = 0: Exit Sub
 
     MoveMouse mx, my, lights(2, 2).x + lights(2, 2).w / 2, lights(2, 2).y + lights(2, 2).h / 2
     SetState lights(2, 2)
     p5play Switch
-    DO
+    Do
         UpdateArena
-        _PUTIMAGE (mx, my), MouseCursor
-        _DISPLAY
-    LOOP UNTIL TIMER - lights(2, 1).lastSwitch > .3
+        _PutImage (mx, my), MouseCursor
+        _Display
+    Loop Until Timer - lights(2, 1).lastSwitch > .3
 
     UpdateArena
-    _PUTIMAGE (mx, my), MouseCursor
+    _PutImage (mx, my), MouseCursor
     StepNumber = StepNumber + 1
-    CenteredText "(" + LTRIM$(STR$(StepNumber)) + "/" + LTRIM$(STR$(TotalSteps)) + ") Continue until all light bulbs are on."
-    _DISPLAY
+    CenteredText "(" + LTrim$(Str$(StepNumber)) + "/" + LTrim$(Str$(TotalSteps)) + ") Continue until all light bulbs are on."
+    _Display
 
     ClickPause
-    IF k = 27 THEN Level = 0: EXIT SUB
+    If k = 27 Then Level = 0: Exit Sub
 
     MoveMouse mx, my, lights(3, 2).x + lights(3, 2).w / 2, lights(3, 2).y + lights(3, 2).h / 2
     SetState lights(3, 2)
     p5play Switch
-    DO
+    Do
         UpdateArena
-        _PUTIMAGE (mx, my), MouseCursor
-        _DISPLAY
-    LOOP UNTIL TIMER - lights(3, 1).lastSwitch > .3
+        _PutImage (mx, my), MouseCursor
+        _Display
+    Loop Until Timer - lights(3, 1).lastSwitch > .3
 
     UpdateArena
     StepNumber = StepNumber + 1
-    _PUTIMAGE (mx, my), MouseCursor
-    CenteredText "(" + LTRIM$(STR$(StepNumber)) + "/" + LTRIM$(STR$(TotalSteps)) + ") Simple right? Click to start."
-    _DISPLAY
+    _PutImage (mx, my), MouseCursor
+    CenteredText "(" + LTrim$(Str$(StepNumber)) + "/" + LTrim$(Str$(TotalSteps)) + ") Simple right? Click to start."
+    _Display
 
     ClickPause
 
     Level = 0
-    EXIT SUB
-END SUB
+    Exit Sub
+End Sub
 
 'functions below are borrowed from p5js.bas:
-FUNCTION map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
+Function map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
     map! = ((value! - minRange!) / (maxRange! - minRange!)) * (newMaxRange! - newMinRange!) + newMinRange!
-END FUNCTION
+End Function
 
-FUNCTION min! (a!, b!)
-    IF a! < b! THEN min! = a! ELSE min! = b!
-END FUNCTION
+Function min! (a!, b!)
+    If a! < b! Then min! = a! Else min! = b!
+End Function
 
-FUNCTION max! (a!, b!)
-    IF a! > b! THEN max! = a! ELSE max! = b!
-END FUNCTION
+Function max! (a!, b!)
+    If a! > b! Then max! = a! Else max! = b!
+End Function
 
-FUNCTION constrain! (n!, low!, high!)
+Function constrain! (n!, low!, high!)
     constrain! = max(min(n!, high!), low!)
-END FUNCTION
+End Function
 
-FUNCTION loadSound& (file$)
-    IF _FILEEXISTS(file$) = 0 THEN EXIT FUNCTION
-    DIM tempHandle&, setting$
-    STATIC totalLoadedSounds AS LONG
+Function loadSound& (file$)
+    If _FileExists(file$) = 0 Then Exit Function
+    Dim tempHandle&, setting$
+    Static totalLoadedSounds As Long
 
     setting$ = "vol"
 
-    SELECT CASE UCASE$(RIGHT$(file$, 4))
-        CASE ".WAV", ".OGG", ".AIF", ".RIF", ".VOC"
+    Select Case UCase$(Right$(file$, 4))
+        Case ".WAV", ".OGG", ".AIF", ".RIF", ".VOC"
             setting$ = "vol,sync,len,pause"
-        CASE ".MP3"
+        Case ".MP3"
             setting$ = "vol,pause,setpos"
-    END SELECT
+    End Select
 
-    tempHandle& = _SNDOPEN(file$, setting$)
-    IF tempHandle& > 0 THEN
+    tempHandle& = _SndOpen(file$, setting$)
+    If tempHandle& > 0 Then
         totalLoadedSounds = totalLoadedSounds + 1
-        REDIM _PRESERVE loadedSounds(totalLoadedSounds) AS new_SoundHandle
+        ReDim _Preserve loadedSounds(totalLoadedSounds) As new_SoundHandle
         loadedSounds(totalLoadedSounds).handle = tempHandle&
-        loadedSounds(totalLoadedSounds).sync = INSTR(setting$, "sync") > 0
+        loadedSounds(totalLoadedSounds).sync = InStr(setting$, "sync") > 0
         loadSound& = tempHandle&
-    END IF
-END FUNCTION
+    End If
+End Function
 
-SUB p5play (soundHandle&)
-    DIM i AS LONG
-    FOR i = 1 TO UBOUND(loadedSounds)
-        IF loadedSounds(i).handle = soundHandle& THEN
-            IF loadedSounds(i).sync THEN
-                _SNDPLAYCOPY soundHandle&
-            ELSE
-                IF NOT _SNDPLAYING(soundHandle&) THEN _SNDPLAY soundHandle&
-            END IF
-        END IF
-    NEXT
-END SUB
+Sub p5play (soundHandle&)
+    Dim i As Long
+    For i = 1 To UBound(loadedSounds)
+        If loadedSounds(i).handle = soundHandle& Then
+            If loadedSounds(i).sync Then
+                _SndPlayCopy soundHandle&
+            Else
+                If Not _SndPlaying(soundHandle&) Then _SndPlay soundHandle&
+            End If
+        End If
+    Next
+End Sub
 

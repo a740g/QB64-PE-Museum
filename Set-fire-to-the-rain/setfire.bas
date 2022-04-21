@@ -1,265 +1,265 @@
-SCREEN _NEWIMAGE(800, 600, 32)
+Screen _NewImage(800, 600, 32)
 
-DO UNTIL _SCREENEXISTS: LOOP
+Do Until _ScreenExists: Loop
 
-$EXEICON:'./assets/Jaan-Jaak-Weather-Rain.ico'
+$ExeIcon:'./assets/Jaan-Jaak-Weather-Rain.ico'
 'http://www.iconarchive.com/show/weather-icons-by-jaan-jaak/rain-icon.html
 'Artist: Jaan-Jaak
 'Iconset: Weather Icons (9 icons)
 'License: CC Attribution-Share Alike 4.0
 'Commercial usage: Allowed
-_ICON
+_Icon
 
-$VERSIONINFO:FILEVERSION#=0,0,0,1
-$VERSIONINFO:PRODUCTVERSION#=0,0,0,1
-$VERSIONINFO:CompanyName=Fellippe Heitor
-$VERSIONINFO:FileDescription=Set Fire To The Rain game
-$VERSIONINFO:FileVersion=0.1b
-$VERSIONINFO:InternalName=setfire.bas
-$VERSIONINFO:LegalCopyright=Open source
-$VERSIONINFO:OriginalFilename=setfire.exe
-$VERSIONINFO:ProductName=Set Fire To The Rain game
-$VERSIONINFO:ProductVersion=0.1b
-$VERSIONINFO:Comments=This is in no way shape or form endorsed by Adele. Made with QB64.
-$VERSIONINFO:Web=http://www.qb64.net/forum/index.php?topic=14285.msg123566#msg123566
+$VersionInfo:FILEVERSION#=0,0,0,1
+$VersionInfo:PRODUCTVERSION#=0,0,0,1
+$VersionInfo:CompanyName=Fellippe Heitor
+$VersionInfo:FileDescription=Set Fire To The Rain game
+$VersionInfo:FileVersion=0.1b
+$VersionInfo:InternalName=setfire.bas
+$VersionInfo:LegalCopyright=Open source
+$VersionInfo:OriginalFilename=setfire.exe
+$VersionInfo:ProductName=Set Fire To The Rain game
+$VersionInfo:ProductVersion=0.1b
+$VersionInfo:Comments=This is in no way shape or form endorsed by Adele. Made with QB64.
+$VersionInfo:Web=http://www.qb64.net/forum/index.php?topic=14285.msg123566#msg123566
 
-_TITLE "Set fire to the rain"
+_Title "Set fire to the rain"
 
-COLOR , 0
+Color , 0
 
-TYPE gridType
-    x AS SINGLE
-    y AS SINGLE
-    xv AS SINGLE
-    yv AS SINGLE
-    size AS INTEGER
-    color AS SINGLE
-END TYPE
+Type gridType
+    x As Single
+    y As Single
+    xv As Single
+    yv As Single
+    size As Integer
+    color As Single
+End Type
 
 s = 10
 
-DIM grid(1 TO INT(_WIDTH / s), 1 TO INT(_HEIGHT / s)) AS gridType
-DIM rainDrops(1 TO 1000) AS gridType
-DIM smoke(1 TO 1000) AS gridType, smokeIndex AS INTEGER
+Dim grid(1 To Int(_Width / s), 1 To Int(_Height / s)) As gridType
+Dim rainDrops(1 To 1000) As gridType
+Dim smoke(1 To 1000) As gridType, smokeIndex As Integer
 
-DIM SHARED bgmusic AS LONG, theFont AS LONG
+Dim Shared bgmusic As Long, theFont As Long
 
-theFont = _LOADFONT("ariblk.ttf", 32)
-IF theFont > 0 THEN _FONT theFont
+theFont = _LoadFont("ariblk.ttf", 32)
+If theFont > 0 Then _Font theFont
 
 m$ = "Get ready..."
-_PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 - _FONTHEIGHT / 2), m$
+_PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 - _FontHeight / 2), m$
 
 f$ = "./assets/setfire.mp3"
 'from https://www.youtube.com/watch?v=sHosuM4TlFU
 'http://www.mediafire.com/?jy4id9645i88kko
-bgmusic = _SNDOPEN(f$, "vol,pause,setpos")
+bgmusic = _SndOpen(f$, "vol,pause,setpos")
 
-IF bgmusic > 0 THEN
-    _SNDSETPOS bgmusic, 4.3
-    _SNDPLAY bgmusic
-END IF
+If bgmusic > 0 Then
+    _SndSetPos bgmusic, 4.3
+    _SndPlay bgmusic
+End If
 
-GOSUB ResetRain
+GoSub ResetRain
 
-DO
-    GOSUB resetFire
+Do
+    GoSub resetFire
 
-    start# = TIMER
+    start# = Timer
 
-    DO
-        WHILE _MOUSEINPUT: WEND
+    Do
+        While _MouseInput: Wend
 
-        CLS
+        Cls
 
-        FOR i = 1 TO UBOUND(smoke)
-            IF smoke(i).color > 0 THEN
-                LINE (smoke(i).x, smoke(i).y)-STEP(s - 1, s - 1), _RGB32(smoke(i).color, smoke(i).color, smoke(i).color), BF
+        For i = 1 To UBound(smoke)
+            If smoke(i).color > 0 Then
+                Line (smoke(i).x, smoke(i).y)-Step(s - 1, s - 1), _RGB32(smoke(i).color, smoke(i).color, smoke(i).color), BF
                 smoke(i).color = smoke(i).color - 10
                 smoke(i).x = smoke(i).x
                 smoke(i).y = smoke(i).y - s
-            END IF
-        NEXT
+            End If
+        Next
 
-        GOSUB UpdateRain
+        GoSub UpdateRain
 
         fullFire = -1
-        FOR i = 1 TO UBOUND(grid, 1)
-            FOR j = 1 TO UBOUND(grid, 2)
-                IF grid(i, j).color > 0 THEN
-                    LINE (grid(i, j).x, grid(i, j).y)-STEP(grid(i, j).size - 1, grid(i, j).size - 1), _RGB32(grid(i, j).color, map(grid(i, j).y, 0, _HEIGHT - 1, grid(i, j).color, grid(i, j).color / 3), 0), BF
-                END IF
-                IF grid(i, j).color < 255 THEN fullFire = 0
-                IF grid(i, j).color > 245 THEN GOSUB addSmoke
-            NEXT
-        NEXT
+        For i = 1 To UBound(grid, 1)
+            For j = 1 To UBound(grid, 2)
+                If grid(i, j).color > 0 Then
+                    Line (grid(i, j).x, grid(i, j).y)-Step(grid(i, j).size - 1, grid(i, j).size - 1), _RGB32(grid(i, j).color, map(grid(i, j).y, 0, _Height - 1, grid(i, j).color, grid(i, j).color / 3), 0), BF
+                End If
+                If grid(i, j).color < 255 Then fullFire = 0
+                If grid(i, j).color > 245 Then GoSub addSmoke
+            Next
+        Next
 
-        IF _MOUSEX > 0 AND _MOUSEY > 0 THEN
-            i = INT(_MOUSEX / s) + 1
-            j = INT(_MOUSEY / s) + 1
-            IF _MOUSEBUTTON(1) THEN
+        If _MouseX > 0 And _MouseY > 0 Then
+            i = Int(_MouseX / s) + 1
+            j = Int(_MouseY / s) + 1
+            If _MouseButton(1) Then
                 grid(i, j).color = 255
-            END IF
-        END IF
+            End If
+        End If
 
         radius = 2
-        FOR i = 1 TO UBOUND(grid, 1)
-            FOR j = 1 TO UBOUND(grid, 2)
-                IF grid(i, j).color > 150 THEN
-                    FOR k = -radius TO radius
-                        FOR l = -radius TO radius
-                            IF i + k < 1 OR j + l < 1 THEN GOTO skip
-                            IF i + k > UBOUND(grid, 1) OR j + l > UBOUND(grid, 2) THEN GOTO skip
+        For i = 1 To UBound(grid, 1)
+            For j = 1 To UBound(grid, 2)
+                If grid(i, j).color > 150 Then
+                    For k = -radius To radius
+                        For l = -radius To radius
+                            If i + k < 1 Or j + l < 1 Then GoTo skip
+                            If i + k > UBound(grid, 1) Or j + l > UBound(grid, 2) Then GoTo skip
                             grid(i + k, j + l).color = grid(i + k, j + l).color + 2
-                            IF grid(i + k, j + l).color > 255 THEN grid(i + k, j + l).color = 255
+                            If grid(i + k, j + l).color > 255 Then grid(i + k, j + l).color = 255
                             skip:
-                        NEXT
-                    NEXT
-                ELSEIF grid(i, j).color = 0 THEN
-                    FOR k = -radius TO radius
-                        FOR l = -radius TO radius
-                            IF i + k < 1 OR j + l < 1 THEN GOTO skip2
-                            IF i + k > UBOUND(grid, 1) OR j + l > UBOUND(grid, 2) THEN GOTO skip2
+                        Next
+                    Next
+                ElseIf grid(i, j).color = 0 Then
+                    For k = -radius To radius
+                        For l = -radius To radius
+                            If i + k < 1 Or j + l < 1 Then GoTo skip2
+                            If i + k > UBound(grid, 1) Or j + l > UBound(grid, 2) Then GoTo skip2
                             grid(i + k, j + l).color = grid(i + k, j + l).color - 1.5
-                            IF grid(i + k, j + l).color < 0 THEN grid(i + k, j + l).color = 0
+                            If grid(i + k, j + l).color < 0 Then grid(i + k, j + l).color = 0
                             skip2:
-                        NEXT
-                    NEXT
-                END IF
-            NEXT
-        NEXT
+                        Next
+                    Next
+                End If
+            Next
+        Next
 
-        _PRINTSTRING (0, _HEIGHT - _FONTHEIGHT), STR$(INT(TIMER - start#)) + " s"
+        _PrintString (0, _Height - _FontHeight), Str$(Int(Timer - start#)) + " s"
 
-        k = _KEYHIT
-        IF k = 27 THEN SYSTEM
+        k = _KeyHit
+        If k = 27 Then System
 
-        IF k = ASC("m") OR k = ASC("M") THEN
-            mute = NOT mute
-            IF bgmusic > 0 THEN
-                IF _SNDPLAYING(bgmusic) THEN
-                    _SNDPAUSE bgmusic
-                    _SNDSETPOS bgmusic, 4.3
-                END IF
-            END IF
-        END IF
+        If k = Asc("m") Or k = Asc("M") Then
+            mute = Not mute
+            If bgmusic > 0 Then
+                If _SndPlaying(bgmusic) Then
+                    _SndPause bgmusic
+                    _SndSetPos bgmusic, 4.3
+                End If
+            End If
+        End If
 
-        _LIMIT 60
-        _DISPLAY
-        IF bgmusic > 0 THEN
-            IF NOT _SNDPLAYING(bgmusic) AND NOT mute THEN _SNDPLAY bgmusic
-        END IF
-    LOOP UNTIL fullFire
+        _Limit 60
+        _Display
+        If bgmusic > 0 Then
+            If Not _SndPlaying(bgmusic) And Not mute Then _SndPlay bgmusic
+        End If
+    Loop Until fullFire
 
-    finish# = TIMER
+    finish# = Timer
 
-    IF bgmusic > 0 THEN
-        _SNDSETPOS bgmusic, 64.5
-        IF NOT _SNDPLAYING(bgmusic) AND NOT mute THEN _SNDPLAY bgmusic
-    END IF
+    If bgmusic > 0 Then
+        _SndSetPos bgmusic, 64.5
+        If Not _SndPlaying(bgmusic) And Not mute Then _SndPlay bgmusic
+    End If
 
-    WHILE _MOUSEBUTTON(1): i = _MOUSEINPUT: WEND
-    GOSUB ResetRain
-    DO
-        WHILE _MOUSEINPUT: WEND
+    While _MouseButton(1): i = _MouseInput: Wend
+    GoSub ResetRain
+    Do
+        While _MouseInput: Wend
 
-        CLS
+        Cls
 
-        FOR i = 1 TO UBOUND(grid, 1)
-            FOR j = 1 TO UBOUND(grid, 2)
-                IF grid(i, j).color > 0 THEN
-                    LINE (grid(i, j).x, grid(i, j).y)-STEP(grid(i, j).size, grid(i, j).size), _RGB32(grid(i, j).color, map(grid(i, j).y, 0, _HEIGHT - 1, grid(i, j).color, grid(i, j).color / 3), 0), BF
+        For i = 1 To UBound(grid, 1)
+            For j = 1 To UBound(grid, 2)
+                If grid(i, j).color > 0 Then
+                    Line (grid(i, j).x, grid(i, j).y)-Step(grid(i, j).size, grid(i, j).size), _RGB32(grid(i, j).color, map(grid(i, j).y, 0, _Height - 1, grid(i, j).color, grid(i, j).color / 3), 0), BF
                     grid(i, j).color = grid(i, j).color - 4
-                END IF
-            NEXT
-        NEXT
+                End If
+            Next
+        Next
 
-        GOSUB UpdateRain
+        GoSub UpdateRain
 
-        COLOR _RGB32(0, 0, 0), 0
+        Color _RGB32(0, 0, 0), 0
         m$ = "All's burned. Adele's so proud of you."
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 - _FONTHEIGHT / 2 + 1), m$
-        m$ = "It took you" + STR$(INT(finish# - start#)) + " seconds."
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 - _FONTHEIGHT / 2 + _FONTHEIGHT + 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 - _FontHeight / 2 + 1), m$
+        m$ = "It took you" + Str$(Int(finish# - start#)) + " seconds."
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 - _FontHeight / 2 + _FontHeight + 1), m$
         m$ = "Click anywhere to restart"
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT - _FONTHEIGHT + 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height - _FontHeight + 1), m$
 
-        COLOR _RGB32(255, 255, 255), 0
+        Color _RGB32(255, 255, 255), 0
         m$ = "All's burned. Adele's so proud of you."
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 - _FONTHEIGHT / 2), m$
-        m$ = "It took you" + STR$(INT(finish# - start#)) + " seconds."
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 - _FONTHEIGHT / 2 + _FONTHEIGHT), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 - _FontHeight / 2), m$
+        m$ = "It took you" + Str$(Int(finish# - start#)) + " seconds."
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 - _FontHeight / 2 + _FontHeight), m$
         m$ = "Click anywhere to restart"
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT - _FONTHEIGHT), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height - _FontHeight), m$
 
-        _LIMIT 30
-        _DISPLAY
+        _Limit 30
+        _Display
 
-    LOOP UNTIL _MOUSEBUTTON(1) OR _KEYHIT <> 0
+    Loop Until _MouseButton(1) Or _KeyHit <> 0
 
 
-    IF bgmusic > 0 THEN
-        _SNDSETPOS bgmusic, 4.3
-        IF NOT _SNDPLAYING(bgmusic) AND NOT mute THEN _SNDPLAY bgmusic
-    END IF
-LOOP
+    If bgmusic > 0 Then
+        _SndSetPos bgmusic, 4.3
+        If Not _SndPlaying(bgmusic) And Not mute Then _SndPlay bgmusic
+    End If
+Loop
 
 UpdateRain:
-FOR i = 1 TO UBOUND(rainDrops)
+For i = 1 To UBound(rainDrops)
     rainDrops(i).y = rainDrops(i).y + rainDrops(i).yv
     rainDrops(i).yv = rainDrops(i).yv + .1
     rainDrops(i).x = rainDrops(i).x + rainDrops(i).xv
     rainDrops(i).xv = rainDrops(i).xv - .1
-    IF rainDrops(i).y > _HEIGHT OR rainDrops(i).x < 0 THEN
+    If rainDrops(i).y > _Height Or rainDrops(i).x < 0 Then
         rainDrops(i).yv = 0
         rainDrops(i).xv = 0
-        rainDrops(i).x = RND * _WIDTH * 2
-        rainDrops(i).y = -RND * _HEIGHT
-    END IF
-    LINE (rainDrops(i).x, rainDrops(i).y)-STEP(-2, 5), _RGB32(0, 89, 155)
+        rainDrops(i).x = Rnd * _Width * 2
+        rainDrops(i).y = -Rnd * _Height
+    End If
+    Line (rainDrops(i).x, rainDrops(i).y)-Step(-2, 5), _RGB32(0, 89, 155)
 
-    k = INT((rainDrops(i).x - 1) / s) + 1
-    l = INT((rainDrops(i).y + 5) / s) + 1
-    IF k > 1 AND k < UBOUND(grid, 1) AND l > 1 AND l < UBOUND(grid, 2) THEN
-        IF grid(k, l).color < 200 AND NOT fullFire THEN grid(k, l).color = 0
-    END IF
-NEXT
-RETURN
+    k = Int((rainDrops(i).x - 1) / s) + 1
+    l = Int((rainDrops(i).y + 5) / s) + 1
+    If k > 1 And k < UBound(grid, 1) And l > 1 And l < UBound(grid, 2) Then
+        If grid(k, l).color < 200 And Not fullFire Then grid(k, l).color = 0
+    End If
+Next
+Return
 
 resetFire:
-FOR i = 1 TO UBOUND(grid, 1)
-    FOR j = 1 TO UBOUND(grid, 2)
+For i = 1 To UBound(grid, 1)
+    For j = 1 To UBound(grid, 2)
         grid(i, j).x = s * i - s
         grid(i, j).y = s * j - s
         grid(i, j).size = s
         grid(i, j).color = 0
-    NEXT
-NEXT
-RETURN
+    Next
+Next
+Return
 
 ResetRain:
-FOR i = 1 TO UBOUND(rainDrops)
+For i = 1 To UBound(rainDrops)
     rainDrops(i).yv = 0
     rainDrops(i).xv = 0
-    rainDrops(i).x = RND * _WIDTH * 2
-    rainDrops(i).y = -(RND * (_HEIGHT * 2))
-NEXT
-RETURN
+    rainDrops(i).x = Rnd * _Width * 2
+    rainDrops(i).y = -(Rnd * (_Height * 2))
+Next
+Return
 
 addSmoke:
-IF j - 1 > 0 THEN
-    IF grid(i, j - 1).color < 200 THEN
+If j - 1 > 0 Then
+    If grid(i, j - 1).color < 200 Then
         smokeIndex = smokeIndex + 1
-        IF smokeIndex > UBOUND(smoke) THEN smokeIndex = 1
+        If smokeIndex > UBound(smoke) Then smokeIndex = 1
         smoke(smokeIndex).x = i * s - s
         smoke(smokeIndex).y = (j - 1) * s - s
         smoke(smokeIndex).color = 100
-    END IF
-END IF
-RETURN
+    End If
+End If
+Return
 
 
-FUNCTION map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
+Function map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
     map! = ((value! - minRange!) / (maxRange! - minRange!)) * (newMaxRange! - newMinRange!) + newMinRange!
-END FUNCTION
+End Function
 

@@ -1,302 +1,302 @@
 'Can't Contain Me - A game developed in QB64
 '@FellippeHeitor fellippeheitor@gmail.com
 
-CONST true = -1, false = NOT true
+Const true = -1, false = Not true
 
-TYPE vector
-    x AS SINGLE
-    y AS SINGLE
-    z AS SINGLE
-END TYPE
+Type vector
+    x As Single
+    y As Single
+    z As Single
+End Type
 
-TYPE NewObject
-    pos AS vector
-    dir AS vector
-    w AS INTEGER
-    h AS INTEGER
-    dragXoff AS INTEGER
-    dragYoff AS INTEGER
-    color AS _UNSIGNED LONG
-    img AS LONG
-    selected AS _BYTE
-    lost AS _BYTE
-    added AS _BYTE
-END TYPE
+Type NewObject
+    pos As vector
+    dir As vector
+    w As Integer
+    h As Integer
+    dragXoff As Integer
+    dragYoff As Integer
+    color As _Unsigned Long
+    img As Long
+    selected As _Byte
+    lost As _Byte
+    added As _Byte
+End Type
 
-SCREEN _NEWIMAGE(896, 504, 32)
-DO UNTIL _SCREENEXISTS: LOOP
-_TITLE "Can't contain me"
+Screen _NewImage(896, 504, 32)
+Do Until _ScreenExists: Loop
+_Title "Can't contain me"
 
-RANDOMIZE TIMER
+Randomize Timer
 
-DIM icon AS LONG
-icon = _NEWIMAGE(64, 64, 32)
-_DEST icon
-LINE (0, 0)-(63, 63), _RGB32(RND * 200, RND * 200, RND * 200), BF
-CIRCLE (32, 32), 5, _RGB32(255, 255, 255)
-PAINT (32, 32)
-_DEST 0
-_ICON icon
-_FREEIMAGE icon
+Dim icon As Long
+icon = _NewImage(64, 64, 32)
+_Dest icon
+Line (0, 0)-(63, 63), _RGB32(Rnd * 200, Rnd * 200, Rnd * 200), BF
+Circle (32, 32), 5, _RGB32(255, 255, 255)
+Paint (32, 32)
+_Dest 0
+_Icon icon
+_FreeImage icon
 
-COLOR , 0
-DIM obj(1 TO 10) AS NewObject, barn AS NewObject
-DIM drag AS _BYTE, f AS LONG
-DIM k AS LONG, i AS LONG
+Color , 0
+Dim obj(1 To 10) As NewObject, barn As NewObject
+Dim drag As _Byte, f As Long
+Dim k As Long, i As Long
 
 barn.w = 300
 barn.h = 300
-barn.pos.x = _WIDTH / 2 - barn.w / 2
-barn.pos.y = _HEIGHT / 2 - barn.h / 2
+barn.pos.x = _Width / 2 - barn.w / 2
+barn.pos.y = _Height / 2 - barn.h / 2
 
-GOSUB resetPieces
+GoSub resetPieces
 
-DO
-    k = _KEYHIT
+Do
+    k = _KeyHit
 
-    IF k = 27 THEN SYSTEM
+    If k = 27 Then System
 
-    IF (_KEYDOWN(100305) OR _KEYDOWN(100306)) AND (k = ASC("a") OR k = ASC("A")) THEN
-        FOR i = 1 TO UBOUND(obj)
+    If (_KeyDown(100305) Or _KeyDown(100306)) And (k = Asc("a") Or k = Asc("A")) Then
+        For i = 1 To UBound(obj)
             obj(i).selected = true
-        NEXT
-    END IF
+        Next
+    End If
 
-    WHILE _MOUSEINPUT: WEND
+    While _MouseInput: Wend
 
-    IF NOT Won THEN
-        IF _MOUSEBUTTON(1) THEN
-            IF NOT drag THEN
+    If Not Won Then
+        If _MouseButton(1) Then
+            If Not drag Then
                 drag = true
                 dragSelect = true
-                dragx = _MOUSEX
-                dragy = _MOUSEY
+                dragx = _MouseX
+                dragy = _MouseY
                 clickedBox = false
-                FOR i = 1 TO UBOUND(obj)
-                    IF hovering(obj(i)) AND obj(i).added = false THEN
+                For i = 1 To UBound(obj)
+                    If hovering(obj(i)) And obj(i).added = false Then
                         dragSelect = false
                         clickedBox = true
 
-                        obj(i).dragXoff = _MOUSEX - obj(i).pos.x
-                        obj(i).dragYoff = _MOUSEY - obj(i).pos.y
+                        obj(i).dragXoff = _MouseX - obj(i).pos.x
+                        obj(i).dragYoff = _MouseY - obj(i).pos.y
 
-                        FOR j = 1 TO UBOUND(obj)
-                            IF j <> i THEN
-                                IF NOT _KEYDOWN(100305) AND NOT _KEYDOWN(100306) THEN
-                                    IF obj(i).selected = false THEN obj(j).selected = false
-                                END IF
+                        For j = 1 To UBound(obj)
+                            If j <> i Then
+                                If Not _KeyDown(100305) And Not _KeyDown(100306) Then
+                                    If obj(i).selected = false Then obj(j).selected = false
+                                End If
 
-                                obj(j).dragXoff = _MOUSEX - obj(j).pos.x
-                                obj(j).dragYoff = _MOUSEY - obj(j).pos.y
-                            END IF
-                        NEXT
+                                obj(j).dragXoff = _MouseX - obj(j).pos.x
+                                obj(j).dragYoff = _MouseY - obj(j).pos.y
+                            End If
+                        Next
 
                         obj(i).selected = true
 
-                        EXIT FOR
-                    END IF
-                NEXT
-            END IF
-        ELSE
-            IF drag THEN
+                        Exit For
+                    End If
+                Next
+            End If
+        Else
+            If drag Then
                 drag = false
                 dragSelect = false
-            END IF
-        END IF
-    ELSE
-        IF _MOUSEBUTTON(1) THEN
-            IF NOT mousepressed THEN
-                GOSUB resetPieces
-            ELSE
+            End If
+        End If
+    Else
+        If _MouseButton(1) Then
+            If Not mousepressed Then
+                GoSub resetPieces
+            Else
                 drag = false
                 dragSelect = false
-            END IF
-        ELSE
+            End If
+        Else
             mousepressed = false
-        END IF
-    END IF
+        End If
+    End If
 
-    LINE (0, 0)-(_WIDTH - 1, _HEIGHT - 1), _RGBA32(0, 0, 0, 30), BF
+    Line (0, 0)-(_Width - 1, _Height - 1), _RGBA32(0, 0, 0, 30), BF
 
-    FOR i = 1 TO UBOUND(obj)
-        IF NOT obj(i).lost THEN
-            obj(i).lost = obj(i).pos.x > _WIDTH OR obj(i).pos.y > _HEIGHT OR obj(i).pos.x + obj(i).w < 0 OR obj(i).pos.y + obj(i).h < 0
-            IF obj(i).lost THEN
+    For i = 1 To UBound(obj)
+        If Not obj(i).lost Then
+            obj(i).lost = obj(i).pos.x > _Width Or obj(i).pos.y > _Height Or obj(i).pos.x + obj(i).w < 0 Or obj(i).pos.y + obj(i).h < 0
+            If obj(i).lost Then
                 'score = score - 5
-            END IF
-        END IF
+            End If
+        End If
 
-        IF NOT obj(i).lost THEN
-            IF obj(i).img < -1 THEN
-            ELSE
-                LINE (obj(i).pos.x, obj(i).pos.y)-STEP(obj(i).w - 1, obj(i).h - 1), obj(i).color, BF
-                CIRCLE (obj(i).pos.x + obj(i).w / 2, obj(i).pos.y + obj(i).h / 2), 2, _RGB32(255, 255, 255)
-                PAINT (obj(i).pos.x + obj(i).w / 2, obj(i).pos.y + obj(i).h / 2)
-            END IF
+        If Not obj(i).lost Then
+            If obj(i).img < -1 Then
+            Else
+                Line (obj(i).pos.x, obj(i).pos.y)-Step(obj(i).w - 1, obj(i).h - 1), obj(i).color, BF
+                Circle (obj(i).pos.x + obj(i).w / 2, obj(i).pos.y + obj(i).h / 2), 2, _RGB32(255, 255, 255)
+                Paint (obj(i).pos.x + obj(i).w / 2, obj(i).pos.y + obj(i).h / 2)
+            End If
 
-            IF obj(i).selected THEN
-                IF obj(i).img < -1 THEN
-                ELSE
-                    LINE (obj(i).pos.x - 2, obj(i).pos.y - 2)-STEP(obj(i).w + 3, obj(i).h + 3), _RGBA32(255, 255, 255, 150), B , 21845
-                END IF
-            ELSEIF hovering(obj(i)) AND NOT Won THEN
-                IF obj(i).img < -1 THEN
-                ELSE
-                    LINE (obj(i).pos.x, obj(i).pos.y)-STEP(obj(i).w - 1, obj(i).h - 1), _RGBA32(255, 255, 255, 100), BF
-                END IF
-            END IF
-        END IF
+            If obj(i).selected Then
+                If obj(i).img < -1 Then
+                Else
+                    Line (obj(i).pos.x - 2, obj(i).pos.y - 2)-Step(obj(i).w + 3, obj(i).h + 3), _RGBA32(255, 255, 255, 150), B , 21845
+                End If
+            ElseIf hovering(obj(i)) And Not Won Then
+                If obj(i).img < -1 Then
+                Else
+                    Line (obj(i).pos.x, obj(i).pos.y)-Step(obj(i).w - 1, obj(i).h - 1), _RGBA32(255, 255, 255, 100), BF
+                End If
+            End If
+        End If
 
-        IF drag AND obj(i).selected AND NOT dragSelect THEN
-            obj(i).pos.x = dragx + (_MOUSEX - dragx) - obj(i).dragXoff
-            obj(i).pos.y = dragy + (_MOUSEY - dragy) - obj(i).dragYoff
-        END IF
+        If drag And obj(i).selected And Not dragSelect Then
+            obj(i).pos.x = dragx + (_MouseX - dragx) - obj(i).dragXoff
+            obj(i).pos.y = dragy + (_MouseY - dragy) - obj(i).dragYoff
+        End If
 
-        IF NOT isInside(obj(i), barn) THEN
+        If Not isInside(obj(i), barn) Then
             vector.add obj(i).pos, obj(i).dir
-            IF isInside(obj(i), barn) THEN vector.mult obj(i).dir, -1
-            DO WHILE isInside(obj(i), barn)
+            If isInside(obj(i), barn) Then vector.mult obj(i).dir, -1
+            Do While isInside(obj(i), barn)
                 vector.add obj(i).pos, obj(i).dir
-            LOOP
-        ELSE
+            Loop
+        Else
             vector.add obj(i).pos, obj(i).dir
-            IF NOT isInside(obj(i), barn) THEN vector.mult obj(i).dir, -1
-            DO WHILE NOT isInside(obj(i), barn)
+            If Not isInside(obj(i), barn) Then vector.mult obj(i).dir, -1
+            Do While Not isInside(obj(i), barn)
                 vector.add obj(i).pos, obj(i).dir
-            LOOP
+            Loop
 
-            IF obj(i).added = false THEN
+            If obj(i).added = false Then
                 score = score + 10
                 obj(i).added = true
 
                 'pieces get agitated when contained...
                 obj(i).dir.x = obj(i).dir.x * 5
                 obj(i).dir.y = obj(i).dir.y * 5
-            ELSE
+            Else
                 obj(i).selected = false
-            END IF
-        END IF
-    NEXT
+            End If
+        End If
+    Next
 
-    LINE (barn.pos.x - obj(1).w / 2, barn.pos.y - obj(1).h / 2)-STEP(barn.w + obj(1).w - 1, barn.h + obj(1).h - 1), _RGBA32(255, 255, 255, 100), BF
+    Line (barn.pos.x - obj(1).w / 2, barn.pos.y - obj(1).h / 2)-Step(barn.w + obj(1).w - 1, barn.h + obj(1).h - 1), _RGBA32(255, 255, 255, 100), BF
 
-    IF dragSelect THEN
-        LINE (dragx, dragy)-(_MOUSEX, _MOUSEY), _RGBA32(127, 172, 255, 100), BF
-        LINE (dragx, dragy)-(_MOUSEX, _MOUSEY), _RGB32(127, 172, 255), B
+    If dragSelect Then
+        Line (dragx, dragy)-(_MouseX, _MouseY), _RGBA32(127, 172, 255, 100), BF
+        Line (dragx, dragy)-(_MouseX, _MouseY), _RGB32(127, 172, 255), B
 
-        DIM rect AS NewObject
+        Dim rect As NewObject
         rect.pos.x = dragx
         rect.pos.y = dragy
-        rect.w = _MOUSEX - dragx
-        rect.h = _MOUSEY - dragy
+        rect.w = _MouseX - dragx
+        rect.h = _MouseY - dragy
 
-        FOR i = 1 TO UBOUND(obj)
-            IF isInside(obj(i), rect) AND obj(i).added = false THEN obj(i).selected = true ELSE obj(i).selected = false
-        NEXT
-    END IF
+        For i = 1 To UBound(obj)
+            If isInside(obj(i), rect) And obj(i).added = false Then obj(i).selected = true Else obj(i).selected = false
+        Next
+    End If
 
     Won = true
     LostPieces = 0
-    FOR i = 1 TO UBOUND(obj)
-        IF NOT obj(i).lost THEN
-            IF NOT obj(i).added THEN Won = false: EXIT FOR
-        ELSE
+    For i = 1 To UBound(obj)
+        If Not obj(i).lost Then
+            If Not obj(i).added Then Won = false: Exit For
+        Else
             LostPieces = LostPieces + 1
-        END IF
-    NEXT
+        End If
+    Next
 
-    IF Won THEN
-        IF LostPieces = 1 THEN
+    If Won Then
+        If LostPieces = 1 Then
             m$ = "All but 1 piece contained!"
-        ELSEIF LostPieces = UBOUND(obj) THEN
+        ElseIf LostPieces = UBound(obj) Then
             m$ = "You lose... no pieces contained..."
-        ELSEIF LostPieces > 1 THEN
-            m$ = "All but" + STR$(LostPieces) + " pieces contained!"
-        ELSE
+        ElseIf LostPieces > 1 Then
+            m$ = "All but" + Str$(LostPieces) + " pieces contained!"
+        Else
             m$ = "All pieces contained!"
-        END IF
-        COLOR _RGB32(0, 0, 0)
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 - _FONTHEIGHT - 1), m$
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 - 1, _HEIGHT / 2 - _FONTHEIGHT - 1), m$
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 - _FONTHEIGHT + 1), m$
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 - 1, _HEIGHT / 2 - _FONTHEIGHT + 1), m$
-        COLOR _RGB32(255, 255, 255)
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 - _FONTHEIGHT), m$
-        m$ = "Your score:" + STR$(score)
-        COLOR _RGB32(0, 0, 0)
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 - 1, _HEIGHT / 2 + _FONTHEIGHT - 1), m$
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 + _FONTHEIGHT + 1), m$
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 + 1, _HEIGHT / 2 + _FONTHEIGHT - 1), m$
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2 - 1, _HEIGHT / 2 + _FONTHEIGHT + 1), m$
-        COLOR _RGB32(255, 255, 255)
-        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(m$) / 2, _HEIGHT / 2 + _FONTHEIGHT), m$
-        IF _MOUSEBUTTON(1) THEN mousepressed = true
-    ELSE
-        _PRINTSTRING (0, 0), "Score:" + STR$(score)
-        _PRINTSTRING (0, _FONTHEIGHT), "Time:" + STR$(INT(TIMER - start#))
-    END IF
+        End If
+        Color _RGB32(0, 0, 0)
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 - _FontHeight - 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 - 1, _Height / 2 - _FontHeight - 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 - _FontHeight + 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 - 1, _Height / 2 - _FontHeight + 1), m$
+        Color _RGB32(255, 255, 255)
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 - _FontHeight), m$
+        m$ = "Your score:" + Str$(score)
+        Color _RGB32(0, 0, 0)
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 - 1, _Height / 2 + _FontHeight - 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 + _FontHeight + 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 + 1, _Height / 2 + _FontHeight - 1), m$
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2 - 1, _Height / 2 + _FontHeight + 1), m$
+        Color _RGB32(255, 255, 255)
+        _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 + _FontHeight), m$
+        If _MouseButton(1) Then mousepressed = true
+    Else
+        _PrintString (0, 0), "Score:" + Str$(score)
+        _PrintString (0, _FontHeight), "Time:" + Str$(Int(Timer - start#))
+    End If
 
-    _DISPLAY
+    _Display
 
-    _LIMIT 30
-LOOP
+    _Limit 30
+Loop
 
-SYSTEM
+System
 
 resetPieces:
-FOR i = 1 TO UBOUND(obj)
+For i = 1 To UBound(obj)
     obj(i).w = 40
     obj(i).h = 40
     obj(i).lost = false
     obj(i).added = false
     obj(i).selected = false
     createVector obj(i).dir, p5random(-1, 1), p5random(-1, 1)
-    obj(i).color = _RGB32(RND * 200, RND * 200, RND * 200)
-    DO
-        createVector obj(i).pos, RND * (_WIDTH - obj(i).w), RND * (_HEIGHT - obj(i).h)
-    LOOP WHILE isInside(obj(i), barn)
-NEXT
+    obj(i).color = _RGB32(Rnd * 200, Rnd * 200, Rnd * 200)
+    Do
+        createVector obj(i).pos, Rnd * (_Width - obj(i).w), Rnd * (_Height - obj(i).h)
+    Loop While isInside(obj(i), barn)
+Next
 
-start# = TIMER
+start# = Timer
 Won = false
 score = 0
-RETURN
+Return
 
-FUNCTION hovering%% (this AS NewObject)
-    hovering = _MOUSEX > this.pos.x AND _MOUSEX < this.pos.x + this.w - 1 AND _MOUSEY > this.pos.y AND _MOUSEY < this.pos.y + this.h - 1
-END FUNCTION
+Function hovering%% (this As NewObject)
+    hovering = _MouseX > this.pos.x And _MouseX < this.pos.x + this.w - 1 And _MouseY > this.pos.y And _MouseY < this.pos.y + this.h - 1
+End Function
 
-FUNCTION isInside%% (this AS NewObject, __rect AS NewObject)
-    DIM rect AS NewObject
+Function isInside%% (this As NewObject, __rect As NewObject)
+    Dim rect As NewObject
 
     rect = __rect
-    IF rect.w < 0 THEN rect.w = ABS(rect.w): rect.pos.x = rect.pos.x - rect.w
-    IF rect.h < 0 THEN rect.h = ABS(rect.h): rect.pos.y = rect.pos.y - rect.h
+    If rect.w < 0 Then rect.w = Abs(rect.w): rect.pos.x = rect.pos.x - rect.w
+    If rect.h < 0 Then rect.h = Abs(rect.h): rect.pos.y = rect.pos.y - rect.h
 
-    isInside%% = rect.pos.x < this.pos.x + this.w AND rect.pos.x + rect.w > this.pos.x AND rect.pos.y < this.pos.y + this.h AND rect.pos.y + rect.h > this.pos.y
-END FUNCTION
+    isInside%% = rect.pos.x < this.pos.x + this.w And rect.pos.x + rect.w > this.pos.x And rect.pos.y < this.pos.y + this.h And rect.pos.y + rect.h > this.pos.y
+End Function
 
 'Elements below have been borrowed from the p5js.bas library:
-FUNCTION p5random! (mn!, mx!)
-    IF mn! > mx! THEN
-        SWAP mn!, mx!
-    END IF
-    p5random! = RND * (mx! - mn!) + mn!
-END FUNCTION
+Function p5random! (mn!, mx!)
+    If mn! > mx! Then
+        Swap mn!, mx!
+    End If
+    p5random! = Rnd * (mx! - mn!) + mn!
+End Function
 
-SUB createVector (v AS vector, x AS SINGLE, y AS SINGLE)
+Sub createVector (v As vector, x As Single, y As Single)
     v.x = x
     v.y = y
-END SUB
+End Sub
 
-SUB vector.add (v1 AS vector, v2 AS vector)
+Sub vector.add (v1 As vector, v2 As vector)
     v1.x = v1.x + v2.x
     v1.y = v1.y + v2.y
     v1.z = v1.z + v2.z
-END SUB
+End Sub
 
-SUB vector.mult (v AS vector, n AS SINGLE)
+Sub vector.mult (v As vector, n As Single)
     v.x = v.x * n
     v.y = v.y * n
     v.z = v.z * n
-END SUB
+End Sub

@@ -10,50 +10,50 @@
 '    Glass sound: https://freesound.org/s/371091/
 '    Falling particles: https://freesound.org/s/408343/
 '
-OPTION _EXPLICIT
-CONST true = -1, false = 0
-CONST debug = false
+Option _Explicit
+Const true = -1, false = 0
+Const debug = false
 
-TYPE newVector
-    x AS SINGLE
-    y AS SINGLE
-END TYPE
+Type newVector
+    x As Single
+    y As Single
+End Type
 
-DIM SHARED gameWidth AS INTEGER, gameHeight AS INTEGER
-DIM SHARED arenaWidth AS INTEGER, arenaHeight AS INTEGER
-DIM SHARED blockSize AS INTEGER
-DIM SHARED bgWidth AS INTEGER, bgHeight AS INTEGER
-DIM SHARED gameScreen AS LONG
-DIM SHARED level AS LONG, camera AS SINGLE
-DIM SHARED respawnOffset AS SINGLE
-DIM SHARED ball.radius, ball.y.velocity
-DIM SHARED ball.y.acceleration, ball.x.velocity, ball.x.acceleration
-DIM SHARED ball.origin.x, ball.origin.y, ball.x, ball.y
-DIM SHARED ball.mass
-DIM SHARED level.r AS _UNSIGNED _BYTE, level.g AS _UNSIGNED _BYTE, level.b AS _UNSIGNED _BYTE
-DIM SHARED g AS SINGLE, k AS LONG
-DIM SHARED started AS _BYTE, p AS LONG, tx, ty, madeIt AS _BYTE
-DIM SHARED cameraCenter AS SINGLE, cameraCenterY AS SINGLE, cameraY AS SINGLE
-DIM SHARED timerSet AS _BYTE, m$, levelStarted AS SINGLE, levelSet AS SINGLE, finished AS _BYTE
-DIM SHARED diff.y, diff.x, ball.angle, ball.arm, timeFinished AS SINGLE
-DIM SHARED t.m$, mag, showBG AS _BYTE, blockLoopStart AS LONG
-DIM SHARED ballHit AS _BYTE, glowRadius AS INTEGER
-DIM SHARED ellipsisPlot AS INTEGER, waitForRelease AS _BYTE, willRespawn AS _BYTE
-DIM SHARED gravitationalFloat AS SINGLE, g.angle AS SINGLE
-DIM SHARED bigPortal AS LONG, smallPortal AS LONG
-DIM SHARED frameRate AS INTEGER, frameRateRestoreTimer AS SINGLE
-DIM SHARED respawnDelay AS SINGLE, hideRed AS SINGLE
-DIM SHARED prev.m$, score AS LONG
-DIM SHARED whooshSound AS LONG, fireOutSound AS LONG
-DIM SHARED glassSound AS LONG, particlesSound AS LONG
-DIM SHARED nextTetherPoint.x AS LONG, nextTetherPoint.y AS LONG
-DIM SHARED stretchLevel AS INTEGER, stretchingString AS newVector
-DIM SHARED totalPortals AS INTEGER
+Dim Shared gameWidth As Integer, gameHeight As Integer
+Dim Shared arenaWidth As Integer, arenaHeight As Integer
+Dim Shared blockSize As Integer
+Dim Shared bgWidth As Integer, bgHeight As Integer
+Dim Shared gameScreen As Long
+Dim Shared level As Long, camera As Single
+Dim Shared respawnOffset As Single
+Dim Shared ball.radius, ball.y.velocity
+Dim Shared ball.y.acceleration, ball.x.velocity, ball.x.acceleration
+Dim Shared ball.origin.x, ball.origin.y, ball.x, ball.y
+Dim Shared ball.mass
+Dim Shared level.r As _Unsigned _Byte, level.g As _Unsigned _Byte, level.b As _Unsigned _Byte
+Dim Shared g As Single, k As Long
+Dim Shared started As _Byte, p As Long, tx, ty, madeIt As _Byte
+Dim Shared cameraCenter As Single, cameraCenterY As Single, cameraY As Single
+Dim Shared timerSet As _Byte, m$, levelStarted As Single, levelSet As Single, finished As _Byte
+Dim Shared diff.y, diff.x, ball.angle, ball.arm, timeFinished As Single
+Dim Shared t.m$, mag, showBG As _Byte, blockLoopStart As Long
+Dim Shared ballHit As _Byte, glowRadius As Integer
+Dim Shared ellipsisPlot As Integer, waitForRelease As _Byte, willRespawn As _Byte
+Dim Shared gravitationalFloat As Single, g.angle As Single
+Dim Shared bigPortal As Long, smallPortal As Long
+Dim Shared frameRate As Integer, frameRateRestoreTimer As Single
+Dim Shared respawnDelay As Single, hideRed As Single
+Dim Shared prev.m$, score As Long
+Dim Shared whooshSound As Long, fireOutSound As Long
+Dim Shared glassSound As Long, particlesSound As Long
+Dim Shared nextTetherPoint.x As Long, nextTetherPoint.y As Long
+Dim Shared stretchLevel As Integer, stretchingString As newVector
+Dim Shared totalPortals As Integer
 
-CONST maxGravitationalFloat = 20
-CONST maxGlowRadius = 21
-CONST arenaRatio.x = 15
-CONST arenaRatio.y = 10
+Const maxGravitationalFloat = 20
+Const maxGlowRadius = 21
+Const arenaRatio.x = 15
+Const arenaRatio.y = 10
 
 gameWidth = 1000
 gameHeight = 650
@@ -63,9 +63,9 @@ frameRate = 60
 respawnDelay = 1.5
 blockSize = 100
 
-gameScreen = _NEWIMAGE(gameWidth, gameHeight, 32)
-SCREEN gameScreen
-_PRINTMODE _KEEPBACKGROUND
+gameScreen = _NewImage(gameWidth, gameHeight, 32)
+Screen gameScreen
+_PrintMode _KeepBackground
 arenaWidth = gameWidth * arenaRatio.x
 arenaHeight = gameHeight * arenaRatio.y
 bgWidth = gameWidth * (arenaRatio.x * 2)
@@ -73,97 +73,97 @@ bgHeight = arenaHeight
 showBG = true
 
 
-DIM SHARED charSet(255, 1 TO 16, 1 TO 8) AS _UNSIGNED _BYTE
-DIM SHARED fontSize AS SINGLE
-DIM char AS _UNSIGNED _BYTE, row AS _BYTE, column AS _BYTE
-RESTORE charSet8x16
-FOR char = 0 TO 255
-    FOR row = 1 TO 16
-        FOR column = 1 TO 8
-            READ charSet(char, row, column)
-        NEXT
-    NEXT
-NEXT
+Dim Shared charSet(255, 1 To 16, 1 To 8) As _Unsigned _Byte
+Dim Shared fontSize As Single
+Dim char As _Unsigned _Byte, row As _Byte, column As _Byte
+Restore charSet8x16
+For char = 0 To 255
+    For row = 1 To 16
+        For column = 1 To 8
+            Read charSet(char, row, column)
+        Next
+    Next
+Next
 
-whooshSound = _SNDOPEN("assets/whoosh.ogg")
-fireOutSound = _SNDOPEN("assets/fireout.ogg")
-glassSound = _SNDOPEN("assets/glass.ogg")
-particlesSound = _SNDOPEN("assets/particles.ogg")
+whooshSound = _SndOpen("assets/whoosh.ogg")
+fireOutSound = _SndOpen("assets/fireout.ogg")
+glassSound = _SndOpen("assets/glass.ogg")
+particlesSound = _SndOpen("assets/particles.ogg")
 
-CONST FIRE = 1
-CONST SMOKE = 2
-CONST SPARK = 3
-CONST GRAVITATOR = 4
-CONST GRAVITATORCELL = 5
-CONST BUSTEDCELL = 6
+Const FIRE = 1
+Const SMOKE = 2
+Const SPARK = 3
+Const GRAVITATOR = 4
+Const GRAVITATORCELL = 5
+Const BUSTEDCELL = 6
 
-TYPE newItem
-    pos AS newVector
-    acc AS newVector
-    vel AS newVector
-    w AS SINGLE
-    h AS SINGLE
-    a AS SINGLE
-    b AS SINGLE
-    minA AS SINGLE
-    maxA AS SINGLE
-    minb AS SINGLE
-    maxB AS SINGLE
-    multA AS _BYTE
-    multB AS _BYTE
-    kind AS INTEGER
-    color AS _UNSIGNED LONG
-    red AS _UNSIGNED _BYTE
-    green AS _UNSIGNED _BYTE
-    blue AS _UNSIGNED _BYTE
-    active AS _BYTE
-    parent AS LONG
-    generation AS INTEGER
-    maxGeneration AS INTEGER
-END TYPE
+Type newItem
+    pos As newVector
+    acc As newVector
+    vel As newVector
+    w As Single
+    h As Single
+    a As Single
+    b As Single
+    minA As Single
+    maxA As Single
+    minb As Single
+    maxB As Single
+    multA As _Byte
+    multB As _Byte
+    kind As Integer
+    color As _Unsigned Long
+    red As _Unsigned _Byte
+    green As _Unsigned _Byte
+    blue As _Unsigned _Byte
+    active As _Byte
+    parent As Long
+    generation As Integer
+    maxGeneration As Integer
+End Type
 
-CONST maxBGDecoration = 20
-REDIM SHARED bg(1 TO maxBGDecoration + 1) AS newItem
-REDIM SHARED block(500) AS newItem
-REDIM SHARED particle(5000) AS newItem
-REDIM SHARED deathNote(1 TO 1) AS STRING, deathNoteIndex AS INTEGER
-DIM SHARED totalBlocks AS LONG
-DIM thisParticle AS LONG
+Const maxBGDecoration = 20
+ReDim Shared bg(1 To maxBGDecoration + 1) As newItem
+ReDim Shared block(500) As newItem
+ReDim Shared particle(5000) As newItem
+ReDim Shared deathNote(1 To 1) As String, deathNoteIndex As Integer
+Dim Shared totalBlocks As Long
+Dim thisParticle As Long
 
-CONST maxRND = 10000
-DIM SHARED rndTable(1 TO maxRND) AS SINGLE
-DIM SHARED rndSeed AS LONG, rndIndex AS LONG
+Const maxRND = 10000
+Dim Shared rndTable(1 To maxRND) As Single
+Dim Shared rndSeed As Long, rndIndex As Long
 
-RANDOMIZE 37
-DIM i&
-FOR i& = 1 TO maxRND
+Randomize 37
+Dim i&
+For i& = 1 To maxRND
     rndTable(i&) = noise(i&, 0, 0)
-NEXT
+Next
 
-RANDOMIZE TIMER
+Randomize Timer
 
 i& = 0
-RESTORE deathNotes
-DO
-    READ m$
-    IF m$ = "-" THEN EXIT DO
+Restore deathNotes
+Do
+    Read m$
+    If m$ = "-" Then Exit Do
     i& = i& + 1
-    IF i& > UBOUND(deathNote) THEN REDIM _PRESERVE deathNote(1 TO i&) AS STRING
+    If i& > UBound(deathNote) Then ReDim _Preserve deathNote(1 To i&) As String
     deathNote(i&) = m$
-LOOP
-IF i& = 0 THEN deathNote(1) = "OUCH!"
+Loop
+If i& = 0 Then deathNote(1) = "OUCH!"
 
 deathNotes:
-DATA "OUCH!","THAT MUST HURT...","WASTED","CAN'T TOUCH THIS!","THE FLOOR IS LAVA. WATER. I MEAN WATER.","-"
+Data "OUCH!","THAT MUST HURT...","WASTED","CAN'T TOUCH THIS!","THE FLOOR IS LAVA. WATER. I MEAN WATER.","-"
 
-DIM SHARED state AS _BYTE
-CONST HALTED = 0
-CONST FALLING = 1
-CONST SWINGING = 2
-CONST STRETCHING = 3
+Dim Shared state As _Byte
+Const HALTED = 0
+Const FALLING = 1
+Const SWINGING = 2
+Const STRETCHING = 3
 
-DIM vr AS SINGLE
-DIM vt AS SINGLE
+Dim vr As Single
+Dim vt As Single
 
 ellipsisPlot = 63
 
@@ -176,190 +176,190 @@ ball.y = respawnOffset 'arenaHeight / respawnOffset
 cameraY = ball.y
 ball.mass = 1
 glowRadius = 3
-levelSet = TIMER
+levelSet = Timer
 
-deathNoteIndex = _CEIL(RND * UBOUND(deathNote))
+deathNoteIndex = _Ceil(Rnd * UBound(deathNote))
 
-DO
-    IF _KEYDOWN(13) THEN
-        IF NOT waitForRelease AND NOT willRespawn THEN
-            IF state <> STRETCHING AND state <> SWINGING THEN
+Do
+    If _KeyDown(13) Then
+        If Not waitForRelease And Not willRespawn Then
+            If state <> STRETCHING And state <> SWINGING Then
                 state = STRETCHING
                 started = true
                 stretchLevel = 0
-                IF timerSet = false THEN
+                If timerSet = false Then
                     timerSet = true
-                    levelStarted = TIMER
-                END IF
+                    levelStarted = Timer
+                End If
                 ball.origin.x = nextTetherPoint.x
                 ball.origin.y = nextTetherPoint.y
-            END IF
-        END IF
-    ELSE
-        IF waitForRelease THEN
+            End If
+        End If
+    Else
+        If waitForRelease Then
             waitForRelease = false
-        ELSE
-            IF state = SWINGING AND NOT finished THEN
+        Else
+            If state = SWINGING And Not finished Then
                 state = FALLING
-            END IF
-        END IF
-    END IF
+            End If
+        End If
+    End If
 
-    k = _KEYHIT
-    IF k = 9 AND _KEYDOWN(100304) = false THEN GOTO setNewLevel
-    IF k = 9 AND _KEYDOWN(100304) AND level > 1 THEN level = level - 2: GOTO setNewLevel
-    IF k = ASC("B") OR k = ASC("b") THEN showBG = NOT showBG
-    IF k = ASC("W") OR k = ASC("w") THEN IF NOT _KEYDOWN(100304) THEN glowRadius = glowRadius + 3 ELSE glowRadius = glowRadius + 1
-    IF k = ASC("S") OR k = ASC("s") THEN IF NOT _KEYDOWN(100304) THEN glowRadius = glowRadius - 3 ELSE glowRadius = glowRadius - 1
+    k = _KeyHit
+    If k = 9 And _KeyDown(100304) = false Then GoTo setNewLevel
+    If k = 9 And _KeyDown(100304) And level > 1 Then level = level - 2: GoTo setNewLevel
+    If k = Asc("B") Or k = Asc("b") Then showBG = Not showBG
+    If k = Asc("W") Or k = Asc("w") Then If Not _KeyDown(100304) Then glowRadius = glowRadius + 3 Else glowRadius = glowRadius + 1
+    If k = Asc("S") Or k = Asc("s") Then If Not _KeyDown(100304) Then glowRadius = glowRadius - 3 Else glowRadius = glowRadius - 1
 
     doPhysics
 
-    IF ball.x - ball.radius > arenaWidth THEN madeIt = true
+    If ball.x - ball.radius > arenaWidth Then madeIt = true
 
     doCamera
 
-    IF willRespawn THEN LINE (0, 0)-STEP(_WIDTH, _HEIGHT), _RGBA32(0, 0, 0, 30), BF ELSE CLS
-    IF showBG THEN
+    If willRespawn Then Line (0, 0)-Step(_Width, _Height), _RGBA32(0, 0, 0, 30), BF Else Cls
+    If showBG Then
         drawBG
-    END IF
+    End If
     drawBlocks
 
-    IF state = STRETCHING THEN
+    If state = STRETCHING Then
         stretchLevel = stretchLevel + 10
-        IF stretchLevel = 100 THEN
-            IF whooshSound > 0 THEN _SNDPLAYCOPY whooshSound
+        If stretchLevel = 100 Then
+            If whooshSound > 0 Then _SndPlayCopy whooshSound
             state = SWINGING
 
-            IF ball.origin.x > arenaWidth THEN
+            If ball.origin.x > arenaWidth Then
                 finished = true
-            END IF
+            End If
 
             ball.arm = dist(ball.x, ball.y, ball.origin.x, ball.origin.y)
 
             diff.y = ball.y - ball.origin.y
             diff.x = ball.x - ball.origin.x
-            ball.angle = _ATAN2(diff.x, diff.y)
+            ball.angle = _Atan2(diff.x, diff.y)
 
             ' Eliminate radial velocity component but keep the tangential component.
-            vt = ball.x.velocity * -COS(ball.angle) + ball.y.velocity * SIN(ball.angle)
-            ball.x.velocity = vt * -COS(ball.angle)
-            ball.y.velocity = vt * SIN(ball.angle)
-        ELSE
+            vt = ball.x.velocity * -Cos(ball.angle) + ball.y.velocity * Sin(ball.angle)
+            ball.x.velocity = vt * -Cos(ball.angle)
+            ball.y.velocity = vt * Sin(ball.angle)
+        Else
             stretchingString.x = lerp(ball.x, ball.origin.x, stretchLevel / 100)
             stretchingString.y = lerp(ball.y, ball.origin.y, stretchLevel / 100)
-            FOR p = 1 TO 10
+            For p = 1 To 10
                 thisParticle = addParticle(stretchingString.x, stretchingString.y, FIRE, 0)
-            NEXT
+            Next
             ThickLine ball.x + camera, ball.y + cameraY, stretchingString.x + camera, stretchingString.y + cameraY, _RGB32(0, 0, 0), 8
             ThickLine ball.x + camera, ball.y + cameraY, stretchingString.x + camera, stretchingString.y + cameraY, _RGB32(255, 255, 255), 4
-        END IF
-    ELSEIF state = SWINGING THEN
+        End If
+    ElseIf state = SWINGING Then
         ThickLine ball.x + camera, ball.y + cameraY, ball.origin.x + camera, ball.origin.y + cameraY, _RGB32(0, 0, 0), 8
         ThickLine ball.x + camera, ball.y + cameraY, ball.origin.x + camera, ball.origin.y + cameraY, _RGB32(255, 255, 255), 4
-    END IF
+    End If
 
-    IF NOT willRespawn THEN
-        FOR p = 1 TO 30
-            tx = ball.x + COS(p) * (RND * ball.radius)
-            ty = ball.y + SIN(p) * (RND * ball.radius)
+    If Not willRespawn Then
+        For p = 1 To 30
+            tx = ball.x + Cos(p) * (Rnd * ball.radius)
+            ty = ball.y + Sin(p) * (Rnd * ball.radius)
             thisParticle = addParticle(tx, ty, FIRE, 0)
-        NEXT
-        FOR p = ball.radius + glowRadius TO ball.radius + 1 STEP -1
+        Next
+        For p = ball.radius + glowRadius To ball.radius + 1 Step -1
             CircleFill ball.x + camera, ball.y + cameraY, p, _RGBA32(238, 216, 94, map(p, ball.radius + 1, ball.radius + glowRadius, 15, 5))
-        NEXT
+        Next
         CircleFill ball.x + camera, ball.y + cameraY, ball.radius, _RGBA32(255, 255, 255, 200)
-    END IF
+    End If
 
-    IF state = SWINGING THEN
-        FOR p = 1 TO 5
-            tx = ball.origin.x + COS(p) * (RND * ball.radius / 4)
-            ty = ball.origin.y + SIN(p) * (RND * ball.radius / 4)
+    If state = SWINGING Then
+        For p = 1 To 5
+            tx = ball.origin.x + Cos(p) * (Rnd * ball.radius / 4)
+            ty = ball.origin.y + Sin(p) * (Rnd * ball.radius / 4)
             thisParticle = addParticle(tx, ty, FIRE, 0)
-        NEXT
-    END IF
+        Next
+    End If
 
     doParticles
 
-    IF state = HALTED THEN
-        IF NOT timerSet THEN m$ = "Hold ENTER to start..." ELSE m$ = "Hold ENTER to continue..."
-        IF willRespawn THEN
+    If state = HALTED Then
+        If Not timerSet Then m$ = "Hold ENTER to start..." Else m$ = "Hold ENTER to continue..."
+        If willRespawn Then
             m$ = deathNote(deathNoteIndex)
-            LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(72, 0, 0, 180), BF
-        ELSE
-            IF TIMER - hideRed < respawnDelay / 2 THEN
-                LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(72, 0, 0, map(TIMER - hideRed, 0, respawnDelay / 2, 180, 0)), BF
-            END IF
-        END IF
+            Line (0, 0)-(_Width, _Height), _RGBA32(72, 0, 0, 180), BF
+        Else
+            If Timer - hideRed < respawnDelay / 2 Then
+                Line (0, 0)-(_Width, _Height), _RGBA32(72, 0, 0, map(Timer - hideRed, 0, respawnDelay / 2, 180, 0)), BF
+            End If
+        End If
         fontSize = 3
-        printLarge _WIDTH / 2 - printWidth(m$) / 2, _HEIGHT / 2 - fontHeight / 2, m$
-    END IF
+        printLarge _Width / 2 - printWidth(m$) / 2, _Height / 2 - fontHeight / 2, m$
+    End If
 
-    IF timerSet THEN
-        IF levelStarted > TIMER THEN levelStarted = levelStarted - 86400
-        m$ = STR$(TIMER - levelStarted)
-        m$ = LEFT$(m$, INSTR(m$, ".") + 1)
+    If timerSet Then
+        If levelStarted > Timer Then levelStarted = levelStarted - 86400
+        m$ = Str$(Timer - levelStarted)
+        m$ = Left$(m$, InStr(m$, ".") + 1)
         fontSize = 2
-        printLarge _WIDTH - printWidth(m$), _HEIGHT - fontHeight, m$
-    END IF
+        printLarge _Width - printWidth(m$), _Height - fontHeight, m$
+    End If
 
-    IF finished THEN
+    If finished Then
         m$ = "You made it!"
         fontSize = 3
-        printLarge _WIDTH / 2 - printWidth(m$) / 2, _HEIGHT / 2 - fontHeight / 2, m$
-    ELSE
-        IF started THEN
-            m$ = STR$(TIMER - levelStarted)
-            m$ = LEFT$(m$, INSTR(m$, ".") + 1)
+        printLarge _Width / 2 - printWidth(m$) / 2, _Height / 2 - fontHeight / 2, m$
+    Else
+        If started Then
+            m$ = Str$(Timer - levelStarted)
+            m$ = Left$(m$, InStr(m$, ".") + 1)
             fontSize = 2
-            printLarge _WIDTH - printWidth(m$), _HEIGHT - fontHeight, m$
-        END IF
-    END IF
+            printLarge _Width - printWidth(m$), _Height - fontHeight, m$
+        End If
+    End If
 
     showHUD
 
-    _DISPLAY
-    IF frameRate < 60 AND TIMER - frameRateRestoreTimer > respawnDelay THEN
+    _Display
+    If frameRate < 60 And Timer - frameRateRestoreTimer > respawnDelay Then
         frameRate = 60
         willRespawn = false
-        hideRed = TIMER
-    END IF
-    _LIMIT frameRate
+        hideRed = Timer
+    End If
+    _Limit frameRate
 
-    IF ball.x - ball.radius > arenaWidth THEN madeIt = true
+    If ball.x - ball.radius > arenaWidth Then madeIt = true
 
-    IF madeIt THEN
-        timeFinished = TIMER
-        t.m$ = STR$(timeFinished - levelStarted)
-        t.m$ = LEFT$(t.m$, INSTR(t.m$, ".") + 1)
-        IF _KEYDOWN(13) THEN waitForRelease = true
-        DO
-            IF willRespawn THEN LINE (0, 0)-STEP(_WIDTH, _HEIGHT), _RGBA32(0, 0, 0, 30), BF ELSE CLS
-            IF showBG THEN
+    If madeIt Then
+        timeFinished = Timer
+        t.m$ = Str$(timeFinished - levelStarted)
+        t.m$ = Left$(t.m$, InStr(t.m$, ".") + 1)
+        If _KeyDown(13) Then waitForRelease = true
+        Do
+            If willRespawn Then Line (0, 0)-Step(_Width, _Height), _RGBA32(0, 0, 0, 30), BF Else Cls
+            If showBG Then
                 drawBG
-            END IF
+            End If
             drawBlocks
             doParticles
 
             fontSize = 3
             m$ = "You made it in" + t.m$ + " seconds!"
-            printLarge _WIDTH / 2 - printWidth(m$) / 2, _HEIGHT / 2 - fontHeight / 2, m$
+            printLarge _Width / 2 - printWidth(m$) / 2, _Height / 2 - fontHeight / 2, m$
             m$ = "(hit ENTER)"
-            printLarge _WIDTH / 2 - printWidth(m$) / 2, _HEIGHT / 2 - fontHeight / 2 + fontHeight, m$
+            printLarge _Width / 2 - printWidth(m$) / 2, _Height / 2 - fontHeight / 2 + fontHeight, m$
 
-            IF _KEYDOWN(13) AND NOT waitForRelease THEN
-                EXIT DO
-            ELSEIF NOT _KEYDOWN(13) AND waitForRelease THEN
+            If _KeyDown(13) And Not waitForRelease Then
+                Exit Do
+            ElseIf Not _KeyDown(13) And waitForRelease Then
                 waitForRelease = false
-            END IF
+            End If
 
-            _DISPLAY
-            _LIMIT 60
-        LOOP
+            _Display
+            _Limit 60
+        Loop
 
         setNewLevel:
-        FOR p = 1 TO UBOUND(particle)
+        For p = 1 To UBound(particle)
             particle(p).active = false
-        NEXT
+        Next
         level = level + 1
         setRand level
         generateArena
@@ -377,105 +377,105 @@ DO
         started = false
         state = HALTED
         timerSet = false
-        levelSet = TIMER
-    END IF
-LOOP
+        levelSet = Timer
+    End If
+Loop
 
 charSet8x16: 'from libqb.cpp
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,0,0,0,0,0,0,255,255,0,255,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,255,255,255,255,255,255,255,255,255,0,255,255,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,255,255,255,0,0,255,255,255,255,255,255,0,0,255,255,255,255,255,255,0,0,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
-DATA 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,0,0,0,0,255,0,0,255,0,0,0,0,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,0,0,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,255,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,0,0,0,255,255,0,0,255,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0
-DATA 255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255
-DATA 0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,0,0,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,255,255,0,0,255,255,255,255,0,0,255,255,255,0,0,255,255,255,0,0,255,255,255,255,0,0,255,255,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,0,0,0,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,0,255,255,255
-DATA 255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255
-DATA 0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255
-DATA 255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,255,255,255,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,255,0,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0
-DATA 255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255
-DATA 255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,255,255,255,255,255,255,255,255,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255
-DATA 255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,0
-DATA 0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0
-DATA 0,255,255,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0
-DATA 255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0
-DATA 255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255
-DATA 255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,0,255,255,0
-DATA 0,255,255,0,0,0,255,0,0,255,255,0,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,0,0,255,255,0,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0
-DATA 255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0
-DATA 0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,0,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,0,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,255,255
-DATA 255,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0
-DATA 255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255
-DATA 255,255,255,255,0,0,255,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255
-DATA 255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,255,255,255,255,255,0,255,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0
-DATA 0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0
-DATA 0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255
-DATA 0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255
-DATA 0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255
-DATA 0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0
-DATA 255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255
-DATA 255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0
-DATA 0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255
-DATA 0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255
-DATA 255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0
-DATA 255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,0
-DATA 255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255
-DATA 255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,0,0,0,255,255,0,0,0,0,0,255,255,255
-DATA 255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255
-DATA 0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255
-DATA 255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,255,255
-DATA 255,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0
-DATA 255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,255,0,0,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,255,0,255,255,0,0,255,255,255,0,255,0,0,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255
-DATA 255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0
-DATA 0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255
-DATA 0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255
-DATA 255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255
-DATA 255,0,0,0,255,255,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0
-DATA 255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0
-DATA 0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255
-DATA 255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0
-DATA 255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255
-DATA 255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255
-DATA 0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
-DATA 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255
-DATA 255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255
-DATA 0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,255,255,255,255,255,0,255
-DATA 255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,255,255,0,0,255,255,0,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255
-DATA 255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,0,0,0,0,0,0,255,255,0,255,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,255,255,255,255,255,255,255,255,255,0,255,255,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,255,255,255,0,0,255,255,255,255,255,255,0,0,255,255,255,255,255,255,0,0,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
+Data 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,0,0,0,0,255,0,0,255,0,0,0,0,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,0,0,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,255,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,0,0,0,255,255,0,0,255,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0
+Data 255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255
+Data 0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,0,0,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,255,255,0,0,255,255,255,255,0,0,255,255,255,0,0,255,255,255,0,0,255,255,255,255,0,0,255,255,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,0,0,0,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,0,255,255,255
+Data 255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255
+Data 0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255
+Data 255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,255,255,255,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,255,0,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0
+Data 255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255
+Data 255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,255,255,255,255,255,255,255,255,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255
+Data 255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,0
+Data 0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0
+Data 0,255,255,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0
+Data 255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0
+Data 255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255
+Data 255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,0,255,255,0
+Data 0,255,255,0,0,0,255,0,0,255,255,0,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,0,0,255,255,0,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0
+Data 255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0
+Data 0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,0,255,255,255,0,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,255,255,0,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,255,255
+Data 255,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0
+Data 255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,255,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255
+Data 255,255,255,255,0,0,255,0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255
+Data 255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,255,255,255,255,255,0,255,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0
+Data 0,255,255,0,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0
+Data 0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255
+Data 0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255
+Data 0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255
+Data 0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,0,255,255,255,255,255,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0
+Data 255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255
+Data 255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,0,255,0,255,255,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0
+Data 0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255
+Data 0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255
+Data 255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,255,255,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0
+Data 255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,0
+Data 255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255
+Data 255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,0,0,0,255,255,0,0,0,0,0,255,255,255
+Data 255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,0,0,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255
+Data 0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255
+Data 255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,255,255
+Data 255,0,255,255,0,255,255,255,255,0,255,255,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0
+Data 255,255,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,255,0,0,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,255,0,255,255,0,0,255,255,255,0,255,0,0,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,0,0,255,0,0,0,255,0,255,0,0,0,255,0,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,0,255,0,255,0,255,0,255,255,0,255,0,255,0,255,0,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255
+Data 255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,255,255,0,255,255,255,0,255,0,255,255,255,0,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0
+Data 0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255
+Data 0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255
+Data 255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255
+Data 255,0,0,0,255,255,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0
+Data 255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0
+Data 0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255
+Data 255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,255,255,0,0,0,0,0,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0
+Data 255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,0,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255
+Data 255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,255,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255
+Data 0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
+Data 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255
+Data 255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,0,0,0,255,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,255,255,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,255,255,0,0,0,255,255
+Data 0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,255,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,255,255,255,255,255,0,255
+Data 255,0,255,255,0,255,255,255,255,0,255,255,0,255,255,255,255,255,255,0,0,255,255,0,255,255,255,255,255,255,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255
+Data 255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,255,255,0,255,255,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,0,0,0,0,255,255,0,0,255,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,255,255,255,255,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0,255,255,0,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,255,255,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,0,0,0,255,255,0,0,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-SUB doPhysics
-    DIM DeltaTime AS SINGLE
-    DIM GravConst AS SINGLE
-    DIM Tension AS SINGLE
-    DIM Theta AS SINGLE
-    DIM Mass AS SINGLE
-    DIM MagVel AS SINGLE
-    DIM L AS SINGLE
-    DIM vr AS SINGLE
-    DIM vt AS SINGLE
+Sub doPhysics
+    Dim DeltaTime As Single
+    Dim GravConst As Single
+    Dim Tension As Single
+    Dim Theta As Single
+    Dim Mass As Single
+    Dim MagVel As Single
+    Dim L As Single
+    Dim vr As Single
+    Dim vt As Single
     DeltaTime = 0.5
     GravConst = 1
     L = ball.arm
@@ -483,30 +483,30 @@ SUB doPhysics
 
     diff.y = ball.y - ball.origin.y
     diff.x = ball.x - ball.origin.x
-    ball.angle = _ATAN2(diff.x, diff.y)
+    ball.angle = _Atan2(diff.x, diff.y)
     Theta = ball.angle
 
-    IF state = FALLING OR state = STRETCHING THEN
-        ball.x.acceleration = ABS(ball.x.acceleration)
-        IF ball.x.acceleration > .5 THEN ball.x.acceleration = .5
+    If state = FALLING Or state = STRETCHING Then
+        ball.x.acceleration = Abs(ball.x.acceleration)
+        If ball.x.acceleration > .5 Then ball.x.acceleration = .5
         ball.y.acceleration = GravConst
         ball.x.velocity = ball.x.velocity + DeltaTime * ball.x.acceleration
         ball.y.velocity = ball.y.velocity + DeltaTime * ball.y.acceleration
 
         'Damping:
-        IF (ball.y.velocity < 0) THEN ball.y.velocity = ball.y.velocity * (1 - .025)
+        If (ball.y.velocity < 0) Then ball.y.velocity = ball.y.velocity * (1 - .025)
         ball.x.velocity = ball.x.velocity * (1 - .025)
 
         ball.y = ball.y + DeltaTime * ball.y.velocity
         ball.x = ball.x + DeltaTime * ball.x.velocity
 
-    ELSEIF state = SWINGING THEN
-        MagVel = SQR(ball.x.velocity ^ 2 + ball.y.velocity ^ 2)
+    ElseIf state = SWINGING Then
+        MagVel = Sqr(ball.x.velocity ^ 2 + ball.y.velocity ^ 2)
 
-        Tension = Mass * GravConst * COS(Theta) + Mass * (MagVel ^ 2) / L
+        Tension = Mass * GravConst * Cos(Theta) + Mass * (MagVel ^ 2) / L
 
-        ball.x.acceleration = (-1 / Mass) * (Tension * SIN(Theta))
-        ball.y.acceleration = (-1 / Mass) * (Tension * COS(Theta) - GravConst)
+        ball.x.acceleration = (-1 / Mass) * (Tension * Sin(Theta))
+        ball.y.acceleration = (-1 / Mass) * (Tension * Cos(Theta) - GravConst)
 
         ball.x.velocity = ball.x.velocity + DeltaTime * ball.x.acceleration
         ball.y.velocity = ball.y.velocity + DeltaTime * ball.y.acceleration
@@ -517,41 +517,41 @@ SUB doPhysics
         ' (iii) De-boost in the radial direction (OPTIONAL).
         ' (iv ) Convert back to XY.
 
-        vr = ball.x.velocity * SIN(ball.angle) + ball.y.velocity * COS(ball.angle)
-        vt = ball.x.velocity * -COS(ball.angle) + ball.y.velocity * SIN(ball.angle)
+        vr = ball.x.velocity * Sin(ball.angle) + ball.y.velocity * Cos(ball.angle)
+        vt = ball.x.velocity * -Cos(ball.angle) + ball.y.velocity * Sin(ball.angle)
 
-        IF (ball.x.velocity > 0) THEN vt = vt * (1 + 0.015)
+        If (ball.x.velocity > 0) Then vt = vt * (1 + 0.015)
         vr = vr * (1 + 0.05)
 
-        ball.x.velocity = vr * SIN(ball.angle) + vt * -COS(ball.angle)
-        ball.y.velocity = vr * COS(ball.angle) + vt * SIN(ball.angle)
+        ball.x.velocity = vr * Sin(ball.angle) + vt * -Cos(ball.angle)
+        ball.y.velocity = vr * Cos(ball.angle) + vt * Sin(ball.angle)
 
         ball.x = ball.x + DeltaTime * ball.x.velocity
         ball.y = ball.y + DeltaTime * ball.y.velocity
-    END IF
+    End If
 
-    IF ball.y - ball.radius / 2 > arenaHeight OR ballHit THEN
-        IF fireOutSound > 0 THEN _SNDPLAYCOPY fireOutSound
+    If ball.y - ball.radius / 2 > arenaHeight Or ballHit Then
+        If fireOutSound > 0 Then _SndPlayCopy fireOutSound
         state = HALTED
-        deathNoteIndex = _CEIL(RND * UBOUND(deathNote))
+        deathNoteIndex = _Ceil(Rnd * UBound(deathNote))
         waitForRelease = true
         willRespawn = true
         slowMo
         glowRadius = 3
-        DO
+        Do
             ball.y = respawnOffset
             drawBlocks
-            IF ballHit = false THEN EXIT DO
+            If ballHit = false Then Exit Do
             ball.x = ball.x + blockSize / 2
-        LOOP
+        Loop
         ball.y.acceleration = 0
         ball.y.velocity = 0
         ball.x.acceleration = 0
         ball.x.velocity = 0
-    END IF
-END SUB
+    End If
+End Sub
 
-FUNCTION checkCollision%% (x1!, y1!, r!, x!, y!, w!, h!)
+Function checkCollision%% (x1!, y1!, r!, x!, y!, w!, h!)
     '//solution from https://jsfiddle.net/TappT/z5r21nu0/16/
     'function collisionNormal(_ball, _rect) {
     '  if(_ball.pos.x + _ball.r > _rect.pos.x &&
@@ -563,110 +563,110 @@ FUNCTION checkCollision%% (x1!, y1!, r!, x!, y!, w!, h!)
                        (x1! + camera) - r! < (x! + w!) AND _
                        (y1! + cameraY) + r! > y! AND _
                        (y1! + cameraY) - r! < (y! + h!)
-END FUNCTION
+End Function
 
-SUB doCamera
-    DIM new.cameraY AS SINGLE
+Sub doCamera
+    Dim new.cameraY As Single
 
-    IF ball.x + camera > _WIDTH / cameraCenter THEN
-        camera = (_WIDTH / cameraCenter) - ball.x
-    ELSEIF ball.x + camera < _WIDTH / cameraCenter THEN
-        camera = _WIDTH / cameraCenter - ball.x
-    END IF
+    If ball.x + camera > _Width / cameraCenter Then
+        camera = (_Width / cameraCenter) - ball.x
+    ElseIf ball.x + camera < _Width / cameraCenter Then
+        camera = _Width / cameraCenter - ball.x
+    End If
 
-    IF ball.y + cameraY > _HEIGHT / cameraCenterY THEN
-        new.cameraY = (_HEIGHT / cameraCenterY) - ball.y
-    ELSEIF ball.y + cameraY < _HEIGHT / cameraCenterY THEN
-        new.cameraY = _HEIGHT / cameraCenterY - ball.y
-    END IF
+    If ball.y + cameraY > _Height / cameraCenterY Then
+        new.cameraY = (_Height / cameraCenterY) - ball.y
+    ElseIf ball.y + cameraY < _Height / cameraCenterY Then
+        new.cameraY = _Height / cameraCenterY - ball.y
+    End If
 
-    IF state = HALTED THEN
-        DIM a AS SINGLE
-        a = ABS(cameraY - new.cameraY)
-        IF a > 3 THEN a = 3
-        IF a < 3 THEN a = 0
-        IF cameraY > new.cameraY THEN
+    If state = HALTED Then
+        Dim a As Single
+        a = Abs(cameraY - new.cameraY)
+        If a > 3 Then a = 3
+        If a < 3 Then a = 0
+        If cameraY > new.cameraY Then
             cameraY = cameraY - a
-        ELSEIF cameraY < new.cameraY THEN
+        ElseIf cameraY < new.cameraY Then
             cameraY = cameraY + a
-        ELSE
+        Else
             cameraY = new.cameraY
-        END IF
-    ELSE
+        End If
+    Else
         cameraY = new.cameraY
-    END IF
+    End If
 
-    IF camera > 0 THEN camera = 0
-    IF camera < -(arenaWidth - _WIDTH(gameScreen)) THEN camera = -(arenaWidth - _WIDTH(gameScreen))
+    If camera > 0 Then camera = 0
+    If camera < -(arenaWidth - _Width(gameScreen)) Then camera = -(arenaWidth - _Width(gameScreen))
 
-    IF cameraY > 0 THEN cameraY = 0
-    IF cameraY < -(arenaHeight - _HEIGHT(gameScreen)) THEN cameraY = -(arenaHeight - _HEIGHT(gameScreen))
-END SUB
+    If cameraY > 0 Then cameraY = 0
+    If cameraY < -(arenaHeight - _Height(gameScreen)) Then cameraY = -(arenaHeight - _Height(gameScreen))
+End Sub
 
-FUNCTION dist! (x1!, y1!, x2!, y2!)
-    dist! = _HYPOT((x2! - x1!), (y2! - y1!))
-END FUNCTION
+Function dist! (x1!, y1!, x2!, y2!)
+    dist! = _Hypot((x2! - x1!), (y2! - y1!))
+End Function
 
-FUNCTION map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
+Function map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
     map! = ((value! - minRange!) / (maxRange! - minRange!)) * (newMaxRange! - newMinRange!) + newMinRange!
-END FUNCTION
+End Function
 
-SUB CircleFill (CX AS LONG, CY AS LONG, R AS LONG, C AS _UNSIGNED LONG)
+Sub CircleFill (CX As Long, CY As Long, R As Long, C As _Unsigned Long)
     'This sub from here: http://www.qb64.net/forum/index.php?topic=1848.msg17254#msg17254
-    DIM Radius AS LONG
-    DIM RadiusError AS LONG
-    DIM X AS LONG
-    DIM Y AS LONG
+    Dim Radius As Long
+    Dim RadiusError As Long
+    Dim X As Long
+    Dim Y As Long
 
-    Radius = ABS(R)
+    Radius = Abs(R)
     RadiusError = -Radius
     X = Radius
     Y = 0
 
-    IF Radius = 0 THEN PSET (CX, CY), C: EXIT SUB
+    If Radius = 0 Then PSet (CX, CY), C: Exit Sub
 
     ' Draw the middle span here so we don't draw it twice in the main loop,
     ' which would be a problem with blending turned on.
-    LINE (CX - X, CY)-(CX + X, CY), C, BF
+    Line (CX - X, CY)-(CX + X, CY), C, BF
 
-    WHILE X > Y
+    While X > Y
 
         RadiusError = RadiusError + Y * 2 + 1
 
-        IF RadiusError >= 0 THEN
+        If RadiusError >= 0 Then
 
-            IF X <> Y + 1 THEN
-                LINE (CX - Y, CY - X)-(CX + Y, CY - X), C, BF
-                LINE (CX - Y, CY + X)-(CX + Y, CY + X), C, BF
-            END IF
+            If X <> Y + 1 Then
+                Line (CX - Y, CY - X)-(CX + Y, CY - X), C, BF
+                Line (CX - Y, CY + X)-(CX + Y, CY + X), C, BF
+            End If
 
             X = X - 1
             RadiusError = RadiusError - X * 2
 
-        END IF
+        End If
 
         Y = Y + 1
 
-        LINE (CX - X, CY - Y)-(CX + X, CY - Y), C, BF
-        LINE (CX - X, CY + Y)-(CX + X, CY + Y), C, BF
+        Line (CX - X, CY - Y)-(CX + X, CY - Y), C, BF
+        Line (CX - X, CY + Y)-(CX + X, CY + Y), C, BF
 
-    WEND
+    Wend
 
-END SUB
+End Sub
 
 
-SUB generateArena
-    DIM i AS LONG, j AS LONG, k AS LONG, lastGravitator AS LONG
-    DIM w AS SINGLE, h AS SINGLE, x AS SINGLE, y AS SINGLE, s1 AS SINGLE, s2 AS SINGLE
-    DIM colorVariation AS INTEGER, a AS SINGLE
-    DIM thisParticle AS LONG, minimumDistance AS INTEGER
-    DIM levelBlocks AS LONG
+Sub generateArena
+    Dim i As Long, j As Long, k As Long, lastGravitator As Long
+    Dim w As Single, h As Single, x As Single, y As Single, s1 As Single, s2 As Single
+    Dim colorVariation As Integer, a As Single
+    Dim thisParticle As Long, minimumDistance As Integer
+    Dim levelBlocks As Long
 
     level.r = 80 + getRND * 176
     level.g = 80 + getRND * 176
     level.b = 80 + getRND * 176
 
-    m$ = "Level" + STR$(level)
+    m$ = "Level" + Str$(level)
     fontSize = 8
     'FOR k = 1 TO maxBGDecoration
     '    IF k MOD 1 = 0 THEN x = 0: y = 0
@@ -693,7 +693,7 @@ SUB generateArena
     'NEXT
 
     i = 0
-    FOR k = 0 TO bgHeight STEP bgHeight / maxBGDecoration
+    For k = 0 To bgHeight Step bgHeight / maxBGDecoration
         i = i + 1
         bg(i).w = bgWidth
         bg(i).h = bgHeight / maxBGDecoration
@@ -703,131 +703,131 @@ SUB generateArena
         bg(i).green = map(k, 0, bgHeight, level.g, 0)
         bg(i).blue = map(k, 0, bgHeight, level.b, 0)
         bg(i).color = _RGB32(bg(i).red, bg(i).green, bg(i).blue)
-        LINE (bg(i).pos.x / (arenaRatio.x * 2), bg(i).pos.y / arenaRatio.y)-STEP(bg(i).w / (arenaRatio.x * 2), bg(i).h / arenaRatio.y), bg(i).color, BF
-        COLOR _RGB32(0, 0, 0)
-        printLarge _WIDTH / 2 - printWidth(m$) / 2 + fontSize / 2, _HEIGHT / 2 - fontHeight / 2 + fontSize / 2, m$
-        COLOR _RGB32(255, 255, 255)
-        printLarge _WIDTH / 2 - printWidth(m$) / 2, _HEIGHT / 2 - fontHeight / 2, m$
-        _DISPLAY
-        _LIMIT 24
-    NEXT
+        Line (bg(i).pos.x / (arenaRatio.x * 2), bg(i).pos.y / arenaRatio.y)-Step(bg(i).w / (arenaRatio.x * 2), bg(i).h / arenaRatio.y), bg(i).color, BF
+        Color _RGB32(0, 0, 0)
+        printLarge _Width / 2 - printWidth(m$) / 2 + fontSize / 2, _Height / 2 - fontHeight / 2 + fontSize / 2, m$
+        Color _RGB32(255, 255, 255)
+        printLarge _Width / 2 - printWidth(m$) / 2, _Height / 2 - fontHeight / 2, m$
+        _Display
+        _Limit 24
+    Next
 
     totalBlocks = 0
     totalPortals = 0
     minimumDistance = 5
 
-    SELECT CASE level
-        CASE 1: RESTORE level1
-        CASE 2: RESTORE level2
-        CASE 3: RESTORE level3
-    END SELECT
+    Select Case level
+        Case 1: Restore level1
+        Case 2: Restore level2
+        Case 3: Restore level3
+    End Select
 
-    IF level < 4 THEN
-        READ levelBlocks, levelBlocks
-        IF UBOUND(block) < levelBlocks THEN REDIM block(1 TO totalBlocks) AS newItem
-        FOR i = 1 TO levelBlocks
+    If level < 4 Then
+        Read levelBlocks, levelBlocks
+        If UBound(block) < levelBlocks Then ReDim block(1 To totalBlocks) As newItem
+        For i = 1 To levelBlocks
             x = i * blockSize - blockSize
 
             y = 0
-            READ h
+            Read h
             s1 = h
-            GOSUB addblock
+            GoSub addblock
 
             h = arenaHeight
             y = s1 + 500
             s2 = y
-            GOSUB addblock
+            GoSub addblock
 
-            IF i = 1 THEN respawnOffset = s1 + ((s2 - s1) / 2)
+            If i = 1 Then respawnOffset = s1 + ((s2 - s1) / 2)
 
-            GOSUB addGravitator
-        NEXT
-    ELSE
-        FOR i = 0 TO arenaWidth STEP blockSize
+            GoSub addGravitator
+        Next
+    Else
+        For i = 0 To arenaWidth Step blockSize
             'top block
             a = a + .1
-            IF a > _PI(2) THEN a = a - _PI(2)
-            h = arenaHeight * ABS(SIN(a) / 6) * getRND
+            If a > _Pi(2) Then a = a - _Pi(2)
+            h = arenaHeight * Abs(Sin(a) / 6) * getRND
             s1 = h
             y = 0
             x = i
-            GOSUB addblock
+            GoSub addblock
 
             'bottom block
             h = arenaHeight
             y = s1 + 500
             s2 = y
             x = i
-            GOSUB addblock
+            GoSub addblock
 
-            IF i = 0 THEN respawnOffset = s1 + ((s2 - s1) / 2)
+            If i = 0 Then respawnOffset = s1 + ((s2 - s1) / 2)
 
-            GOSUB addGravitator
-        NEXT
-    END IF
-    EXIT SUB
+            GoSub addGravitator
+        Next
+    End If
+    Exit Sub
 
     level1:
-    DATA 1,151,740,740,740,820,820,820,820,820,820,820,820,820
-    DATA 810,810,800,790,790,790,790,790,810,820,910,930,970
-    DATA 980,1040,1040,1040,1040,1040,1110,1120,1120,1120,1120
-    DATA 1120,1120,1120,1100,1100,1080,1080,1070,1060,1060,1040
-    DATA 1040,1040,1020,1020,1010,1010,990,990,980,970,960,960
-    DATA 960,940,930,920,920,920,920,920,900,890,850,850,850
-    DATA 800,800,790,800,820,850,920,1020,1060,1070,1110,1160
-    DATA 1200,1260,1330,1330,1370,1380,1380,1500,1530,1550,1570
-    DATA 1580,1600,1600,1610,1610,1610,1600,1590,1590,1590,1590
-    DATA 1580,1570,1560,1560,1550,1540,1540,1510,1500,1480,1480
-    DATA 1470,1470,1470,1470,1480,1510,1530,1530,1530,1530,1600
-    DATA 1610,1610,1610,1610,1590,1560,1550,1550,1520,1520,1500
-    DATA 1500,1480,1470,1470,1460,1460,1460,1460,1510,1510,1510
-    DATA 1510
+    Data 1,151,740,740,740,820,820,820,820,820,820,820,820,820
+    Data 810,810,800,790,790,790,790,790,810,820,910,930,970
+    Data 980,1040,1040,1040,1040,1040,1110,1120,1120,1120,1120
+    Data 1120,1120,1120,1100,1100,1080,1080,1070,1060,1060,1040
+    Data 1040,1040,1020,1020,1010,1010,990,990,980,970,960,960
+    Data 960,940,930,920,920,920,920,920,900,890,850,850,850
+    Data 800,800,790,800,820,850,920,1020,1060,1070,1110,1160
+    Data 1200,1260,1330,1330,1370,1380,1380,1500,1530,1550,1570
+    Data 1580,1600,1600,1610,1610,1610,1600,1590,1590,1590,1590
+    Data 1580,1570,1560,1560,1550,1540,1540,1510,1500,1480,1480
+    Data 1470,1470,1470,1470,1480,1510,1530,1530,1530,1530,1600
+    Data 1610,1610,1610,1610,1590,1560,1550,1550,1520,1520,1500
+    Data 1500,1480,1470,1470,1460,1460,1460,1460,1510,1510,1510
+    Data 1510
 
     level2:
-    DATA 1,151,288.7068,369.4666,326.5932,343.8348,334.274,337.1155
-    DATA 405.0195,416.3582,461.7679,479.3741,450.5628,523.1738,546.491
-    DATA 464.9045,492.1196,525.2876,430.9337,424.5563,388.2738,395.8929
-    DATA 404.7736,358.8666,434.7971,405.3706,354.8761,440.56,434.6482
-    DATA 453.789,457.7938,517.0486,575.4738,515.9041,622.267,612.9321
-    DATA 589.6077,573.6591,604.2234,629.9976,614.0717,551.1848,556.7783
-    DATA 564.7195,450.5744,432.2998,440.2343,498.2602,485.5125,475.5098
-    DATA 412.0817,428.9691,399.97,486.5081,569.4984,564.8834,537.2183
-    DATA 473.1758,521.8494,616.2277,555.2164,618.0811,620.6875,557.9141
-    DATA 494.1108,480.9797,499.753,484.5423,481.2356,516.3153,529.9735
-    DATA 492.8992,478.6121,488.2185,526.9644,524.4595,497.9493,493.0078
-    DATA 611.0283,545.3854,620.6437,641.689,614.6556,576.5265,607.7795
-    DATA 579.9554,627.5239,468.4198,515.1279,443.188,503.9984,436.29
-    DATA 478.1479,453.955,485.6319,507.5492,524.4862,487.0125,558.6647
-    DATA 579.2969,591.4767,546.8036,599.0244,645.8203,698.6407,612.4592
-    DATA 637.3264,641.0941,687.6874,650.2979,561.3732,596.2802,600.0132
-    DATA 536.3252,486.1552,454.7284,484.2022,466.2347,453.8502,526.9757
-    DATA 538.5257,540.4072,536.3232,480.7468,548.4427,526.4111,612.6272
-    DATA 600.9537,674.0999,654.0022,641.5022,692.196,700.331,600.1239
-    DATA 656.3761,551.261,549.1577,553.907,557.8641,447.1231,549.7889
-    DATA 494.1699,508.7688,470.9445,518.621,469.4185,386.5806,471.0748
-    DATA 414.2382,452.846,390.9772,448.0512,414.9118
+    Data 1,151,288.7068,369.4666,326.5932,343.8348,334.274,337.1155
+    Data 405.0195,416.3582,461.7679,479.3741,450.5628,523.1738,546.491
+    Data 464.9045,492.1196,525.2876,430.9337,424.5563,388.2738,395.8929
+    Data 404.7736,358.8666,434.7971,405.3706,354.8761,440.56,434.6482
+    Data 453.789,457.7938,517.0486,575.4738,515.9041,622.267,612.9321
+    Data 589.6077,573.6591,604.2234,629.9976,614.0717,551.1848,556.7783
+    Data 564.7195,450.5744,432.2998,440.2343,498.2602,485.5125,475.5098
+    Data 412.0817,428.9691,399.97,486.5081,569.4984,564.8834,537.2183
+    Data 473.1758,521.8494,616.2277,555.2164,618.0811,620.6875,557.9141
+    Data 494.1108,480.9797,499.753,484.5423,481.2356,516.3153,529.9735
+    Data 492.8992,478.6121,488.2185,526.9644,524.4595,497.9493,493.0078
+    Data 611.0283,545.3854,620.6437,641.689,614.6556,576.5265,607.7795
+    Data 579.9554,627.5239,468.4198,515.1279,443.188,503.9984,436.29
+    Data 478.1479,453.955,485.6319,507.5492,524.4862,487.0125,558.6647
+    Data 579.2969,591.4767,546.8036,599.0244,645.8203,698.6407,612.4592
+    Data 637.3264,641.0941,687.6874,650.2979,561.3732,596.2802,600.0132
+    Data 536.3252,486.1552,454.7284,484.2022,466.2347,453.8502,526.9757
+    Data 538.5257,540.4072,536.3232,480.7468,548.4427,526.4111,612.6272
+    Data 600.9537,674.0999,654.0022,641.5022,692.196,700.331,600.1239
+    Data 656.3761,551.261,549.1577,553.907,557.8641,447.1231,549.7889
+    Data 494.1699,508.7688,470.9445,518.621,469.4185,386.5806,471.0748
+    Data 414.2382,452.846,390.9772,448.0512,414.9118
 
     level3:
-    DATA 2,151,720,760,760,740,680,620,590,570,570,590,680,730
-    DATA 750,780,790,790,780,770,730,700,690,690,680,670,660
-    DATA 660,660,660,680,710,760,790,830,880,930,1000,1060,1150
-    DATA 1210,1280,1350,1430,1490,1550,1600,1640,1700,1740,1810
-    DATA 1850,1960,2040,2140,2210,2270,2340,2410,2490,2550,2620
-    DATA 2670,2720,2770,2840,2930,3010,3050,3120,3170,3210,3290
-    DATA 3390,3390,3440,3460,3480,3490,3520,3540,3580,3600,3620
-    DATA 3620,3630,3630,3620,3600,3580,3560,3540,3500,3480,3440
-    DATA 3430,3430,3450,3490,3520,3550,3610,3630,3650,3660,3650
-    DATA 3640,3620,3600,3570,3560,3560,3560,3560,3560,3550,3550
-    DATA 3550,3530,3520,3520,3530,3530,3580,3620,3630,3690,3740
-    DATA 3790,3840,3890,3940,4000,4080,4120,4160,4190,4210,4220
-    DATA 4230,4240,4240,4240,4250,4250,4250,4250,4250,4240,4230
-    DATA 4230,4230,4230
+    Data 2,151,720,760,760,740,680,620,590,570,570,590,680,730
+    Data 750,780,790,790,780,770,730,700,690,690,680,670,660
+    Data 660,660,660,680,710,760,790,830,880,930,1000,1060,1150
+    Data 1210,1280,1350,1430,1490,1550,1600,1640,1700,1740,1810
+    Data 1850,1960,2040,2140,2210,2270,2340,2410,2490,2550,2620
+    Data 2670,2720,2770,2840,2930,3010,3050,3120,3170,3210,3290
+    Data 3390,3390,3440,3460,3480,3490,3520,3540,3580,3600,3620
+    Data 3620,3630,3630,3620,3600,3580,3560,3540,3500,3480,3440
+    Data 3430,3430,3450,3490,3520,3550,3610,3630,3650,3660,3650
+    Data 3640,3620,3600,3570,3560,3560,3560,3560,3560,3550,3550
+    Data 3550,3530,3520,3520,3530,3530,3580,3620,3630,3690,3740
+    Data 3790,3840,3890,3940,4000,4080,4120,4160,4190,4210,4220
+    Data 4230,4240,4240,4240,4250,4250,4250,4250,4250,4240,4230
+    Data 4230,4230,4230
 
     addGravitator:
-    IF (s2 - s1) > 200 AND x - lastGravitator > blockSize * minimumDistance AND x < arenaWidth - blockSize * 2 THEN 'AND (s2 - s1) < 450
+    If (s2 - s1) > 200 And x - lastGravitator > blockSize * minimumDistance And x < arenaWidth - blockSize * 2 Then 'AND (s2 - s1) < 450
         'add gravitators between these blocks
         totalPortals = totalPortals + 1
-        thisParticle = addParticle(x + blockSize / 2, s1 + _CEIL(getRND * (s2 - s1)), GRAVITATOR, 0)
+        thisParticle = addParticle(x + blockSize / 2, s1 + _Ceil(getRND * (s2 - s1)), GRAVITATOR, 0)
         lastGravitator = x + blockSize / 2
         particle(thisParticle).a = 25
         particle(thisParticle).minA = 1
@@ -838,109 +838,109 @@ SUB generateArena
         particle(thisParticle).maxB = 150
         particle(thisParticle).multB = 1
 
-        minimumDistance = 5 + INT(getRND * 10)
-    END IF
-    RETURN
+        minimumDistance = 5 + Int(getRND * 10)
+    End If
+    Return
 
     addblock:
     totalBlocks = totalBlocks + 1
-    IF totalBlocks > UBOUND(block) THEN REDIM _PRESERVE block(UBOUND(block) + 99) AS newItem
+    If totalBlocks > UBound(block) Then ReDim _Preserve block(UBound(block) + 99) As newItem
     block(totalBlocks).pos.x = x
     block(totalBlocks).pos.y = y
     block(totalBlocks).h = h
     block(totalBlocks).w = blockSize
-    IF totalBlocks MOD 2 = 0 THEN
+    If totalBlocks Mod 2 = 0 Then
         block(totalBlocks).color = block(totalBlocks - 1).color
         block(totalBlocks).red = block(totalBlocks - 1).red
         block(totalBlocks).green = block(totalBlocks - 1).green
         block(totalBlocks).blue = block(totalBlocks - 1).blue
-    ELSE
+    Else
         colorVariation = 100 - getRND * 200
         block(totalBlocks).red = level.r + colorVariation
         block(totalBlocks).green = level.g + colorVariation
         block(totalBlocks).blue = level.b + colorVariation
         block(totalBlocks).color = _RGB32(level.r + colorVariation, level.g + colorVariation, level.b + colorVariation)
-    END IF
-    RETURN
+    End If
+    Return
 
-END SUB
+End Sub
 
-SUB ThickLine (x, y, x1, y1, c AS _UNSIGNED LONG, t)
-    DIM i AS SINGLE, xx AS SINGLE, yy AS SINGLE
+Sub ThickLine (x, y, x1, y1, c As _Unsigned Long, t)
+    Dim i As Single, xx As Single, yy As Single
     'This sub from http://www.qb64.net/forum/index.php?topic=1456.msg11548#msg11548
-    FOR i = 0 TO 1 STEP .01
-        xx = INT((x1 - x) * i) + x
-        yy = INT((y1 - y) * i) + y
+    For i = 0 To 1 Step .01
+        xx = Int((x1 - x) * i) + x
+        yy = Int((y1 - y) * i) + y
         CircleFill xx, yy, t \ 2, c
-    NEXT
-END SUB
+    Next
+End Sub
 
-SUB drawBlocks
-    DIM margin, j AS LONG, checkOffset AS SINGLE
-    DIM i AS SINGLE, y AS SINGLE, h AS SINGLE
-    DIM blockSize AS SINGLE
-    DIM s1 AS INTEGER, s2 AS INTEGER
+Sub drawBlocks
+    Dim margin, j As Long, checkOffset As Single
+    Dim i As Single, y As Single, h As Single
+    Dim blockSize As Single
+    Dim s1 As Integer, s2 As Integer
 
     margin = 3
     ballHit = false
-    blockLoopStart = INT(ABS(camera) / (block(1).w / 2)) - 2
-    IF blockLoopStart < 1 THEN blockLoopStart = 1
-    FOR j = blockLoopStart TO totalBlocks
+    blockLoopStart = Int(Abs(camera) / (block(1).w / 2)) - 2
+    If blockLoopStart < 1 Then blockLoopStart = 1
+    For j = blockLoopStart To totalBlocks
         i = block(j).pos.x + camera
-        IF i > _WIDTH(0) THEN EXIT FOR
+        If i > _Width(0) Then Exit For
         y = block(j).pos.y + cameraY
         h = block(j).h
         blockSize = block(j).w
-        LINE (i, y - margin)-STEP(blockSize, h + margin), _RGB32(0, 0, 0), BF
-        LINE (i + margin, y)-STEP(blockSize - (margin * 2), h - margin), block(j).color, BF
-        IF ballHit = false THEN
+        Line (i, y - margin)-Step(blockSize, h + margin), _RGB32(0, 0, 0), BF
+        Line (i + margin, y)-Step(blockSize - (margin * 2), h - margin), block(j).color, BF
+        If ballHit = false Then
             ballHit = checkCollision(ball.x, ball.y, ball.radius, i, y - margin, blockSize, h + margin)
-        END IF
+        End If
 
-        IF ball.x > block(j).pos.x AND ball.x < block(j).pos.x + block(j).w AND block(j).pos.y = 0 THEN
-            IF j + 4 <= UBOUND(block) THEN
+        If ball.x > block(j).pos.x And ball.x < block(j).pos.x + block(j).w And block(j).pos.y = 0 Then
+            If j + 4 <= UBound(block) Then
                 nextTetherPoint.x = block(j + 4).pos.x + block(j + 4).w / 2
                 nextTetherPoint.y = block(j + 4).pos.y + block(j + 4).h
                 s1 = block(j + 4).h
                 s2 = s1 + 500
                 respawnOffset = s1 + ((s2 - s1) / 2)
-                IF STR$(respawnOffset) = STR$(INT(respawnOffset)) THEN
-                    IF respawnOffset >= 328 THEN
+                If Str$(respawnOffset) = Str$(Int(respawnOffset)) Then
+                    If respawnOffset >= 328 Then
                         checkOffset = respawnOffset - 328
-                        IF checkOffset MOD 3 = 0 THEN respawnOffset = respawnOffset + .1
-                    END IF
-                END IF
-            ELSE
-                nextTetherPoint.x = ball.x + _WIDTH(gameScreen) / 5
+                        If checkOffset Mod 3 = 0 Then respawnOffset = respawnOffset + .1
+                    End If
+                End If
+            Else
+                nextTetherPoint.x = ball.x + _Width(gameScreen) / 5
                 nextTetherPoint.y = 0
                 finished = true
-            END IF
-            IF nextTetherPoint.x < ball.x THEN
-                nextTetherPoint.x = ball.x + _WIDTH(gameScreen) / 5
+            End If
+            If nextTetherPoint.x < ball.x Then
+                nextTetherPoint.x = ball.x + _Width(gameScreen) / 5
                 nextTetherPoint.y = 0
-            END IF
-        END IF
-    NEXT
-    IF TIMER - levelSet < respawnDelay THEN
-        LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(0, 0, 0, map(TIMER - levelSet, 0, respawnDelay, 255, 0)), BF
-    END IF
-END SUB
+            End If
+        End If
+    Next
+    If Timer - levelSet < respawnDelay Then
+        Line (0, 0)-(_Width, _Height), _RGBA32(0, 0, 0, map(Timer - levelSet, 0, respawnDelay, 255, 0)), BF
+    End If
+End Sub
 
-FUNCTION addParticle (x AS SINGLE, y AS SINGLE, kind AS INTEGER, parent AS LONG)
-    DIM i AS LONG
-    DIM newParticle AS LONG, thisParticle AS LONG
-    DIM a AS SINGLE
-    DIM s AS SINGLE
-    STATIC previousParent AS LONG, childrenCount AS LONG
+Function addParticle (x As Single, y As Single, kind As Integer, parent As Long)
+    Dim i As Long
+    Dim newParticle As Long, thisParticle As Long
+    Dim a As Single
+    Dim s As Single
+    Static previousParent As Long, childrenCount As Long
 
-    FOR i = 1 TO UBOUND(particle)
-        IF NOT particle(i).active THEN newParticle = i: EXIT FOR
-    NEXT
+    For i = 1 To UBound(particle)
+        If Not particle(i).active Then newParticle = i: Exit For
+    Next
 
-    IF newParticle = 0 THEN
-        newParticle = UBOUND(particle) + 1
-        REDIM _PRESERVE particle(1 TO UBOUND(particle) + 99) AS newItem
-    END IF
+    If newParticle = 0 Then
+        newParticle = UBound(particle) + 1
+        ReDim _Preserve particle(1 To UBound(particle) + 99) As newItem
+    End If
 
     particle(newParticle).pos.x = x
     particle(newParticle).vel.x = 0
@@ -953,59 +953,59 @@ FUNCTION addParticle (x AS SINGLE, y AS SINGLE, kind AS INTEGER, parent AS LONG)
     particle(newParticle).generation = 0
     particle(newParticle).active = true
 
-    a = RND * _PI(2)
+    a = Rnd * _Pi(2)
 
-    SELECT CASE kind
-        CASE FIRE
-            particle(newParticle).vel.y = SIN(a) * 2
-            particle(newParticle).vel.x = COS(a) * 2
-        CASE SPARK
-            particle(newParticle).vel.y = SIN(a) * 3
-            particle(newParticle).vel.x = COS(a) * 3
+    Select Case kind
+        Case FIRE
+            particle(newParticle).vel.y = Sin(a) * 2
+            particle(newParticle).vel.x = Cos(a) * 2
+        Case SPARK
+            particle(newParticle).vel.y = Sin(a) * 3
+            particle(newParticle).vel.x = Cos(a) * 3
             particle(newParticle).maxGeneration = 25
-        CASE SMOKE
+        Case SMOKE
             particle(newParticle).maxGeneration = 15
-        CASE GRAVITATOR
-            FOR a = 1 TO ellipsisPlot * 2
-                thisParticle = addParticle(x + COS(a) * particle(newParticle).a, y + SIN(a) * particle(newParticle).b, GRAVITATORCELL, newParticle)
-            NEXT
-        CASE GRAVITATORCELL
-            IF parent <> previousParent THEN
+        Case GRAVITATOR
+            For a = 1 To ellipsisPlot * 2
+                thisParticle = addParticle(x + Cos(a) * particle(newParticle).a, y + Sin(a) * particle(newParticle).b, GRAVITATORCELL, newParticle)
+            Next
+        Case GRAVITATORCELL
+            If parent <> previousParent Then
                 previousParent = parent
                 childrenCount = 0
-            END IF
+            End If
             childrenCount = childrenCount + 1
-            IF childrenCount <= ellipsisPlot THEN
+            If childrenCount <= ellipsisPlot Then
                 particle(newParticle).red = 233
                 particle(newParticle).green = 211
                 particle(newParticle).blue = 72
-            ELSE
+            Else
                 particle(newParticle).red = 105
                 particle(newParticle).green = 216
                 particle(newParticle).blue = 94
-            END IF
-    END SELECT
+            End If
+    End Select
 
     addParticle = newParticle
-END FUNCTION
+End Function
 
-SUB doParticles
-    DIM i AS LONG, j AS LONG, k AS SINGLE
-    DIM gravity AS SINGLE
-    DIM g AS _UNSIGNED _BYTE, b AS _UNSIGNED _BYTE, a AS _UNSIGNED _BYTE
-    DIM s AS SINGLE, thisParticle AS LONG
-    STATIC previousParent AS LONG, startingChild AS LONG
-    STATIC starting.x AS SINGLE, starting.y AS SINGLE
-    STATIC last.x AS SINGLE, last.y AS SINGLE
+Sub doParticles
+    Dim i As Long, j As Long, k As Single
+    Dim gravity As Single
+    Dim g As _Unsigned _Byte, b As _Unsigned _Byte, a As _Unsigned _Byte
+    Dim s As Single, thisParticle As Long
+    Static previousParent As Long, startingChild As Long
+    Static starting.x As Single, starting.y As Single
+    Static last.x As Single, last.y As Single
 
     gravity = .02
 
     g.angle = g.angle + .01
-    IF g.angle > _PI(2) THEN g.angle = g.angle - _PI(2)
-    gravitationalFloat = SIN(g.angle) * maxGravitationalFloat
+    If g.angle > _Pi(2) Then g.angle = g.angle - _Pi(2)
+    gravitationalFloat = Sin(g.angle) * maxGravitationalFloat
 
-    FOR i = 1 TO UBOUND(particle)
-        IF particle(i).active THEN
+    For i = 1 To UBound(particle)
+        If particle(i).active Then
             particle(i).generation = particle(i).generation + 1
 
             particle(i).vel.y = particle(i).vel.y + particle(i).acc.y
@@ -1014,10 +1014,10 @@ SUB doParticles
             particle(i).vel.x = particle(i).vel.x + particle(i).acc.x
             particle(i).pos.x = particle(i).pos.x + particle(i).vel.x
 
-            SELECT EVERYCASE particle(i).kind
-                CASE FIRE
+            Select EveryCase particle(i).kind
+                Case FIRE
                     'process
-                    IF particle(i).generation > 8 THEN
+                    If particle(i).generation > 8 Then
                         particle(i).kind = SMOKE
                         particle(i).maxGeneration = 15
                         particle(i).generation = 0
@@ -1025,62 +1025,62 @@ SUB doParticles
                         particle(i).vel.x = 0
                         particle(i).acc.y = -.4
                         particle(i).acc.x = -.2
-                    ELSE
-                        SELECT EVERYCASE particle(i).generation
-                            CASE 1, 2: g = 238: b = 177: a = 200
-                            CASE 3
-                                s = RND
-                                IF s < .02 THEN thisParticle = addParticle(particle(i).pos.x, particle(i).pos.y, SPARK, i)
-                            CASE 3, 4: g = 222: b = 89: a = 180
-                            CASE 5, 6: g = 128: b = 50: a = 150
-                            CASE 7, 8: g = 33: b = 0: a = 70
-                        END SELECT
+                    Else
+                        Select EveryCase particle(i).generation
+                            Case 1, 2: g = 238: b = 177: a = 200
+                            Case 3
+                                s = Rnd
+                                If s < .02 Then thisParticle = addParticle(particle(i).pos.x, particle(i).pos.y, SPARK, i)
+                            Case 3, 4: g = 222: b = 89: a = 180
+                            Case 5, 6: g = 128: b = 50: a = 150
+                            Case 7, 8: g = 33: b = 0: a = 70
+                        End Select
                         particle(i).color = _RGBA32(255, g, b, a)
-                    END IF
+                    End If
 
                     'show
                     s = dist(particle(i).pos.x, particle(i).pos.y, ball.x, ball.y)
                     s = map(s, 0, ball.radius * 4, 9, 2)
-                    IF particle(i).parent > 0 THEN s = 4 'former gravitator cell
-                    IF s < 2 THEN s = 2
+                    If particle(i).parent > 0 Then s = 4 'former gravitator cell
+                    If s < 2 Then s = 2
 
-                    IF glowRadius > 3 THEN
+                    If glowRadius > 3 Then
                         CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY, s + 2, _RGBA32(238, 216, 94, 15)
-                    END IF
+                    End If
 
                     CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY, s, particle(i).color
-                CASE SMOKE
+                Case SMOKE
                     'process
                     particle(i).color = _RGBA32(33, 17, 39, map(particle(i).generation, 1, particle(i).maxGeneration, 100, 0))
-                    IF particle(i).generation > particle(i).maxGeneration THEN particle(i).active = false
+                    If particle(i).generation > particle(i).maxGeneration Then particle(i).active = false
 
                     'show
                     s = dist(particle(i).pos.x, particle(i).pos.y, ball.x, ball.y)
                     s = map(s, 0, ball.radius * 4, 9, 2)
-                    IF particle(i).parent > 0 THEN s = 4 'former gravitator cell
-                    IF s < 2 THEN s = 2
+                    If particle(i).parent > 0 Then s = 4 'former gravitator cell
+                    If s < 2 Then s = 2
                     CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY, s, particle(i).color
-                CASE SPARK
+                Case SPARK
                     'process
                     particle(i).acc.y = particle(i).acc.y + gravity
-                    SELECT CASE particle(i).generation
-                        CASE 1, 2: g = 238: b = 177
-                        CASE 3, 4: g = 222: b = 89
-                        CASE 5, 6: g = 128: b = 50
-                        CASE 7, 8: g = 33: b = 0
-                    END SELECT
+                    Select Case particle(i).generation
+                        Case 1, 2: g = 238: b = 177
+                        Case 3, 4: g = 222: b = 89
+                        Case 5, 6: g = 128: b = 50
+                        Case 7, 8: g = 33: b = 0
+                    End Select
                     a = map(particle(i).generation, 1, 15, 255, 0)
                     particle(i).color = _RGBA32(255, g, b, a)
-                    IF particle(i).generation > particle(i).maxGeneration THEN particle(i).active = false
+                    If particle(i).generation > particle(i).maxGeneration Then particle(i).active = false
 
                     'show
-                    IF glowRadius > 3 THEN
-                        FOR p = 6 TO 1 STEP -1
+                    If glowRadius > 3 Then
+                        For p = 6 To 1 Step -1
                             CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY, p, _RGBA32(238, 216, 94, 15)
-                        NEXT
-                    END IF
+                        Next
+                    End If
                     CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY, 1, particle(i).color
-                CASE GRAVITATOR
+                Case GRAVITATOR
                     'particle(i).a = particle(i).a + particle(i).multA
                     'IF particle(i).a > particle(i).maxA OR particle(i).a < particle(i).minA THEN
                     '    particle(i).multA = particle(i).multA * -1
@@ -1093,40 +1093,40 @@ SUB doParticles
                     'END IF
 
                     k = 0
-                    FOR j = i + 1 TO i + ellipsisPlot + 1
-                        IF particle(j).parent = i THEN
+                    For j = i + 1 To i + ellipsisPlot + 1
+                        If particle(j).parent = i Then
                             k = k + .1
-                            particle(j).pos.x = particle(i).pos.x + COS(k) * map(particle(j).pos.x + camera, 0, _WIDTH(0), particle(i).minA, particle(i).maxA)
-                            particle(j).pos.y = particle(i).pos.y + SIN(k) * particle(i).b
-                        END IF
-                    NEXT
+                            particle(j).pos.x = particle(i).pos.x + Cos(k) * map(particle(j).pos.x + camera, 0, _Width(0), particle(i).minA, particle(i).maxA)
+                            particle(j).pos.y = particle(i).pos.y + Sin(k) * particle(i).b
+                        End If
+                    Next
 
                     k = 0
-                    FOR j = i + ellipsisPlot + 1 TO i + ellipsisPlot * 2
-                        IF particle(j).parent = i THEN
+                    For j = i + ellipsisPlot + 1 To i + ellipsisPlot * 2
+                        If particle(j).parent = i Then
                             k = k + .1
-                            particle(j).pos.x = particle(i).pos.x + COS(k) * map(particle(j).pos.x + camera, 0, _WIDTH(0), particle(i).minA, particle(i).maxA / 3)
-                            particle(j).pos.y = particle(i).pos.y + SIN(k) * particle(i).b / 4
-                        END IF
-                    NEXT
+                            particle(j).pos.x = particle(i).pos.x + Cos(k) * map(particle(j).pos.x + camera, 0, _Width(0), particle(i).minA, particle(i).maxA / 3)
+                            particle(j).pos.y = particle(i).pos.y + Sin(k) * particle(i).b / 4
+                        End If
+                    Next
 
                     'ball VS gravitator collision detection:
-                    IF debug THEN
-                        LINE (camera + particle(i).pos.x - ball.radius / 2, cameraY + particle(i).pos.y - 180)-STEP(ball.radius, 0), _RGB32(255, 255, 255)
-                        LINE (camera + particle(i).pos.x - ball.radius / 2, cameraY + particle(i).pos.y + 180)-STEP(ball.radius, 0), _RGB32(255, 255, 255)
-                        LINE (camera + particle(i).pos.x - ball.radius * 2, cameraY + particle(i).pos.y - 30)-STEP(0, 60), _RGB32(255, 255, 255)
-                        LINE (camera + particle(i).pos.x + ball.radius * 2, cameraY + particle(i).pos.y - 30)-STEP(0, 60), _RGB32(255, 255, 255)
-                        CIRCLE (particle(i).pos.x + camera, particle(i).pos.y + cameraY + gravitationalFloat), ball.radius * 2.5, _RGB32(255, 255, 255)
-                    END IF
+                    If debug Then
+                        Line (camera + particle(i).pos.x - ball.radius / 2, cameraY + particle(i).pos.y - 180)-Step(ball.radius, 0), _RGB32(255, 255, 255)
+                        Line (camera + particle(i).pos.x - ball.radius / 2, cameraY + particle(i).pos.y + 180)-Step(ball.radius, 0), _RGB32(255, 255, 255)
+                        Line (camera + particle(i).pos.x - ball.radius * 2, cameraY + particle(i).pos.y - 30)-Step(0, 60), _RGB32(255, 255, 255)
+                        Line (camera + particle(i).pos.x + ball.radius * 2, cameraY + particle(i).pos.y - 30)-Step(0, 60), _RGB32(255, 255, 255)
+                        Circle (particle(i).pos.x + camera, particle(i).pos.y + cameraY + gravitationalFloat), ball.radius * 2.5, _RGB32(255, 255, 255)
+                    End If
 
-                    IF state <> HALTED THEN
-                        IF dist(ball.x, ball.y, particle(i).pos.x, particle(i).pos.y + gravitationalFloat) < ball.radius * 2.5 THEN
+                    If state <> HALTED Then
+                        If dist(ball.x, ball.y, particle(i).pos.x, particle(i).pos.y + gravitationalFloat) < ball.radius * 2.5 Then
                             smallPortal = smallPortal + 1
                             totalPortals = totalPortals - 1
                             score = score + 20 + glowRadius * 2
-                            IF glowRadius < maxGlowRadius THEN glowRadius = glowRadius + 3
+                            If glowRadius < maxGlowRadius Then glowRadius = glowRadius + 3
                             particle(i).active = false
-                            IF glassSound > 0 THEN _SNDPLAYCOPY glassSound
+                            If glassSound > 0 Then _SndPlayCopy glassSound
 
                             'FOR j = i + 1 TO i + ellipsisPlot + 1
                             '    IF particle(j).parent = i THEN
@@ -1138,18 +1138,18 @@ SUB doParticles
                             '    END IF
                             'NEXT
 
-                            FOR j = i + ellipsisPlot + 1 TO i + ellipsisPlot * 2
-                                IF particle(j).parent = i THEN
+                            For j = i + ellipsisPlot + 1 To i + ellipsisPlot * 2
+                                If particle(j).parent = i Then
                                     particle(j).kind = BUSTEDCELL
                                     particle(j).generation = 0
                                     particle(j).maxGeneration = 100
-                                    particle(j).vel.y = SIN(RND * _PI(2)) * 10
-                                    DO
-                                        particle(j).vel.x = COS(RND * _PI(2)) * 10
-                                    LOOP UNTIL SGN(particle(j).vel.x) = 1
+                                    particle(j).vel.y = Sin(Rnd * _Pi(2)) * 10
+                                    Do
+                                        particle(j).vel.x = Cos(Rnd * _Pi(2)) * 10
+                                    Loop Until Sgn(particle(j).vel.x) = 1
                                     particle(j).parent = -1
-                                END IF
-                            NEXT
+                                End If
+                            Next
                         ELSEIF ball.x > particle(i).pos.x - ball.radius * 2 AND _
                                ball.x < particle(i).pos.x + ball.radius * 2 AND _
                                ball.y > particle(i).pos.y - 180 + gravitationalFloat AND _
@@ -1157,205 +1157,205 @@ SUB doParticles
                             bigPortal = bigPortal + 1
                             totalPortals = totalPortals - 1
                             score = score + 10 + glowRadius * 2
-                            IF particlesSound > 0 THEN _SNDPLAYCOPY particlesSound
+                            If particlesSound > 0 Then _SndPlayCopy particlesSound
                             'glowRadius = 0
                             particle(i).active = false
-                            FOR j = i + 1 TO i + ellipsisPlot * 2
-                                IF particle(j).parent = i THEN
+                            For j = i + 1 To i + ellipsisPlot * 2
+                                If particle(j).parent = i Then
                                     particle(j).kind = BUSTEDCELL
                                     particle(j).generation = 0
                                     particle(j).maxGeneration = 50
                                     'particle(j).vel.y = SIN(rnd * _PI(2)) * 10
-                                    particle(j).vel.x = COS(RND * _PI(2)) '* 2
+                                    particle(j).vel.x = Cos(Rnd * _Pi(2)) '* 2
                                     particle(j).parent = -2
-                                END IF
-                            NEXT
-                        END IF
-                    END IF
-                CASE BUSTEDCELL
+                                End If
+                            Next
+                        End If
+                    End If
+                Case BUSTEDCELL
                     particle(i).acc.y = particle(i).acc.y + gravity
-                    IF particle(i).generation > particle(i).maxGeneration THEN
+                    If particle(i).generation > particle(i).maxGeneration Then
                         particle(i).active = false
-                    ELSE
-                        IF particle(i).parent = -1 THEN
-                            FOR j = 6 TO 4 STEP -1
+                    Else
+                        If particle(i).parent = -1 Then
+                            For j = 6 To 4 Step -1
                                 CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY + gravitationalFloat, 6, _RGBA32(particle(i).red, particle(i).green, particle(i).blue, map(j, 4, 6, 10, 25))
-                            NEXT
+                            Next
                             CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY + gravitationalFloat, 3, _RGB32(255, 255, 255)
-                        ELSEIF particle(i).parent = -2 THEN
+                        ElseIf particle(i).parent = -2 Then
                             CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY + gravitationalFloat, 3, _RGB32(160, 160, 160)
-                        END IF
-                    END IF
-                CASE GRAVITATORCELL
+                        End If
+                    End If
+                Case GRAVITATORCELL
                     'show
-                    FOR j = 7 TO 4 STEP -1
+                    For j = 7 To 4 Step -1
                         CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY + gravitationalFloat, j, _RGBA32(particle(i).red, particle(i).green, particle(i).blue, 15)
-                    NEXT
+                    Next
                     CircleFill particle(i).pos.x + camera, particle(i).pos.y + cameraY + gravitationalFloat, 3, _RGB32(255, 244, 238)
-            END SELECT
-        END IF
-    NEXT
-END SUB
+            End Select
+        End If
+    Next
+End Sub
 
-SUB setRand (seed&)
-    IF seed& > UBOUND(rndtable) OR seed& < 1 THEN
+Sub setRand (seed&)
+    If seed& > UBound(rndtable) Or seed& < 1 Then
         rndIndex = 1
-    ELSE
+    Else
         rndIndex = seed&
-    END IF
-END SUB
+    End If
+End Sub
 
-FUNCTION getRND
+Function getRND
     rndIndex = rndIndex + 1
-    IF rndIndex > UBOUND(rndtable) THEN rndIndex = 1
+    If rndIndex > UBound(rndtable) Then rndIndex = 1
     getRND = rndTable(rndIndex)
-END FUNCTION
+End Function
 
-SUB slowMo
-    frameRate = 20: frameRateRestoreTimer = TIMER
-END SUB
+Sub slowMo
+    frameRate = 20: frameRateRestoreTimer = Timer
+End Sub
 
-SUB drawBG
-    DIM i AS INTEGER
-    FOR i = 1 TO maxBGDecoration
-        LINE (bg(i).pos.x + camera / 2, bg(i).pos.y + cameraY)-STEP(bg(i).w, bg(i).h), bg(i).color, BF
-    NEXT
-    IF TIMER - levelSet < respawnDelay THEN
-        LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(0, 0, 0, map(TIMER - levelSet, 0, respawnDelay, 255, 0)), BF
-    END IF
-END SUB
+Sub drawBG
+    Dim i As Integer
+    For i = 1 To maxBGDecoration
+        Line (bg(i).pos.x + camera / 2, bg(i).pos.y + cameraY)-Step(bg(i).w, bg(i).h), bg(i).color, BF
+    Next
+    If Timer - levelSet < respawnDelay Then
+        Line (0, 0)-(_Width, _Height), _RGBA32(0, 0, 0, map(Timer - levelSet, 0, respawnDelay, 255, 0)), BF
+    End If
+End Sub
 
-FUNCTION noise! (x AS SINGLE, y AS SINGLE, z AS SINGLE)
-    STATIC p5NoiseSetup AS _BYTE
-    STATIC perlin() AS SINGLE
-    STATIC PERLIN_YWRAPB AS SINGLE, PERLIN_YWRAP AS SINGLE
-    STATIC PERLIN_ZWRAPB AS SINGLE, PERLIN_ZWRAP AS SINGLE
-    STATIC PERLIN_SIZE AS SINGLE, perlin_octaves AS SINGLE
-    STATIC perlin_amp_falloff AS SINGLE
+Function noise! (x As Single, y As Single, z As Single)
+    Static p5NoiseSetup As _Byte
+    Static perlin() As Single
+    Static PERLIN_YWRAPB As Single, PERLIN_YWRAP As Single
+    Static PERLIN_ZWRAPB As Single, PERLIN_ZWRAP As Single
+    Static PERLIN_SIZE As Single, perlin_octaves As Single
+    Static perlin_amp_falloff As Single
 
-    IF NOT p5NoiseSetup THEN
+    If Not p5NoiseSetup Then
         p5NoiseSetup = true
 
         PERLIN_YWRAPB = 4
-        PERLIN_YWRAP = INT(1 * (2 ^ PERLIN_YWRAPB))
+        PERLIN_YWRAP = Int(1 * (2 ^ PERLIN_YWRAPB))
         PERLIN_ZWRAPB = 8
-        PERLIN_ZWRAP = INT(1 * (2 ^ PERLIN_ZWRAPB))
+        PERLIN_ZWRAP = Int(1 * (2 ^ PERLIN_ZWRAPB))
         PERLIN_SIZE = 4095
 
         perlin_octaves = 4
         perlin_amp_falloff = 0.5
 
-        REDIM perlin(PERLIN_SIZE + 1) AS SINGLE
-        DIM i AS SINGLE
-        FOR i = 0 TO PERLIN_SIZE + 1
-            perlin(i) = RND
-        NEXT
-    END IF
+        ReDim perlin(PERLIN_SIZE + 1) As Single
+        Dim i As Single
+        For i = 0 To PERLIN_SIZE + 1
+            perlin(i) = Rnd
+        Next
+    End If
 
-    x = ABS(x)
-    y = ABS(y)
-    z = ABS(z)
+    x = Abs(x)
+    y = Abs(y)
+    z = Abs(z)
 
-    DIM xi AS SINGLE, yi AS SINGLE, zi AS SINGLE
-    xi = INT(x)
-    yi = INT(y)
-    zi = INT(z)
+    Dim xi As Single, yi As Single, zi As Single
+    xi = Int(x)
+    yi = Int(y)
+    zi = Int(z)
 
-    DIM xf AS SINGLE, yf AS SINGLE, zf AS SINGLE
+    Dim xf As Single, yf As Single, zf As Single
     xf = x - xi
     yf = y - yi
     zf = z - zi
 
-    DIM r AS SINGLE, ampl AS SINGLE, o AS SINGLE
+    Dim r As Single, ampl As Single, o As Single
     r = 0
     ampl = .5
 
-    FOR o = 1 TO perlin_octaves
-        DIM of AS SINGLE, rxf AS SINGLE
-        DIM ryf AS SINGLE, n1 AS SINGLE, n2 AS SINGLE, n3 AS SINGLE
-        of = xi + INT(yi * (2 ^ PERLIN_YWRAPB)) + INT(zi * (2 ^ PERLIN_ZWRAPB))
+    For o = 1 To perlin_octaves
+        Dim of As Single, rxf As Single
+        Dim ryf As Single, n1 As Single, n2 As Single, n3 As Single
+        of = xi + Int(yi * (2 ^ PERLIN_YWRAPB)) + Int(zi * (2 ^ PERLIN_ZWRAPB))
 
-        rxf = 0.5 * (1.0 - COS(xf * _PI))
-        ryf = 0.5 * (1.0 - COS(yf * _PI))
+        rxf = 0.5 * (1.0 - Cos(xf * _Pi))
+        ryf = 0.5 * (1.0 - Cos(yf * _Pi))
 
-        n1 = perlin(of AND PERLIN_SIZE)
-        n1 = n1 + rxf * (perlin((of + 1) AND PERLIN_SIZE) - n1)
-        n2 = perlin((of + PERLIN_YWRAP) AND PERLIN_SIZE)
-        n2 = n2 + rxf * (perlin((of + PERLIN_YWRAP + 1) AND PERLIN_SIZE) - n2)
+        n1 = perlin(of And PERLIN_SIZE)
+        n1 = n1 + rxf * (perlin((of + 1) And PERLIN_SIZE) - n1)
+        n2 = perlin((of + PERLIN_YWRAP) And PERLIN_SIZE)
+        n2 = n2 + rxf * (perlin((of + PERLIN_YWRAP + 1) And PERLIN_SIZE) - n2)
         n1 = n1 + ryf * (n2 - n1)
 
         of = of + PERLIN_ZWRAP
-        n2 = perlin(of AND PERLIN_SIZE)
-        n2 = n2 + rxf * (perlin((of + 1) AND PERLIN_SIZE) - n2)
-        n3 = perlin((of + PERLIN_YWRAP) AND PERLIN_SIZE)
-        n3 = n3 + rxf * (perlin((of + PERLIN_YWRAP + 1) AND PERLIN_SIZE) - n3)
+        n2 = perlin(of And PERLIN_SIZE)
+        n2 = n2 + rxf * (perlin((of + 1) And PERLIN_SIZE) - n2)
+        n3 = perlin((of + PERLIN_YWRAP) And PERLIN_SIZE)
+        n3 = n3 + rxf * (perlin((of + PERLIN_YWRAP + 1) And PERLIN_SIZE) - n3)
         n2 = n2 + ryf * (n3 - n2)
 
-        n1 = n1 + (0.5 * (1.0 - COS(zf * _PI))) * (n2 - n1)
+        n1 = n1 + (0.5 * (1.0 - Cos(zf * _Pi))) * (n2 - n1)
 
         r = r + n1 * ampl
         ampl = ampl * perlin_amp_falloff
-        xi = INT(xi * (2 ^ 1))
+        xi = Int(xi * (2 ^ 1))
         xf = xf * 2
-        yi = INT(yi * (2 ^ 1))
+        yi = Int(yi * (2 ^ 1))
         yf = yf * 2
-        zi = INT(zi * (2 ^ 1))
+        zi = Int(zi * (2 ^ 1))
         zf = zf * 2
 
-        IF xf >= 1.0 THEN xi = xi + 1: xf = xf - 1
-        IF yf >= 1.0 THEN yi = yi + 1: yf = yf - 1
-        IF zf >= 1.0 THEN zi = zi + 1: zf = zf - 1
-    NEXT
+        If xf >= 1.0 Then xi = xi + 1: xf = xf - 1
+        If yf >= 1.0 Then yi = yi + 1: yf = yf - 1
+        If zf >= 1.0 Then zi = zi + 1: zf = zf - 1
+    Next
     noise! = r
-END FUNCTION
+End Function
 
-FUNCTION lerp! (start!, stp!, amt!)
+Function lerp! (start!, stp!, amt!)
     lerp! = amt! * (stp! - start!) + start!
-END FUNCTION
+End Function
 
-SUB printLarge (x AS SINGLE, y AS SINGLE, text$)
-    DIM i AS LONG, j AS LONG, c AS LONG, char AS _UNSIGNED _BYTE
+Sub printLarge (x As Single, y As Single, text$)
+    Dim i As Long, j As Long, c As Long, char As _Unsigned _Byte
 
-    FOR c = 1 TO LEN(text$)
-        char = ASC(text$, c)
-        FOR i = 1 TO 16
-            FOR j = 1 TO 8
-                IF charSet(char, i, j) THEN
-                    IF _PRINTMODE <> 2 THEN
-                        LINE ((x - fontSize) + j * fontSize + ((c - 1) * (fontSize * 8)), (y - fontSize) + i * fontSize)-STEP(fontSize, fontSize), _DEFAULTCOLOR, BF
-                    END IF
-                ELSE
-                    IF _PRINTMODE = 3 OR _PRINTMODE = 2 THEN
-                        LINE ((x - fontSize) + j * fontSize + ((c - 1) * (fontSize * 8)), (y - fontSize) + i * fontSize)-STEP(fontSize, fontSize), _BACKGROUNDCOLOR, BF
-                    END IF
-                END IF
-            NEXT
-        NEXT
-    NEXT
-END SUB
+    For c = 1 To Len(text$)
+        char = Asc(text$, c)
+        For i = 1 To 16
+            For j = 1 To 8
+                If charSet(char, i, j) Then
+                    If _PrintMode <> 2 Then
+                        Line ((x - fontSize) + j * fontSize + ((c - 1) * (fontSize * 8)), (y - fontSize) + i * fontSize)-Step(fontSize, fontSize), _DefaultColor, BF
+                    End If
+                Else
+                    If _PrintMode = 3 Or _PrintMode = 2 Then
+                        Line ((x - fontSize) + j * fontSize + ((c - 1) * (fontSize * 8)), (y - fontSize) + i * fontSize)-Step(fontSize, fontSize), _BackgroundColor, BF
+                    End If
+                End If
+            Next
+        Next
+    Next
+End Sub
 
-FUNCTION fontHeight
+Function fontHeight
     fontHeight = fontSize * 16
-END FUNCTION
+End Function
 
-FUNCTION fontWidth
+Function fontWidth
     fontWidth = fontSize * 8
-END FUNCTION
+End Function
 
-FUNCTION printWidth (text$)
-    printWidth = fontWidth * LEN(text$)
-END FUNCTION
+Function printWidth (text$)
+    printWidth = fontWidth * Len(text$)
+End Function
 
-SUB showHUD
-    DIM hud$
+Sub showHUD
+    Dim hud$
     fontSize = 2
-    LINE (0, _HEIGHT - fontHeight)-(_WIDTH, _HEIGHT), _RGBA32(0, 0, 0, 40), BF
-    IF totalPortals THEN
-        hud$ = "Portals to destroy:" + STR$(totalPortals) + SPACE$(4)
-    END IF
-    hud$ = hud$ + "Score:" + STR$(score)
-    COLOR _RGB32(0, 0, 0)
-    printLarge fontSize / 2, _HEIGHT - fontHeight + fontSize / 2, hud$
-    COLOR _RGB32(255, 255, 255)
-    printLarge 0, _HEIGHT - fontHeight, hud$
-END SUB
+    Line (0, _Height - fontHeight)-(_Width, _Height), _RGBA32(0, 0, 0, 40), BF
+    If totalPortals Then
+        hud$ = "Portals to destroy:" + Str$(totalPortals) + Space$(4)
+    End If
+    hud$ = hud$ + "Score:" + Str$(score)
+    Color _RGB32(0, 0, 0)
+    printLarge fontSize / 2, _Height - fontHeight + fontSize / 2, hud$
+    Color _RGB32(255, 255, 255)
+    printLarge 0, _Height - fontHeight, hud$
+End Sub

@@ -1,48 +1,48 @@
-OPTION _EXPLICIT
+Option _Explicit
 
-$CONSOLE:ONLY
-_DEST _CONSOLE
+$Console:Only
+_Dest _Console
 
-CONST true = -1, false = 0
+Const true = -1, false = 0
 
-DIM remoteFile$, localFile$
-DIM newContents$
+Dim remoteFile$, localFile$
+Dim newContents$
 
-localFile$ = COMMAND$
-IF LEFT$(localFile$, 2) = "./" THEN localFile$ = MID$(localFile$, 3)
-IF _FILEEXISTS(localFile$) = false THEN
-    PRINT "Incorrect usage."
-    SYSTEM
-ELSE
-    PRINT "*"; localFile$; "* found;"
-END IF
+localFile$ = Command$
+If Left$(localFile$, 2) = "./" Then localFile$ = Mid$(localFile$, 3)
+If _FileExists(localFile$) = false Then
+    Print "Incorrect usage."
+    System
+Else
+    Print "*"; localFile$; "* found;"
+End If
 
-IF INSTR(_OS$, "WIN") THEN
+If InStr(_OS$, "WIN") Then
     remoteFile$ = "server_win.exe"
-ELSEIF INSTR(_OS$, "MAC") THEN
+ElseIf InStr(_OS$, "MAC") Then
     remoteFile$ = "server_mac"
-ELSE
+Else
     remoteFile$ = "server_lnx"
-END IF
+End If
 
-IF _FILEEXISTS(remoteFile$) THEN
-    OPEN remoteFile$ FOR BINARY AS #1
-    newContents$ = SPACE$(LOF(1))
-    GET #1, , newContents$
-    CLOSE #1
+If _FileExists(remoteFile$) Then
+    Open remoteFile$ For Binary As #1
+    newContents$ = Space$(LOF(1))
+    Get #1, , newContents$
+    Close #1
 
-    KILL localFile$
-    OPEN localFile$ FOR BINARY AS #1
-    PUT #1, , newContents$
-    CLOSE #1
+    Kill localFile$
+    Open localFile$ For Binary As #1
+    Put #1, , newContents$
+    Close #1
 
-    KILL remoteFile$
-    IF INSTR(_OS$, "LINUX") THEN SHELL _HIDE "chmod +x " + CHR$(34) + COMMAND$ + CHR$(34)
-    SHELL _DONTWAIT CHR$(34) + COMMAND$ + CHR$(34)
-    PRINT "Update successful."
-    SYSTEM
-ELSE
-    PRINT "Incorrect usage."
-    SYSTEM
-END IF
+    Kill remoteFile$
+    If InStr(_OS$, "LINUX") Then Shell _Hide "chmod +x " + Chr$(34) + Command$ + Chr$(34)
+    Shell _DontWait Chr$(34) + Command$ + Chr$(34)
+    Print "Update successful."
+    System
+Else
+    Print "Incorrect usage."
+    System
+End If
 

@@ -1,92 +1,92 @@
-OPTION _EXPLICIT
+Option _Explicit
 
-DIM SHARED gameVersion AS INTEGER
+Dim Shared gameVersion As Integer
 'this is to be increased everytime the client
 'becomes incompatible with previous versions
 gameVersion = 3
 
-$LET DEBUGGING = FALSE
-$IF DEBUGGING = TRUE THEN
+$Let DEBUGGING = FALSE
+$If DEBUGGING = TRUE Then
     $CONSOLE
-$END IF
+$End If
 
-$CONSOLE:ONLY
-_DEST _CONSOLE
+$Console:Only
+_Dest _Console
 
-CONST True = -1, False = 0
+Const True = -1, False = 0
 
-CONST id_SERVERFULL = 1
-CONST id_PING = 2
-CONST id_ID = 3
-CONST id_NEWCOLOR = 4
-CONST id_NEWNAME = 5
-CONST id_COLOR = 6
-CONST id_POS = 7
-CONST id_NAME = 8
-CONST id_CHAT = 9
-CONST id_PLAYERONLINE = 10
-CONST id_PLAYEROFFLINE = 11
-CONST id_PONG = 12
-CONST id_PLAYERQUIT = 13
-CONST id_GAMEVERSION = 14
-CONST id_SHOOT = 15
-CONST id_SIZE = 16
-CONST id_UPDATESERVER = 17
-CONST id_KICK = 18
+Const id_SERVERFULL = 1
+Const id_PING = 2
+Const id_ID = 3
+Const id_NEWCOLOR = 4
+Const id_NEWNAME = 5
+Const id_COLOR = 6
+Const id_POS = 7
+Const id_NAME = 8
+Const id_CHAT = 9
+Const id_PLAYERONLINE = 10
+Const id_PLAYEROFFLINE = 11
+Const id_PONG = 12
+Const id_PLAYERQUIT = 13
+Const id_GAMEVERSION = 14
+Const id_SHOOT = 15
+Const id_SIZE = 16
+Const id_UPDATESERVER = 17
+Const id_KICK = 18
 
-TYPE object
-    name AS STRING
-    handle AS LONG
-    x AS SINGLE
-    xv AS SINGLE
-    y AS SINGLE
-    yv AS SINGLE
-    state AS INTEGER
-    color AS INTEGER
-    basicInfoSent AS _BYTE
-    broadcastOffline AS _BYTE
-    ping AS SINGLE
-    hasNewName AS _BYTE
-    hasNewColor AS _BYTE
-    hasNewPosition AS STRING
-    hasNewMessage AS _BYTE
-    hasNewSize AS _BYTE
-    size AS INTEGER
-END TYPE
+Type object
+    name As String
+    handle As Long
+    x As Single
+    xv As Single
+    y As Single
+    yv As Single
+    state As Integer
+    color As Integer
+    basicInfoSent As _Byte
+    broadcastOffline As _Byte
+    ping As Single
+    hasNewName As _Byte
+    hasNewColor As _Byte
+    hasNewPosition As String
+    hasNewMessage As _Byte
+    hasNewSize As _Byte
+    size As Integer
+End Type
 
-CONST maxUsers = 10
+Const maxUsers = 10
 
-DIM SHARED totalClients AS INTEGER
-DIM SHARED playerStream(1 TO maxUsers) AS STRING
-DIM SHARED player(1 TO maxUsers) AS object
-DIM SHARED colors(1 TO 12) AS _UNSIGNED LONG
-DIM i AS LONG, j AS LONG
-DIM newClient AS LONG, checkUpdate AS _BYTE, checkUpdateRequester AS INTEGER
-DIM id AS INTEGER, value$
-DIM packet$
+Dim Shared totalClients As Integer
+Dim Shared playerStream(1 To maxUsers) As String
+Dim Shared player(1 To maxUsers) As object
+Dim Shared colors(1 To 12) As _Unsigned Long
+Dim i As Long, j As Long
+Dim newClient As Long, checkUpdate As _Byte, checkUpdateRequester As Integer
+Dim id As Integer, value$
+Dim packet$
 
-DIM SHARED endSignal AS STRING
-endSignal = CHR$(253) + CHR$(254) + CHR$(255)
+Dim Shared endSignal As String
+endSignal = Chr$(253) + Chr$(254) + Chr$(255)
 
-CONST timeout = 20
+Const timeout = 20
 
-DIM SHARED host AS LONG
-PRINT TIME$ + " Starting server (ver. "; _TRIM$(STR$(gameVersion)); ")... ";
-host = _OPENHOST("TCP/IP:51512")
-IF host = 0 THEN
-    PRINT "Cannot listen on port 51512"
-    SYSTEM
-END IF
-PRINT "Listening on port 51512"
+Dim Shared host As Long
+Print Time$ + " Starting server (ver. "; _Trim$(Str$(gameVersion)); ")... ";
+host = _OpenHost("TCP/IP:51512")
+If host = 0 Then
+    Print "Cannot listen on port 51512"
+    System
+End If
+Print "Listening on port 51512"
 
-DO
+Do
     newClient = 0
-    newClient = _OPENCONNECTION(host)
-    IF newClient THEN
-        IF totalClients < maxUsers THEN
+    newClient = _OpenConnection(host)
+    If newClient Then
+        If totalClients < maxUsers Then
             totalClients = totalClients + 1
-            FOR i = 1 TO maxUsers
-                IF player(i).state = False THEN
+            For i = 1 To maxUsers
+                If player(i).state = False Then
                     playerStream(i) = ""
                     player(i).color = 0
                     player(i).handle = newClient
@@ -97,9 +97,9 @@ DO
                     sendData player(i), id_ID, MKI$(i)
 
                     'send existing players' data:
-                    FOR j = 1 TO maxUsers
-                        IF j = i THEN _CONTINUE
-                        IF player(j).state = True THEN
+                    For j = 1 To maxUsers
+                        If j = i Then _Continue
+                        If player(j).state = True Then
                             sendData player(j), id_PLAYERONLINE, MKI$(i)
 
                             sendData player(i), id_PLAYERONLINE, MKI$(j)
@@ -107,33 +107,33 @@ DO
                             sendData player(i), id_COLOR, MKI$(j) + MKI$(player(j).color)
                             sendData player(i), id_POS, MKI$(j) + MKS$(player(j).x) + MKS$(player(j).y) + MKS$(player(j).xv) + MKS$(player(j).yv)
                             sendData player(i), id_SIZE, MKI$(j) + MKI$(player(j).size)
-                        END IF
-                    NEXT
+                        End If
+                    Next
 
-                    player(i).ping = TIMER
-                    EXIT FOR
-                END IF
-            NEXT
-            PRINT TIME$ + " User at " + _CONNECTIONADDRESS$(newClient) + " connected as client #" + LTRIM$(STR$(i))
-        ELSE
+                    player(i).ping = Timer
+                    Exit For
+                End If
+            Next
+            Print Time$ + " User at " + _ConnectionAddress$(newClient) + " connected as client #" + LTrim$(Str$(i))
+        Else
             packet$ = MKI$(id_SERVERFULL) + endSignal
-            PUT #newClient, , packet$
-            PRINT TIME$ + " Connection from " + _CONNECTIONADDRESS$(newClient) + " refused (server full)"
-            CLOSE newClient
-        END IF
-    END IF
+            Put #newClient, , packet$
+            Print Time$ + " Connection from " + _ConnectionAddress$(newClient) + " refused (server full)"
+            Close newClient
+        End If
+    End If
 
-    FOR i = 1 TO maxUsers
-        IF player(i).state = False THEN
-            IF player(i).broadcastOffline = False THEN
+    For i = 1 To maxUsers
+        If player(i).state = False Then
+            If player(i).broadcastOffline = False Then
                 player(i).broadcastOffline = True
-                FOR j = 1 TO maxUsers
-                    IF j = i OR player(j).state = False THEN _CONTINUE
+                For j = 1 To maxUsers
+                    If j = i Or player(j).state = False Then _Continue
                     sendData player(j), id_PLAYEROFFLINE, MKI$(i)
-                NEXT
-            END IF
-            _CONTINUE
-        END IF
+                Next
+            End If
+            _Continue
+        End If
 
         player(i).hasNewName = False
         player(i).hasNewColor = False
@@ -141,226 +141,226 @@ DO
         player(i).hasNewMessage = False
         player(i).hasNewSize = False
 
-        IF timeElapsedSince(player(i).ping) > timeout THEN
+        If timeElapsedSince(player(i).ping) > timeout Then
             'player inactive
             player(i).state = False
-            CLOSE player(i).handle
-            PRINT TIME$ + " Client #" + LTRIM$(STR$(i)) + " (" + player(i).name + ") lost connection."
+            Close player(i).handle
+            Print Time$ + " Client #" + LTrim$(Str$(i)) + " (" + player(i).name + ") lost connection."
             totalClients = totalClients - 1
-            _CONTINUE
-        END IF
+            _Continue
+        End If
 
         getData player(i), playerStream(i)
 
-        DO WHILE parse(playerStream(i), id, value$)
-            player(i).ping = TIMER
-            SELECT CASE id
-                CASE id_NAME
+        Do While parse(playerStream(i), id, value$)
+            player(i).ping = Timer
+            Select Case id
+                Case id_NAME
                     player(i).hasNewName = True
                     player(i).name = value$
-                    DIM attempt AS INTEGER, checkAgain AS _BYTE, m$
+                    Dim attempt As Integer, checkAgain As _Byte, m$
                     m$ = ""
                     attempt = 0
-                    DO
+                    Do
                         checkAgain = False
-                        FOR j = 1 TO maxUsers
-                            IF j = i THEN _CONTINUE
-                            IF attempt THEN m$ = STR$(attempt)
-                            IF player(j).name = player(i).name + m$ THEN
+                        For j = 1 To maxUsers
+                            If j = i Then _Continue
+                            If attempt Then m$ = Str$(attempt)
+                            If player(j).name = player(i).name + m$ Then
                                 attempt = attempt + 1
                                 checkAgain = True
-                                EXIT FOR
-                            END IF
-                        NEXT
-                    LOOP WHILE checkAgain
-                    IF attempt THEN
+                                Exit For
+                            End If
+                        Next
+                    Loop While checkAgain
+                    If attempt Then
                         player(i).name = player(i).name + m$
                         sendData player(i), id_NEWNAME, player(i).name
-                    END IF
-                    PRINT TIME$ + " Client #" + LTRIM$(STR$(i)) + " has name " + player(i).name
-                CASE id_COLOR 'received once per player
+                    End If
+                    Print Time$ + " Client #" + LTrim$(Str$(i)) + " has name " + player(i).name
+                Case id_COLOR 'received once per player
                     player(i).hasNewColor = True
-                    DIM newcolor AS INTEGER, changed AS _BYTE
+                    Dim newcolor As Integer, changed As _Byte
                     newcolor = CVI(value$)
                     changed = False
                     'check if this color is already in use, so another one can be assigned
-                    FOR j = 1 TO maxUsers
-                        IF player(j).state = True AND player(j).color = newcolor THEN
+                    For j = 1 To maxUsers
+                        If player(j).state = True And player(j).color = newcolor Then
                             newcolor = newcolor + 1
-                            IF newcolor > UBOUND(colors) THEN newcolor = 1
+                            If newcolor > UBound(colors) Then newcolor = 1
                             changed = True
                             j = 0 'check again
-                        END IF
-                    NEXT
+                        End If
+                    Next
                     player(i).color = newcolor
-                    IF changed THEN
+                    If changed Then
                         sendData player(i), id_NEWCOLOR, MKI$(newcolor)
-                    END IF
-                CASE id_SHOOT
-                    IF player(CVI(value$)).size > 5 THEN
+                    End If
+                Case id_SHOOT
+                    If player(CVI(value$)).size > 5 Then
                         player(CVI(value$)).size = player(CVI(value$)).size - 2
-                    END IF
-                    FOR j = 1 TO maxUsers
-                        IF player(j).state = False THEN _CONTINUE
+                    End If
+                    For j = 1 To maxUsers
+                        If player(j).state = False Then _Continue
                         sendData player(j), id_SHOOT, MKI$(i) + value$
                         sendData player(j), id_SIZE, value$ + MKI$(player(CVI(value$)).size)
-                    NEXT
-                CASE id_POS
+                    Next
+                Case id_POS
                     player(i).hasNewPosition = value$
                     player(i).x = getCVS(value$)
                     player(i).y = getCVS(value$)
                     player(i).xv = getCVS(value$)
                     player(i).yv = getCVS(value$)
-                CASE id_SIZE
+                Case id_SIZE
                     player(i).hasNewSize = True
                     player(i).size = CVI(value$)
-                CASE id_GAMEVERSION
+                Case id_GAMEVERSION
                     'player is signaling it will disconnect due to wrong version
                     player(i).x = -1
                     player(i).y = -1
-                CASE id_PLAYERQUIT
+                Case id_PLAYERQUIT
                     player(i).state = False
-                    CLOSE player(i).handle
+                    Close player(i).handle
                     totalClients = totalClients - 1
-                    PRINT TIME$ + " Client #" + LTRIM$(STR$(i)) + " (" + player(i).name + ") quit";
-                    IF player(i).x = -1 AND player(i).y = -1 THEN
-                        PRINT " - wrong version."
-                    ELSE
-                        PRINT "."
-                    END IF
-                    EXIT DO
-                CASE id_UPDATESERVER
+                    Print Time$ + " Client #" + LTrim$(Str$(i)) + " (" + player(i).name + ") quit";
+                    If player(i).x = -1 And player(i).y = -1 Then
+                        Print " - wrong version."
+                    Else
+                        Print "."
+                    End If
+                    Exit Do
+                Case id_UPDATESERVER
                     'temporary solution for triggering auto-update checks
                     checkUpdate = True
                     checkUpdateRequester = i
-                    PRINT TIME$ + " Update check requested;"
-                CASE id_CHAT
-                    DIM chatMessage$
+                    Print Time$ + " Update check requested;"
+                Case id_CHAT
+                    Dim chatMessage$
                     player(i).hasNewMessage = True
                     chatMessage$ = value$
-                CASE id_PING
+                Case id_PING
                     sendData player(i), id_PONG, ""
-            END SELECT
-        LOOP
+            End Select
+        Loop
 
-        IF player(i).state = False THEN
-            _CONTINUE
-        ELSE
+        If player(i).state = False Then
+            _Continue
+        Else
             'send this player's data to everybody else
-            FOR j = 1 TO maxUsers
-                IF j = i THEN _CONTINUE
-                IF player(j).state = True THEN
-                    IF player(i).hasNewName THEN sendData player(j), id_NAME, MKI$(i) + player(i).name
-                    IF player(i).hasNewColor THEN sendData player(j), id_COLOR, MKI$(i) + MKI$(player(i).color)
-                    IF LEN(player(i).hasNewPosition) THEN sendData player(j), id_POS, MKI$(i) + player(i).hasNewPosition
-                    IF player(i).hasNewMessage THEN sendData player(j), id_CHAT, MKI$(i) + chatMessage$
-                    IF player(i).hasNewSize THEN sendData player(j), id_SIZE, MKI$(i) + MKI$(player(i).size)
-                END IF
-            NEXT
-        END IF
-    NEXT
+            For j = 1 To maxUsers
+                If j = i Then _Continue
+                If player(j).state = True Then
+                    If player(i).hasNewName Then sendData player(j), id_NAME, MKI$(i) + player(i).name
+                    If player(i).hasNewColor Then sendData player(j), id_COLOR, MKI$(i) + MKI$(player(i).color)
+                    If Len(player(i).hasNewPosition) Then sendData player(j), id_POS, MKI$(i) + player(i).hasNewPosition
+                    If player(i).hasNewMessage Then sendData player(j), id_CHAT, MKI$(i) + chatMessage$
+                    If player(i).hasNewSize Then sendData player(j), id_SIZE, MKI$(i) + MKI$(player(i).size)
+                End If
+            Next
+        End If
+    Next
 
-    IF checkUpdate THEN
-        DIM remoteFile$, result AS INTEGER, file$, newVersion AS INTEGER
-        DIM fileHandle AS INTEGER, updater$
+    If checkUpdate Then
+        Dim remoteFile$, result As Integer, file$, newVersion As Integer
+        Dim fileHandle As Integer, updater$
 
         remoteFile$ = "www.qb64.org/amongst/amongst_version.txt"
         result = Download(remoteFile$, 30, file$)
-        SELECT CASE result
-            CASE 0 'success
+        Select Case result
+            Case 0 'success
                 checkUpdate = False
-                newVersion = VAL(MID$(file$, INSTR(file$, "=") + 1))
+                newVersion = Val(Mid$(file$, InStr(file$, "=") + 1))
 
-                IF newVersion > gameVersion THEN
-                    PRINT TIME$ + " Downloading new version ("; LTRIM$(STR$(newVersion)); ")... ";
+                If newVersion > gameVersion Then
+                    Print Time$ + " Downloading new version ("; LTrim$(Str$(newVersion)); ")... ";
 
-                    IF INSTR(_OS$, "WIN") THEN
+                    If InStr(_OS$, "WIN") Then
                         remoteFile$ = "server_win.exe"
                         updater$ = "amongst_updater.exe"
-                    ELSEIF INSTR(_OS$, "MAC") THEN
+                    ElseIf InStr(_OS$, "MAC") Then
                         remoteFile$ = "server_mac"
                         updater$ = "./amongst_updater"
-                    ELSE
+                    Else
                         remoteFile$ = "server_lnx"
                         updater$ = "./amongst_updater"
-                    END IF
+                    End If
 
-                    DO
+                    Do
                         result = Download("www.qb64.org/amongst/" + remoteFile$, 30, file$)
 
-                        SELECT CASE result
-                            CASE 0 'success
-                                PRINT "done."
-                                fileHandle = FREEFILE
-                                OPEN remoteFile$ FOR BINARY AS #fileHandle
-                                PUT #fileHandle, , file$
-                                CLOSE #fileHandle
-                                IF _FILEEXISTS(updater$) THEN
-                                    FOR j = 1 TO maxUsers
-                                        IF player(j).state = False THEN _CONTINUE
+                        Select Case result
+                            Case 0 'success
+                                Print "done."
+                                fileHandle = FreeFile
+                                Open remoteFile$ For Binary As #fileHandle
+                                Put #fileHandle, , file$
+                                Close #fileHandle
+                                If _FileExists(updater$) Then
+                                    For j = 1 To maxUsers
+                                        If player(j).state = False Then _Continue
                                         sendData player(j), id_KICK, "Server auto-updating; try again in a few moments."
-                                    NEXT
+                                    Next
 
-                                    CLOSE host
-                                    SHELL _DONTWAIT CHR$(34) + updater$ + CHR$(34) + " " + CHR$(34) + COMMAND$(0) + CHR$(34)
-                                    SYSTEM
-                                ELSE
+                                    Close host
+                                    Shell _DontWait Chr$(34) + updater$ + Chr$(34) + " " + Chr$(34) + Command$(0) + Chr$(34)
+                                    System
+                                Else
                                     packet$ = "Unable to update - missing '" + updater$ + "'."
-                                    PRINT packet$
+                                    Print packet$
                                     sendData player(checkUpdateRequester), id_CHAT, MKI$(0) + packet$
                                     checkUpdate = False
-                                    EXIT DO
-                                END IF
-                            CASE 2, 3 'can't connect or timed out
+                                    Exit Do
+                                End If
+                            Case 2, 3 'can't connect or timed out
                                 packet$ = "Unable to download update; try again in a few moments."
-                                PRINT packet$
+                                Print packet$
                                 sendData player(checkUpdateRequester), id_CHAT, MKI$(0) + packet$
                                 checkUpdate = False
-                                EXIT DO
-                        END SELECT
-                        _LIMIT 10
-                    LOOP
-                ELSE
+                                Exit Do
+                        End Select
+                        _Limit 10
+                    Loop
+                Else
                     packet$ = "No new version available."
-                    PRINT packet$
+                    Print packet$
                     sendData player(checkUpdateRequester), id_CHAT, MKI$(0) + packet$
                     checkUpdate = False
-                END IF
-            CASE 2, 3 'can't connect or timed out
+                End If
+            Case 2, 3 'can't connect or timed out
                 packet$ = "Unable to check new versions."
-                PRINT packet$
+                Print packet$
                 sendData player(checkUpdateRequester), id_CHAT, MKI$(0) + packet$
                 checkUpdate = False
-        END SELECT
-    END IF
+        End Select
+    End If
 
-    _LIMIT 60
-LOOP
+    _Limit 60
+Loop
 
-SUB sendData (client AS object, id AS INTEGER, value$)
-    DIM key$
+Sub sendData (client As object, id As Integer, value$)
+    Dim key$
     key$ = MKI$(id) + value$ + endSignal
-    PUT #client.handle, , key$
-END SUB
+    Put #client.handle, , key$
+End Sub
 
-SUB getData (client AS object, buffer AS STRING)
-    DIM incoming$
-    GET #client.handle, , incoming$
+Sub getData (client As object, buffer As String)
+    Dim incoming$
+    Get #client.handle, , incoming$
     buffer = buffer + incoming$
-END SUB
+End Sub
 
-FUNCTION parse%% (buffer AS STRING, id AS INTEGER, value$)
-    DIM endMarker AS LONG
-    endMarker = INSTR(buffer, endSignal)
-    IF endMarker THEN
-        id = CVI(LEFT$(buffer, 2))
-        value$ = MID$(buffer, 3, endMarker - 3)
-        buffer = MID$(buffer, endMarker + LEN(endSignal))
+Function parse%% (buffer As String, id As Integer, value$)
+    Dim endMarker As Long
+    endMarker = InStr(buffer, endSignal)
+    If endMarker Then
+        id = CVI(Left$(buffer, 2))
+        value$ = Mid$(buffer, 3, endMarker - 3)
+        buffer = Mid$(buffer, endMarker + Len(endSignal))
         parse%% = True
-    END IF
-END FUNCTION
+    End If
+End Function
 
-FUNCTION Download% (url$, timelimit, contents$)
+Function Download% (url$, timelimit, contents$)
     'adapted from http://www.qb64.org/wiki/Downloading_Files
     '
     'Usage:
@@ -374,79 +374,79 @@ FUNCTION Download% (url$, timelimit, contents$)
     '    2 = can't connect
     '    3 = timed out
 
-    STATIC client AS LONG, l AS LONG
-    STATIC prevUrl$, prevUrl2$, a$, a2$, url2$, url3$
-    STATIC x AS LONG, i AS LONG, i2 AS LONG, i3 AS LONG
-    STATIC e$, x$, t!, d$, fh AS INTEGER
+    Static client As Long, l As Long
+    Static prevUrl$, prevUrl2$, a$, a2$, url2$, url3$
+    Static x As Long, i As Long, i2 As Long, i3 As Long
+    Static e$, x$, t!, d$, fh As Integer
 
-    IF url$ = "" THEN
-        IF client THEN CLOSE client: client = 0
+    If url$ = "" Then
+        If client Then Close client: client = 0
         prevUrl$ = ""
-        EXIT SUB
-    END IF
+        Exit Function
+    End If
 
-    IF url$ <> prevUrl$ THEN
+    If url$ <> prevUrl$ Then
         prevUrl$ = url$
         a$ = ""
         url2$ = url$
-        x = INSTR(url2$, "/")
-        IF x THEN url2$ = LEFT$(url$, x - 1)
-        IF url2$ <> prevUrl2$ THEN
+        x = InStr(url2$, "/")
+        If x Then url2$ = Left$(url$, x - 1)
+        If url2$ <> prevUrl2$ Then
             prevUrl2$ = url2$
-            IF client THEN CLOSE client: client = 0
-            client = _OPENCLIENT("TCP/IP:80:" + url2$)
-            IF client = 0 THEN Download = 2: prevUrl$ = "": EXIT FUNCTION
-        END IF
-        e$ = CHR$(13) + CHR$(10) ' end of line characters
-        url3$ = RIGHT$(url$, LEN(url$) - x + 1)
+            If client Then Close client: client = 0
+            client = _OpenClient("TCP/IP:80:" + url2$)
+            If client = 0 Then Download = 2: prevUrl$ = "": Exit Function
+        End If
+        e$ = Chr$(13) + Chr$(10) ' end of line characters
+        url3$ = Right$(url$, Len(url$) - x + 1)
         x$ = "GET " + url3$ + " HTTP/1.1" + e$
         x$ = x$ + "Host: " + url2$ + e$ + e$
-        PUT #client, , x$
-        t! = TIMER ' start time
-    END IF
+        Put #client, , x$
+        t! = Timer ' start time
+    End If
 
-    GET #client, , a2$
+    Get #client, , a2$
     a$ = a$ + a2$
-    i = INSTR(a$, "Content-Length:")
-    IF i THEN
-        i2 = INSTR(i, a$, e$)
-        IF i2 THEN
-            l = VAL(MID$(a$, i + 15, i2 - i - 14))
-            i3 = INSTR(i2, a$, e$ + e$)
-            IF i3 THEN
+    i = InStr(a$, "Content-Length:")
+    If i Then
+        i2 = InStr(i, a$, e$)
+        If i2 Then
+            l = Val(Mid$(a$, i + 15, i2 - i - 14))
+            i3 = InStr(i2, a$, e$ + e$)
+            If i3 Then
                 i3 = i3 + 4 'move i3 to start of data
-                IF (LEN(a$) - i3 + 1) = l THEN
-                    d$ = MID$(a$, i3, l)
-                    fh = FREEFILE
+                If (Len(a$) - i3 + 1) = l Then
+                    d$ = Mid$(a$, i3, l)
+                    fh = FreeFile
                     Download = 0
                     contents$ = d$
                     prevUrl$ = ""
                     prevUrl2$ = ""
                     a$ = ""
-                    CLOSE client
+                    Close client
                     client = 0
-                    EXIT FUNCTION
-                END IF ' availabledata = l
-            END IF ' i3
-        END IF ' i2
-    END IF ' i
-    IF TIMER > t! + timelimit THEN CLOSE client: client = 0: Download = 3: prevUrl$ = "": EXIT FUNCTION
+                    Exit Function
+                End If ' availabledata = l
+            End If ' i3
+        End If ' i2
+    End If ' i
+    If Timer > t! + timelimit Then Close client: client = 0: Download = 3: prevUrl$ = "": Exit Function
     Download = 1 'still working
-END FUNCTION
+End Function
 
-FUNCTION getCVS! (buffer$)
-    getCVS! = CVS(LEFT$(buffer$, 4))
-    buffer$ = MID$(buffer$, 5)
-END FUNCTION
+Function getCVS! (buffer$)
+    getCVS! = CVS(Left$(buffer$, 4))
+    buffer$ = Mid$(buffer$, 5)
+End Function
 
-FUNCTION getCVI% (buffer$)
-    getCVI% = CVI(LEFT$(buffer$, 2))
-    buffer$ = MID$(buffer$, 3)
-END FUNCTION
+Function getCVI% (buffer$)
+    getCVI% = CVI(Left$(buffer$, 2))
+    buffer$ = Mid$(buffer$, 3)
+End Function
 
 
-FUNCTION timeElapsedSince! (startTime!)
-    IF startTime! > TIMER THEN startTime! = startTime! - 86400
-    timeElapsedSince! = TIMER - startTime!
-END FUNCTION
+Function timeElapsedSince! (startTime!)
+    If startTime! > Timer Then startTime! = startTime! - 86400
+    timeElapsedSince! = Timer - startTime!
+End Function
 
