@@ -19,6 +19,7 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | Cloned Shades | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Condense | Text file condenser by [a740g](https://github.com/a740g) |
 | Demos | QB64 Demos from various sources |
+| Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Gorillas | A turn-based artillery game by Microsoft |
