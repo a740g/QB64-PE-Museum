@@ -27,7 +27,7 @@ Note: Some of the "unknown" are placeholders and I will update with the correct 
 | Gorillas | A turn-based artillery game by Microsoft |
 | Hunter | Maze Hunter game by Microsoft |
 | Lights On | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Maze | Maze of Misery by [Steve M.](www.angelfire.com/bc2/cuebasic/qpage.html) |
+| Maze | Maze of Misery by Steve M. |
 | Money | Simple money manager by Microsoft |
 | Nibbles | Snake clone by Microsoft |
 | Pendulum | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
@@ -50,9 +50,9 @@ Note: Some of the "unknown" are placeholders and I will update with the correct 
 | ScreenBlankers | Simple screen blankers (savers) by [RhoSigma](https://github.com/RhoSigma-QB64) |
 | Set Fire To The Rain | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Shooter | QB64 shooter demo game by unknown |
-| Sokoban | Sokoban game by [David Joffe](http://www.scorpioncity.com/) |
+| Sokoban | Sokoban game by [David Joffe](https://github.com/davidjoffe) |
 | SortDemo | Sort demo by Microsoft |
-| Space64 | QB64 game by [Cyperium](https://wiki.qb64.org/wiki/A_Small_Game_Tutorial) |
+| Space64 | QB64 game by Cyperium |
 | Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Tetris | Tertis clone by [fogleman](https://github.com/fogleman) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
