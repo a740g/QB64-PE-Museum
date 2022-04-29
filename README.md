@@ -4,9 +4,11 @@ These are several QuickBASIC programs tested and fixed for QB64.
 
 I will keep updating this repo with new stuff that I can find and fix to work with QB64.
 
+Note: Some of the "unknown" are placeholders and I will update with the correct information once I find them.
+
 | Name | Description |
 |------|-------------|
-| 4Pong | Four player Pong game by unknown |
+| 4Pong | Four player Pong game by Matthew |
 | Abacus | Abacus app by Bob Seguin |
 | Amongst | Among Us clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Animax |  A Graphics/Animation utility by Bob Seguin |
@@ -30,6 +32,7 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | Nibbles | Snake clone by Microsoft |
 | Pendulum | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Phone | Simple phone directory by Microsoft |
+| PIXELplus 256 | Bitmap graphics library by Chris Chadwick |
 | Platform | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
 | QBasic Beautifier | QB code beautifier by Kewbie_newbie |
@@ -44,6 +47,7 @@ I will keep updating this repo with new stuff that I can find and fix to work wi
 | RayCaster | QB64 ray casting demo by Antoni Gual |
 | RemLine | Line mumber removal utility by Microsoft |
 | Reversi | Reversi game by Microsoft |
+| ScreenBlankers | Simple screen blankers (savers) by [RhoSigma](https://github.com/RhoSigma-QB64) |
 | Set Fire To The Rain | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Shooter | QB64 shooter demo game by unknown |
 | Sokoban | Sokoban game by [David Joffe](http://www.scorpioncity.com/) |
