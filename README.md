@@ -44,7 +44,7 @@ Note: Some of the "unknown" are placeholders and I will update with the correct 
 | QSpace | Space station defense game by Microsoft |
 | QSynth | Audio synthesizer by Microsoft |
 | QTrek | Startrek themed game by [strathausen](https://github.com/strathausen) |
-| Rattler | Snake clone by by Bob Seguin |
+| Rattler | Snake clone by Bob Seguin |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
 | RemLine | Line mumber removal utility by Microsoft |
 | Reversi | Reversi game by Microsoft |
