@@ -4,7 +4,11 @@ These are several QuickBASIC programs tested and fixed for QB64.
 
 I will keep updating this repo with new stuff that I can find and fix to work with QB64.
 
-Note: Some of the "unknown" are placeholders and I will update with the correct information once I find them.
+Note:
+
+1. Some of the "unknown" are placeholders and I will update with the correct information once I find them
+2. Some of these are mildly or significantly modified to work with QB64 v2+ and may no longer work with anything else
+3. If you want the original versions, then folllow the links below or search on the internet
 
 | Name | Description |
 |------|-------------|
@@ -57,5 +61,6 @@ Note: Some of the "unknown" are placeholders and I will update with the correct 
 | Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Tetris | Tertis clone by [fogleman](https://github.com/fogleman) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
+| Tic Tac Toe Ring | Tic tac toe clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Torus | Torus demo by Microsoft |
 | Tower | Tower of Hanoi solver by unknown |
