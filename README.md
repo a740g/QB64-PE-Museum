@@ -43,6 +43,7 @@ Note:
 | QBlocks | Tertis clone by Microsoft |
 | QBricks | Breakout clone by Microsoft |
 | QCards | A simple database using a cardfile user interface by Microsoft |
+| QDigger | A DIGGER game clone by [RETROQB45](https://github.com/RETROQB45) |
 | QMaze | Maze puzzle game by Microsoft |
 | QShips | A turn-based artillery game by Microsoft |
 | QSpace | Space station defense game by Microsoft |
