@@ -8,5 +8,5 @@ A clone of DIGGER game in QuickBASIC
 | ARCTIC.BAS   | Arctic Mine, Christmas version |
 | MKLEV.BAS    | Level generator utility        |
 
-![QDigger screenshot](/qdigger_screenshot.png)
-![Arctic Mine screenshot](/arcticmine_screenshot.png)
+![QDigger screenshot](./qdigger_screenshot.png)
+![Arctic Mine screenshot](./arcticmine_screenshot.png)
