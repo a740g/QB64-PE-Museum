@@ -10,32 +10,30 @@ $Resize:Smooth
 Screen 9, , 1, 0
 FullScreen SquarePixels , Smooth
 
-1 Dim CubeM!(8, 7), CubeV(12, 2)
-2 For V = 1 To 8 + 12
-    3 If V < 9 Then Read CubeM!(V, 0), CubeM!(V, 1), CubeM!(V, 2) Else Read CubeV(V - 8, 0), CubeV(V - 8, 1), CubeV(V - 8, 2)
-4 Next V
-5 Do
-    6 ax! = (ax! + .01) * -(ax! < 6.283186)
-    7 ay! = (ay! + .01) * -(ay! < 6.283186)
-    8 az! = (az! + .01) * -(az! < 6.283186)
-    9 For I = 1 To 8
-10          CubeM!(I, 6) = (256 * ((CubeM!(I, 0) * (COS(ay!) * COS(az!)) + CubeM!(I, 1) * (COS(ax!) * -SIN(az!) + SIN(ax!) * SIN(ay!) * COS(az!)) + CubeM!(I, 2) * (-SIN(ax!) * -SIN(az!) + COS(ax!) * SIN(ay!) * COS(az!)))) \ (256 - ((CubeM!(I, 0) * ( _ 
--SIN(ay!)) + CubeM!(I, 1) * (SIN(ax!) * COS(ay!)) + CubeM!(I, 2) * (COS(ax!) * COS(ay!)))))) + 320 
-11          CubeM!(I, 7) = -(256 * ((CubeM!(I, 0) * (COS(ay!) * SIN(az!)) + CubeM!(I, 1) * (COS(ax!) * COS(az!) + SIN(ax!) * SIN(ay!) * SIN(az!)) + CubeM!(I, 2) * (-SIN(ax!) * COS(az!) + COS(az!) * SIN(ay!) * SIN(az!)))) \ (256 - ((CubeM!(I, 0) * (- _ 
-SIN(ay!)) + CubeM!(I, 1) * (SIN(ax!) * COS(ay!)) + CubeM!(I, 2) * (COS(ax!) * COS(ay!)))))) + 175 
-    12 Next I
-    13 Line (0, 0)-(639, 350), 0, BF
-    14 For I = 1 To 12
-        15 If (CubeM!(CubeV(I, 2), 6) - CubeM!(CubeV(I, 0), 6)) * (CubeM!(CubeV(I, 1), 7) - CubeM!(CubeV(I, 0), 7)) - (CubeM!(CubeV(I, 1), 6) - CubeM!(CubeV(I, 0), 6)) * (CubeM!(CubeV(I, 2), 7) - CubeM!(CubeV(I, 0), 7)) < -256 Then
-            16 Line (CubeM!(CubeV(I, 0), 6), CubeM!(CubeV(I, 0), 7))-(CubeM!(CubeV(I, 1), 6), CubeM!(CubeV(I, 1), 7)), I + 2
-            17 Line (CubeM!(CubeV(I, 1), 6), CubeM!(CubeV(I, 1), 7))-(CubeM!(CubeV(I, 2), 6), CubeM!(CubeV(I, 2), 7)), I + 2
-            18 Line (CubeM!(CubeV(I, 2), 6), CubeM!(CubeV(I, 2), 7))-(CubeM!(CubeV(I, 0), 6), CubeM!(CubeV(I, 0), 7)), I + 2
-            19 Paint ((CubeM!(CubeV(I, 0), 6) + CubeM!(CubeV(I, 1), 6) + CubeM!(CubeV(I, 2), 6)) \ 3, (CubeM!(CubeV(I, 0), 7) + CubeM!(CubeV(I, 1), 7) + CubeM!(CubeV(I, 2), 7)) \ 3), I + 2
-        20 End If
-    21 Next I
-    22 PCopy 1, 0
+Dim CubeM!(8, 7), CubeV(12, 2)
+For V = 1 To 8 + 12
+    If V < 9 Then Read CubeM!(V, 0), CubeM!(V, 1), CubeM!(V, 2) Else Read CubeV(V - 8, 0), CubeV(V - 8, 1), CubeV(V - 8, 2)
+Next
+Do
+    ax! = (ax! + .01) * -(ax! < 6.283186)
+    ay! = (ay! + .01) * -(ay! < 6.283186)
+    az! = (az! + .01) * -(az! < 6.283186)
+    For I = 1 To 8
+        CubeM!(I, 6) = (256 * ((CubeM!(I, 0) * (Cos(ay!) * Cos(az!)) + CubeM!(I, 1) * (Cos(ax!) * -Sin(az!) + Sin(ax!) * Sin(ay!) * Cos(az!)) + CubeM!(I, 2) * (-Sin(ax!) * -Sin(az!) + Cos(ax!) * Sin(ay!) * Cos(az!)))) \ (256 - ((CubeM!(I, 0) * (-Sin(ay!)) + CubeM!(I, 1) * (Sin(ax!) * Cos(ay!)) + CubeM!(I, 2) * (Cos(ax!) * Cos(ay!)))))) + 320
+        CubeM!(I, 7) = -(256 * ((CubeM!(I, 0) * (Cos(ay!) * Sin(az!)) + CubeM!(I, 1) * (Cos(ax!) * Cos(az!) + Sin(ax!) * Sin(ay!) * Sin(az!)) + CubeM!(I, 2) * (-Sin(ax!) * Cos(az!) + Cos(az!) * Sin(ay!) * Sin(az!)))) \ (256 - ((CubeM!(I, 0) * (-Sin(ay!)) + CubeM!(I, 1) * (Sin(ax!) * Cos(ay!)) + CubeM!(I, 2) * (Cos(ax!) * Cos(ay!)))))) + 175
+    Next
+    Line (0, 0)-(639, 350), 0, BF
+    For I = 1 To 12
+        If (CubeM!(CubeV(I, 2), 6) - CubeM!(CubeV(I, 0), 6)) * (CubeM!(CubeV(I, 1), 7) - CubeM!(CubeV(I, 0), 7)) - (CubeM!(CubeV(I, 1), 6) - CubeM!(CubeV(I, 0), 6)) * (CubeM!(CubeV(I, 2), 7) - CubeM!(CubeV(I, 0), 7)) < -256 Then
+            Line (CubeM!(CubeV(I, 0), 6), CubeM!(CubeV(I, 0), 7))-(CubeM!(CubeV(I, 1), 6), CubeM!(CubeV(I, 1), 7)), I + 2
+            Line (CubeM!(CubeV(I, 1), 6), CubeM!(CubeV(I, 1), 7))-(CubeM!(CubeV(I, 2), 6), CubeM!(CubeV(I, 2), 7)), I + 2
+            Line (CubeM!(CubeV(I, 2), 6), CubeM!(CubeV(I, 2), 7))-(CubeM!(CubeV(I, 0), 6), CubeM!(CubeV(I, 0), 7)), I + 2
+            Paint ((CubeM!(CubeV(I, 0), 6) + CubeM!(CubeV(I, 1), 6) + CubeM!(CubeV(I, 2), 6)) \ 3, (CubeM!(CubeV(I, 0), 7) + CubeM!(CubeV(I, 1), 7) + CubeM!(CubeV(I, 2), 7)) \ 3), I + 2
+        End If
+    Next
+    PCopy 1, 0
     Limit 60
-23 Loop Until InKey$ <> ""
+Loop Until InKey$ <> ""
 
 System 0
 
