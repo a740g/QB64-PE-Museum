@@ -978,7 +978,7 @@ Sub DestroyLine (LineToDestroy As Long)
 
     Dim i As Long
     Select Case LineToDestroy
-        Case 1 TO 11
+        Case 1 To 11
             For i = LineToDestroy To 11
                 Board(i, 1).State = Board(i + 1, 1).State
                 Board(i, 2).State = Board(i + 1, 2).State
@@ -1447,9 +1447,9 @@ Sub ShowEndScreen
     Message$(10) = "Press ENTER..."
 
     MessageColor = Shade&(5)
-    For i = 1 To UBound(message$)
+    For i = 1 To UBound(Message$)
         If i > 1 Then _Font 8: MessageColor = _RGB(0, 0, 0)
-        If i = UBound(message$) Then _Font 16: MessageColor = Shade&(5)
+        If i = UBound(Message$) Then _Font 16: MessageColor = Shade&(5)
         PrintShadow (_Width(OverlayGraphics) \ 2) - (_PrintWidth(Message$(i)) \ 2), i * 16, Message$(i), MessageColor
     Next i
 

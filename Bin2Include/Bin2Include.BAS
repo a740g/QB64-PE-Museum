@@ -9,48 +9,48 @@ $VersionInfo:PRODUCTVERSION#=2,5,0,1
 __binary
 __makeshortcut
 $If 32BIT Then
-    CONST OFN_ALLOWMULTISELECT = &H200& '  Allows the user to select more than one file, not recommended!
-    CONST OFN_CREATEPROMPT = &H2000& '     Prompts if a file not found should be created(GetOpenFileName only).
-    CONST OFN_EXTENSIONDIFFERENT = &H400& 'Allows user to specify file extension other than default extension.
-    CONST OFN_FILEMUSTEXIST = &H1000& '    Chechs File name exists(GetOpenFileName only).
-    CONST OFN_HIDEREADONLY = &H4& '        Hides read-only checkbox(GetOpenFileName only)
-    CONST OFN_NOCHANGEDIR = &H8& '         Restores the current directory to original value if user changed
-    CONST OFN_NODEREFERENCELINKS = &H100000& 'Returns path and file name of selected shortcut(.LNK) file instead of file referenced.
-    CONST OFN_NONETWORKBUTTON = &H20000& ' Hides and disables the Network button.
-    CONST OFN_NOREADONLYRETURN = &H8000& ' Prevents selection of read-only files, or files in read-only subdirectory.
-    CONST OFN_NOVALIDATE = &H100& '        Allows invalid file name characters.
-    CONST OFN_OVERWRITEPROMPT = &H2& '     Prompts if file already exists(GetSaveFileName only)
-    CONST OFN_PATHMUSTEXIST = &H800& '     Checks Path name exists (set with OFN_FILEMUSTEXIST).
-    CONST OFN_READONLY = &H1& '            Checks read-only checkbox. Returns if checkbox is checked
-    CONST OFN_SHAREAWARE = &H4000& '       Ignores sharing violations in networking
-    CONST OFN_SHOWHELP = &H10& '           Shows the help button (useless!)
-    DEFINT A-Z
-    TYPE FILEDIALOGTYPE
-    lStructSize AS LONG '        For the DLL call
-    hwndOwner AS LONG '          Dialog will hide behind window when not set correctly
-    hInstance AS LONG '          Handle to a module that contains a dialog box template.
-    lpstrFilter AS _OFFSET '     Pointer of the string of file filters
-    lpstrCustFilter AS _OFFSET
-    nMaxCustFilter AS LONG
-    nFilterIndex AS LONG '       One based starting filter index to use when dialog is called
-    lpstrFile AS _OFFSET '       String full of 0's for the selected file name
-    nMaxFile AS LONG '           Maximum length of the string stuffed with 0's minus 1
-    lpstrFileTitle AS _OFFSET '  Same as lpstrFile
-    nMaxFileTitle AS LONG '      Same as nMaxFile
-    lpstrInitialDir AS _OFFSET ' Starting directory
-    lpstrTitle AS _OFFSET '      Dialog title
-    flags AS LONG '              Dialog flags
-    nFileOffset AS INTEGER '     Zero-based offset from path beginning to file name string pointed to by lpstrFile
-    nFileExtension AS INTEGER '  Zero-based offset from path beginning to file extension string pointed to by lpstrFile.
-    lpstrDefExt AS _OFFSET '     Default/selected file extension
-    lCustData AS LONG
-    lpfnHook AS LONG
-    lpTemplateName AS _OFFSET
-    END TYPE
-    DECLARE DYNAMIC LIBRARY "comdlg32" ' Library declarations using _OFFSET types
-    FUNCTION GetOpenFileNameA& (DIALOGPARAMS AS FILEDIALOGTYPE) ' The Open file dialog
-    FUNCTION GetSaveFileNameA& (DIALOGPARAMS AS FILEDIALOGTYPE) ' The Save file dialog
-    END DECLARE
+        CONST OFN_ALLOWMULTISELECT = &H200& '  Allows the user to select more than one file, not recommended!
+        CONST OFN_CREATEPROMPT = &H2000& '     Prompts if a file not found should be created(GetOpenFileName only).
+        CONST OFN_EXTENSIONDIFFERENT = &H400& 'Allows user to specify file extension other than default extension.
+        CONST OFN_FILEMUSTEXIST = &H1000& '    Chechs File name exists(GetOpenFileName only).
+        CONST OFN_HIDEREADONLY = &H4& '        Hides read-only checkbox(GetOpenFileName only)
+        CONST OFN_NOCHANGEDIR = &H8& '         Restores the current directory to original value if user changed
+        CONST OFN_NODEREFERENCELINKS = &H100000& 'Returns path and file name of selected shortcut(.LNK) file instead of file referenced.
+        CONST OFN_NONETWORKBUTTON = &H20000& ' Hides and disables the Network button.
+        CONST OFN_NOREADONLYRETURN = &H8000& ' Prevents selection of read-only files, or files in read-only subdirectory.
+        CONST OFN_NOVALIDATE = &H100& '        Allows invalid file name characters.
+        CONST OFN_OVERWRITEPROMPT = &H2& '     Prompts if file already exists(GetSaveFileName only)
+        CONST OFN_PATHMUSTEXIST = &H800& '     Checks Path name exists (set with OFN_FILEMUSTEXIST).
+        CONST OFN_READONLY = &H1& '            Checks read-only checkbox. Returns if checkbox is checked
+        CONST OFN_SHAREAWARE = &H4000& '       Ignores sharing violations in networking
+        CONST OFN_SHOWHELP = &H10& '           Shows the help button (useless!)
+        DEFINT A-Z
+        TYPE FILEDIALOGTYPE
+        lStructSize AS LONG '        For the DLL call
+        hwndOwner AS LONG '          Dialog will hide behind window when not set correctly
+        hInstance AS LONG '          Handle to a module that contains a dialog box template.
+        lpstrFilter AS _OFFSET '     Pointer of the string of file filters
+        lpstrCustFilter AS _OFFSET
+        nMaxCustFilter AS LONG
+        nFilterIndex AS LONG '       One based starting filter index to use when dialog is called
+        lpstrFile AS _OFFSET '       String full of 0's for the selected file name
+        nMaxFile AS LONG '           Maximum length of the string stuffed with 0's minus 1
+        lpstrFileTitle AS _OFFSET '  Same as lpstrFile
+        nMaxFileTitle AS LONG '      Same as nMaxFile
+        lpstrInitialDir AS _OFFSET ' Starting directory
+        lpstrTitle AS _OFFSET '      Dialog title
+        flags AS LONG '              Dialog flags
+        nFileOffset AS INTEGER '     Zero-based offset from path beginning to file name string pointed to by lpstrFile
+        nFileExtension AS INTEGER '  Zero-based offset from path beginning to file extension string pointed to by lpstrFile.
+        lpstrDefExt AS _OFFSET '     Default/selected file extension
+        lCustData AS LONG
+        lpfnHook AS LONG
+        lpTemplateName AS _OFFSET
+        END TYPE
+        DECLARE DYNAMIC LIBRARY "comdlg32" ' Library declarations using _OFFSET types
+        FUNCTION GetOpenFileNameA& (DIALOGPARAMS AS FILEDIALOGTYPE) ' The Open file dialog
+        FUNCTION GetSaveFileNameA& (DIALOGPARAMS AS FILEDIALOGTYPE) ' The Save file dialog
+        END DECLARE
 $Else
     __OpenFile
 $End If
@@ -93,9 +93,9 @@ $If WIN Then
     End Declare
     Const __UI_SM_SWAPBUTTON = 23
 $Else
-    DECLARE LIBRARY ""
-    FUNCTION __UI_MB& ALIAS MessageBox (BYVAL ignore&, message$, title$, BYVAL type&)
-    END DECLARE
+        DECLARE LIBRARY ""
+        FUNCTION __UI_MB& ALIAS MessageBox (BYVAL ignore&, message$, title$, BYVAL type&)
+        END DECLARE
 $End If
 $ScreenHide
 _ControlChr Off
@@ -608,15 +608,15 @@ Function __UI_GetProperMouseButton%% (Which%%)
         End If
         __UI_MouseButtonsSwap = False
     $Else
-        IF __UI_MouseButtonsSwap THEN
-        IF Which%% = 1 THEN
-        __UI_GetProperMouseButton%% = _MOUSEBUTTON(2)
-        ELSEIF Which%% = 2 THEN
-        __UI_GetProperMouseButton%% = _MOUSEBUTTON(1)
-        END IF
-        ELSE
-        __UI_GetProperMouseButton%% = _MOUSEBUTTON(Which%%)
-        END IF
+            IF __UI_MouseButtonsSwap THEN
+            IF Which%% = 1 THEN
+            __UI_GetProperMouseButton%% = _MOUSEBUTTON(2)
+            ELSEIF Which%% = 2 THEN
+            __UI_GetProperMouseButton%% = _MOUSEBUTTON(1)
+            END IF
+            ELSE
+            __UI_GetProperMouseButton%% = _MOUSEBUTTON(Which%%)
+            END IF
     $End If
 End Function
 Sub __UI_ProcessInput
@@ -2993,7 +2993,7 @@ Sub __UI_EventDispatcher
                 __UI_ForceRedraw = True 'Trigger a global redraw
             End If
             Select Case __UI_KeyHit
-                Case 48 TO 57, 65 TO 90, 97 TO 122 'Alphanumeric
+                Case 48 To 57, 65 To 90, 97 To 122 'Alphanumeric
                     __UI_AltCombo$ = __UI_AltCombo$ + Chr$(__UI_KeyHit)
                     If __UI_KeyHit >= 97 Then __UI_KeyHit = __UI_KeyHit - 32 'Turn to capitals
                     If __UI_KeyHit > 0 Then
@@ -3137,7 +3137,7 @@ Sub __UI_EventDispatcher
                     End Select
                 Case __UI_Type_MenuBar
                     Select Case __UI_KeyHit
-                        Case 48 TO 57, 65 TO 90, 97 TO 122 'Alphanumeric
+                        Case 48 To 57, 65 To 90, 97 To 122 'Alphanumeric
                             If __UI_KeyHit >= 97 Then __UI_KeyHit = __UI_KeyHit - 32 'Turn to capitals
                             If __UI_CtrlIsDown = False Then
                                 For i = 1 To UBound(Control)
@@ -3166,7 +3166,7 @@ Sub __UI_EventDispatcher
                 Case __UI_Type_MenuPanel, __UI_Type_MenuItem
                     HandleDesignMenu:
                     Select Case __UI_KeyHit
-                        Case 48 TO 57, 65 TO 90, 97 TO 122 'Alphanumeric
+                        Case 48 To 57, 65 To 90, 97 To 122 'Alphanumeric
                             If __UI_CtrlIsDown = False Then
                                 If __UI_KeyHit >= 97 Then __UI_KeyHit = __UI_KeyHit - 32 'Turn to capitals
                                 For i = 1 To UBound(Control)
@@ -3288,7 +3288,7 @@ Sub __UI_EventDispatcher
                     If Not Control(__UI_Focus).Disabled And Control(__UI_Focus).Max > 0 Then
                         _Font (Control(__UI_Focus).Font)
                         Select EveryCase __UI_KeyHit
-                            Case 32 TO 254 'Printable ASCII characters
+                            Case 32 To 254 'Printable ASCII characters
                                 Dim CurrentItem%
                                 CurrentItem% = Control(__UI_Focus).Value
                                 __UI_ListBoxSearchItem Control(__UI_Focus)
@@ -3369,7 +3369,7 @@ Sub __UI_EventDispatcher
                     Dim s1 As Long, s2 As Long
                     If Not Control(__UI_Focus).Disabled Then
                         Select EveryCase __UI_KeyHit
-                            Case 32 TO 254 'Printable ASCII characters
+                            Case 32 To 254 'Printable ASCII characters
                                 If __UI_KeyHit = Asc("v") Or __UI_KeyHit = Asc("V") Then 'Paste from clipboard (Ctrl+V)
                                     If __UI_CtrlIsDown Then
                                         PasteIntoTextBox:
@@ -5021,11 +5021,11 @@ Function MessageBox& (Message$, Title$, Setup As Long)
     $If WIN Then
         MessageBox& = __UI_MB(0, Replace(Message$, "\n", Chr$(10), False, 0) + Chr$(0), Title$ + Chr$(0), Setup + MsgBox_SystemModal + MsgBox_SetForeground)
     $Else
-        IF (Setup AND 4) THEN
-        MessageBox& = __UI_MB(0, Replace(Message$, "\n", CHR$(10), False, 0) + CHR$(0), Title$ + CHR$(0), 4)
-        ELSE
-        MessageBox& = __UI_MB(0, Replace(Message$, "\n", CHR$(10), False, 0) + CHR$(0), Title$ + CHR$(0), 0)
-        END IF
+            IF (Setup AND 4) THEN
+            MessageBox& = __UI_MB(0, Replace(Message$, "\n", CHR$(10), False, 0) + CHR$(0), Title$ + CHR$(0), 4)
+            ELSE
+            MessageBox& = __UI_MB(0, Replace(Message$, "\n", CHR$(10), False, 0) + CHR$(0), Title$ + CHR$(0), 0)
+            END IF
     $End If
 End Function
 Function __UI_MAP! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
@@ -8316,20 +8316,20 @@ Sub __UI_Click (id As Long)
         Case OpenBT
             If Control(BIN2BASRB).Value = True Then
                 $If 32BIT Then
-                    hWnd& = _WINDOWHANDLE
-                    Filter$ = "All files (*.*)|*.*"
-                    Flags& = OFN_FILEMUSTEXIST + OFN_NOCHANGEDIR + OFN_READONLY '    add flag constants here
-                    OFile$ = GetOpenFileName("Open File" + CHR$(0), ".\", Filter$ + CHR$(0), 1, Flags&, hWnd&)
+                        hWnd& = _WINDOWHANDLE
+                        Filter$ = "All files (*.*)|*.*"
+                        Flags& = OFN_FILEMUSTEXIST + OFN_NOCHANGEDIR + OFN_READONLY '    add flag constants here
+                        OFile$ = GetOpenFileName("Open File" + CHR$(0), ".\", Filter$ + CHR$(0), 1, Flags&, hWnd&)
                 $Else
                     OFile$ = GetOpenFileName64("Open File", ".\", "All files (*.*)|*.*")
                 $End If
                 Control(PIC2MEMRB).Disabled = True
             ElseIf Control(PIC2MEMRB).Value = True Then
                 $If 32BIT Then
-                    hWnd& = _WINDOWHANDLE
-                    Filter$ = "BMP Image (.BMP)|*.BMP|JPG/JPEG Image (.JPG;.JPEG)|*.JPG;*.JPEG|PNG Image (.PNG)|*.PNG|GIF Image (.GIF)|*.GIF|All Supported Image Files (.BMP;.JPG;.JPEG;.PNG;.GIF)|*.BMP;*.JPG;*.PNG;*.JPEG;*.GIF"
-                    Flags& = OFN_FILEMUSTEXIST + OFN_NOCHANGEDIR + OFN_READONLY '    add flag constants here
-                    OFile$ = GetOpenFileName("Open Image" + CHR$(0), ".\", Filter$ + CHR$(0), 1, Flags&, hWnd&)
+                        hWnd& = _WINDOWHANDLE
+                        Filter$ = "BMP Image (.BMP)|*.BMP|JPG/JPEG Image (.JPG;.JPEG)|*.JPG;*.JPEG|PNG Image (.PNG)|*.PNG|GIF Image (.GIF)|*.GIF|All Supported Image Files (.BMP;.JPG;.JPEG;.PNG;.GIF)|*.BMP;*.JPG;*.PNG;*.JPEG;*.GIF"
+                        Flags& = OFN_FILEMUSTEXIST + OFN_NOCHANGEDIR + OFN_READONLY '    add flag constants here
+                        OFile$ = GetOpenFileName("Open Image" + CHR$(0), ".\", Filter$ + CHR$(0), 1, Flags&, hWnd&)
                 $Else
                     OFile$ = GetOpenFileName64("Open Image", ".\", "BMP Image (.BMP)|*.BMP|JPG/JPEG Image (.JPG;.JPEG)|*.JPG;*.JPEG|PNG Image (.PNG)|*.PNG|GIF Image (.GIF)|*.GIF|All Supported Image Files (.BMP;.JPG;.JPEG;.PNG;.GIF)|*.BMP;*.JPG;*.PNG;*.JPEG;*.GIF")
                 $End If
@@ -8618,35 +8618,35 @@ Function StripDirectory$ (OFile$)
     StripDirectory = OFile$
 End Function
 $If 32BIT Then
-    FUNCTION GetOpenFileName$ (Title$, InitialDir$, Filter$, FilterIndex, Flags&, hWnd&)
-    Title$ = Title$ + CHR$(0)
-    DIM OpenCall AS FILEDIALOGTYPE ' Needed for dialog call
-    fFilter$ = Filter$
-    FOR R = 1 TO LEN(fFilter$) ' Replace the pipes with character zero
-    IF MID$(fFilter$, R, 1) = "|" THEN MID$(fFilter$, R, 1) = CHR$(0)
-    NEXT R
-    fFilter$ = fFilter$ + CHR$(0)
-    lpstrFile$ = STRING$(2048, 0) ' For the returned file name
-    lpstrDefExt$ = STRING$(10, 0) ' Extension will not be added when this is not specified
-    OpenCall.lStructSize = LEN(OpenCall)
-    OpenCall.hwndOwner = hWnd&
-    OpenCall.lpstrFilter = _OFFSET(fFilter$)
-    OpenCall.nFilterIndex = FilterIndex
-    OpenCall.lpstrFile = _OFFSET(lpstrFile$)
-    OpenCall.nMaxFile = LEN(lpstrFile$) - 1
-    OpenCall.lpstrFileTitle = OpenCall.lpstrFile
-    OpenCall.nMaxFileTitle = OpenCall.nMaxFile
-    OpenCall.lpstrInitialDir = _OFFSET(InitialDir$)
-    OpenCall.lpstrTitle = _OFFSET(Title$)
-    OpenCall.lpstrDefExt = _OFFSET(lpstrDefExt$)
-    OpenCall.flags = Flags&
-    Result = GetOpenFileNameA&(OpenCall) '            Do Open File dialog call!
-    IF Result THEN ' Trim the remaining zeros
-    GetOpenFileName$ = LEFT$(lpstrFile$, INSTR(lpstrFile$, CHR$(0)) - 1)
-    Flags& = OpenCall.flags
-    FilterIndex = OpenCall.nFilterIndex
-    END IF
-    END FUNCTION
+        FUNCTION GetOpenFileName$ (Title$, InitialDir$, Filter$, FilterIndex, Flags&, hWnd&)
+        Title$ = Title$ + CHR$(0)
+        DIM OpenCall AS FILEDIALOGTYPE ' Needed for dialog call
+        fFilter$ = Filter$
+        FOR R = 1 TO LEN(fFilter$) ' Replace the pipes with character zero
+        IF MID$(fFilter$, R, 1) = "|" THEN MID$(fFilter$, R, 1) = CHR$(0)
+        NEXT R
+        fFilter$ = fFilter$ + CHR$(0)
+        lpstrFile$ = STRING$(2048, 0) ' For the returned file name
+        lpstrDefExt$ = STRING$(10, 0) ' Extension will not be added when this is not specified
+        OpenCall.lStructSize = LEN(OpenCall)
+        OpenCall.hwndOwner = hWnd&
+        OpenCall.lpstrFilter = _OFFSET(fFilter$)
+        OpenCall.nFilterIndex = FilterIndex
+        OpenCall.lpstrFile = _OFFSET(lpstrFile$)
+        OpenCall.nMaxFile = LEN(lpstrFile$) - 1
+        OpenCall.lpstrFileTitle = OpenCall.lpstrFile
+        OpenCall.nMaxFileTitle = OpenCall.nMaxFile
+        OpenCall.lpstrInitialDir = _OFFSET(InitialDir$)
+        OpenCall.lpstrTitle = _OFFSET(Title$)
+        OpenCall.lpstrDefExt = _OFFSET(lpstrDefExt$)
+        OpenCall.flags = Flags&
+        Result = GetOpenFileNameA&(OpenCall) '            Do Open File dialog call!
+        IF Result THEN ' Trim the remaining zeros
+        GetOpenFileName$ = LEFT$(lpstrFile$, INSTR(lpstrFile$, CHR$(0)) - 1)
+        Flags& = OpenCall.flags
+        FilterIndex = OpenCall.nFilterIndex
+        END IF
+        END FUNCTION
 $Else
     Sub __OpenFile
         If _FileExists("OpenFile.ps1") = 0 Then 'remove this line if you are compiling in FreeBasic

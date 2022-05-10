@@ -7,7 +7,7 @@ gameVersion = 3
 
 $Let DEBUGGING = FALSE
 $If DEBUGGING = TRUE Then
-    $CONSOLE
+        $CONSOLE
 $End If
 
 $Console:Only

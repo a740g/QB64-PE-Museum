@@ -7,7 +7,7 @@ gameVersion = 3
 
 $Let DEBUGGING = FALSE
 $If DEBUGGING = TRUE Then
-    $CONSOLE
+        $CONSOLE
 $End If
 
 Const True = -1, False = 0
@@ -518,7 +518,7 @@ Do
                 Select Case char$
                     Case Chr$(22) 'ctrl+v
                         myMessage$ = myMessage$ + _Clipboard$
-                    Case " " TO "z"
+                    Case " " To "z"
                         myMessage$ = myMessage$ + char$
                     Case Chr$(8)
                         If Len(myMessage$) Then
@@ -715,7 +715,7 @@ End Sub
 
 Sub db (text$)
     $If DEBUGGING = TRUE Then
-        _ECHO text$
+            _ECHO text$
     $Else
         Dim dummy$
         dummy$ = text$
@@ -1086,7 +1086,7 @@ Sub settingsScreen
         targetAnimation = targetAnimation + .25
         If targetAnimation > 25 Then targetAnimation = 0
 
-        For i = 1 To UBound(serverlist)
+        For i = 1 To UBound(serverList)
             x = serverList(i).x + mapX
             y = serverList(i).y + mapY
             CircleFill x, y, 5 + targetAnimation, _RGB32(255, 0, 0, map(targetAnimation, 0, 25, 255, 0))
@@ -1187,7 +1187,7 @@ Sub settingsScreen
             Dim char$
             char$ = InKey$
             Select Case char$
-                Case " " TO "z"
+                Case " " To "z"
                     If Len(dummyPlayer.name) < 20 Then dummyPlayer.name = dummyPlayer.name + char$
                 Case Chr$(8)
                     If Len(dummyPlayer.name) Then
@@ -1233,7 +1233,7 @@ Sub settingsScreen
 
     'server locations
     Const mapLocationsPickerSize = 16
-    For i = 1 To UBound(serverlist)
+    For i = 1 To UBound(serverList)
         itemX = mapX + serverList(i).x - mapLocationsPickerSize / 2
         itemY = mapY + serverList(i).y - mapLocationsPickerSize / 2
         item = addUiItem("server." + LCase$(serverList(i).name) + "." + MKI$(i), itemX, itemY, mapLocationsPickerSize, mapLocationsPickerSize)

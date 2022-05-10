@@ -1,7 +1,7 @@
 'Can't Contain Me - A game developed in QB64
 '@FellippeHeitor fellippeheitor@gmail.com
 
-Const true = -1, false = Not true
+Const FALSE = 0, TRUE = Not FALSE
 
 Type vector
     x As Single
@@ -58,7 +58,7 @@ Do
 
     If (_KeyDown(100305) Or _KeyDown(100306)) And (k = Asc("a") Or k = Asc("A")) Then
         For i = 1 To UBound(obj)
-            obj(i).selected = true
+            obj(i).selected = TRUE
         Next
     End If
 
@@ -67,15 +67,15 @@ Do
     If Not Won Then
         If _MouseButton(1) Then
             If Not drag Then
-                drag = true
-                dragSelect = true
+                drag = TRUE
+                dragSelect = TRUE
                 dragx = _MouseX
                 dragy = _MouseY
-                clickedBox = false
+                clickedBox = FALSE
                 For i = 1 To UBound(obj)
-                    If hovering(obj(i)) And obj(i).added = false Then
-                        dragSelect = false
-                        clickedBox = true
+                    If hovering(obj(i)) And obj(i).added = FALSE Then
+                        dragSelect = FALSE
+                        clickedBox = TRUE
 
                         obj(i).dragXoff = _MouseX - obj(i).pos.x
                         obj(i).dragYoff = _MouseY - obj(i).pos.y
@@ -83,7 +83,7 @@ Do
                         For j = 1 To UBound(obj)
                             If j <> i Then
                                 If Not _KeyDown(100305) And Not _KeyDown(100306) Then
-                                    If obj(i).selected = false Then obj(j).selected = false
+                                    If obj(i).selected = FALSE Then obj(j).selected = FALSE
                                 End If
 
                                 obj(j).dragXoff = _MouseX - obj(j).pos.x
@@ -91,7 +91,7 @@ Do
                             End If
                         Next
 
-                        obj(i).selected = true
+                        obj(i).selected = TRUE
 
                         Exit For
                     End If
@@ -99,8 +99,8 @@ Do
             End If
         Else
             If drag Then
-                drag = false
-                dragSelect = false
+                drag = FALSE
+                dragSelect = FALSE
             End If
         End If
     Else
@@ -108,11 +108,11 @@ Do
             If Not mousepressed Then
                 GoSub resetPieces
             Else
-                drag = false
-                dragSelect = false
+                drag = FALSE
+                dragSelect = FALSE
             End If
         Else
-            mousepressed = false
+            mousepressed = FALSE
         End If
     End If
 
@@ -165,15 +165,15 @@ Do
                 vector.add obj(i).pos, obj(i).dir
             Loop
 
-            If obj(i).added = false Then
+            If obj(i).added = FALSE Then
                 score = score + 10
-                obj(i).added = true
+                obj(i).added = TRUE
 
                 'pieces get agitated when contained...
                 obj(i).dir.x = obj(i).dir.x * 5
                 obj(i).dir.y = obj(i).dir.y * 5
             Else
-                obj(i).selected = false
+                obj(i).selected = FALSE
             End If
         End If
     Next
@@ -191,15 +191,15 @@ Do
         rect.h = _MouseY - dragy
 
         For i = 1 To UBound(obj)
-            If isInside(obj(i), rect) And obj(i).added = false Then obj(i).selected = true Else obj(i).selected = false
+            If isInside(obj(i), rect) And obj(i).added = FALSE Then obj(i).selected = TRUE Else obj(i).selected = FALSE
         Next
     End If
 
-    Won = true
+    Won = TRUE
     LostPieces = 0
     For i = 1 To UBound(obj)
         If Not obj(i).lost Then
-            If Not obj(i).added Then Won = false: Exit For
+            If Not obj(i).added Then Won = FALSE: Exit For
         Else
             LostPieces = LostPieces + 1
         End If
@@ -230,7 +230,7 @@ Do
         _PrintString (_Width / 2 - _PrintWidth(m$) / 2 - 1, _Height / 2 + _FontHeight + 1), m$
         Color _RGB32(255, 255, 255)
         _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 + _FontHeight), m$
-        If _MouseButton(1) Then mousepressed = true
+        If _MouseButton(1) Then mousepressed = TRUE
     Else
         _PrintString (0, 0), "Score:" + Str$(score)
         _PrintString (0, _FontHeight), "Time:" + Str$(Int(Timer - start#))
@@ -247,9 +247,9 @@ resetPieces:
 For i = 1 To UBound(obj)
     obj(i).w = 40
     obj(i).h = 40
-    obj(i).lost = false
-    obj(i).added = false
-    obj(i).selected = false
+    obj(i).lost = FALSE
+    obj(i).added = FALSE
+    obj(i).selected = FALSE
     createVector obj(i).dir, p5random(-1, 1), p5random(-1, 1)
     obj(i).color = _RGB32(Rnd * 200, Rnd * 200, Rnd * 200)
     Do
@@ -258,7 +258,7 @@ For i = 1 To UBound(obj)
 Next
 
 start# = Timer
-Won = false
+Won = FALSE
 score = 0
 Return
 
@@ -300,3 +300,4 @@ Sub vector.mult (v As vector, n As Single)
     v.y = v.y * n
     v.z = v.z * n
 End Sub
+

@@ -1,4 +1,4 @@
-Const true = -1, false = Not true
+Const FALSE = 0, TRUE = Not FALSE
 
 Const objHero = 1
 Const objEnemy = 2
@@ -101,11 +101,11 @@ Sub ProcessInput
     End If
     If _KeyDown(18432) And Not Dead Then
         If Not JumpButton Then
-            JumpButton = true
+            JumpButton = TRUE
             If Object(Hero).landedOn > 0 Then Object(Hero).yv = -20: Object(Hero).landedOn = 0
         End If
     ElseIf Not _KeyDown(18432) Then
-        If JumpButton Then JumpButton = false
+        If JumpButton Then JumpButton = FALSE
     End If
     If _KeyDown(13) And Dead Then
         Dead = 0
@@ -141,8 +141,8 @@ Sub DoPhysics
                             If Object(i).y > Object(j).y And Object(i).y < Object(j).y + Object(j).h + 1 Then
                                 Object(i).yv = 2
                                 Object(i).y = Object(i).y + 2
-                                If Object(j).taken = false Then
-                                    Object(j).taken = true
+                                If Object(j).taken = FALSE Then
+                                    Object(j).taken = TRUE
                                     Object(j).color = _RGB32(122, 100, 78)
                                 End If
                                 Exit For
@@ -151,10 +151,10 @@ Sub DoPhysics
                     End If
                 End If
 
-                If Object(i).kind = objHero And Object(j).kind = objBonus And Object(j).taken = false Then
+                If Object(i).kind = objHero And Object(j).kind = objBonus And Object(j).taken = FALSE Then
                     If Object(i).y + Object(i).h >= Object(j).y And Object(i).y <= Object(j).y + Object(j).h Then
                         If Object(i).x + Object(i).w > Object(j).x And Object(i).x < Object(j).x + Object(j).w Then
-                            Object(j).taken = true
+                            Object(j).taken = TRUE
                             Points = Points + 10
                             Exit For
                         End If
@@ -167,7 +167,7 @@ Sub DoPhysics
                             If Object(i).x + Object(i).w > Object(j).x And Object(i).x < Object(j).x + Object(j).w Then
                                 Object(i).x = Object(j).x - Object(i).w - 1
                                 Object(i).xv = 0
-                                If Object(i).kind = objHero And Object(j).kind = objEnemy And Object(j).taken = false Then Dead = true: Object(j).taken = true
+                                If Object(i).kind = objHero And Object(j).kind = objEnemy And Object(j).taken = FALSE Then Dead = TRUE: Object(j).taken = TRUE
                                 Exit For
                             End If
                         End If
@@ -178,7 +178,7 @@ Sub DoPhysics
                             If Object(i).x + Object(i).w > Object(j).x And Object(i).x < Object(j).x + Object(j).w Then
                                 Object(i).x = Object(j).x + Object(j).w + 1
                                 Object(i).xv = 0
-                                If Object(i).kind = objHero And Object(j).kind = objEnemy And Object(j).taken = false Then Dead = true: Object(j).taken = true
+                                If Object(i).kind = objHero And Object(j).kind = objEnemy And Object(j).taken = FALSE Then Dead = TRUE: Object(j).taken = TRUE
                                 Exit For
                             End If
                         End If
@@ -204,7 +204,7 @@ Sub DoPhysics
                 End If
             Next
 
-            If Object(Hero).y > _Height Then Dead = true
+            If Object(Hero).y > _Height Then Dead = TRUE
 
             If Object(i).xv > 0 Then Object(i).xv = Object(i).xv - 1
             If Object(i).xv < 0 Then Object(i).xv = Object(i).xv + 1

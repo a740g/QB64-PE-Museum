@@ -871,7 +871,7 @@ Sub doParticles
 End Sub
 
 Sub setRand (seed&)
-    If seed& > UBound(rndtable) Or seed& < 1 Then
+    If seed& > UBound(rndTable) Or seed& < 1 Then
         rndIndex = 1
     Else
         rndIndex = seed&
@@ -880,7 +880,7 @@ End Sub
 
 Function getRND
     rndIndex = rndIndex + 1
-    If rndIndex > UBound(rndtable) Then rndIndex = 1
+    If rndIndex > UBound(rndTable) Then rndIndex = 1
     getRND = rndTable(rndIndex)
 End Function
 
@@ -1027,3 +1027,4 @@ Sub showHUD (hud$)
     Color _RGB32(255, 255, 255)
     printLarge 0, _Height - fontHeight, hud$
 End Sub
+

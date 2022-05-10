@@ -1,10 +1,6 @@
 Option _Explicit
 
-$If VERSION < 1.5 Then
-    $Error This program requires QB64 v1.5
-$End If
-
-Const false = 0, true = Not false
+Const FALSE = 0, TRUE = Not false
 
 Screen _NewImage(800, 450, 32)
 
@@ -52,7 +48,7 @@ Do
     doPhysics
     adjustCamera
     drawObjects
-    If restartRequested Then restartRequested = false: GoTo Restart
+    If restartRequested Then restartRequested = FALSE: GoTo Restart
     If Not drowned Then drawHero
     checkVictory
 
@@ -109,13 +105,13 @@ Sub processInput
     Dim button As _Byte
 
     If _KeyHit = 27 Then
-        obj(hero).alive = true
+        obj(hero).alive = TRUE
         obj(hero).yv = 0
-        restartRequested = true
+        restartRequested = TRUE
         Exit Sub
     End If
 
-    If obj(hero).alive = false Then Exit Sub
+    If obj(hero).alive = FALSE Then Exit Sub
 
     'keep hero moving forward
     If obj(hero).x + obj(hero).w < arenaWidth + _Width Then obj(hero).x = obj(hero).x + 5
@@ -135,10 +131,10 @@ Sub processInput
     button = _MouseButton(1) Or _KeyDown(32)
 
     If button Then '18432
-        If jumpKeyDown = false And (obj(hero).standing = true Or airJumps > 0) Then
+        If jumpKeyDown = FALSE And (obj(hero).standing = TRUE Or airJumps > 0) Then
             If airJumps > 0 Then airJumps = airJumps - 1
-            jumpKeyDown = true
-            obj(hero).standing = false
+            jumpKeyDown = TRUE
+            obj(hero).standing = FALSE
             lastJump! = 0
             obj(hero).yv = obj(hero).yv - gravity * jumpFactor
         Else
@@ -148,7 +144,7 @@ Sub processInput
             End If
         End If
     Else
-        jumpKeyDown = false
+        jumpKeyDown = FALSE
     End If
 End Sub
 
@@ -190,25 +186,25 @@ Sub doPhysics
 
     Const gravityCap = 15
 
-    obj(hero).standing = false
-    drowned = false
-    If obj(hero).y + obj(hero).yv + gravity > _Height - _Height / 4 + _Height / 22 Then drowned = true: obj(hero).alive = false: Exit Sub
+    obj(hero).standing = FALSE
+    drowned = FALSE
+    If obj(hero).y + obj(hero).yv + gravity > _Height - _Height / 4 + _Height / 22 Then drowned = TRUE: obj(hero).alive = FALSE: Exit Sub
 
-    shadowCast = false
+    shadowCast = FALSE
     For j = 1 To totalObjects
         If obj(j).id = idPlatform Then
             If obj(hero).x + obj(hero).w > obj(j).x And obj(hero).x < obj(j).x + obj(j).w Then
-                shadowCast = true
+                shadowCast = TRUE
                 shadowCastOn = obj(j)
 
                 If obj(hero).y + obj(hero).yv + gravity < obj(j).y - (obj(hero).h - 5) Then
                     Exit For
                 ElseIf obj(hero).y + obj(hero).yv + gravity <= obj(j).y - (obj(hero).h - 20) Then
-                    obj(hero).standing = true
+                    obj(hero).standing = TRUE
                     obj(hero).y = obj(j).y - (obj(hero).h - 5)
                     Exit For
                 ElseIf obj(hero).y >= obj(j).y - (obj(hero).h - 20) Then
-                    obj(hero).alive = false
+                    obj(hero).alive = FALSE
                     Exit For
                 End If
             End If
@@ -292,8 +288,8 @@ Sub setLevel (level As Long)
             obj(hero).y = obj(firstPlatform).y - 25
             obj(hero).w = 15
             obj(hero).h = 30
-            obj(hero).alive = true
-            obj(hero).standing = true
+            obj(hero).alive = TRUE
+            obj(hero).standing = TRUE
     End Select
 End Sub
 
@@ -308,7 +304,7 @@ End Function
 Sub resetObjects
     Dim emptyObject As object
     For i = 1 To UBound(obj)
-        If obj(i).img < -1 And obj(i).imgPointer = false Then _FreeImage obj(i).img
+        If obj(i).img < -1 And obj(i).imgPointer = FALSE Then _FreeImage obj(i).img
         obj(i) = emptyObject
     Next
     totalObjects = 0
@@ -374,7 +370,7 @@ Sub addScene (level As Long)
                     _Dest 0
                 Else
                     obj(this).img = obj(firstItem).img
-                    obj(this).imgPointer = true
+                    obj(this).imgPointer = TRUE
                 End If
 
                 obj(this).id = idScene
@@ -397,7 +393,7 @@ Sub addScene (level As Long)
                     _Dest 0
                 Else
                     obj(this).img = obj(firstItem).img
-                    obj(this).imgPointer = true
+                    obj(this).imgPointer = TRUE
                 End If
 
                 obj(this).id = idScene
@@ -409,5 +405,6 @@ Sub addScene (level As Long)
 End Sub
 
 Sub checkVictory
-    If hit(obj(hero), obj(goal)) Then _AutoDisplay: _PrintString (_Width / 2 - _PrintWidth("Level complete!") / 2, _Height / 2 - _FontHeight / 2), "Level complete!": restartRequested = true: Sleep
+    If hit(obj(hero), obj(goal)) Then _AutoDisplay: _PrintString (_Width / 2 - _PrintWidth("Level complete!") / 2, _Height / 2 - _FontHeight / 2), "Level complete!": restartRequested = TRUE: Sleep
 End Sub
+
