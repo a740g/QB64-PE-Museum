@@ -1,6 +1,6 @@
 '/=================================================================\
-'  (C) David Joffe 1997                   e-mail: djoffe@icon.co.za
-'  DJ Software; April '97               http://www.scorpioncity.com/
+'  (C) David Joffe 1997
+'  DJ Software; April '97                        https://djoffe.com/
 '-------------------------------------------------------------------
 '  VGA Sokoban v1.0, for QBasic!
 '-------------------------------------------------------------------
