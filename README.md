@@ -28,6 +28,7 @@ Note:
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Future Blocks | Tertis clone by [fogleman](https://github.com/fogleman) |
 | Gorillas | A turn-based artillery game by Microsoft |
 | Hunter | Maze Hunter game by Microsoft |
 | Lights On | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
@@ -60,7 +61,6 @@ Note:
 | SortDemo | Sort demo by Microsoft |
 | Space64 | QB64 game by Cyperium |
 | Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Tetris | Tertis clone by [fogleman](https://github.com/fogleman) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Tic Tac Toe Ring | Tic tac toe clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Torus | Torus demo by Microsoft |
