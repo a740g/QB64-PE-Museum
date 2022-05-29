@@ -9,7 +9,7 @@ End Declare
 Const godMode = -1
 
 If godMode Then _FullScreen
-$ExeIcon:'./ship.ico'
+$ExeIcon:'.\ship.ico'
 _Icon
 _ScreenMove _Middle
 _Title "Spaceship"
