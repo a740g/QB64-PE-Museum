@@ -12,6 +12,7 @@ Note:
 
 | Name | Description |
 |------|-------------|
+| 3D Grapher | 3D Grapher in QB64 using OpenGL by [AshishKingdom](https://github.com/AshishKingdom) |
 | 4Pong | Four player Pong game by Matthew |
 | Abacus | Abacus app by Bob Seguin |
 | Amongst | Among Us clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
@@ -22,6 +23,7 @@ Note:
 | Blockout | Breakout clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Can't Contain Me | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by Microsoft |
+| Chess | Chess game by rfrost |
 | Cloned Shades | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Condense | Text file condenser by [a740g](https://github.com/a740g) |
 | Demos | QB64 Demos from various sources |
@@ -29,11 +31,14 @@ Note:
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Future Blocks | Tertis clone by [fogleman](https://github.com/fogleman) |
+| Ghost Wizard | A Roguelike game by Zack Johnson |
 | Gorillas | A turn-based artillery game by Microsoft |
 | Hunter | Maze Hunter game by Microsoft |
+| Hunter's Revenge | A shooting game by [AshishKingdom](https://github.com/AshishKingdom) |
 | Lights On | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Maze | Maze of Misery by Steve M. |
 | Money | Simple money manager by Microsoft |
+| Moon Lander | Moon Lander by rfrost |
 | Nibbles | Snake clone by Microsoft |
 | Pendulum | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Phone | Simple phone directory by Microsoft |

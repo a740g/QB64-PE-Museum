@@ -50,7 +50,7 @@ If theFont > 0 Then _Font theFont
 m$ = "Get ready..."
 _PrintString (_Width / 2 - _PrintWidth(m$) / 2, _Height / 2 - _FontHeight / 2), m$
 
-f$ = "./assets/setfire.mp3"
+f$ = "assets/setfire.mp3"
 'from https://www.youtube.com/watch?v=sHosuM4TlFU
 'http://www.mediafire.com/?jy4id9645i88kko
 bgmusic = _SndOpen(f$, "vol,pause,setpos")

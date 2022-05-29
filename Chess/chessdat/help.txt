@@ -1,0 +1,28 @@
+DODO ZERO by rfrost@mail.com/p
+/p
+Three ways to move a piece:/p
+1) arrow keys and Enter/p
+2) click the piece and then click the destination square/p
+3) if hover is on, the piece at the cursor is automatically selected after two seconds, then
+   move the cursor to the destination
+ and after two seconds it will be selected/p
+If you change your mind about moving a piece after having selected it, cancel by pressing Esc, 
+clicking an illegal destination, or moving the piece off the board./p
+
+If you quit the program by accident, the game may be resumed by selecting File Playback in the 
+Setup menu and choosing the highest numbered chNNNNNN.alg file./p
+
+Select options by letter or mouse click.  Click left of the board to toggle the legend, in the
+History area to toggle algebraic/descriptive, and in the clock area for Nixie tubes. Castling
+and en passant are supported. PgUp/PgDn controls the sound volume, and the screen may be resized 
+with alt-Enter or the Windows resize button.  Setup provides customization - set, colors, 
+borders, etc., and these settings are saved for the next session./p
+
+Experienced players will likely want Markers OFF (m or use Settings menu).  Also, the intro music
+may be turned off with the command parameter "nim" (no intro music).  More information, extra 
+commands, and keyboard shortcuts may be found by looking at the comments at the beginning of the
+source code./p
+/p
+
+Esc or mouse click to return to game.
+

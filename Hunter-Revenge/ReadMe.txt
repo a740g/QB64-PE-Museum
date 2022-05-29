@@ -1,0 +1,2 @@
+After completing the game, Random Stages will appear. If you want to play the game again from starting or if
+you want to reset the game. Open Shell/CMD, and type "main --reset", and hit enter to reset the game.

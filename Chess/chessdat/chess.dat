@@ -1,0 +1,39 @@
+ 1 Background, 2 
+ 2 Brightness, 3 
+ 3 Click, 1 
+ 4 Color W sq, 16 
+ 5 Color B sq, 15 
+ 6 Clock color, 5 
+ 7 Clock type, 1 
+ 8 Cursor type, 1 
+ 9 Piece slide, 2 
+10 Fullscreen, 0 
+11 Graphics, 2 
+12 BG type, 1 
+13 Invert, 0 
+14 Legend, 0 
+15 Logging, 1 
+16 Notation, 1 
+17 Sound, 1 
+18 Set, 9 
+19 Timer, 1 
+20 Screen, 0 
+21 Trim, 1 
+22 Hover, 0 
+23 Markers, 1 
+"B rook", 8 
+"B knight", 12 
+"B bishop", 1 
+"B queen", 3 
+"B king", 1 
+"B pawn", 2 
+"W rook", 1 
+"W knight", 23 
+"W bishop", 4 
+"W queen", 23 
+"W king", 33 
+"W pawn", 1 
+White,"Frost"
+Black,"Dodo Zero"
+lasth, 1 
+lastc, 1 

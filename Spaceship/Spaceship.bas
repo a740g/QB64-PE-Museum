@@ -9,7 +9,7 @@ End Declare
 Const godMode = -1
 
 If godMode Then _FullScreen
-$ExeIcon:'.\ship.ico'
+$ExeIcon:'./ship.ico'
 _Icon
 _ScreenMove _Middle
 _Title "Spaceship"
@@ -1061,15 +1061,15 @@ Do
             If y(drawIt) < 1 Or y(drawIt) > 25 Then Visible = 0
             If EnemyExplosion Or Damage Then
                 Select Case ExplosionAnimationStep
-                    Case 1 TO 4: Color 12: If Damage Then _PaletteColor 0, _RGB32(28, 28, 28)
-                    Case 5 TO 8: Color 4: If Damage Then _PaletteColor 0, _RGBA32(0, 0, 0, 0)
+                    Case 1 To 4: Color 12: If Damage Then _PaletteColor 0, _RGB32(28, 28, 28)
+                    Case 5 To 8: Color 4: If Damage Then _PaletteColor 0, _RGBA32(0, 0, 0, 0)
                 End Select
                 If ExplosionAnimationStep = 8 Then Damage = 0
             Else
                 Select Case ExplosionAnimationStep
-                    Case 1 TO 3: Color 15: _PaletteColor 0, _RGB32(120, 120, 120)
-                    Case 4 TO 6: Color 11: _PaletteColor 0, _RGB32(255, 255, 255)
-                    Case 7 TO 8: Color 3: _PaletteColor 0, _RGBA32(0, 0, 0, 0)
+                    Case 1 To 3: Color 15: _PaletteColor 0, _RGB32(120, 120, 120)
+                    Case 4 To 6: Color 11: _PaletteColor 0, _RGB32(255, 255, 255)
+                    Case 7 To 8: Color 3: _PaletteColor 0, _RGBA32(0, 0, 0, 0)
                 End Select
             End If
             If Visible Then
@@ -1078,11 +1078,11 @@ Do
         Next
         Color , 0
         Select Case ExplosionAnimationStep
-            Case 1 TO 4
+            Case 1 To 4
                 Color 8
                 IF x > 0 AND x <= 80 AND RoundRow > 0 AND RoundRow <= 25 THEN _
                     _PRINTSTRING (x, RoundRow), CHR$(176)
-            Case 5 TO 7
+            Case 5 To 7
                 Color 8
                 IF x > 0 AND x <= 80 AND RoundRow > 0 AND RoundRow <= 25 THEN _
                     _PRINTSTRING (x, RoundRow), CHR$(15)
@@ -1095,7 +1095,7 @@ Do
         PointGoesUp! = PointGoesUp! - .3
         If RoundRow + PointGoesUp! >= 2 And RoundRow + PointGoesUp! <= 25 And x >= 1 And x <= 77 Then
             Select Case Abs(Int(PointGoesUp!))
-                Case 1 TO 2: Color 15
+                Case 1 To 2: Color 15
                 Case 3: Color 7
                 Case 4: Color 8
             End Select
@@ -1326,10 +1326,10 @@ End If
 EnergyStat$ = String$(Energy / 10, 254)
 EnergyStat$ = EnergyStat$ + String$(10 - Len(EnergyStat$), 249)
 Select Case Energy
-    Case 0 TO 10: Color 28, 1
-    Case 11 TO 30: Color 12, 1
-    Case 31 TO 60: Color 14, 1
-    Case 61 TO 100: Color 10, 1
+    Case 0 To 10: Color 28, 1
+    Case 11 To 30: Color 12, 1
+    Case 31 To 60: Color 14, 1
+    Case 61 To 100: Color 10, 1
 End Select
 If GetTICKS - LastEnergyUP# <= .2 Then
     If EnergyBlinkColor = 10 Then EnergyBlinkColor = 9 Else EnergyBlinkColor = 10

@@ -1,0 +1,844 @@
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION GetDecimalPos (TheStringIn AS STRING)
+    DIM TheReturn AS INTEGER
+    DIM TheString AS STRING
+    TheString = TheStringIn
+    TheReturn = INSTR(TheString, ".")
+    IF (TheReturn < 1) THEN
+        TheReturn = -1
+    END IF
+    GetDecimalPos = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION InsertCharacter$ (TheStringIn AS STRING, TheCharIn AS STRING, TheDigitIn AS INTEGER, NumTimesIn AS INTEGER)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    DIM TheChar AS STRING
+    DIM TheDigit AS INTEGER
+    DIM NumTimes AS INTEGER
+    DIM a AS STRING
+    DIM b AS STRING
+    DIM c AS STRING
+    DIM k AS INTEGER
+    TheString = TheStringIn
+    TheChar = TheCharIn
+    TheDigit = TheDigitIn
+    NumTimes = NumTimesIn
+    a = LEFT$(TheString, TheDigit - 1)
+    b = ""
+    FOR k = 1 TO NumTimes
+        b = b + TheChar
+    NEXT
+    c = RIGHT$(TheString, LEN(TheString) - TheDigit + 1)
+    TheReturn = a + b + c
+    InsertCharacter$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION ReadManyCharacter$ (TheStringIn AS STRING, StartDigitIn AS INTEGER, FinishDigitIn AS INTEGER)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    DIM StartDigit AS INTEGER
+    DIM FinishDigit AS INTEGER
+    TheString = TheStringIn
+    StartDigit = StartDigitIn
+    FinishDigit = FinishDigitIn
+    TheReturn = ""
+    IF ((StartDigit > 0) AND ((FinishDigit - StartDigit) >= 0)) THEN
+        TheReturn = MID$(TheString, StartDigit, (FinishDigit - StartDigit) + 1)
+    END IF
+    ReadManyCharacter$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION ReadOneCharacter$ (TheStringIn AS STRING, TheDigitIn AS INTEGER)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    DIM TheDigit AS INTEGER
+    TheString = TheStringIn
+    TheDigit = TheDigitIn
+    TheReturn = ""
+    IF (TheDigit > 0) THEN
+        TheReturn = MID$(TheString, TheDigit, 1)
+    END IF
+    ReadOneCharacter$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION RemoveCharacter$ (TheStringIn AS STRING, TheDigitIn AS INTEGER)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    DIM TheDigit AS INTEGER
+    DIM a AS STRING
+    DIM b AS STRING
+    TheString = TheStringIn
+    TheDigit = TheDigitIn
+    a = LEFT$(TheString, TheDigit - 1)
+    b = RIGHT$(TheString, LEN(TheString) - TheDigit)
+    TheReturn = a + b
+    RemoveCharacter$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION RemoveDecimal$ (TheStringIn AS STRING)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    DIM n AS INTEGER
+    TheString = TheStringIn
+    TheReturn = TheString
+    n = GetDecimalPos(TheString)
+    IF (n <> -1) THEN
+        IF (n = LEN(TheString)) THEN
+            TheReturn = LEFT$(TheString, LEN(TheString) - 1)
+        ELSE
+            TheReturn = LEFT$(TheString, n - 1) + RIGHT$(TheString, (LEN(TheString) - n))
+        END IF
+    END IF
+    RemoveDecimal$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION RemoveSign$ (TheStringIn AS STRING)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    TheString = TheStringIn
+    IF ((LEFT$(TheString, 1) = "+") OR (LEFT$(TheString, 1) = "-")) THEN
+        TheReturn = RemoveCharacter$(TheString, 1)
+    ELSE
+        TheReturn = TheString
+    END IF
+    RemoveSign$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION RemoveZerosLeft$ (TheStringIn AS STRING, TheStartingDigitIn AS INTEGER)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    DIM TheStartingDigit AS INTEGER
+    DIM n AS INTEGER
+    DIM i AS INTEGER
+    DIM c AS STRING
+    TheString = TheStringIn
+    TheStartingDigit = TheStartingDigitIn
+    n = 0
+    FOR i = TheStartingDigit TO LEN(TheString)
+        c = ReadOneCharacter$(TheString, i)
+        IF (c = "0") THEN
+            n = n + 1
+        ELSE
+            EXIT FOR
+        END IF
+    NEXT
+    TheReturn = LEFT$(TheString, TheStartingDigit - 1) + RIGHT$(TheString, LEN(TheString) - TheStartingDigit - n + 1)
+    RemoveZerosLeft$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION RemoveZerosRight$ (TheStringIn AS STRING)
+    DIM TheReturn AS STRING
+    DIM TheString AS STRING
+    DIM n AS INTEGER
+    DIM i AS INTEGER
+    DIM c AS STRING
+    TheString = TheStringIn
+    n = 0
+    FOR i = LEN(TheString) TO 1 STEP -1
+        c = ReadOneCharacter$(TheString, i)
+        IF (c = "0") THEN
+            n = n + 1
+        ELSE
+            EXIT FOR
+        END IF
+    NEXT
+    TheReturn = LEFT$(TheString, LEN(TheString) - n)
+    RemoveZerosRight$ = TheReturn
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION ReverseSign$ (TheStringIn AS STRING)
+    DIM Temp AS STRING
+    DIM TheString AS STRING
+    TheString = TheStringIn
+    Temp = ""
+    IF (LEFT$(TheString, 1) = "+") THEN
+        Temp = RemoveCharacter$(TheString, 1)
+        Temp = "-" + Temp
+    END IF
+    IF (LEFT$(TheString, 1) = "-") THEN
+        Temp = RemoveCharacter$(TheString, 1)
+        Temp = "+" + Temp
+    END IF
+    IF (Temp = "") THEN
+        Temp = "-" + TheString
+    END IF
+    ReverseSign$ = Temp
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION SelectLargerInteger$ (Num1In AS STRING, Num2In AS STRING)
+    ' Select the larger of two integers. The arguments must have no sign and no decimal.
+    DIM Num1 AS STRING
+    DIM Num2 AS STRING
+    DIM Temp AS STRING
+    DIM LenDiff AS INTEGER
+    DIM TempDiff AS INTEGER
+    DIM k AS INTEGER
+    Num1 = Num1In
+    Num2 = Num2In
+    Temp = ""
+    LenDiff = LEN(Num1) - LEN(Num2)
+    IF (LenDiff > 0) THEN
+        Temp = "first"
+    END IF
+    IF (LenDiff < 0) THEN
+        Temp = "second"
+    END IF
+    IF (LenDiff = 0) THEN
+        FOR k = 1 TO LEN(Num1)
+            TempDiff = VAL(ReadOneCharacter$(Num1, k)) - VAL(ReadOneCharacter$(Num2, k))
+            IF (TempDiff <> 0) THEN
+                IF (TempDiff > 0) THEN
+                    Temp = "first"
+                    EXIT FOR
+                ELSE
+                    Temp = "second"
+                    EXIT FOR
+                END IF
+            END IF
+        NEXT
+    END IF
+    IF (Temp = "") THEN
+        Temp = "neither"
+    END IF
+    SelectLargerInteger$ = Temp
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION RepairFormat$ (TheStringIn AS STRING)
+    ' Repair the format of a number.
+    DIM Temp AS STRING
+    DIM NewSign AS STRING
+    DIM n AS INTEGER
+    DIM c AS STRING
+    DIM i AS INTEGER
+
+    Temp = TheStringIn
+
+    ' Remove and store the sign if there is one.
+    NewSign = ""
+    IF (LEFT$(Temp, 1) = "+") THEN
+        NewSign = "+"
+        Temp = RemoveSign$(Temp)
+    END IF
+    IF (LEFT$(Temp, 1) = "-") THEN
+        NewSign = "-"
+        Temp = RemoveSign$(Temp)
+    END IF
+    IF (NewSign = "") THEN
+        NewSign = "+"
+    END IF
+
+    ' If the string has no decimal, place one at the end of the string.
+    IF (GetDecimalPos(Temp) = -1) THEN
+        ' This can be made faster.
+        Temp = InsertCharacter$(Temp, ".", LEN(Temp) + 1, 1)
+    END IF
+
+    ' Remove unnecessary zeros on the left.
+    n = 0
+    FOR i = 1 TO LEN(Temp)
+        c = ReadOneCharacter$(Temp, i)
+        IF (c = "0") THEN
+            n = n + 1
+        ELSE
+            EXIT FOR
+        END IF
+    NEXT
+    Temp = RIGHT$(Temp, LEN(Temp) - n)
+
+    ' Remove unnecessary zeros on the right.
+    n = 0
+    FOR i = LEN(Temp) TO 1 STEP -1
+        c = ReadOneCharacter$(Temp, i)
+        IF (c = "0") THEN
+            n = n + 1
+        ELSE
+            EXIT FOR
+        END IF
+    NEXT
+    Temp = LEFT$(Temp, LEN(Temp) - n)
+
+    ' If last character is a decimal then add a zero to the right.
+    IF (RIGHT$(Temp, 1) = ".") THEN
+        Temp = Temp + "0"
+    END IF
+
+    ' If leading character is a decimal then insert a zero to the left.
+    IF (LEFT$(Temp, 1) = ".") THEN
+        Temp = "0" + Temp
+    END IF
+
+    ' Attach the sign on the left.
+    Temp = NewSign + Temp
+
+    IF (Temp = "-0.0") THEN
+        Temp = "+0.0"
+    END IF
+
+    RepairFormat$ = Temp
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION InternalAdd$ (Num1In AS STRING, Num2In AS STRING)
+    DIM Num1 AS STRING
+    DIM Num2 AS STRING
+    DIM fac1 AS DOUBLE
+    DIM fac2 AS DOUBLE
+    DIM LenDiff AS INTEGER
+    DIM TempSwap AS STRING
+    DIM Temp1 AS STRING
+    DIM Temp2 AS STRING
+    DIM Oper AS STRING
+    DIM NewSign AS STRING
+    DIM ChunkSize AS INTEGER
+    DIM TheSum AS STRING
+    DIM Remainder AS INTEGER
+    DIM SubFactor AS INTEGER
+    DIM psum AS INTEGER
+    DIM PartialSum AS STRING
+    DIM TempDiff AS INTEGER
+    DIM TotalDecimalPlaces AS INTEGER
+    DIM k AS INTEGER
+    Num1 = Num1In
+    Num2 = Num2In
+
+    ' Add zeros to the right of the decimal of the shorter partial string.
+    LenDiff = (LEN(Num1) - GetDecimalPos(Num1)) - (LEN(Num2) - GetDecimalPos(Num2))
+    IF (LenDiff > 0) THEN
+        Num2 = InsertCharacter$(Num2, "0", LEN(Num2) + 1, LenDiff)
+    ELSE
+        Num1 = InsertCharacter$(Num1, "0", LEN(Num1) + 1, -LenDiff)
+    END IF
+
+    ' Force Num1 to be the number with the greatest magnitude.
+    LenDiff = LEN(Num1) - LEN(Num2)
+    IF (LenDiff < 0) THEN
+        TempSwap = Num1
+        Num1 = Num2
+        Num2 = TempSwap
+    END IF
+    IF (LenDiff = 0) THEN
+        Temp1 = RemoveDecimal$(Num1)
+        Temp2 = RemoveDecimal$(Num2)
+        Temp1 = RemoveSign$(Temp1)
+        Temp2 = RemoveSign$(Temp2)
+        FOR k = 1 TO LEN(Temp1)
+            TempDiff = VAL(ReadOneCharacter$(Temp1, k)) - VAL(ReadOneCharacter$(Temp2, k))
+            IF (TempDiff <> 0) THEN
+                IF (TempDiff > 0) THEN
+                    EXIT FOR
+                ELSE
+                    TempSwap = Num1
+                    Num1 = Num2
+                    Num2 = TempSwap
+                    EXIT FOR
+                END IF
+            END IF
+        NEXT
+    END IF
+
+    'Add zeros to the left of Num2 to normalize lengths.
+    Num2 = InsertCharacter$(Num2, "0", 2, LEN(Num1) - LEN(Num2))
+
+    ' Determine the sign of the result.
+    IF ((LEFT$(Num1, 1) = "+") AND (LEFT$(Num2, 1) = "+")) THEN
+        Oper = "add"
+        NewSign = "+"
+    END IF
+    IF ((LEFT$(Num1, 1) = "-") AND (LEFT$(Num2, 1) = "-")) THEN
+        Oper = "add"
+        NewSign = "-"
+    END IF
+    IF ((LEFT$(Num1, 1) = "+") AND (LEFT$(Num2, 1) = "-")) THEN
+        Oper = "subtract"
+        NewSign = "+"
+    END IF
+    IF ((LEFT$(Num1, 1) = "-") AND (LEFT$(Num2, 1) = "+")) THEN
+        Oper = "subtract"
+        NewSign = "-"
+    END IF
+
+    ' Remove the leading sign from each string.
+    Num1 = RemoveSign$(Num1)
+    Num2 = RemoveSign$(Num2)
+
+    ' Remove the decimal from each number after storing the total number of
+    ' decimal places in a new variable (to be restored after the operation).
+    TotalDecimalPlaces = (LEN(Num1) - GetDecimalPos(Num1))
+    IF (TotalDecimalPlaces > 0) THEN
+        Num1 = RemoveDecimal$(Num1)
+        Num2 = RemoveDecimal$(Num2)
+    END IF
+
+    ' Initialize internal addition and subtraction loop.
+    ChunkSize = 4
+    TheSum = ""
+    Remainder = 0
+
+    ' This formula is nice but a hardcoded value is faster.
+    'SubFactor = VAL(InsertCharacter$("1", "0", 2, ChunkSize))
+    SubFactor = 10000
+
+    '''
+    FOR k = 1 TO ChunkSize - (LEN(Num1) MOD ChunkSize)
+        Num1 = "0" + Num1
+        Num2 = "0" + Num2
+    NEXT
+    '''
+
+    'IF (LEN(Num1) < ChunkSize) THEN
+    '    FOR k = 1 TO ChunkSize - LEN(Num1)
+    '        Num1 = "0" + Num1
+    '        Num2 = "0" + Num2
+    '    NEXT
+    'END IF
+
+    'IF (LEN(Num1) > ChunkSize) THEN
+    '    FOR k = 1 TO ChunkSize - (LEN(Num1) MOD ChunkSize)
+    '        Num1 = "0" + Num1
+    '        Num2 = "0" + Num2
+    '    NEXT
+    'END IF
+
+    'IF (LEN(Num1) > ChunkSize) THEN
+    DO WHILE ((LEN(Num1) MOD ChunkSize) <> 0)
+        Num1 = "0" + Num1
+        Num2 = "0" + Num2
+    LOOP
+    'END IF
+
+    ' Execute internal addition and subtraction loop.
+
+    IF (Oper = "add") THEN
+        FOR k = LEN(Num1) TO 1 STEP -ChunkSize
+            fac1 = VAL(ReadManyCharacter$(Num1, k - ChunkSize + 1, k))
+            fac2 = VAL(ReadManyCharacter$(Num2, k - ChunkSize + 1, k))
+            psum = fac1 + fac2 + Remainder
+            PartialSum = LTRIM$(RTRIM$(STR$(psum)))
+            DO WHILE (LEN(PartialSum) < ChunkSize)
+                PartialSum = "0" + PartialSum
+            LOOP
+            IF (LEN(PartialSum) = ChunkSize + 1) THEN
+                Remainder = 1
+                PartialSum = RemoveCharacter$(PartialSum, 1)
+            ELSE
+                Remainder = 0
+            END IF
+            TheSum = LEFT$(LTRIM$(PartialSum), ChunkSize) + TheSum
+        NEXT
+    END IF
+
+    IF (Oper = "subtract") THEN
+        FOR k = LEN(Num1) TO 1 STEP -ChunkSize
+            fac1 = VAL(ReadManyCharacter$(Num1, k - ChunkSize + 1, k))
+            fac2 = VAL(ReadManyCharacter$(Num2, k - ChunkSize + 1, k))
+            psum = fac1 - fac2 + SubFactor - Remainder
+            PartialSum = LTRIM$(STR$(psum))
+            DO WHILE (LEN(PartialSum) < ChunkSize)
+                PartialSum = "0" + PartialSum
+            LOOP
+            IF (LEN(PartialSum) > ChunkSize) THEN
+                PartialSum = RemoveCharacter$(PartialSum, 1)
+                Remainder = 0
+            ELSE
+                Remainder = 1
+            END IF
+            TheSum = LEFT$(LTRIM$(PartialSum), ChunkSize) + TheSum
+        NEXT
+    END IF
+
+    ' Correct the string format.
+    TheSum = RemoveSign$(TheSum)
+
+    ' Restore the decimal point.
+    TheSum = InsertCharacter$(TheSum, ".", LEN(TheSum) - TotalDecimalPlaces + 1, 1)
+
+    ' If the result ends in a decimal then fix the format.
+    IF (RIGHT$(TheSum, 1) = ".") THEN
+        TheSum = TheSum + "0"
+    END IF
+
+    ' Remove unnecessary zeros.
+    TheSum = RemoveZerosLeft$(TheSum, 1)
+
+    ' If the result begins in a decimal then fix the format.
+    IF (LEFT$(TheSum, 1) = ".") THEN
+        TheSum = "0" + TheSum
+    END IF
+
+    ' Assign the proper sign to the result.
+    TheSum = NewSign + TheSum
+
+    InternalAdd$ = TheSum
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION InternalSub$ (Num1In AS STRING, Num2In AS STRING)
+    DIM Num1 AS STRING
+    DIM Num2 AS STRING
+    Num1 = Num1In
+    Num2 = Num2In
+    InternalSub$ = InternalAdd$(Num1, ReverseSign$(Num2))
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION InternalMul$ (Num1In AS STRING, Num2In AS STRING)
+    DIM Num1 AS STRING
+    DIM Num2 AS STRING
+    DIM Temp AS STRING
+    DIM NewSign AS STRING
+    DIM Prod AS STRING
+    DIM TheProd AS STRING
+    DIM TempMult AS STRING
+    DIM CarryOver AS INTEGER
+    DIM PresentDigit AS INTEGER
+    DIM TotalDecimalPlaces AS INTEGER
+    DIM WorkingDigit AS INTEGER
+    DIM tempswap AS STRING
+    DIM i AS INTEGER
+    DIM k AS INTEGER
+    DIM q AS INTEGER
+
+    Num1 = Num1In
+    Num2 = Num2In
+    Temp = ""
+
+    ' Problem requires post-DOUBLE precision.
+    IF (Temp = "") THEN
+
+        ' Remove unneessary zeros.
+        Num1 = RemoveZerosRight$(Num1)
+        Num2 = RemoveZerosRight$(Num2)
+
+        ' Remove the decimal from each number after storing the total number of
+        ' decimal places in a new variable (to be restored after the multiplication).
+        TotalDecimalPlaces = (LEN(Num1) - GetDecimalPos(Num1)) + (LEN(Num2) - GetDecimalPos(Num2))
+        Num1 = RemoveDecimal$(Num1)
+        Num2 = RemoveDecimal$(Num2)
+
+        ' Determine the sign of the result.
+        IF ((LEFT$(Num1, 1) = "+") AND (LEFT$(Num2, 1) = "+")) THEN
+            NewSign = "+"
+        END IF
+        IF ((LEFT$(Num1, 1) = "-") AND (LEFT$(Num2, 1) = "-")) THEN
+            NewSign = "+"
+        END IF
+        IF ((LEFT$(Num1, 1) = "+") AND (LEFT$(Num2, 1) = "-")) THEN
+            NewSign = "-"
+        END IF
+        IF ((LEFT$(Num1, 1) = "-") AND (LEFT$(Num2, 1) = "+")) THEN
+            NewSign = "-"
+        END IF
+
+        ' Remove the leading sign from each string.
+        Num1 = RemoveSign$(Num1)
+        Num2 = RemoveSign$(Num2)
+
+        ' Force Num1 to be the number with the greatest length.
+        IF (LEN(Num2) > LEN(Num1)) THEN
+
+            tempswap = Num1
+            Num1 = Num2
+            Num2 = tempswap
+        END IF
+
+        ' Add a zero to the left of each string.
+        ' This is necessary when the length of the result surpasses that of the input.
+        Num1 = "0" + Num1
+        Num2 = "0" + Num2
+
+        ' Initialize internal multiplication loop.
+        TheProd = "+0.0"
+        TempMult = ""
+        CarryOver = 0
+
+        ' Execute internal multiplication loop.
+        FOR k = LEN(Num2) TO 1 STEP -1
+            WorkingDigit = VAL(ReadOneCharacter$(Num2, k))
+            TempMult = ""
+            CarryOver = 0
+            FOR i = LEN(Num1) TO 1 STEP -1
+                PresentDigit = VAL(ReadOneCharacter$(Num1, i))
+                Prod = STR$(PresentDigit * WorkingDigit + CarryOver)
+                Prod = LTRIM$(RTRIM$(Prod))
+                IF (LEN(Prod) = 1) THEN
+                    CarryOver = 0
+                    TempMult = Prod + TempMult
+                END IF
+                IF (LEN(Prod) = 2) THEN
+                    CarryOver = VAL(LEFT$(Prod, 1))
+                    TempMult = RIGHT$(Prod, 1) + TempMult
+                END IF
+            NEXT
+            TempMult = RemoveZerosLeft$(TempMult, 1)
+
+            IF (TempMult = "") THEN
+                TempMult = "+0.0"
+            ELSE
+                TempMult = "+" + InsertCharacter$(TempMult, "0", LEN(TempMult) + 1, LEN(Num2) - k) + ".0"
+            END IF
+            TheProd = InternalAdd$(TheProd, TempMult)
+        NEXT
+
+        ' Correct the string format.
+        TheProd = RemoveSign$(TheProd)
+        TheProd = LEFT$(TheProd, LEN(TheProd) - 2)
+
+        ' Restore the decimal point.
+        IF (TotalDecimalPlaces > 0) THEN
+            q = TotalDecimalPlaces - LEN(TheProd)
+            IF (q >= 0) THEN
+                TheProd = InsertCharacter$(TheProd, "0", 1, q)
+                TheProd = "." + TheProd
+            ELSE
+                TheProd = InsertCharacter$(TheProd, ".", LEN(TheProd) - TotalDecimalPlaces + 1, 1)
+            END IF
+            TheProd = RemoveZerosRight$(TheProd)
+            IF (RIGHT$(TheProd, 1) = ".") THEN
+                TheProd = TheProd + "0"
+            END IF
+            IF (LEFT$(TheProd, 1) = ".") THEN
+                TheProd = "0" + TheProd
+            END IF
+        ELSE
+            TheProd = TheProd + ".0"
+        END IF
+
+        ' Assign the proper sign to the result.
+        TheProd = NewSign + TheProd
+
+        Temp = TheProd
+
+    END IF
+
+    InternalMul$ = Temp
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION InternalInv$ (DenomIn AS STRING, NumDigitsIn AS INTEGER)
+    ' The output of this function does not have fixed length. The output is made such that
+    ' NumDigits only counts numerical character 0-9. The sign and decimal are ignored. The overall
+    ' string length (zero between decimal and first sig-fig) is thus variable.
+    DIM Denom AS STRING
+    DIM NumDigits AS INTEGER
+    Denom = DenomIn
+    NumDigits = NumDigitsIn
+    DIM Temp AS STRING
+    DIM NewSign AS STRING
+    DIM Numerator AS STRING
+    DIM TempDiff AS STRING
+    DIM TempFactor AS STRING
+    DIM TheQuot AS STRING
+    DIM TotalDecimalPlaces AS INTEGER
+    DIM dpd AS INTEGER
+    DIM k AS INTEGER
+    DIM m AS INTEGER
+    DIM n AS INTEGER
+
+    Temp = ""
+
+    IF (RemoveSign$(Denom) = "0.0") THEN
+        Temp = "{ERROR: Division by zero detected in InternalInv.}"
+    END IF
+
+    IF (Temp = "") THEN
+
+        ' Determine the sign of the result.
+        IF (LEFT$(Denom, 1) = "+") THEN
+            NewSign = "+"
+        END IF
+        IF (LEFT$(Denom, 1) = "-") THEN
+            NewSign = "-"
+        END IF
+
+        ' Remove the sign from the string.
+        Denom = RemoveSign$(Denom)
+
+        ' Remove leading zeros such that string is not of the format 00.000###
+        ' but instead #.##
+        m = 0
+        DO WHILE (m > -1)
+            IF ((LEFT$(Denom, 1) = ".") OR (LEFT$(Denom, 1) = "0")) THEN
+                m = m + 1
+                Denom = RemoveSign$(InternalMul$("+" + Denom, "+10.0"))
+            ELSE
+                EXIT DO
+            END IF
+        LOOP
+
+        ' Remove the decimal from the number after storing the total number of
+        ' decimal places in a new variable (to be restored after the inversion).
+        dpd = GetDecimalPos(Denom)
+        TotalDecimalPlaces = LEN(Denom) - dpd
+        Denom = RemoveDecimal$(Denom)
+
+        ' Initialize internal inversion loop.
+        Numerator = "+1.0"
+        TheQuot = ""
+        TempFactor = Numerator
+
+        ' Execute internal inversion loop.
+        FOR k = 1 TO NumDigits + TotalDecimalPlaces + dpd - 2
+            ' ^ The "2" is compensation for the sign and decimal. ^
+            n = 0
+            DO WHILE (n > -1)
+                'Check for a zero in the result.
+                TempFactor = RemoveSign$(TempFactor)
+                TempFactor = RemoveDecimal$(TempFactor)
+                IF (SelectLargerInteger$(TempFactor, Denom) <> "first") THEN
+                    EXIT DO
+                END IF
+
+                TempDiff = InternalAdd$("+" + TempFactor + ".0", "-" + Denom + ".0")
+                TempDiff = RemoveSign$(TempDiff)
+                TempDiff = LEFT$(TempDiff, LEN(TempDiff) - 2)
+                ' ^ Removes the ".0". ^
+                n = n + 1
+                TempFactor = TempDiff
+
+                IF (SelectLargerInteger$(TempDiff, Denom) = "second") THEN
+                    EXIT DO
+                END IF
+
+            LOOP
+            IF (k > 1) THEN
+                TheQuot = TheQuot + LTRIM$(STR$(n))
+            END IF
+            TempFactor = TempFactor + "0"
+        NEXT
+
+        ' Insert the decimal into the string.
+        TheQuot = InsertCharacter$(TheQuot, ".", TotalDecimalPlaces + m, 1)
+
+        ' If string begins with a decimal then add a zero to the left.
+        IF (LEFT$(TheQuot, 1) = ".") THEN
+            TheQuot = "0" + TheQuot
+        END IF
+
+        ' Assign the proper sign to the result.
+        TheQuot = NewSign + TheQuot
+
+        Temp = TheQuot
+
+    END IF
+
+    InternalInv$ = Temp
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION InternalDiv$ (NumerIn AS STRING, DenomIn AS STRING, NumDigitsIn AS INTEGER)
+    DIM Numer AS STRING
+    DIM Denom AS STRING
+    DIM NumDigits AS INTEGER
+    DIM Temp AS STRING
+    DIM Factor AS STRING
+    Numer = NumerIn
+    Denom = DenomIn
+    NumDigits = NumDigitsIn
+    Factor = InternalInv$(Denom, NumDigits)
+    IF (LEFT$(Factor, 6) <> "{ERROR") THEN
+        Temp = InternalMul$(Numer, Factor)
+    ELSE
+        Temp = "{ERROR: Division by zero passed to InternalDiv.}"
+    END IF
+    InternalDiv$ = Temp
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION BigNumAdd$ (Num1In AS STRING, Num2In AS STRING)
+    DIM Num1 AS STRING
+    DIM Num2 AS STRING
+    Num1 = Num1In
+    Num2 = Num2In
+    Num1 = RepairFormat$(Num1)
+    Num2 = RepairFormat$(Num2)
+    BigNumAdd$ = InternalAdd$(Num1, Num2)
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION BigNumSub$ (Num1In AS STRING, Num2In AS STRING)
+    DIM Num1 AS STRING
+    DIM Num2 AS STRING
+    Num1 = Num1In
+    Num2 = Num2In
+    Num1 = RepairFormat$(Num1)
+    Num2 = RepairFormat$(Num2)
+    BigNumSub$ = InternalAdd$(Num1, ReverseSign$(Num2))
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION BigNumMul$ (Num1In AS STRING, Num2In AS STRING)
+    DIM Num1 AS STRING
+    DIM Num2 AS STRING
+    Num1 = Num1In
+    Num2 = Num2In
+    Num1 = RepairFormat$(Num1)
+    Num2 = RepairFormat$(Num2)
+    BigNumMul$ = InternalMul$(Num1, Num2)
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION BigNumInv$ (DenomIn AS STRING, NumDigitsIn AS INTEGER)
+    DIM Denom AS STRING
+    DIM NumDigits AS INTEGER
+    Denom = RepairFormat$(DenomIn)
+    NumDigits = NumDigitsIn
+    BigNumInv$ = InternalInv$(Denom, NumDigits)
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
+
+FUNCTION BigNumDiv$ (NumerIn AS STRING, DenomIn AS STRING, NumDigitsIn AS INTEGER)
+    DIM Numer AS STRING
+    DIM Denom AS STRING
+    DIM NumDigits AS INTEGER
+    DIM Temp AS STRING
+    DIM Factor AS STRING
+    Numer = RepairFormat$(NumerIn)
+    Denom = RepairFormat$(DenomIn)
+    NumDigits = NumDigitsIn
+    Factor = InternalInv$(Denom, NumDigits)
+    Temp = ""
+    IF (LEFT$(Factor, 6) <> "{ERROR") THEN
+        IF (Temp = "") THEN
+            Temp = InternalMul$(Numer, Factor)
+        END IF
+    ELSE
+        Temp = "{ERROR: Division by zero passed to BigNumDiv.}"
+    END IF
+    BigNumDiv$ = Temp
+END FUNCTION
+
+' '''''''''' '''''''''' '''''''''' '''''''''' ''''''''''
