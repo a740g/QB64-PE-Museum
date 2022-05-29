@@ -62,6 +62,7 @@ Note:
 | ScreenBlankers | Simple screen blankers (savers) by [RhoSigma](https://github.com/RhoSigma-QB64) |
 | Set Fire To The Rain | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Shooter | QB64 shooter demo game by unknown |
+| Snake | Snake clone by [pcluddite](https://github.com/pcluddite) |
 | Sokoban | Sokoban game by [David Joffe](https://github.com/davidjoffe) |
 | SortDemo | Sort demo by Microsoft |
 | Space64 | QB64 game by Cyperium |

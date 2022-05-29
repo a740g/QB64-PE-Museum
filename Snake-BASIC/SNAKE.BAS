@@ -1,6 +1,8 @@
 $NoPrefix
+$Resize:Smooth
 
 Screen 7
+FullScreen SquarePixels , Smooth
 Cls
 
 Type Player
