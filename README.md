@@ -19,55 +19,65 @@ Note:
 | Animax |  A Graphics/Animation utility by Bob Seguin |
 | ArcDemo | A 2D platformer game by Tsiplacov Sergey |
 | Assault | A turn-based artillery game by Glenn Powell |
+| Bad Boxes | Bad Boxes by Terry Ritchie |
+| Bad Boxes Revenge | Revenge of the Bad Boxes! by Terry Ritchie |
 | Bin2Include | Binary to Include converter by [SpriggsySpriggs](https://github.com/SpriggsySpriggs) |
+| Biorythm Chart | Biorythm Chart by Bob Seguin |
 | Blockout | Breakout clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Can't Contain Me | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Castle | A turn-based artillery game by Microsoft |
+| Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | Chess | Chess game by rfrost |
 | Cloned Shades | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Condense | Text file condenser by [a740g](https://github.com/a740g) |
 | Demos | QB64 Demos from various sources |
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
+| Flappy Bird | Flappy Bird Clone by Terry Ritchie |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Future Blocks | Tertis clone by [fogleman](https://github.com/fogleman) |
 | Ghost Wizard | A Roguelike game by Zack Johnson |
-| Gorillas | A turn-based artillery game by Microsoft |
-| Hunter | Maze Hunter game by Microsoft |
+| Gorillas | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
+| Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
 | Hunter's Revenge | A shooting game by [AshishKingdom](https://github.com/AshishKingdom) |
 | Lights On | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Maze | Maze of Misery by Steve M. |
-| Money | Simple money manager by Microsoft |
+| Money | Simple money manager by [Microsoft](https://github.com/microsoft/) |
 | Moon Lander | Moon Lander by rfrost |
-| Nibbles | Snake clone by Microsoft |
+| Nibbles | Snake clone by [Microsoft](https://github.com/microsoft/) |
 | Pendulum | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Phone | Simple phone directory by Microsoft |
+| Phone | Simple phone directory by [Microsoft](https://github.com/microsoft/) |
 | PIXELplus 256 | Bitmap graphics library by Chris Chadwick |
 | Platform | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| QB-WM | QB64 Window Manager by [Kit](https://github.com/aouwt) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
 | QBasic Beautifier | QB code beautifier by Kewbie_newbie |
-| QBlocks | Tertis clone by Microsoft |
-| QBricks | Breakout clone by Microsoft |
-| QCards | A simple database using a cardfile user interface by Microsoft |
+| QBasic Nventory | (i)nventory manager by [Morwic](https://github.com/morwic) |
+| Qbasic Tank Commander | Qbasic TANK COMMANDER by Matthew River Knight |
+| QBlocks | Tertis clone by [Microsoft](https://github.com/microsoft/) |
+| QBricks | Breakout clone by [Microsoft](https://github.com/microsoft/) |
+| QCards | A simple database using a cardfile user interface by [Microsoft](https://github.com/microsoft/) |
 | QDigger | A DIGGER game clone by [RETROQB45](https://github.com/RETROQB45) |
-| QMaze | Maze puzzle game by Microsoft |
-| QShips | A turn-based artillery game by Microsoft |
-| QSpace | Space station defense game by Microsoft |
-| QSynth | Audio synthesizer by Microsoft |
+| QMaze | Maze puzzle game by [Microsoft](https://github.com/microsoft/) |
+| QShips | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
+| QSpace | Space station defense game by [Microsoft](https://github.com/microsoft/) |
+| QSynth | Audio synthesizer by [Microsoft](https://github.com/microsoft/) |
 | QTrek | Startrek themed game by [strathausen](https://github.com/strathausen) |
 | Rattler | Snake clone by Bob Seguin |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
-| RemLine | Line mumber removal utility by Microsoft |
-| Reversi | Reversi game by Microsoft |
+| RemLine | Line mumber removal utility by [Microsoft](https://github.com/microsoft/) |
+| Reversi | Reversi game by [Microsoft](https://github.com/microsoft/) |
+| Robo Raider | Robo Raider by Kevin |
+| Schemat | Schematic Design Program by Leif J. Burrow |
 | ScreenBlankers | Simple screen blankers (savers) by [RhoSigma](https://github.com/RhoSigma-QB64) |
 | Set Fire To The Rain | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Shooter | QB64 shooter demo game by unknown |
 | Snake | Snake clone by [pcluddite](https://github.com/pcluddite) |
 | Sokoban | Sokoban game by [David Joffe](https://github.com/davidjoffe) |
-| SortDemo | Sort demo by Microsoft |
+| SortDemo | Sort demo by [Microsoft](https://github.com/microsoft/) |
 | Space64 | QB64 game by Cyperium |
 | Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Super Mario Jump! | Super Mario Jump! by Terry Ritchie |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Tic Tac Toe Ring | Tic tac toe clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Torus | Torus demo by Microsoft |
+| Torus | Torus demo by [Microsoft](https://github.com/microsoft/) |
 | Tower | Tower of Hanoi solver by unknown |
