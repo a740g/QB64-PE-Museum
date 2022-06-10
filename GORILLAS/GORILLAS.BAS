@@ -27,6 +27,7 @@ DefInt A-Z
 '$DYNAMIC
 
 $Resize:Smooth
+Title "Q B a s i c    G O R I L L A S"
 
 'User-Defined TYPEs
 Type XYPoint
@@ -92,7 +93,6 @@ PlayGame Name1$, Name2$, NumGames
 Def Seg = 0 ' Restore NumLock state
 Poke 1047, KeyFlags
 Def Seg
-
 System 0
 
 
@@ -117,11 +117,12 @@ Data 262153,4063232,4063294,8323072,8323199,-2130771968,-2130738945,-2134835200,
 Data 458758,-1061109760,-522133504,1886416896,1886416896,1886416896,-522133504,-1061109760,0
 
 InitVars:
+
 'This is a clever way to pick the best graphics mode available
 On Error GoTo ScreenModeError
 Mode = 9
 Screen Mode
-FullScreen SquarePixels , Smooth
+AllowFullScreen SquarePixels , Smooth
 On Error GoTo PaletteError
 If Mode = 9 Then Palette 4, 0 'Check for 64K EGA
 On Error GoTo 0
@@ -232,7 +233,7 @@ Sub DoExplosion (x#, y#)
     Next c#
     For c# = Radius To 0 Step (-1 * Inc#)
         Circle (x#, y#), c#, BACKATTR
-        Rest .005
+        Delay .005
     Next c#
 End Sub
 
@@ -349,7 +350,6 @@ Sub DrawBan (xc#, yc#, r, bc)
         Case 3
             If bc Then Put (xc#, yc#), DBan&(), PSet Else Put (xc#, yc#), DBan&(), Xor
     End Select
-
 End Sub
 
 'DrawGorilla:
@@ -430,18 +430,18 @@ Function ExplodeGorilla (x#)
     For i = 1 To 8 * SclX#
         Circle (GorillaX(PlayerHit) + 3.5 * SclX# + XAdj, GorillaY(PlayerHit) + 7 * SclY# + YAdj), i, ExplosionColor, , , -1.57
         Line (GorillaX(PlayerHit) + 7 * SclX#, GorillaY(PlayerHit) + 9 * SclY# - i)-(GorillaX(PlayerHit), GorillaY(PlayerHit) + 9 * SclY# - i), ExplosionColor
-        Rest .005
+        Delay .005
     Next i
 
     For i = 1 To 16 * SclX#
         If i < (8 * SclX#) Then Circle (GorillaX(PlayerHit) + 3.5 * SclX# + XAdj, GorillaY(PlayerHit) + 7 * SclY# + YAdj), (8 * SclX# + 1) - i, BACKATTR, , , -1.57
         Circle (GorillaX(PlayerHit) + 3.5 * SclX# + XAdj, GorillaY(PlayerHit) + YAdj), i, i Mod 2 + 1, , , -1.57
-        Rest .005
+        Delay .005
     Next i
 
     For i = 24 * SclX# To 1 Step -1
         Circle (GorillaX(PlayerHit) + 3.5 * SclX# + XAdj, GorillaY(PlayerHit) + YAdj), i, BACKATTR, , , -1.57
-        Rest .01
+        Delay .01
     Next i
 
     ExplodeGorilla = PlayerHit
@@ -509,7 +509,7 @@ Function GetNum# (Row, Col)
 
         Kbd$ = InKey$
         Select Case Kbd$
-            Case "0" TO "9"
+            Case "0" To "9"
                 Result$ = Result$ + Kbd$
             Case "."
                 If InStr(Result$, ".") = 0 Then
@@ -589,43 +589,43 @@ Sub GorillaIntro (Player1$, Player2$)
 
         Put (x - 13, y), GorD&(), PSet
         Put (x + 47, y), GorD&(), PSet
-        Rest 1
+        Delay 1
 
         Put (x - 13, y), GorL&(), PSet
         Put (x + 47, y), GorR&(), PSet
         before# = Timer(.001)
         Play "t120o1l16b9n0baan0bn0bn0baaan0b9n0baan0b"
-        Rest .3 + 2.944 - (Timer(.001) - before#)
+        Delay .3 + 2.944 - (Timer(.001) - before#)
 
         Put (x - 13, y), GorR&(), PSet
         Put (x + 47, y), GorL&(), PSet
         before# = Timer(.001)
         Play "o2l16e-9n0e-d-d-n0e-n0e-n0e-d-d-d-n0e-9n0e-d-d-n0e-"
-        Rest .3 + 2.944 - (Timer(.001) - before#)
+        Delay .3 + 2.944 - (Timer(.001) - before#)
 
         Put (x - 13, y), GorL&(), PSet
         Put (x + 47, y), GorR&(), PSet
         before# = Timer(.001)
         Play "o2l16g-9n0g-een0g-n0g-n0g-eeen0g-9n0g-een0g-"
-        Rest .3 + 2.944 - (Timer(.001) - before#)
+        Delay .3 + 2.944 - (Timer(.001) - before#)
 
         Put (x - 13, y), GorR&(), PSet
         Put (x + 47, y), GorL&(), PSet
         before# = Timer(.001)
         Play "o2l16b9n0baan0g-n0g-n0g-eeen0o1b9n0baan0b"
-        Rest .3 + 2.944 - (Timer(.001) - before#)
+        Delay .3 + 2.944 - (Timer(.001) - before#)
 
         For i = 1 To 4
             Put (x - 13, y), GorL&(), PSet
             Put (x + 47, y), GorR&(), PSet
             before# = Timer(.001)
             Play "T160O0L32EFGEFDC"
-            Rest .1 + .328 - (Timer(.001) - before#)
+            Delay .1 + .328 - (Timer(.001) - before#)
             Put (x - 13, y), GorR&(), PSet
             Put (x + 47, y), GorL&(), PSet
             before# = Timer(.001)
             Play "T160O0L32EFGEFDC"
-            Rest .1 + .328 - (Timer(.001) - before#)
+            Delay .1 + .328 - (Timer(.001) - before#)
         Next
     End If
 End Sub
@@ -667,7 +667,7 @@ Sub MakeCityScape (BCoor() As XYPoint)
     Select Case Slope
         Case 1: NewHt = 15 'Upward slope
         Case 2: NewHt = 130 'Downward slope
-        Case 3 TO 5: NewHt = 15 '"V" slope - most common
+        Case 3 To 5: NewHt = 15 '"V" slope - most common
         Case 6: NewHt = 130 'Inverted "V" slope
     End Select
 
@@ -694,13 +694,12 @@ Sub MakeCityScape (BCoor() As XYPoint)
 
     CurBuilding = 1
     Do
-
         Select Case Slope
             Case 1
                 NewHt = NewHt + HtInc
             Case 2
                 NewHt = NewHt - HtInc
-            Case 3 TO 5
+            Case 3 To 5
                 If x > ScrWidth \ 2 Then
                     NewHt = NewHt - 2 * HtInc
                 Else
@@ -888,7 +887,7 @@ Function PlotShot (StartX, StartY, Angle#, Velocity, PlayerNum)
 
     'throw sound
     Play "MBo0L32A-L64CL16BL64A+"
-    Rest .1
+    Delay .1
 
     'redraw gorilla
     Put (StartX, StartY), GorD&(), PSet
@@ -921,7 +920,7 @@ Function PlotShot (StartX, StartY, Angle#, Velocity, PlayerNum)
 
     Do While (Not Impact) And OnScreen
 
-        Rest .02
+        Delay .02
 
         'Erase old banana, if necessary
         If NeedErase Then
@@ -986,12 +985,6 @@ Function PlotShot (StartX, StartY, Angle#, Velocity, PlayerNum)
 
     PlotShot = PlayerHit
 End Function
-
-'Rest:
-'  pauses the program
-Sub Rest (t#)
-    If (t# > 0) Then Delay t#
-End Sub
 
 'Scl:
 '  Pass the number in to scaling for cga.  If the number is a decimal, then we
@@ -1058,7 +1051,7 @@ Sub SparklePause
                     Print " ";
                 End If
             Next b
-            Rest .06
+            Delay .06
         Next A
     Wend
 End Sub
@@ -1086,11 +1079,11 @@ Sub VictoryDance (Player)
         Put (GorillaX(Player), GorillaY(Player)), GorL&(), PSet
         before# = Timer(.001)
         Play "O0L32EFGEFDC"
-        Rest .2 + .328 - (Timer(.001) - before#)
+        Delay .2 + .328 - (Timer(.001) - before#)
         Put (GorillaX(Player), GorillaY(Player)), GorR&(), PSet
         before# = Timer(.001)
         Play "O0L32EFGEFDC"
-        Rest .2 + .328 - (Timer(.001) - before#)
+        Delay .2 + .328 - (Timer(.001) - before#)
     Next
 End Sub
 

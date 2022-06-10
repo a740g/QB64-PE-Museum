@@ -41,34 +41,22 @@
 '   the output lines in SUB GenOutFile. An example is shown in comments.
 '-----------------------------------------------------------------------------------------------------
 
-'-----------------------------------------------------------------------------------------------------
-' These are some metacommands and compiler options for QB64 to write modern & type-strict code
-'-----------------------------------------------------------------------------------------------------
-' This will disable prefixing all modern QB64 calls using a underscore prefix.
 $NoPrefix
-' Whatever indentifiers are not defined, should default to signed longs (ex. constants and functions).
 DefLng A-Z
-' All variables must be defined.
 Option Explicit
-' All arrays must be defined.
 Option ExplicitArray
-' Array lower bounds should always start from 1 unless explicitly specified.
-' This allows a(4) as integer to have 4 members with index 1-4.
 Option Base 1
-' All arrays should be static by default. Allocate dynamic array using ReDim
 '$Static
-' For text mode programs, uncomment the lines below.
 $Console
 $ScreenHide
 Dest Console
 ConsoleTitle "RemLine"
-'-----------------------------------------------------------------------------------------------------
 
 ' Global and constant data
 Const FALSE = 0, TRUE = Not FALSE
-Const MaxLines = 65536
+Const MAXLINES = 65536
 
-Dim Shared LineTable(MaxLines) As Long
+Dim Shared LineTable(MAXLINES) As Long
 Dim Shared LineCount As Long
 Dim Shared As String Seps, InputFile, OutputFile
 
@@ -205,7 +193,7 @@ Sub GenOutFile Static
             End If
         End If
         ' Print line to file or console (PRINT is faster than console device)
-        If OutputFile = "CON" Then
+        If UCase$(OutputFile) = "CON" Then
             Print InLin
         Else
             Print #2, InLin
@@ -229,7 +217,7 @@ Sub GetFileNames
 
     ' Add .bas extension if required
     If InStr(InputFile, ".") = 0 Then
-        InputFile = InputFile + ".BAS"
+        InputFile = InputFile + ".bas"
     End If
 
     ' Check if input file is present
@@ -241,16 +229,16 @@ Sub GetFileNames
     OutputFile = Command$(2)
 
     If (OutputFile = "") Then
-        OutputFile = InputFile + ".TMP"
+        OutputFile = InputFile + ".tmp"
     End If
 
     ' Add .bas extension if required
-    If InStr(OutputFile, ".") = 0 Then
-        OutputFile = OutputFile + ".BAS"
+    If InStr(OutputFile, ".") = 0 And UCase$(OutputFile) <> "CON" Then
+        OutputFile = OutputFile + ".bas"
     End If
 
     If FileExists(OutputFile) Then
-        Print InputFile; " already exist! Specify a valid name."
+        Print OutputFile; " already exist! Specify a valid name."
         System 1
     End If
 End Sub

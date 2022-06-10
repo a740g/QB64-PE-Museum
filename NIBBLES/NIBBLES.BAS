@@ -1,3 +1,4 @@
+'
 '                         Q B a s i c   N i b b l e s
 '
 '                   Copyright (C) Microsoft Corporation 1990
@@ -15,8 +16,14 @@
 ' F1 or click the right mouse button.
 '
 
+$NoPrefix
+$Resize:Smooth
+
 'Set default data type to integer for faster game play
 DefInt A-Z
+
+$Resize:Smooth
+Title "Q B a s i c   N i b b l e s"
 
 'User-defined TYPEs
 Type snakeBody
@@ -53,26 +60,8 @@ Type arenaType
     sister As Integer 'Each char has 2 points in it.  .SISTER is
 End Type '-1 if sister point is above, +1 if below
 
-'Sub Declarations
-DECLARE SUB SpacePause (text$)
-DECLARE SUB PrintScore (NumPlayers%, score1%, score2%, lives1%, lives2%)
-DECLARE SUB Intro ()
-DECLARE SUB GetInputs (NumPlayers, speed, diff$, monitor$)
-DECLARE SUB DrawScreen ()
-DECLARE SUB PlayNibbles (NumPlayers, speed, diff$)
-DECLARE SUB Set (row, col, acolor)
-DECLARE SUB Center (row, text$)
-DECLARE SUB Initialize ()
-DECLARE SUB SparklePause ()
-DECLARE SUB Level (WhatToDO, sammy() AS snaketype)
-DECLARE SUB InitColors ()
-DECLARE SUB EraseSnake (snake() AS ANY, snakeBod() AS ANY, snakeNum%)
-DECLARE FUNCTION StillWantsToPlay ()
-DECLARE FUNCTION PointIsThere (row, col, backColor)
-
 'Constants
-Const TRUE = -1
-Const FALSE = Not TRUE
+Const FALSE = 0, TRUE = Not FALSE
 Const MAXSNAKELENGTH = 1000
 Const STARTOVER = 1 ' Parameters to 'Level' SUB
 Const SAMELEVEL = 2
@@ -96,7 +85,7 @@ Loop While StillWantsToPlay
 GoSub RestoreKeyLocks
 Color 15, 0
 Cls
-End
+System 0
 
 ClearKeyLocks:
 Def Seg = 0 ' Turn off CapLock, NumLock and ScrollLock
@@ -244,6 +233,7 @@ End Sub
 '  Displays game introduction
 Sub Intro
     Screen 0
+    AllowFullScreen SquarePixels , Smooth
     Width 80, 25
     Color 15, 0
     Cls

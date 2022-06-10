@@ -19,8 +19,9 @@ Note:
 | Animax |  A Graphics/Animation utility by Bob Seguin |
 | ArcDemo | A 2D platformer game by Tsiplacov Sergey |
 | Assault | A turn-based artillery game by Glenn Powell |
-| Bad Boxes | Bad Boxes by Terry Ritchie |
-| Bad Boxes Revenge | Revenge of the Bad Boxes! by Terry Ritchie |
+| Bad Boxes | Bad Boxes by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Bad Boxes Revenge | Revenge of the Bad Boxes! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Bin2BAS | Binary to text converter by [Dav](http://qbasicnews.com/dav) |
 | Bin2Include | Binary to Include converter by [SpriggsySpriggs](https://github.com/SpriggsySpriggs) |
 | Biorythm Chart | Biorythm Chart by Bob Seguin |
 | Blockout | Breakout clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
@@ -31,7 +32,7 @@ Note:
 | Condense | Text file condenser by [a740g](https://github.com/a740g) |
 | Demos | QB64 Demos from various sources |
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
-| Flappy Bird | Flappy Bird Clone by Terry Ritchie |
+| Flappy Bird | Flappy Bird Clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Future Blocks | Tertis clone by [fogleman](https://github.com/fogleman) |
@@ -76,8 +77,11 @@ Note:
 | SortDemo | Sort demo by [Microsoft](https://github.com/microsoft/) |
 | Space64 | QB64 game by Cyperium |
 | Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Super Mario Jump! | Super Mario Jump! by Terry Ritchie |
+| Stock Watcher | Stock Watcher by unknown |
+| Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Tic Tac Toe Ring | Tic tac toe clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
 | Torus | Torus demo by [Microsoft](https://github.com/microsoft/) |
 | Tower | Tower of Hanoi solver by unknown |
+| TUI | Text Mode UI library by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| XE Hex Editor | XE Hex Editor by [Dav](http://qbasicnews.com/dav) |
