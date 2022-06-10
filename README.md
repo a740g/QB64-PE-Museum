@@ -12,43 +12,43 @@ Note:
 
 | Name | Description |
 |------|-------------|
-| 3D Grapher | 3D Grapher in QB64 using OpenGL by [AshishKingdom](https://github.com/AshishKingdom) |
+| 3D Grapher | 3D Grapher in QB64 using OpenGL by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | 4Pong | Four player Pong game by Matthew |
 | Abacus | Abacus app by Bob Seguin |
-| Amongst | Among Us clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Amongst | Among Us clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Animax |  A Graphics/Animation utility by Bob Seguin |
 | ArcDemo | A 2D platformer game by Tsiplacov Sergey |
 | Assault | A turn-based artillery game by Glenn Powell |
 | Bad Boxes | Bad Boxes by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Bad Boxes Revenge | Revenge of the Bad Boxes! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Bin2BAS | Binary to text converter by [Dav](http://qbasicnews.com/dav) |
-| Bin2Include | Binary to Include converter by [SpriggsySpriggs](https://github.com/SpriggsySpriggs) |
+| Bin2Include | Binary to Include converter by [Zachary Spriggs](https://github.com/SpriggsySpriggs) |
 | Biorythm Chart | Biorythm Chart by Bob Seguin |
-| Blockout | Breakout clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Can't Contain Me | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Blockout | Breakout clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| Can't Contain Me | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | Chess | Chess game by rfrost |
-| Cloned Shades | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Condense | Text file condenser by [a740g](https://github.com/a740g) |
+| Cloned Shades | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| Condense | Text file condenser by [Samuel Gomes](https://github.com/a740g) |
 | Demos | QB64 Demos from various sources |
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
 | Flappy Bird | Flappy Bird Clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Frogger | QB64 game by Matt Bross |
-| Frosbite | Frosbite Tribute by [FellippeHeitor](https://github.com/FellippeHeitor) |
-| Future Blocks | Tertis clone by [fogleman](https://github.com/fogleman) |
+| Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| Future Blocks | Tertis clone by [Michael Fogleman](https://github.com/fogleman) |
 | Ghost Wizard | A Roguelike game by Zack Johnson |
 | Gorillas | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
-| Hunter's Revenge | A shooting game by [AshishKingdom](https://github.com/AshishKingdom) |
-| Lights On | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
+| Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Maze | Maze of Misery by Steve M. |
 | Money | Simple money manager by [Microsoft](https://github.com/microsoft/) |
 | Moon Lander | Moon Lander by rfrost |
 | Nibbles | Snake clone by [Microsoft](https://github.com/microsoft/) |
-| Pendulum | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Pendulum | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Phone | Simple phone directory by [Microsoft](https://github.com/microsoft/) |
 | PIXELplus 256 | Bitmap graphics library by Chris Chadwick |
-| Platform | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Platform | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | QB-WM | QB64 Window Manager by [Kit](https://github.com/aouwt) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
 | QBasic Beautifier | QB code beautifier by Kewbie_newbie |
@@ -62,26 +62,26 @@ Note:
 | QShips | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | QSpace | Space station defense game by [Microsoft](https://github.com/microsoft/) |
 | QSynth | Audio synthesizer by [Microsoft](https://github.com/microsoft/) |
-| QTrek | Startrek themed game by [strathausen](https://github.com/strathausen) |
+| QTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
 | Rattler | Snake clone by Bob Seguin |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
 | RemLine | Line mumber removal utility by [Microsoft](https://github.com/microsoft/) |
 | Reversi | Reversi game by [Microsoft](https://github.com/microsoft/) |
 | Robo Raider | Robo Raider by Kevin |
 | Schemat | Schematic Design Program by Leif J. Burrow |
-| ScreenBlankers | Simple screen blankers (savers) by [RhoSigma](https://github.com/RhoSigma-QB64) |
-| Set Fire To The Rain | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| ScreenBlankers | Simple screen blankers (savers) by [Roland Heyder](https://github.com/RhoSigma-QB64) |
+| Set Fire To The Rain | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Shooter | QB64 shooter demo game by unknown |
-| Snake | Snake clone by [pcluddite](https://github.com/pcluddite) |
+| Snake | Snake clone by [Tim Baxendale](https://github.com/pcluddite) |
 | Sokoban | Sokoban game by [David Joffe](https://github.com/davidjoffe) |
 | SortDemo | Sort demo by [Microsoft](https://github.com/microsoft/) |
 | Space64 | QB64 game by Cyperium |
-| Spaceship | QB64 game by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Spaceship | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Stock Watcher | Stock Watcher by unknown |
 | Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
-| Tic Tac Toe Ring | Tic tac toe clone by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| Tic Tac Toe Ring | Tic tac toe clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Torus | Torus demo by [Microsoft](https://github.com/microsoft/) |
 | Tower | Tower of Hanoi solver by unknown |
-| TUI | Text Mode UI library by [FellippeHeitor](https://github.com/FellippeHeitor) |
+| TUI | Text Mode UI library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | XE Hex Editor | XE Hex Editor by [Dav](http://qbasicnews.com/dav) |
