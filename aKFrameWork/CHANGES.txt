@@ -1,0 +1,9 @@
+v1.012
+- Added Drag feature to dialog boxes (suggested by Fellippe).
+- Reduce Mouse Buffer.
+- Otimized code for smooth animation and low CPU usage.
+- Now use _FREEIMAGE to free temporary handle of the images.
+- Fixed aKTextBox() bug (reported by jc3bull).
+- Added FrameworkManager.html which is used generate code of the dialog.
+
+ 

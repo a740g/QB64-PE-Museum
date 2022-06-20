@@ -8,6 +8,7 @@ $VersionInfo:FILEVERSION#=2,5,0,1
 $VersionInfo:PRODUCTVERSION#=2,5,0,1
 __binary
 __makeshortcut
+
 $If 32BIT Then
         CONST OFN_ALLOWMULTISELECT = &H200& '  Allows the user to select more than one file, not recommended!
         CONST OFN_CREATEPROMPT = &H2000& '     Prompts if a file not found should be created(GetOpenFileName only).
@@ -54,11 +55,14 @@ $If 32BIT Then
 $Else
     __OpenFile
 $End If
+
 Dim Shared OFile As String
 Dim Shared SFile As String
+
 DefInt A-Z
-DECLARE FUNCTION E$ (B$)
+
 _Title "BIN2INCLUDE"
+
 $ExeIcon:'.\binary.ico'
 _Icon
 Dim Shared BIN2INCLUDE As Long
@@ -72,12 +76,15 @@ Dim Shared ClearLogBT As Long
 Dim Shared BIN2BASRB As Long
 Dim Shared PIC2MEMRB As Long
 Dim Shared ResetBT As Long
+
 Declare Library
     Function __UI_GetPID Alias getpid ()
 End Declare
+
 Declare CustomType Library
     Sub __UI_MemCopy Alias memcpy (ByVal dest As _Offset, Byval source As _Offset, Byval bytes As Long)
 End Declare
+
 Declare Library "falcon"
     Sub uprint_extra (ByVal x&, Byval y&, Byval chars%&, Byval length%&, Byval kern&, Byval do_render&, txt_width&, Byval charpos%&, charcount&, Byval colour~&, Byval max_width&)
     Function uprint (ByVal x&, Byval y&, chars$, Byval txt_len&, Byval colour~&, Byval max_width&)
@@ -86,6 +93,7 @@ Declare Library "falcon"
     Function falcon_uspacing& Alias uspacing ()
     Function uascension& ()
 End Declare
+
 $If WIN Then
     Declare Library
         Function __UI_MB& Alias MessageBox (ByVal ignore&, message$, title$, Byval type&)
@@ -97,6 +105,7 @@ $Else
         FUNCTION __UI_MB& ALIAS MessageBox (BYVAL ignore&, message$, title$, BYVAL type&)
         END DECLARE
 $End If
+
 $ScreenHide
 _ControlChr Off
 Type __UI_ControlTYPE
@@ -5441,6 +5450,7 @@ Function FromCP437$ (source$)
     End If
     FromCP437$ = UTF8$(source$, table437$())
 End Function
+
 Function FromCP1252$ (source$)
     Static init&
     If init& = 0 Then
@@ -5576,6 +5586,7 @@ Function FromCP1252$ (source$)
     End If
     FromCP1252$ = UTF8$(source$, table1252$())
 End Function
+
 Function UTF8$ (source$, table$())
     Dim i As Long, dest$
     For i = 1 To Len(source$)
@@ -5583,15 +5594,18 @@ Function UTF8$ (source$, table$())
     Next i
     UTF8$ = dest$
 End Function
+
 Function GetControlDrawOrder& (ctrlRef As Long)
     Dim i As Long
     For i& = 1 To UBound(ControlDrawOrder)
         If ControlDrawOrder(i&) = ctrlRef Then GetControlDrawOrder& = i&: Exit Function
     Next i&
 End Function
+
 Sub __UI_ExpandControlDrawOrder (size&)
     ReDim _Preserve ControlDrawOrder(UBound(ControlDrawOrder) + size&) As Long
 End Sub
+
 Function IconPreview& (IconFile$)
     Dim IconFileNum As Integer
     Dim Preferred As Integer, Largest As Integer
@@ -5673,6 +5687,7 @@ Function IconPreview& (IconFile$)
         Exit Function
     End If
 End Function
+
 Function RestoreCHR$ (__Text$)
     Dim Text$, BackSlash As Long, SemiColon As Long
     Dim j As Long, tempNum$
@@ -5701,6 +5716,7 @@ Function RestoreCHR$ (__Text$)
     Loop
     RestoreCHR$ = Text$
 End Function
+
 Sub __UI_DrawButton (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim TempCaption$
     Dim PrevDest As Long, TempControlState As _Byte
@@ -5775,6 +5791,7 @@ Sub __UI_DrawButton (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawLabel (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim PrevDest As Long, i As Long
     Dim CaptionIndent As Integer, TempCaption$, TempLine$
@@ -5890,6 +5907,7 @@ Sub __UI_DrawLabel (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawToggleSwitch (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim PrevDest As Long
     Dim CaptionIndent As Integer
@@ -5952,6 +5970,7 @@ Sub __UI_DrawToggleSwitch (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawRadioButton (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim PrevDest As Long
     Dim CaptionIndent As Integer, TempCaption$
@@ -6008,6 +6027,7 @@ Sub __UI_DrawRadioButton (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawCheckBox (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim PrevDest As Long
     Dim CaptionIndent As Integer, TempCaption$
@@ -6063,6 +6083,7 @@ Sub __UI_DrawCheckBox (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawProgressBar (This As __UI_ControlTYPE, ControlState)
     Dim PrevDest As Long, Temp&
     Dim TempCaption$
@@ -6124,6 +6145,7 @@ Sub __UI_DrawProgressBar (This As __UI_ControlTYPE, ControlState)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawTrackBar (This As __UI_ControlTYPE, ControlState)
     Dim PrevDest As Long, i As Long, TempControlState As _Byte
     Static ControlImage_Track As Long, ControlImage_Slider As Long
@@ -6184,6 +6206,7 @@ Sub __UI_DrawTrackBar (This As __UI_ControlTYPE, ControlState)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawTextBox (This As __UI_ControlTYPE, ControlState)
     Dim PrevDest As Long
     Dim CaptionIndent As Integer, i As Long, TempCaption$
@@ -6379,6 +6402,7 @@ Sub __UI_DrawTextBox (This As __UI_ControlTYPE, ControlState)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawListBox (This As __UI_ControlTYPE, ControlState)
     Dim PrevDest As Long, i As Long
     Dim CaptionIndent As Integer, TempCaption$
@@ -6483,6 +6507,7 @@ Sub __UI_DrawListBox (This As __UI_ControlTYPE, ControlState)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawVScrollBar (TempThis As __UI_ControlTYPE, ControlState As _Byte)
     Dim TrackHeight As Integer, ThumbHeight As Integer, ThumbTop As Integer
     Dim Ratio As Single
@@ -6568,6 +6593,7 @@ Sub __UI_DrawVScrollBar (TempThis As __UI_ControlTYPE, ControlState As _Byte)
     TempThis.ThumbHeight = ThumbHeight
     TempThis.VScrollbarRatio = Ratio
 End Sub
+
 Sub __UI_DrawDropdownList (This As __UI_ControlTYPE, ControlState)
     Dim PrevDest As Long, i As Long
     Dim CaptionIndent As Integer, TempCaption$
@@ -6690,6 +6716,7 @@ Sub __UI_DrawDropdownList (This As __UI_ControlTYPE, ControlState)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawFrame (This As __UI_ControlTYPE)
     Dim TempCaption$, CaptionIndent As Integer, Temp&
     Dim TempCanvas As Long
@@ -6762,6 +6789,7 @@ Sub __UI_DrawFrame (This As __UI_ControlTYPE)
     _Font This.Font
     If This.HelperCanvas < -1 Then _PutImage (This.Left, This.Top - uspacing& \ 2), This.HelperCanvas
 End Sub
+
 Sub __UI_DrawMenuBar (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim PrevDest As Long, TempCaption$
     Dim Temp&
@@ -6815,6 +6843,7 @@ Sub __UI_DrawMenuBar (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawMenuPanel (This As __UI_ControlTYPE, Parent As Long)
     Dim PrevDest As Long, TempCaption$
     Dim Temp&
@@ -6933,6 +6962,7 @@ Sub __UI_DrawMenuPanel (This As __UI_ControlTYPE, Parent As Long)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawContextMenuHandle (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim PrevDest As Long
     Dim i As Long
@@ -6965,6 +6995,7 @@ Sub __UI_DrawContextMenuHandle (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_DrawPictureBox (This As __UI_ControlTYPE, ControlState As _Byte)
     Dim PrevDest As Long, TheX As Integer, TheY As Integer
     Dim i As Long
@@ -7016,6 +7047,7 @@ Sub __UI_DrawPictureBox (This As __UI_ControlTYPE, ControlState As _Byte)
     End If
     If This.Canvas Then _PutImage (This.Left, This.Top), This.Canvas
 End Sub
+
 Sub __UI_ShadowBox (bX As Integer, bY As Integer, bW As Integer, bH As Integer, C As Long, shadowLevel As Integer, shadowSize As Integer)
     Dim i As Integer
     For i = 1 To shadowSize
@@ -7023,6 +7055,7 @@ Sub __UI_ShadowBox (bX As Integer, bY As Integer, bW As Integer, bH As Integer, 
     Next i
     Line (bX, bY)-Step(bW, bH), C, BF
 End Sub
+
 Function __UI_Type_Form%%: __UI_Type_Form%% = 1: End Function
 Function __UI_Type_Frame%%: __UI_Type_Frame%% = 2: End Function
 Function __UI_Type_Button%%: __UI_Type_Button%% = 3: End Function
@@ -7084,6 +7117,7 @@ Function __UI_ToolTipTimeOut!: __UI_ToolTipTimeOut! = .8: End Function
 Function __UI_CantResizeV%%: __UI_CantResizeV%% = 1: End Function
 Function __UI_CantResizeH%%: __UI_CantResizeH%% = 2: End Function
 Function __UI_CantResize%%: __UI_CantResize%% = 3: End Function
+
 Sub __UI_ThemeSetup
     __UI_ScrollbarWidth = 17
     __UI_ScrollbarButtonHeight = 17
@@ -7091,6 +7125,7 @@ Sub __UI_ThemeSetup
     __UI_MenuItemOffset = 22
     __UI_DefaultCaptionIndent = 5
 End Sub
+
 Function __UI_DefaultColor~& (ControlType As _Byte, Attribute As _Byte)
     Dim Colors(1 To 6) As _Unsigned Long
     Colors(1) = _RGB32(0, 0, 0)
@@ -7115,6 +7150,7 @@ Function __UI_DefaultColor~& (ControlType As _Byte, Attribute As _Byte)
     End Select
     __UI_DefaultColor~& = Colors(Attribute)
 End Function
+
 Function __UI_ImageData$ (File$)
     Dim A$
     Select Case LCase$(File$)
@@ -8202,6 +8238,7 @@ Function __UI_ImageData$ (File$)
     End Select
     __UI_ImageData$ = A$
 End Function
+
 Sub __UI_LoadForm
     Dim __UI_NewID As Long
     __UI_NewID = __UI_NewControl(__UI_Type_Form, "BIN2INCLUDE", 589, 324, 0, 0, 0)
@@ -8255,6 +8292,7 @@ Sub __UI_LoadForm
     SetCaption __UI_NewID, "Reset"
     Control(__UI_NewID).CanHaveFocus = True
 End Sub
+
 Sub __UI_AssignIDs
     BIN2INCLUDE = __UI_GetID("BIN2INCLUDE")
     SelectedFileTB = __UI_GetID("SelectedFileTB")
@@ -8267,8 +8305,10 @@ Sub __UI_AssignIDs
     PIC2MEMRB = __UI_GetID("PIC2MEMRB")
     ResetBT = __UI_GetID("ResetBT")
 End Sub
+
 Sub __UI_BeforeInit
 End Sub
+
 Sub __UI_OnLoad
     If _FileExists(_Dir$("desktop") + "\BIN2INCLUDE.lnk") = 0 Then
         a = make_shortcut(Command$(0), _Dir$("desktop") + "\BIN2INCLUDE.lnk")
@@ -8285,6 +8325,7 @@ Sub __UI_OnLoad
     AddItem ListBox1, "To compile a file that is creating memory errors,"
     AddItem ListBox1, "consult the readme on https://github.com/SpriggsySpriggs/BIN2INCLUDE"
 End Sub
+
 Sub __UI_BeforeUpdateDisplay
     If _TotalDroppedFiles Then
         drop$ = _DroppedFile
@@ -8307,8 +8348,10 @@ Sub __UI_BeforeUpdateDisplay
         End If
     End If
 End Sub
+
 Sub __UI_BeforeUnload
 End Sub
+
 Sub __UI_Click (id As Long)
     Select Case id
         Case BIN2INCLUDE
@@ -8377,6 +8420,7 @@ Sub __UI_Click (id As Long)
             ResetScreen
     End Select
 End Sub
+
 Sub ResetScreen
     Text(SelectedFileTB) = ""
     Text(OutputFileTB) = ""
@@ -8385,6 +8429,7 @@ Sub ResetScreen
     Control(CONVERTBT).Disabled = True
     ToolTip(ListBox1) = ""
 End Sub
+
 Sub __UI_MouseEnter (id As Long)
     Select Case id
         Case BIN2INCLUDE
@@ -8396,6 +8441,7 @@ Sub __UI_MouseEnter (id As Long)
         Case ListBox1
     End Select
 End Sub
+
 Sub __UI_MouseLeave (id As Long)
     Select Case id
         Case BIN2INCLUDE
@@ -8407,6 +8453,7 @@ Sub __UI_MouseLeave (id As Long)
         Case ListBox1
     End Select
 End Sub
+
 Sub __UI_FocusIn (id As Long)
     Select Case id
         Case SelectedFileTB
@@ -8417,6 +8464,7 @@ Sub __UI_FocusIn (id As Long)
         Case ListBox1
     End Select
 End Sub
+
 Sub __UI_FocusOut (id As Long)
     Select Case id
         Case SelectedFileTB
@@ -8427,6 +8475,7 @@ Sub __UI_FocusOut (id As Long)
         Case ListBox1
     End Select
 End Sub
+
 Sub __UI_MouseDown (id As Long)
     Select Case id
         Case BIN2INCLUDE
@@ -8438,6 +8487,7 @@ Sub __UI_MouseDown (id As Long)
         Case ListBox1
     End Select
 End Sub
+
 Sub __UI_MouseUp (id As Long)
     Select Case id
         Case BIN2INCLUDE
@@ -8449,6 +8499,7 @@ Sub __UI_MouseUp (id As Long)
         Case ListBox1
     End Select
 End Sub
+
 Sub __UI_KeyPress (id As Long)
     Select Case id
         Case SelectedFileTB
@@ -8458,12 +8509,14 @@ Sub __UI_KeyPress (id As Long)
         Case ListBox1
     End Select
 End Sub
+
 Sub __UI_TextChanged (id As Long)
     Select Case id
         Case SelectedFileTB
         Case OutputFileTB
     End Select
 End Sub
+
 Sub __UI_ValueChanged (id As Long)
     Select Case id
         Case ListBox1
@@ -8477,6 +8530,7 @@ Sub __UI_ValueChanged (id As Long)
 End Sub
 Sub __UI_FormResized
 End Sub
+
 Function bin2bas (IN$, OUT$)
     Open IN$ For Binary As 1
     If LOF(1) = 0 Then
@@ -8574,6 +8628,7 @@ Function bin2bas (IN$, OUT$)
         Control(PIC2MEMRB).Value = False
     End If
 End Function
+
 Function pic2mem (IN$, OUT$)
     AddItem ListBox1, Time$ + ": Opening file: " + IN$
     AddItem ListBox1, Time$ + ": Processing file..."
@@ -8593,6 +8648,7 @@ Function pic2mem (IN$, OUT$)
     End If
     pic2mem = a
 End Function
+
 Function checkExt (OFile$)
     IF UCASE$(RIGHT$(OFile$,  4)) <> ".BMP" AND UCASE$(RIGHT$(OFile$,  4)) <> ".JPG" _
     AND UCASE$(RIGHT$(OFile$, 4)) <> ".PNG" AND UCASE$(RIGHT$(OFile$,  5)) <> ".JPEG" _
@@ -8602,6 +8658,7 @@ Function checkExt (OFile$)
         checkExt = 1
     End If
 End Function
+
 Function E$ (B$)
     For T% = Len(B$) To 1 Step -1
         B& = B& * 256 + Asc(Mid$(B$, T%))
@@ -8613,10 +8670,12 @@ Function E$ (B$)
         a$ = a$ + g$
     Next: E$ = a$
 End Function
+
 Function StripDirectory$ (OFile$)
     OFile$ = Mid$(OFile$, _InStrRev(OFile$, "\") + 1)
     StripDirectory = OFile$
 End Function
+
 $If 32BIT Then
         FUNCTION GetOpenFileName$ (Title$, InitialDir$, Filter$, FilterIndex, Flags&, hWnd&)
         Title$ = Title$ + CHR$(0)
@@ -8690,6 +8749,7 @@ $Else
             Close #1
         End If 'remove this line if you are compiling in FreeBasic
     End Sub
+
     Function GetOpenFileName64$ (Title$, InitialDir$, Filter$)
         SHELL$ = "PowerShell -ExecutionPolicy Bypass " + Chr$(34) + "&'" + _StartDir$ + "\OpenFile.ps1'"
         SHELL$ = SHELL$ + " " + "\" + Chr$(34) + Title$ + "\" + Chr$(34)
@@ -8716,6 +8776,7 @@ $Else
         End If
     End Function
 $End If
+
 Function String.Replace$ (a As String, b As String, c As String)
     j = InStr(a, b)
     If j > 0 Then
@@ -8725,6 +8786,7 @@ Function String.Replace$ (a As String, b As String, c As String)
     End If
     String.Replace = r$
 End Function
+
 Function String.Remove$ (a As String, b As String)
     Dim c As String
     c = ""
@@ -8736,10 +8798,12 @@ Function String.Remove$ (a As String, b As String)
     End If
     String.Remove = r$
 End Function
+
 Function String.Insert$ (toChange As String, insert As String, position As Integer)
     toChange = Mid$(toChange, 1, position - 1) + insert + Mid$(toChange, position, Len(toChange) - position + 1)
     String.Insert = toChange
 End Function
+
 Function __opensmall&
     Dim v&
     Dim A$
@@ -8777,6 +8841,7 @@ Function __opensmall&
     _MemPut m, m.OFFSET, btemp$: _MemFree m
     __opensmall& = _CopyImage(v&): _FreeImage v&
 End Function
+
 Function __convert&
     Dim v&
     Dim A$
@@ -8825,6 +8890,7 @@ Function __convert&
     _MemPut m, m.OFFSET, btemp$: _MemFree m
     __convert& = _CopyImage(v&): _FreeImage v&
 End Function
+
 Function __reset&
     Dim v&
     Dim A$
@@ -8865,6 +8931,7 @@ Function __reset&
     _MemPut m, m.OFFSET, btemp$: _MemFree m
     __reset& = _CopyImage(v&): _FreeImage v&
 End Function
+
 Function __deletesmall&
     Dim v&
     Dim A$
@@ -8902,6 +8969,7 @@ Function __deletesmall&
     _MemPut m, m.OFFSET, btemp$: _MemFree m
     __deletesmall& = _CopyImage(v&): _FreeImage v&
 End Function
+
 Sub __binary
     If _FileExists("binary.ico") = 0 Then 'remove this line if you are compiling in FreeBasic
         Dim A$
@@ -9107,6 +9175,7 @@ Sub __binary
         Close #1
     End If 'remove this line if you are compiling in FreeBasic
 End Sub
+
 Function make_shortcut (startLoc As String, saveLoc As String)
     Dim SHELL$
     SHELL$ = "PowerShell -ExecutionPolicy Bypass -Command " + Chr$(34) + "&'" + _StartDir$ + "\make_shortcut.ps1'"
@@ -9120,6 +9189,7 @@ Function make_shortcut (startLoc As String, saveLoc As String)
     SHELL$ = SHELL$ + " " + "\" + Chr$(34) + saveLoc + "\" + Chr$(34)
     a = _ShellHide(SHELL$)
 End Function
+
 Sub __makeshortcut
     If _FileExists("make_shortcut.ps1") = 0 Then 'remove this line if you are compiling in FreeBasic
         Dim A$
@@ -9161,3 +9231,4 @@ Sub __makeshortcut
         Close #1
     End If 'remove this line if you are compiling in FreeBasic
 End Sub
+

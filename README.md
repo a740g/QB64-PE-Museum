@@ -15,6 +15,7 @@ Note:
 | 3D Grapher | 3D Grapher in QB64 using OpenGL by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | 4Pong | Four player Pong game by Matthew |
 | Abacus | Abacus app by Bob Seguin |
+| aKFrameWork | GUI library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Amongst | Among Us clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Animax |  A Graphics/Animation utility by Bob Seguin |
 | ArcDemo | A 2D platformer game by Tsiplacov Sergey |
@@ -25,6 +26,7 @@ Note:
 | Bin2Include | Binary to Include converter by [Zachary Spriggs](https://github.com/SpriggsySpriggs) |
 | Biorythm Chart | Biorythm Chart by Bob Seguin |
 | Blockout | Breakout clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| Calculator | GUI calculator by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Can't Contain Me | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | Chess | Chess game by rfrost |

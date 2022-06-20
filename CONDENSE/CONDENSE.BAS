@@ -191,12 +191,13 @@ Function FileCopy%% (fileSrc As String, fileDst As String)
         End If
 
         ffs = FreeFile
-        Open fileSrc For Binary As ffs
+        Open fileSrc For Binary Access Read As ffs
         ffd = FreeFile
-        Open fileDst For Binary As ffd
+        Open fileDst For Binary Access Write As ffd
 
-        ffbc = Space$(LOF(ffs))
-        Get ffs, , ffbc
+        ' Load the whole file into memory
+        ffbc = Input$(LOF(ffs), ffs)
+        ' Write the buffer to the new file
         Put ffd, , ffbc
 
         Close ffs
