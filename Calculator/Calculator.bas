@@ -502,8 +502,8 @@ Sub __UI_Click (id As Long)
         Case mnuPaste
 
         Case mnuAbout
-            operand$ = "InForm Calculator 1.0"
-            resetoperand = True
+            Dim tmp As Long
+            tmp = MessageBox("InForm Calculator 1.0", "Calculator", MsgBox_OkOnly + MsgBox_Information)
 
         Case lblAnswer
 
