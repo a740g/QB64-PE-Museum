@@ -129,7 +129,7 @@ Do
             Locate 6, 5
             Print Using "Y2 = +#.##########"; y2#
         End If
-        SaveImage si&, "Fractal-" + Right$("0000" + LTrim$(Str$(pn%)), 4)
+        WriteBMP si&, "Fractal-" + Right$("0000" + LTrim$(Str$(pn%)), 4)
         pn% = pn% + 1
         sp% = 0
     End If
@@ -184,7 +184,7 @@ Function RangeRand% (low%, high%)
 End Function
 
 '======================================================================
-Sub SaveImage (image As Long, filename As String)
+Sub WriteBMP (image As Long, filename As String)
     bytesperpixel& = _PixelSize(image&)
     If bytesperpixel& = 0 Then Print "Text modes unsupported!": End
     If bytesperpixel& = 1 Then bpp& = 8 Else bpp& = 24

@@ -10,8 +10,7 @@
 '|                                                                   |
 '| === Lightning2.bas ===                                            |
 '|                                                                   |
-'| == The filnal result of joint efforts by bplus, TylerDarko and    |
-'| == myself. (http://www.qb64.net/forum/index.php?topic=14532.0)    |
+'| == The result of joint efforts by bplus, TylerDarko and myself.   |
 '|                                                                   |
 '+-------------------------------------------------------------------+
 '| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |

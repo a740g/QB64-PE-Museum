@@ -10,10 +10,9 @@
 '|                                                                   |
 '| === Spinner.bas ===                                               |
 '|                                                                   |
-'| == This is a program originally posted by forum member bplus here |
-'| == http://www.qb64.org/forum/index.php?topic=1431.0, I just made  |
-'| == it compatible with the old QB64-SDL version and turned it into |
-'| == screen blanker, hence ending itself after user activity.       |
+'| == This is a program originally posted by forum member bplus.     |
+'| == I just made it compatible with the old QB64-SDL version and    |
+'| == turned it into a screen blanker, ie. quit on input activity.   |
 '|                                                                   |
 '+-------------------------------------------------------------------+
 '| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |

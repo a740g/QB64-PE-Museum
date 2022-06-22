@@ -15,8 +15,6 @@
 '| == math behind it, hence the polygons which by solving it down to |
 '| == first degree result into the final spline point to draw.       |
 '|                                                                   |
-'| == See also: https://en.wikipedia.org/wiki/B%C3%A9zier_curve      |
-'|                                                                   |
 '+-------------------------------------------------------------------+
 '| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
 '| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
