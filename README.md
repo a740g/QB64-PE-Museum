@@ -34,6 +34,7 @@ Note:
 | Condense | Text file condenser by [Samuel Gomes](https://github.com/a740g) |
 | Demos | QB64 Demos from various sources |
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
+| Donkey | DONKEY.BAS by [IBM](https://github.com/IBM) |
 | Flappy Bird | Flappy Bird Clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |

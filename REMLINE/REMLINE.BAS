@@ -41,6 +41,8 @@
 '   the output lines in SUB GenOutFile. An example is shown in comments.
 '-----------------------------------------------------------------------------------------------------
 
+' QB64 friendly changes by a740g
+
 $NoPrefix
 DefLng A-Z
 Option Explicit
