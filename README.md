@@ -1,14 +1,12 @@
 # What are these?
 
-These are several QuickBASIC programs tested and fixed for QB64.
-
-I will keep updating this repo with new stuff that I can find and fix to work with QB64.
-
-Note:
+These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64.
 
 1. Some of the "unknown" are placeholders and I will update with the correct information once I find them
 2. Some of these are mildly or significantly modified to work with QB64 v2+ and may no longer work with anything else
-3. If you want the original versions, then folllow the links below or search on the internet
+3. Some of these are unmodified as they were written for QB64 and are here just as part of the collection
+4. If you want the original versions, then folllow the links below or search on the internet
+5. I will keep updating this repo with new stuff that I can find and fix to work with QB64
 
 | Name | Description |
 |------|-------------|
