@@ -39,6 +39,7 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | Future Blocks | Tertis clone by [Michael Fogleman](https://github.com/fogleman) |
 | Ghost Wizard | A Roguelike game by Zack Johnson |
 | Gorillas | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
+| GUI Menu Bar | Lightweight Menu Bar library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
 | Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
@@ -50,12 +51,14 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | Phone | Simple phone directory by [Microsoft](https://github.com/microsoft/) |
 | PIXELplus 256 | Bitmap graphics library by Chris Chadwick |
 | Platform | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| QB-Bounce | Breakout clone by Future Software |
 | QB-WM | QB64 Window Manager by [Kit](https://github.com/aouwt) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
 | QBasic Beautifier | QB code beautifier by Kewbie_newbie |
 | QBasic Nventory | (i)nventory manager by [Morwic](https://github.com/morwic) |
 | Qbasic Tank Commander | Qbasic TANK COMMANDER by Matthew River Knight |
 | QBlocks | Tertis clone by [Microsoft](https://github.com/microsoft/) |
+| QBPool | Pool game by [mechatronic3000](https://github.com/mechatronic3000) |
 | QBricks | Breakout clone by [Microsoft](https://github.com/microsoft/) |
 | QCards | A simple database using a cardfile user interface by [Microsoft](https://github.com/microsoft/) |
 | QDigger | A DIGGER game clone by [RETROQB45](https://github.com/RETROQB45) |
@@ -65,6 +68,7 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | QSynth | Audio synthesizer by [Microsoft](https://github.com/microsoft/) |
 | QTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
 | Rattler | Snake clone by Bob Seguin |
+| Ray Tracer Z | A ray tracing demo by Zom-B |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
 | RemLine | Line mumber removal utility by [Microsoft](https://github.com/microsoft/) |
 | Reversi | Reversi game by [Microsoft](https://github.com/microsoft/) |

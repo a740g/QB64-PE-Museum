@@ -123,36 +123,6 @@ Type FileHeader ' This structure is the file header
     NextNote As Long ' number of songs saved, and position
 End Type ' of the next unused byte in the file.
 
-'Declaration of all the FUNCTION and SUB procedures called in this program.
-DECLARE FUNCTION ConfirmDelete% ()
-DECLARE FUNCTION GetNote$ (Note%)
-DECLARE FUNCTION SaveChanges% ()
-DECLARE FUNCTION SimpleEdit% (row%, col%, text$, MaxLen%)
-DECLARE SUB Center (text$, row%)
-DECLARE SUB ChangeTempo (Inc%)
-DECLARE SUB ClearMenuScreen (Title$)
-DECLARE SUB CreateSongFile ()
-DECLARE SUB DeleteSong (SongNo%)
-DECLARE SUB DisplayChanges ()
-DECLARE SUB DisplayGameTitle ()
-DECLARE SUB DisplayIntro ()
-DECLARE SUB DisplayMenuText (Menu%)
-DECLARE SUB DrawBox (r1%, c1%, r2%, c2%, Title$)
-DECLARE SUB DrawKeyboard ()
-DECLARE SUB DrawNote (Note%, Octave%, Action%)
-DECLARE SUB EditSong (SongNo%)
-DECLARE SUB ErrorMessage (msg$)
-DECLARE SUB GetNameAndSave ()
-DECLARE SUB InitFreq ()
-DECLARE SUB LoadDefaultSong (num%)
-DECLARE SUB LoadSong (SongNo%)
-DECLARE SUB MainMenu ()
-DECLARE SUB PlayNote (Note%, Octave%, Duration#)
-DECLARE SUB PlaySong ()
-DECLARE SUB RecordMenu (NoSave%)
-DECLARE SUB RecordMode (NoSave%)
-DECLARE SUB SaveSong ()
-DECLARE SUB TimeDelay (Dur#)
 
 ' SHARED (global) variable declarations for use in this program
 Dim Shared Freq(1 To 12) As Integer ' Base array of frequencies
@@ -213,7 +183,7 @@ End ' The end of module-level control flow.
 ErrorTrap:
 errnum = Err
 Select Case errnum
-    Case 52 TO 76
+    Case 52 To 76
         If FileError = 0 Then
             ErrorMessage "Cannot access QSYNTH.DAT file."
             FileError = 1
@@ -1961,7 +1931,7 @@ Function SimpleEdit (row, col, text$, MaxLen) Static
                     Locate row, col + Len(text$)
                 End If
 
-            Case Chr$(32) TO Chr$(126)
+            Case Chr$(32) To Chr$(126)
                 If Len(text$) < MaxLen Then ' Normal key - add it to text$.
                     text$ = text$ + i$
                     Print i$;

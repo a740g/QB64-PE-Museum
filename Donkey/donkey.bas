@@ -2,7 +2,7 @@
 ' Version 1.10 (C)Copyright IBM Corp 1981, 1982
 ' Licensed Material - Program Property of IBM
 
-' Updated by a740g to work on QB64
+' Updated by a740g to work with QB64
 ' TODO: Fix few graphical glitches
 
 $NoPrefix
@@ -20,9 +20,9 @@ Dim As Integer DNK(300), CAR(300), B(300)
 
 ' Welcome screen
 FullScreen SquarePixels , Smooth
-Screen 0, 1
-Color 15, 0
+Screen 0
 Width 40
+Color 15, 0
 Cls
 Locate 5, 19
 Print "IBM"
@@ -49,12 +49,11 @@ Print "Press space bar to continue"
 Do
     cmd = InKey$
     If cmd = Chr$(27) Then System
-Loop Until cmd = " "
+Loop Until cmd = Chr$(32)
 
 ' Main game code starts here
-Play "p16"
-Color 0
-Screen 1, 0
+Randomize Timer
+Screen 1
 Color 8, 1
 
 ' Get the donkey bitmap
@@ -138,8 +137,9 @@ Do
             sm = sm + 1
             Locate 7, 25
             Print "Donkey loses!"
+
             Sleep 2
-            Cls
+
             Exit Do
         End If
 
@@ -199,16 +199,16 @@ Do
                     Put (d1x, d1y), D1()
                     Put (d2x, d1y), D2()
                     Sound 37 + Rnd * 200, 4
-                    Limit 10
+                    Limit 17
                 Next
 
                 Sleep 2
-                Cls
+
                 Exit Do
             End If
 
             If y And 3 Then Put (140, 6), B()
-            Limit 10
+            Limit 17
         Next
 
         Line (dx, 124)-(dx + 32, 149), 0, BF
