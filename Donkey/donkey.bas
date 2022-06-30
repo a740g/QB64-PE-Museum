@@ -4,6 +4,7 @@
 
 ' Updated by a740g to work with QB64
 ' TODO: Fix few graphical glitches
+' Suggestions by Taylor Autumn
 
 $NoPrefix
 $Resize:Smooth
@@ -16,7 +17,7 @@ Dim As String cmd
 Dim As Single i, cx, cy, y, sd, sm, z, z1
 Dim As Integer dx, d1x, d1y, d2x, c1x, c1y, c2x, p
 Dim As Integer D1(150), D2(150), C1(200), C2(200)
-Dim As Integer DNK(300), CAR(300), B(300)
+Dim As Integer DNK(300), CAR(900), B(300)
 
 ' Welcome screen
 FullScreen SquarePixels , Smooth
@@ -85,7 +86,7 @@ Draw "BD2BL2D1R1U1L1BR2R1D1L1U1"
 Draw "BD2BL2D1R1U1L1BR2R1D1L1U1"
 Line (0, 0)-(40, 60), , B
 Paint (1, 1)
-Get (1, 1)-(29, 45), CAR()
+Get (1, 1)-(28, 45), CAR()
 
 ' This is for the strips on the road
 Cls

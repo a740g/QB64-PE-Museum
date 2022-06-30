@@ -30,9 +30,11 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | Chess | Chess game by rfrost |
 | Cloned Shades | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Condense | Text file condenser by [Samuel Gomes](https://github.com/a740g) |
+| D1NGOS Maze | A maze game by [DingoLabs](https://github.com/DingoLabs) |
 | Demos | QB64 Demos from various sources |
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
 | Donkey | DONKEY.BAS by [IBM](https://github.com/IBM) |
+| Fake CPU | A fictional CPU emulator by [magicaros](https://github.com/magicaros) |
 | Flappy Bird | Flappy Bird Clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |
@@ -42,10 +44,14 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | GUI Menu Bar | Lightweight Menu Bar library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
 | Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
+| InForm Demos | Demos using the InForm library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| MADMIX | A Pacman clone by Enrique Huerta |
 | Maze | Maze of Misery by Steve M. |
+| Mini Golf | A mini golf game by Bob Seguin |
 | Money | Simple money manager by [Microsoft](https://github.com/microsoft/) |
 | Moon Lander | Moon Lander by rfrost |
+| Mooncrap | A Galaxian clone by Daniel Kupfer |
 | Nibbles | Snake clone by [Microsoft](https://github.com/microsoft/) |
 | Pendulum | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Phone | Simple phone directory by [Microsoft](https://github.com/microsoft/) |
@@ -83,6 +89,7 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | Space64 | QB64 game by Cyperium |
 | Spaceship | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Stock Watcher | Stock Watcher by unknown |
+| Stunt Chopper | A Stunt Chopper clone by by David Duvenaud and James Challis |
 | Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Tic Tac Toe Ring | Tic tac toe clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
