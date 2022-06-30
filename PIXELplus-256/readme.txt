@@ -23,6 +23,7 @@ use for this application, which took me a very long time to develop
 ***** PIXELplus 256 is now FREEWARE, as of 9th October, 1997 *****
 You are free to use and distribute it in any way you see fit, on the
 condition NO CHARGE is made for any part of the entire PIXELplus 256 package.
+Also, please DO NOT try to pass off anything (including the example graphics
 provided) contained in the PIXELplus 256 package as your own work (as if
 you would ;) . Please give credit where it's due: a simple mention in your
 programs would be nice. I would also like to know what you think of
@@ -128,33 +129,33 @@ BASIC interpreters, such as QBASIC.
 
 PIXELplus 256 supports many powerful features:
 
- ï¿½ Full mouse control with the easy-to-use Graphical User
+ þ Full mouse control with the easy-to-use Graphical User
    Interface.
 
- ï¿½ 18 Flexible Drawing Tools:
+ þ 18 Flexible Drawing Tools:
    Scissors, Paste Brush, Special Effects Brush, Flood Fill,
    Tile Fill, Gradient Fill, Paintbrush, Pixel Pointer,
    Air Brush, Eraser, Circle/Ellipse, Filled Circle/Ellipse,
    Gradient Circle/Ellipse, Box, Filled Box, Gradient Box,
    Line, Curve. Plus Colour Sampler (always available).
 
- ï¿½ 14 Special Effects:
+ þ 14 Special Effects:
    BRIGHT, DARK, TINT, FUR, MIX, SOFT, UNZAG, HOLLOW, TILE,
    XOR, GREY, SWEEP, SWAP, EDGE
 
- ï¿½ Multiple Zoom Levels: Great for doing detailed, close-up
+ þ Multiple Zoom Levels: Great for doing detailed, close-up
    work. All Drawing Tools work at all zoom levels, too!
 
- ï¿½ Palette Tools: Giving full control over the colour palette.
+ þ Palette Tools: Giving full control over the colour palette.
    Alter individual colours, create colour gradients etc.
 
- ï¿½ Integrated Animation Tester: Now you can check images
+ þ Integrated Animation Tester: Now you can check images
    animate properly, while you're designing them.
 
- ï¿½ User-defined Gradient Styles: Design your own gradient styles
+ þ User-defined Gradient Styles: Design your own gradient styles
    to use with tools that use a colour gradient.
 
- ï¿½ Screen Designer: Makes composing screen layouts easy!
+ þ Screen Designer: Makes composing screen layouts easy!
    Now there's no need to work out the actual screen
    coordinates where you want images displayed in your own
    programs.
@@ -167,15 +168,15 @@ PIXELplus 256 supports many powerful features:
 To ensure PIXELplus 256 runs correctly, your computer should
 conform to the following specifications:
 
- ï¿½ IBM or compatible PC. 386 or better recommended.
+ þ IBM or compatible PC. 386 or better recommended.
 
- ï¿½ 512K free conventional memory.
+ þ 512K free conventional memory.
 
- ï¿½ VGA graphics card and colour monitor.
+ þ VGA graphics card and colour monitor.
 
- ï¿½ Hard disk.
+ þ Hard disk.
 
- ï¿½ Microsoft compatible mouse with up-to-date driver.
+ þ Microsoft compatible mouse with up-to-date driver.
 
 
 ---------------------------
@@ -192,10 +193,10 @@ Subdirectory    Usage
 ------------    -----
   IMAGES        Contains all image files created with the
                 Image Editor, including:
-                ï¿½ Standard format image files which will
+                þ Standard format image files which will
                   usually have the default .PUT file name
                   extension.
-                ï¿½ Image files that have been saved as DATA in
+                þ Image files that have been saved as DATA in
                   ASCII text format which will usually have the
                   default .BAS file name extension.
 
@@ -211,13 +212,13 @@ Subdirectory    Usage
 
   SCREENS       Contains all screen design files created
                 with the Screen Designer, including:
-                ï¿½ Standard format screen design files which
+                þ Standard format screen design files which
                   will usually have the default .DES file
                   name extension.
-                ï¿½ Screen design files that have been saved as DATA
+                þ Screen design files that have been saved as DATA
                   in ASCII text format which will usually have the
                   default .BAS file name extension.
-                ï¿½ Screen design files that have been saved in memory
+                þ Screen design files that have been saved in memory
                   image (screen snapshot) format which will usually
                   have the default .IMG file name extension.
 
@@ -336,14 +337,14 @@ User's running PIXELplus 256 on slower machines (386SX or
 below) should note the following points and tips on
 improving performance:
 
- ï¿½ Turn off the "Preview image" option when using the File/Load Clipboard...
+ þ Turn off the "Preview image" option when using the File/Load Clipboard...
    command in the Image Editor. This will sometimes enable
    you to select a file from the list box more quickly.
 
- ï¿½ Change the Drawing Tool view to outline mode. Do this by
+ þ Change the Drawing Tool view to outline mode. Do this by
    pressing SPACE, while pointing on the Edit Grid.
 
- ï¿½ When playing animations in the Animation Tester, the
+ þ When playing animations in the Animation Tester, the
    frame update is synchronized with the monitor in order
    to achieve smooth, flicker-free animation. However, in
    certain situations, flicker may occur or the animation
@@ -355,7 +356,7 @@ improving performance:
    the "Delay" or reducing the size of images will usually help
    alleviate any problems.
 
- ï¿½ Some internal operations may take a short time to complete,
+ þ Some internal operations may take a short time to complete,
    such as doing a large gradient fill. During this time, you
    may mistakenly think your computer has locked-up. In such
    cases, keep an eye on the Status Bar for messages telling
