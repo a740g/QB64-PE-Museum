@@ -86,7 +86,7 @@ Draw "BD2BL2D1R1U1L1BR2R1D1L1U1"
 Draw "BD2BL2D1R1U1L1BR2R1D1L1U1"
 Line (0, 0)-(40, 60), , B
 Paint (1, 1)
-Get (1, 1)-(28, 45), CAR()
+Get (1, 1)-(28, 45), CAR() ' Taylor Autumn - 06/30/2022 @a740g change Get (1, 1)-(29, 45), CAR() to Get (1, 1)-(28, 45), CAR()
 
 ' This is for the strips on the road
 Cls
