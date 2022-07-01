@@ -100,7 +100,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Space64 | QB64 game by Cyperium |
 | Spaceship | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Stock Watcher | Stock Watcher by unknown |
-| Stunt Chopper | A Stunt Chopper clone by by David Duvenaud and James Challis |
+| Stunt Chopper | A Stunt Chopper clone by David Duvenaud and James Challis |
 | Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Tic Tac Toe Ring | Tic tac toe clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
