@@ -11,6 +11,7 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | Name | Description |
 |------|-------------|
 | 3D Grapher | 3D Grapher in QB64 using OpenGL by [Ashish Kushwaha](https://github.com/AshishKingdom) |
+| 3DS Object Viewer | 3DS Object Viewer by David Llewellyn |
 | 4Pong | Four player Pong game by Matthew |
 | Abacus | Abacus app by Bob Seguin |
 | aKFrameWork | GUI library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
@@ -39,12 +40,14 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Future Blocks | Tertis clone by [Michael Fogleman](https://github.com/fogleman) |
+| Genius | Genius memory game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Ghost Wizard | A Roguelike game by Zack Johnson |
 | Gorillas | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | GUI Menu Bar | Lightweight Menu Bar library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
 | Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | InForm Demos | Demos using the InForm library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| KING-KONG vs MIGHTY JOE YOUNG | A turn-based artillery game by Bob Seguin |
 | Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | MADMIX | A Pacman clone by Enrique Huerta |
 | Maze | Maze of Misery by Steve M. |
@@ -53,12 +56,19 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | Moon Lander | Moon Lander by rfrost |
 | Mooncrap | A Galaxian clone by Daniel Kupfer |
 | Nibbles | Snake clone by [Microsoft](https://github.com/microsoft/) |
+| OpenGL Demos | OpenGL demos by [Galleon](https://github.com/Galleondragon) |
 | Pendulum | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Phone | Simple phone directory by [Microsoft](https://github.com/microsoft/) |
 | PIXELplus 256 | Bitmap graphics library by Chris Chadwick |
 | Platform | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | QB-Bounce | Breakout clone by Future Software |
 | QB-WM | QB64 Window Manager by [Kit](https://github.com/aouwt) |
+| QB64 Asteroids! | Asteroids game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| QB64 Button Library | Button routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| QB64 Space Invaders! | Space Invaders game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| QB64 Menu Library | Menu routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| QB64 Graphics Line Input Library | Line Input routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| QB64 Sprite Library | Sprite routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
 | QBasic Beautifier | QB code beautifier by Kewbie_newbie |
 | QBasic Nventory | (i)nventory manager by [Morwic](https://github.com/morwic) |
@@ -79,6 +89,7 @@ These are BASIC (GWBASIC, QBasic, QuickBASIC) programs tested and fixed for QB64
 | RemLine | Line mumber removal utility by [Microsoft](https://github.com/microsoft/) |
 | Reversi | Reversi game by [Microsoft](https://github.com/microsoft/) |
 | Robo Raider | Robo Raider by Kevin |
+| SaveImage | Screen capture library by [Steve McNeill](https://github.com/SteveMcNeill) |
 | Schemat | Schematic Design Program by Leif J. Burrow |
 | ScreenBlankers | Simple screen blankers (savers) by [Roland Heyder](https://github.com/RhoSigma-QB64) |
 | Set Fire To The Rain | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
