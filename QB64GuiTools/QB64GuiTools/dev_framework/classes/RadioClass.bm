@@ -1,0 +1,441 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === RadioClass.bm ===                                             |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Radio Class =====================================================
+'=====================================================================
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION RadioC$ (method$, tagString$)
+RadioRes$ = ""
+classID$ = "RadioC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,WIDTH,LISTOBJECT,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,IMAGEOBJECT,SYMBOLOBJECT,FORM,RECESSED," +_
+                   "SPACING,ACTUAL,TEXTPLACE,TEXTMOVEX,TEXTMOVEY," +_
+                   "LABEL,LABELHIGH,LABELPLACE,LABELMOVEX,LABELMOVEY," +_
+                   "IMAGEFILE,IMAGEHANDLE,AREA," +_
+                   "TOOLTIP,SHORTCUT,DISABLED," '+ user tags
+        'NOTE: If ACTUAL is not given or outside list bounds, then it
+        '      will default to one (1st list entry/record), may also be
+        '      zero for no radio button preselection. Button SPACING will
+        '      default to five (5), if omitted. The LEFT/TOP positions
+        '      designate the midpoint of the first radio button, WIDTH is
+        '      the diameter of the buttons (limited from 16-48 pixels).
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "IMAGEOBJECT,SYMBOLOBJECT,ACTUAL,DISABLED," '+ user tags
+        'NOTE: If ACTUAL is not given or outside list bounds, then it
+        '      will default to one (1st list entry/record), may also be
+        '      zero for no radio button preselection.
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        'NOTE: The ACTUAL tag holds the index of the actually chosen option
+        '      according to the order in the assigned multiple choice
+        '      option list, and you may also directly query any tags of
+        '      the respective list record here (DATA + user tags).
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or SELECTED,RELEASED,SHORTCUT (may be empty)
+    CASE ELSE
+        SetTag RadioRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+RadioC$ = RadioRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag RadioRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    ApplyPrefs classID$, tagsID$
+    '--- check list/pager conditions ---
+    IF InitSetAssignedList%(this&, RadioRes$, classID$, methodID$, tagsID$) THEN
+        IF InitAssignedPager%(this&, RadioRes$, classID$, tagsID$) THEN
+            '--- object specific init ---
+            widt% = VAL(GetTagData$(tagsID$, "WIDTH", "0"))
+            IF widt% < 16 THEN widt% = 16
+            IF widt% > 48 THEN widt% = 48
+            SetTag tagsID$, "WIDTH", LTRIM$(STR$(widt%))
+            '--- check for assigned Image/Symbol ---
+            InitAssignedImgSym "IMAGEOBJECT", RadioRes$, classID$, tagsID$
+            InitAssignedImgSym "SYMBOLOBJECT", RadioRes$, classID$, tagsID$
+            '--- background/frame (if any) init ---
+            BeginChildInit
+            priw% = 0: lobj& = VAL(GetTagData$(tagsID$, "LISTOBJECT", "0"))
+            reco& = VAL(GetTagData$(guiObjects$(objData%, lobj&), "RECORDS", "0"))
+            FOR i% = 1 TO reco&
+                temp% = _PRINTWIDTH(GetTagData$(ListC$("READ", NewTag$("OBJECT", LTRIM$(STR$(lobj&))) + NewTag$("REFOBJ", LTRIM$(STR$(this&)))), "DATA", ""))
+                IF temp% > priw% THEN priw% = temp%
+            NEXT i%
+            spac% = VAL(GetTagData$(tagsID$, "SPACING", "5"))
+            IF LCASE$(GetTagData$(tagsID$, "TEXTPLACE", "right")) = "right" THEN dire% = 1: ELSE dire% = -1
+            leto$ = NewTag$("LEFT", LTRIM$(STR$(dire% * -widt%))) + NewTag$("TOP", LTRIM$(STR$(-widt%)))
+            wihe$ = NewTag$("WIDTH", LTRIM$(STR$(dire% * ((2 * widt%) + priw% + 6)))) + NewTag$("HEIGHT", LTRIM$(STR$((reco& * (widt% + spac%)) - spac% + widt%)))
+            IF ValidateTags%(tagsID$, "IMAGEFILE", -1) OR ValidateTags%(tagsID$, "IMAGEHANDLE", -1) THEN
+                imag$ = ImageC$("INIT", GetTags$(tagsID$, "IMAGEFILE,IMAGEHANDLE,AREA") + leto$ + wihe$)
+                guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("BGIMG", imag$)
+                IF ValidateTags%(imag$, "ERROR", 0) THEN SetTag RadioRes$, "WARNING", "RadioC::Init -> background image failure"
+            END IF
+            IF ValidateTags%(tagsID$, "FORM", -1) THEN
+                fram$ = FrameC$("INIT", leto$ + wihe$ + GetTags$(tagsID$, "FORM,RECESSED"))
+                guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("FRM0", fram$)
+            ELSE
+                RemTag tagsID$, "RECESSED"
+            END IF
+            mask& = _NEWIMAGE(widt% + 1, widt% + 1, 256)
+            IF mask& < -1 THEN
+                d& = _DEST: _DEST mask&
+                left% = (widt% \ 2): topp% = left%: i% = 1 'position fakes
+                radi% = (widt% \ 2) + 1: sang% = 0: eang% = 360: colo% = 1: GOSUB meDrawMask
+                _DEST d&
+                guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + NewTag$("BBGMASK", LTRIM$(STR$(mask&)))
+            END IF
+            EndChildInit
+            '--- add required/optional tags ---
+            opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+            guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+            '--- add any remaining user tags ---
+            RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+            guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+            ObjectsUnselect this&
+            '--- set result and schedule gui refresh ---
+            SetTag RadioRes$, "OBJECT", LTRIM$(STR$(this&))
+            SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+        END IF
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, RadioRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = 0
+    IF SetAssignedImgSym%(this&, "IMAGEOBJECT", RadioRes$, classID$, tagsID$) THEN flag% = -1
+    IF SetAssignedImgSym%(this&, "SYMBOLOBJECT", RadioRes$, classID$, tagsID$) THEN flag% = -1
+    temp$ = GetTagData$(tagsID$, "ACTUAL", "n/a")
+    IF temp$ <> "n/a" THEN
+        otag$ = GetTagData$(guiObjects$(objData%, this&), "ACTUAL", "n/a")
+        IF temp$ <> otag$ THEN
+            '--- range check ---
+            lobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "LISTOBJECT", "0"))
+            reco& = VAL(GetTagData$(guiObjects$(objData%, lobj&), "RECORDS", "0"))
+            actu& = VAL(temp$)
+            IF actu& < 1 OR actu& > reco& THEN
+                temp$ = "1"
+                IF actu& = 0 THEN temp$ = "0"
+                actu& = 1
+            END IF
+            resu$ = ListC$("SET", NewTag$("OBJECT", LTRIM$(STR$(lobj&))) + NewTag$("REFOBJ", LTRIM$(STR$(this&))) + NewTag$("ACTUAL", LTRIM$(STR$(actu&))))
+            SetTag guiObjects$(objData%, this&), "ACTUAL", temp$
+            flag% = -1
+        END IF
+    END IF
+    temp$ = GetTagData$(tagsID$, "DISABLED", "n/a")
+    IF temp$ <> "n/a" THEN
+        IF BoolTagTrue%(tagsID$, "DISABLED") THEN
+            RemTags guiObjects$(objData%, this&), "FOCUS,SELECTED"
+            SetTag guiObjects$(objData%, this&), "DISABLED", "true"
+        ELSE
+            RemTag guiObjects$(objData%, this&), "DISABLED"
+        END IF
+        flag% = -1
+    END IF
+    '--- check any remaining user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- redraw and update object (if required) ---
+    IF flag% THEN resu$ = ObjectRefresh$(this&, "du", "")
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, RadioRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN
+        reco$ = ListC$("READ", ObjectTag$(guiObjects$(objData%, this&), "LISTOBJECT") + NewTag$("REFOBJ", LTRIM$(STR$(this&))) + NewTag$("HOLD", "true") + GetTag$(guiObjects$(objData%, this&), "ACTUAL"))
+        IF ValidateTags%(reco$, "ERROR", 0) THEN reco$ = ""
+        RadioRes$ = GetTags$(guiObjects$(objData%, this&) + reco$, temp$)
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, RadioRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete child objects ---
+    mask& = VAL(GetTagData$(guiObjects$(objData%, this&), "BBGMASK", "-1"))
+    IF mask& < -1 THEN _FREEIMAGE mask&
+    resu$ = FrameC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    '--- check for assigned Symbol/Image ---
+    KillAssignedImgSym this&, "SYMBOLOBJECT"
+    KillAssignedImgSym this&, "IMAGEOBJECT"
+    '--- check pager/list conditions ---
+    KillAssignedPager this&
+    KillAssignedList this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, RadioRes$, classID$, methodID$, tagsID$) THEN
+    '--- get object's dimensions ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    spac% = VAL(GetTagData$(guiObjects$(objData%, this&), "SPACING", "5"))
+    actu& = VAL(GetTagData$(guiObjects$(objData%, this&), "ACTUAL", "1"))
+    lobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "LISTOBJECT", "0"))
+    reco& = VAL(GetTagData$(guiObjects$(objData%, lobj&), "RECORDS", "0"))
+    dist% = widt% + spac%
+    '--- draw object ---
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BGIMG") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    '--- draw image/symbol/frame object ---
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "IMAGEOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYMBOLOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = FrameC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "FRM0") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    '--- draw radio buttons ---
+    priw% = 0
+    FOR i% = 1 TO reco&
+        shin% = guiShinePen%: shad% = guiShadowPen%: lamp% = guiBackPen%: focu% = guiHighPen%
+        IF i% = actu& THEN SWAP shin%, shad%: lamp% = guiFillPen%: focu% = guiFillTextPen%
+        radi% = widt% \ 2: GOSUB meDrawButt
+        IF i% = VAL(GetTagData$(guiObjects$(objData%, this&), "FOCUS", "0")) THEN
+            CIRCLE (left%, topp% + ((i% - 1) * dist%)), (widt% \ 2) - 3, focu%
+            CIRCLE (left%, topp% + ((i% - 1) * dist%)), (widt% \ 2) - 4, focu%
+            BrightenObjectBG this&, left% - (widt% \ 2), topp% + ((i% - 1) * dist%) - (widt% \ 2), widt% + 1, widt% + 1
+        END IF
+        '--- text label ---
+        reco$ = ListC$("READ", NewTag$("OBJECT", LTRIM$(STR$(lobj&))) + NewTag$("REFOBJ", LTRIM$(STR$(this&))) + NewTag$("HOLD", "true") + NewTag$("ACTUAL", LTRIM$(STR$(i%))))
+        text$ = GetTagData$(reco$, "DATA", "n/a")
+        IF text$ <> "n/a" THEN
+            text$ = LTRIM$(RTRIM$(text$))
+            plac$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "TEXTPLACE", "right"))
+            xmov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEX", "0"))
+            ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEY", "0"))
+            temp% = _PRINTWIDTH(text$): IF temp% > priw% THEN priw% = temp%
+            SELECT CASE plac$
+                CASE "left"
+                    dire% = -1
+                    txle% = (left% - (widt% \ 2)) - temp% - 6
+                    txto% = topp% + ((i% - 1) * dist%) - INT(_FONTHEIGHT / 2) + 1
+                CASE "right"
+                    dire% = 1
+                    txle% = (left% + (widt% \ 2)) + 6
+                    txto% = topp% + ((i% - 1) * dist%) - INT(_FONTHEIGHT / 2) + 1
+            END SELECT
+            prim% = _PRINTMODE
+            SetPrintMode pmKEEP%
+            COLOR guiTextPen%
+            _PRINTSTRING (txle% + 1 + xmov%, txto% + 1 + ymov%), text$
+            SetPrintMode prim%
+        END IF
+    NEXT i%
+    '--- label output ---
+    llft% = left% + (dire% * -widt%): ltop% = topp% - widt%
+    lwid% = (2 * widt%) + priw% + 6: lhei% = (reco& * dist%) - spac% + widt%
+    IF dire% = -1 THEN llft% = llft% - lwid%
+    PrintObjectLabel this&, llft%, ltop%, lwid%, lhei%
+    '--- check on/off state ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN
+        FillRectRaster left% - (widt% \ 2) - 2, topp% - (widt% \ 2) - 2, widt% + 4, (reco& * dist%) - spac% + 4, guiFillPen%
+    END IF
+END IF
+RETURN
+'----------------------------------
+meDrawButt:
+sang% = 46: eang% = 225: colo% = shin%: GOSUB meDrawCirc
+sang% = 226: eang% = 405: colo% = shad%: GOSUB meDrawCirc
+radi% = radi% - 1
+sang% = 46: eang% = 225: colo% = shin%: GOSUB meDrawCirc
+sang% = 226: eang% = 405: colo% = shad%: GOSUB meDrawCirc
+radi% = radi% - 1
+sang% = 0: eang% = 360: colo% = guiBackPen%: GOSUB meDrawCirc
+radi% = radi% - 1
+GOSUB meDrawCirc
+colo% = lamp%
+meDrawMask:
+DO
+    radi% = radi% - 1
+    GOSUB meDrawCirc
+LOOP UNTIL radi% = 0
+RETURN
+'----------------------------------
+meDrawCirc:
+FOR angl! = sang% TO eang% STEP 1.25
+    xpos% = CINT(radi% * COS(0.017453292519943 * angl!))
+    ypos% = CINT(radi% * SIN(0.017453292519943 * angl!))
+    PSET (left% + xpos%, topp% + ((i% - 1) * dist%) - ypos%), colo%
+NEXT angl!
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, RadioRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't update, if currently disabled ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN RETURN
+    '--- save old drawing relevant states ---
+    osta$ = GetTag$(guiObjects$(objData%, this&), "FOCUS")
+    '--- check for shortcut trigger ---
+    actu& = VAL(GetTagData$(guiObjects$(objData%, this&), "ACTUAL", "1"))
+    lobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "LISTOBJECT", "0"))
+    reco& = VAL(GetTagData$(guiObjects$(objData%, lobj&), "RECORDS", "0"))
+    shor$ = GetTagData$(guiObjects$(objData%, this&), "SHORTCUT", "n/a")
+    IF NOT BoolTagTrue%(osta$, "SELECTED") AND shor$ <> "n/a" AND guiASCObject& = 0 THEN
+        IF BoolTagTrue%(tagsID$, "KEYPRESS") THEN
+            IF ObjectShortcut%(shor$, tagsID$) THEN
+                ObjectsUnselect this&
+                actu& = actu& + 1: IF actu& > reco& THEN actu& = 1
+                SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu&))
+                resu$ = RadioC$("DRAW", thisTag$)
+                SetTag RadioRes$, "RELEASED", LTRIM$(STR$(this&))
+                SetTag RadioRes$, "SHORTCUT", "true"
+                RETURN
+            END IF
+        END IF
+    END IF
+    '--- get mouse position and object dimensions ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    scrv% = VAL(GetTagData$(tagsID$, "SCRVAL", "0"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    spac% = VAL(GetTagData$(guiObjects$(objData%, this&), "SPACING", "5"))
+    dist% = widt% + spac%
+    '--- check for mouse trigger ---
+    IF moux% >= (left% - (widt% \ 2) - 2) AND moux% < (left% + (widt% \ 2) + 2) AND mouy% >= (topp% - (widt% \ 2) - 2) AND mouy% < (topp% - (widt% \ 2) + (reco& * dist%) - spac% + 2) THEN
+        sval% = 32765: fbut% = 0
+        FOR i% = 1 TO reco&
+            sdis% = CartToPolR!(moux% - left%, (topp% + ((i% - 1) * dist%)) - mouy%)
+            IF sdis% < sval% THEN sval% = sdis%: fbut% = i%
+        NEXT i%
+        SetTag guiObjects$(objData%, this&), "FOCUS", LTRIM$(STR$(fbut%))
+        IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+            SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(fbut%))
+            resu$ = RadioC$("DRAW", thisTag$)
+            SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+            SetTag RadioRes$, "SELECTED", LTRIM$(STR$(this&))
+        ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+            RemTag guiObjects$(objData%, this&), "SELECTED"
+            SetTag RadioRes$, "RELEASED", LTRIM$(STR$(this&))
+        ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 THEN
+            RemTags tagsID$, "ALT,SHIFT": SetTag tagsID$, "CTRL", "true"
+            IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "O" THEN
+                scrv% = reco& - actu&: GOSUB meMousescroll
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "G" THEN
+                scrv% = -(actu& - 1): GOSUB meMousescroll
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                scrv% = 1: GOSUB meMousescroll
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                scrv% = -1: GOSUB meMousescroll
+            END IF
+        ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+            GOSUB meMousescroll
+        END IF
+    ELSE
+        RemTag guiObjects$(objData%, this&), "FOCUS"
+        IF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 AND BoolTagTrue%(tagsID$, "FOCUS") THEN
+            RemTags tagsID$, "ALT,SHIFT": SetTag tagsID$, "CTRL", "true"
+            IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "O" THEN
+                scrv% = reco& - actu&: GOSUB meMousescroll
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "G" THEN
+                scrv% = -(actu& - 1): GOSUB meMousescroll
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                scrv% = 1: GOSUB meMousescroll
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                scrv% = -1: GOSUB meMousescroll
+            END IF
+        ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") AND BoolTagTrue%(tagsID$, "FOCUS") THEN
+            GOSUB meMousescroll
+        END IF
+    END IF
+    '--- redraw object, if state has changed ---
+    nsta$ = GetTag$(guiObjects$(objData%, this&), "FOCUS")
+    IF nsta$ <> osta$ THEN
+        resu$ = RadioC$("DRAW", thisTag$)
+    END IF
+END IF
+RETURN
+'----------------------------------
+meMousescroll:
+IF NOT BoolTagTrue%(tagsID$, "ALT") AND NOT BoolTagTrue%(tagsID$, "SHIFT") THEN
+    IF BoolTagTrue%(tagsID$, "CTRL") THEN
+        actu& = actu& + scrv%
+        IF actu& < 1 THEN actu& = reco&: ELSE IF actu& > reco& THEN actu& = 1
+        SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu&))
+        resu$ = RadioC$("DRAW", thisTag$)
+        SetTag RadioRes$, "RELEASED", LTRIM$(STR$(this&))
+        SetTag RadioRes$, "SHORTCUT", "true"
+        SetTag RadioRes$, "MOUSESCROLL", "true"
+    END IF
+END IF
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

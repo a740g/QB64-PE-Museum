@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GetBufPos</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>GetBufPos <em>(function)</em></h2>
+<p>This function will return the current buffer position in the
+specified buffer. This position is used as starting point for most buffer
+operations, which in any way read, write, copy or search data. You should
+immediately use the retrieved position, as it will change with almost all
+buffer operations.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>curPos&amp; = GetBufPos&amp; (handle%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna retrieve
+the current position.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>curPos&amp; <em>(LONG)</em></h4>
+<ul>
+<li>The retrieved position, this is always in the range 1 to <a href="GetBufLen.html">GetBufLen()</a> + 1.</li>
+<li>The latter one is the &quot;End Of Buffer&quot; position, ie. one byte past the
+current buffer contents, where no more valid data is readable, but in which
+new data is appended when writing to the buffer end.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

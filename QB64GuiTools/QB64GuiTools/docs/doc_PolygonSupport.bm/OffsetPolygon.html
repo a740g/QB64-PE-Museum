@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>OffsetPolygon</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_PolygonSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>OffsetPolygon <em>(function)</em></h2>
+<p>This function will take the given source polygon shape and recalculate
+it to be an offset of that polygon (either inset or outset) with the
+given border line distance. The given source polygon remains unchanged.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>success% = OffsetPolygon% (srcPolyX%(), srcPolyY%(), offPolyX%(), offPolyY%(), displace#)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>srcPolyX%(), srcPolyY%() <em>(INTEGER arrays)</em></h4>
+<ul>
+<li>These are 1-dimensional arrays containing the x/y coordinates of
+the source polygon's corners. Start with the first corner in the
+lowest array index, end with last corner in the highest index, ie.
+you must not return to the first corner. Obviously the arrays must
+match and must have exactly &quot;number of corners&quot; elements. The corners
+may be traced in either direction (clockwise or counter-clockwise).</li>
+</ul>
+<h4>offPolyX%(), offPolyY%() <em>(INTEGER arrays)</em></h4>
+<ul>
+<li>Arrays which get the new corner coordinates on success, note this is
+an intended argument side effect. These must be 1-dimensional REDIMed
+(dynamic) <em>INTEGER</em> arrays of at least one element, they are adjusted
+internally to be exact copies of the source polygon arrays with the
+same lower and upper bounds. On failure these arrays remain unchanged.</li>
+</ul>
+<h4>displace# <em>(DOUBLE)</em></h4>
+<ul>
+<li>The displacement (line distance) of the new polygon, negative for
+inset, positive for outset (if source is traced clockwise), or
+positive for inset and negative for outset (if source is traced
+counter-clockwise). Note this is a type <em>DOUBLE</em> argument, hence
+you may even specify fractions here.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>success% <em>(INTEGER)</em></h4>
+<ul>
+<li>This flag is true (-1) on success or false (0) on failure. On success
+the new polygon corners are stored in the given offset polygon arrays.
+The function fails, if the source polygon has less than 3 corners.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_PolygonSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

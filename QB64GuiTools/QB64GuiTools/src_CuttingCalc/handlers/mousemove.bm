@@ -1,0 +1,8 @@
+    IF BoolTagTrue%(mess$, "MOUSEMOVE") THEN
+        'The mousepointer was moved to a new position, find the new mouse
+        'position in tags "MOUSEX" and "MOUSEY", which are delivered with
+        'all messages. Note that movements are filtered out (ie. do not
+        'deliver this event), if they are used by any GUI object for knob
+        'movement (SliderC, ScrollerC etc.).
+    END IF
+

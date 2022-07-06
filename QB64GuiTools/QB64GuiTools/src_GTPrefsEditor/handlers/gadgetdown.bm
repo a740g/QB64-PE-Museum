@@ -1,0 +1,38 @@
+    IF ValidateTags%(mess$, "GADGETDOWN", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'Any clickable GUI object went into selected state, ie. the left
+        'mousebutton was pressed while the object had focus (MOUSEOVER).
+        'While the object in question remains selected, this event will
+        'also be repeated whenever any vital properties of the object do
+        'change due to user interaction (eg. typing into input fields or
+        'moving a slider/scroller etc.). As of this behavior, this event
+        'is perfectly usable, if you need to do some kind of immediate
+        'reaction for such an object. Nevertheless you should also provide
+        'a GADGETUP handler block for those immediate changing objects in
+        'order to not miss the finalized values. The function ThisObject%()
+        'does match the GADGETDOWN object with a given object to easily
+        'build handling blocks for your objects:
+        ' eg. IF ThisObject%(myObj$, message$, "GADGETDOWN") THEN ...
+        IF ThisObject%(HOvrOpt$, mess$, "GADGETDOWN") THEN
+            IF section$ = "PagerC.WallPen" THEN
+                pen$ = GetTagData$(GenC$("GET", HOvrOpt$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "-1")
+                options.csetHOVR = VAL(pen$)
+                SetPrefs section$, options
+                res$ = GenC$("SET", PreObjBlank$ + NewTag$("WALLPEN", pen$) + NewTag$("PREVIEW", "yes"))
+                res$ = GenC$("SET", PreObjPen$ + NewTag$("WALLPEN", pen$) + NewTag$("PREVIEW", "yes"))
+            END IF
+        END IF
+        '--- palette tool events ---
+        IF ThisObject%(PalColor$, mess$, "GADGETDOWN") THEN
+            GOSUB UpdatePaletteTool
+        END IF
+        IF ThisObject%(PalWheel$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalHSBSliderH$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalHSBSliderS$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalHSBSliderB$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalRGBSliderR$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalRGBSliderG$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalRGBSliderB$, mess$, "GADGETDOWN") THEN
+            GOSUB ChangePalette
+        END IF
+    END IF
+

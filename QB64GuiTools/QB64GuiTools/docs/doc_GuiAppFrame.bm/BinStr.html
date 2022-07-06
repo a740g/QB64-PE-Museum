@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BinStr</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>BinStr$ <em>(function)</em></h2>
+<p>Convert any given dec/hex/oct number into a binary string. Can handle
+positive and negative values and works in that similar to the QB64
+built-in HEX$ and OCT$ functions. The behavior is equal to the new
+_BIN$ function introduced in QB64 v2.1 respectively QB64-PE v0.5, but
+I recommend using <font color="#3232e0">BinStr$()</font> instead, if
+you want your program to be usable with the older QB64 versions too.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>binary$ = BinStr$ (value&amp;&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>value&amp;&amp; <em>(_INTEGER64)</em></h4>
+<ul>
+<li>
+The positive or negative number to convert.
+<ul>
+<li>May also be given as &amp;H or &amp;O prefixed value.</li>
+<li>May also be floating point values, as long as its value fits
+into the <em>_INTEGER64</em> input.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>binary$ <em>(STRING)</em></h4>
+<ul>
+<li>
+The binary representation string of the given number.
+<ul>
+<li>Just as long as needed, hence without leading zeros for positive values.</li>
+<li>Either 8/16/32 or 64 chars for negatives, depending on the input size.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>The possible range for floating point values is approximately
+-9.223372036854776E+18 to 9.223372036854776E+18, but note that only the
+integer part is converted.</li>
+<li>Different from HEX$ and OCT$, BinStr$ won't throw an overflow error, if this
+range is exceeded, but the result is probably wrong in such a case.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

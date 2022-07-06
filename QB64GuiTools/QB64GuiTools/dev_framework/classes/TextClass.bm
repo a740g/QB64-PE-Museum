@@ -1,0 +1,268 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === TextClass.bm ===                                              |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Text Class ======================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide single line text output objects. The output area
+'   may also be framed and the printed text can be left/right justified
+'   or centered within the area. Vertically it will always be centered
+'   in the area.
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION TextC$ (method$, tagString$)
+TextRes$ = ""
+classID$ = "TextC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,WIDTH,HEIGHT,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,IMAGEOBJECT,SYMBOLOBJECT,FORM," +_
+                   "TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY," +_
+                   "LABEL,LABELHIGH,LABELPLACE,LABELMOVEX,LABELMOVEY," +_
+                   "IMAGEFILE,IMAGEHANDLE,AREA,TOOLTIP," '+ user tags
+        'NOTE: If FORM is omitted (frameless object) then any given back
+        '      image (IMAGEHANDLE/IMAGEFILE) is ignored and the text will
+        '      print over the existing display content using _KEEPBACKGROUND
+        '      print mode, good to place independent texts anywhere.
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "IMAGEOBJECT,SYMBOLOBJECT," +_
+                   "TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY," '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "SELECTED," 'properties of parent object
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or empty
+    CASE ELSE
+        SetTag TextRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+TextC$ = TextRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag TextRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    ApplyPrefs classID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, TextRes$, classID$, tagsID$) THEN
+        '--- check for assigned Image/Symbol ---
+        InitAssignedImgSym "IMAGEOBJECT", TextRes$, classID$, tagsID$
+        InitAssignedImgSym "SYMBOLOBJECT", TextRes$, classID$, tagsID$
+        '--- background/frame init (if any) ---
+        BeginChildInit
+        IF ValidateTags%(tagsID$, "FORM", -1) THEN
+            InitObjectBGImg this&, TextRes$, classID$, tagsID$
+            fram$ = FrameC$("INIT", GetTags$(tagsID$, "LEFT,TOP,WIDTH,HEIGHT,FORM") + NewTag$("RECESSED", "true"))
+            guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("FRM0", fram$)
+        ELSE
+            RemTags tagsID$, "IMAGEHANDLE,IMAGEFILE,AREA"
+        END IF
+        EndChildInit
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        '--- set result and schedule gui refresh ---
+        SetTag TextRes$, "OBJECT", LTRIM$(STR$(this&))
+        SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, TextRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = 0
+    IF SetAssignedImgSym%(this&, "IMAGEOBJECT", TextRes$, classID$, tagsID$) THEN flag% = -1
+    IF SetAssignedImgSym%(this&, "SYMBOLOBJECT", TextRes$, classID$, tagsID$) THEN flag% = -1
+    IF UpdateTags%(guiObjects$(objData%, this&), "TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY", tagsID$) THEN flag% = -1
+    text$ = GetTag$(tagsID$, "TEXT"): temp$ = GetTagData$(text$, "TEXT", "n/a")
+    IF text$ <> "" AND temp$ = "n/a" THEN RemTag guiObjects$(objData%, this&), "TEXT": flag% = -1
+    '--- check any remaining user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- redraw object (if required) ---
+    IF flag% THEN
+        IF ValidateTags%(guiObjects$(objData%, this&), "FRM0", 0) THEN
+            resu$ = ObjectRefresh$(this&, "d", "")
+        ELSE
+            SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+        END IF
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, TextRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN TextRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, TextRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete child objects ---
+    resu$ = FrameC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    '--- check for assigned Symbol/Image ---
+    KillAssignedImgSym this&, "SYMBOLOBJECT"
+    KillAssignedImgSym this&, "IMAGEOBJECT"
+    '--- check pager conditions ---
+    KillAssignedPager this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, TextRes$, classID$, methodID$, tagsID$) THEN
+    '--- select drawing colors ---
+    back% = guiBackPen%: text% = guiTextPen% 'text pens
+    IF BoolTagTrue%(tagsID$, "SELECTED") THEN
+        back% = guiFillPen%: text% = guiFillTextPen%
+    END IF
+    '--- get object's dimensions ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    '--- draw object ----
+    IF NOT BoolTagTrue%(guiObjects$(objData%, this&), "LVFLAG") THEN
+        IF ValidateTags%(guiObjects$(objData%, this&), "FRM0", 0) THEN
+            FillRectColor left%, topp%, widt%, heig%, back%
+            resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+        END IF
+    ELSEIF BoolTagTrue%(tagsID$, "SELECTED") THEN
+        FillRectColor left%, topp%, widt%, heig%, back%
+    END IF
+    '--- label output ---
+    PrintObjectLabel this&, left%, topp%, widt%, heig%
+    '--- image/symbol/frame object ---
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "IMAGEOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYMBOLOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = FrameC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    '--- text output ---
+    text$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "n/a")
+    IF text$ <> "n/a" THEN
+        text$ = LTRIM$(RTRIM$(text$))
+        form$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "FORM", ""))
+        plac$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "TEXTPLACE", "left"))
+        xmov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEX", "0"))
+        ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEY", "0"))
+        txto% = (topp% + INT(heig% / 2)) - INT(_FONTHEIGHT / 2)
+        disp% = 0
+        SELECT CASE form$
+            CASE "simple"
+                disp% = 2 + 2 'frame thickness + 2px inner spacing
+            CASE "ridge"
+                disp% = 4 + 2
+            CASE "solid"
+                disp% = 6 + 2
+        END SELECT
+        SELECT CASE plac$
+            CASE "left"
+                txle% = left% + disp%
+            CASE "center"
+                txle% = (left% + INT(widt% / 2)) - INT(_PRINTWIDTH(text$) / 2)
+            CASE "right"
+                txle% = (left% + widt% - 1) - _PRINTWIDTH(text$) - disp%
+        END SELECT
+        prim% = _PRINTMODE
+        SetPrintMode pmKEEP%
+        COLOR text%
+        _PRINTSTRING (txle% + 1 + xmov%, txto% + 1 + ymov%), text$
+        SetPrintMode prim%
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, TextRes$, classID$, methodID$, tagsID$) THEN
+    '--- get mouse position and object dimensions ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    '--- check for mouse focus ---
+    IF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+        SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+    ELSE
+        RemTag guiObjects$(objData%, this&), "FOCUS"
+    END IF
+END IF
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

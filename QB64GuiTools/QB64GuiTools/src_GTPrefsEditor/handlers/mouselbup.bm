@@ -1,0 +1,18 @@
+    IF BoolTagTrue%(mess$, "MOUSELBUP") THEN
+        'The left mousebutton was released after is was pressed and maybe
+        'held down for a while. The current button state is also monitored
+        'in tag "MOUSELB", which is delivered with all messages. Note that
+        'this event type is automatically remapped to "GADGETUP" if the
+        'mousepointer was still or again over the hotspot area of the very
+        'same clickable GUI object which has earlier received the initial
+        '"MOUSELBDOWN" event. Hence you don't need to deal with any checks
+        'yourself, if the mousebutton release did maybe unselect (release)
+        'any object (see gadgetup.bm). Be also aware, that there may be
+        'lonely "MOUSELBUP" events (ie. without a matching "MOUSELBDOWN").
+        'That is, if the down event was remapped to "GADGETDOWN" (see above),
+        'but the up event was not remapped, because the remapping object
+        'no longer had focus. So if necessary, you maybe should only handle
+        'such "MOUSELBUP" events for which you got an "MOUSELBDOWN" event
+        'in the first place (set a flag or something to know about).
+    END IF
+

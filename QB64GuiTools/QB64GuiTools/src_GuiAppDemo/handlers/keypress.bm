@@ -1,0 +1,19 @@
+    IF BoolTagTrue%(mess$, "KEYPRESS") THEN
+        'Any key was pressed (INKEY$ input), find the read char in tag
+        '"KEY" delivered along with this event type. Note that key hits
+        'are filtered out (ie. do not deliver this event), if they are
+        'recognized as keyboard shortcut for any GUI object, or if they
+        'flow as regular input into any active Text/Number input field.
+        IF GetTagData$(mess$, "KEY", "") = CHR$(27) THEN
+            'if you want Esc to be another "quit condition"
+            IF NOT BoolTagTrue%(immq$, "CHECKED") THEN
+                result$ = MessageBox$("", appExeName$,_
+                                      "Do you really wanna quit?",_
+                                      "{SYM Checkmark * * * *}Yes||{SYM Cross * * * *}No")
+                IF result$ = "Yes" THEN done% = -1
+            ELSE
+                done% = -1
+            END IF
+        END IF
+    END IF
+

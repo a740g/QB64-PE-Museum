@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SetBufMark</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>SetBufMark <em>(function)</em></h2>
+<p>This function will bookmark the current buffer position. The marked
+position will automatically be tracked while writing or deleting data in
+the buffer. You can later go back to the marked position by using the
+<a href="GotoBufMark.html">GotoBufMark()</a> function or you may use the bookmark as origin in a <a href="SeekBuf.html">SeekBuf()</a>
+call. You may set up to 100 bookmarks in each buffer.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>markID% = SetBufMark% (handle%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, in which you wanna set the bookmark.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>markID% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the ID number of the new set bookmark on success, or the error
+SBE_NoMoreIDs, if all bookmarks are already in use (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>You should always remove no longer needed bookmarks to make its IDs
+available for reuse.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

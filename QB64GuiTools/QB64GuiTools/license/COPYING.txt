@@ -1,0 +1,49 @@
+The GuiTools Framework project for QB64 with all its files & folders,
+except the "images" folder and its contents, is placed under the terms
+of the MIT License (see MIT-License.txt), it applies to the following
+contents in this distribution:
+    - GuiTools-Info.html
+    - dev_framework\       (entire contents)
+    - dev_storage\         (entire contents)
+    - docs\                (entire contents)
+    - src_CuttingCalc\     (entire contents)
+    - src_GTPrefsEditor\   (entire contents)
+    - src_GuiApp\          (entire contents)
+    - src_GuiAppDemo\      (entire contents)
+    - src_LogicTrainer\    (entire contents)
+    - src_LogicTrainerBig\ (entire contents)
+    - src_MakeCARR\        (entire contents)
+    - src_MakeDATA\        (entire contents)
+    - src_MultiWinDemo\    (entire contents)
+
+For the contents of the "images" folder various rules apply, however
+these rules still allow free use & copying, if followed correctly.
+
+The country flags were taken from the 3DFlags_310.zip archive available
+from https://www.phpbb.com/customise/db/style/3d_countrystate_flags,
+which is under the GNU General Public License version 2 (see GPL-2.0.txt).
+
+The misc icons are available for download here:
+Size 32px => https://www.iconfinder.com/iconsets/32x32-free-design-icons
+Size 16px => https://www.iconfinder.com/iconsets/6x16-free-application-icons
+   the link works, typo (missing 1) is correct  ^^
+you are free to copy, share, modify and use the icons, even commercially,
+as long as you include a link to the authors website (http://www.aha-soft.com/),
+what is done hereby. However, you're not allowed to sell the icons itself.
+
+The patterns and wallpaper images were collected from various free
+available sources such as image/clipart collections shipped via cover
+CDs/DVDs of computer print magazines and Google picture search.
+ For both, Google & CDs/DVDs I've double checked to choose only those
+images, which were explicitly marked as "free for non-commercial re-use",
+so there should no copyright issues arise, as long as you only use these
+images in private/free productions.
+
+An exception is the image "TheKnot.jpg" which is copyright by the
+german artist "Roland Heyder" (yes he has the same name as me, but it's
+not me). However, Mr. Heyder explicitly stated on his website, that he
+is fine with the non-commercial re-use of his pictures, as long as nobody
+claims to be the author or copyright holder of the pictures. Also his
+website (http://www.heyland7.de/) must be explicitly mentioned as the
+picture's source, what is done hereby.
+

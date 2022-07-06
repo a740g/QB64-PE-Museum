@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ImageSupport-Common</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>Common Inputs</h2>
+<p>All effect functions in this library use a regular set of common inputs.
+However, some of the effects may also require its specific inputs, which
+are then noted in the respective effect description.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>Image handles</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>shan&amp; <em>(LONG)</em></h4>
+<ul>
+<li>
+The handle of the 32-bit ARGB source image you wish to process.
+<ul>
+<li>Valid image handle values are usually less than -1.</li>
+<li>A value of zero (0) is also valid and designates the current screen.</li>
+</ul>
+</li>
+</ul>
+<h4>mask&amp; <em>(LONG)</em></h4>
+<ul>
+<li>
+The handle of any 8-bit image to use as mask, or -1.
+<ul>
+<li>If given, then the mask must be an 8-bit (256 colors) image of the very
+same size as the given source image. Each source pixel is then only subject
+to process, if its respective pixel in the mask is drawn in any color &lt;&gt; 0,
+hence colors 1-255.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>Limit the processing area</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>minX% <em>(INTEGER)</em></h4>
+<ul>
+<li>The leftmost pixel column of the image area to process.</li>
+</ul>
+<h4>minY% <em>(INTEGER)</em></h4>
+<ul>
+<li>The topmost pixel row of the image area to process.</li>
+</ul>
+<h4>maxX% <em>(INTEGER)</em></h4>
+<ul>
+<li>The rightmost pixel column of the image area to process.</li>
+</ul>
+<h4>maxY% <em>(INTEGER)</em></h4>
+<ul>
+<li>The bottom-most pixel row of the image area to process.</li>
+</ul>
+<h6><em>Note these limits are clipped according to the source image boundaries. If you don't need a particular limit, then simply set it to -1. If all limits are -1, then the entire image will be processed, unless a mask image is given.</em></h6>
+</blockquote>
+<h2>Common Result</h2>
+<p>All effect functions in this library do also return the same result on
+success or an invalid handle on failure, so make sure to check for this.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>Image handles</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>newImg&amp; <em>(LONG)</em></h4>
+<ul>
+<li>
+The handle of the new (processed) 32-bit ARGB image.
+<ul>
+<li>As usual, valid handles have values less than -1.</li>
+</ul>
+</li>
+</ul>
+<h6><em>Failure may be caused by four common reasons:</em></h6>
+<ol>
+<li>You did provide an invalid source image handle (&gt;= -1 and &lt;&gt; 0).</li>
+<li>The source image was not in 32-bit ARGB mode.</li>
+<li>The function could not obtain a new image handle (Out of Memory?).</li>
+<li>A given mask image was not in 8-bit (256 colors) mode or did not
+match the source image size.</li>
+</ol>
+</blockquote>
+<p>The original passed in source images remain unchanged, so you can simply
+collect all handles of a multiple effect sequence using an array or stack
+for easy undo/redo operations. That said, means you are responsible to
+_FREEIMAGE no longer needed images.</p>
+<p>Also any passed in mask images remain unchanged and the active _SOURCE and
+_DEST handles are not changed either by any effects.</p>
+<hr />
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

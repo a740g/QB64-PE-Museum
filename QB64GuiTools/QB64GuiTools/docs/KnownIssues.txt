@@ -1,0 +1,56 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === KnownIssues.txt ===                                           |
+'|                                                                   |
+'| == Things you should know about before complaining to me ...      |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+- The GuiTools Framework is Windows only, as some Win API calls are used
+  for mutual exclusion handling in file GuiAppFrame.h and some other in
+  the DECLARE LIBRARY block in GuiAppFrame.bi.
+
+- QB64-GL has issues with INPUT/LINE INPUT/INKEY$/INPUT$/_KEYHIT
+  -> using non-US keyboards and/or system input settings, the mentioned
+     input functions do return wrong characters or ASCII values for some
+     keys or key combinations, or even no input at all
+  -> mostly international characters are affected and/or characters which
+     require the use of the "AltGr" key available on some keyboards
+  -> there's an automatically switched and pretty well workaround used for
+     western european languages and respective keyboards for INKEY$ only,
+     called InkeyHit$ (see dev_framework\classes\GuiClasses.bm)
+
+- QB64-GL has issues with $SCREENHIDE/_SCREENMOVE
+  -> most of it are fixed now, but to avoid race conditions I've added
+     a couple of _DELAYs between the screen calls in SUB SetupScreen()
+  However, depending on the performance of your computer these may not
+  always be sufficient to make it work, sometimes the program window will
+  not open at all and the program hangs.
+  - As for this reason, the use of the "Processes" tab of the Windows
+    TaskManager may be required to kill the program. You should also check
+    for multiple instances of the program, as GuiTools its MessageBoxes
+    and FileSelect dialogs are in fact just copies of the main program
+  - slightly raising the mentioned _DELAY times might solve this issue
+
+- QB64-GL seems to be slow with multiple forms/windows operations
+  -> I especially noticed this on some older (Win7 based) Laptops and
+     some low cost (inferior equipment) Desktop computers
+  -> might be a OpenGL/Gfx driver issue, if you've several GPUs in your
+     system (Intel (U)HD Graphics + some Gfx board), then try to assign
+     the compiled program to use the Gfx board if possible, as Intel Gfx
+     seems to be very slow with any OpenGL based programs, hence also
+     such made with QB64-GL
+  -> make sure your Gfx drivers are all up to date
+

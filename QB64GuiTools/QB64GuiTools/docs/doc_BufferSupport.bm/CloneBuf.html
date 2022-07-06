@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CloneBuf</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>CloneBuf <em>(function)</em></h2>
+<p>This function will copy the entire contents of the given source buffer into
+a new buffer and return the new buffer's handle. Also all bookmarks and search
+criteria are duplicated and the current buffer position, the active line endings
+mode and the current &quot;change&quot; state of the source buffer are also taken over
+into the new buffer. Hence, you get an exact clone of the source buffer.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>handle% = CloneBuf% (handle%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, which you wanna clone.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>The handle of the new cloned buffer, which you must later pass to the
+various other buffer functions to designate this buffer for operation.</li>
+<li>If no more buffers are available, then error SBE_NoMoreBuffers is
+returned (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

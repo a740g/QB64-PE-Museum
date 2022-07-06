@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>HUE32-SAT32-BRI32</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ConvertSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>HUE32 &amp; SAT32 &amp; BRI32 <em>(function)</em></h2>
+<p>Some more convenience functions for the HSB/HSV colorspace, parameters
+and results are similar to the QB64 functions _RED32/_GREEN32/_BLUE32
+for the RGB colorspace with the only difference, that the HSB results
+are returned as <em>SINGLEs</em>. If you work with any <em>INTEGER</em> types only, then
+you can use CINT or CLNG on the results to get back the same values
+originally passed to the <a href="HSBA32.html">HSB32()</a>/<a href="HSBA32.html">HSBA32()</a> functions.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>hue! = HUE32! (argbColor&amp;)
+sat! = SAT32! (argbColor&amp;)
+bri! = BRI32! (argbColor&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>argbColor&amp; <em>(LONG)</em></h4>
+<ul>
+<li>The 32-bit ARGB color value to retrieve the HSB/HSV component
+intensity values from.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>hue! <em>(SINGLE)</em></h4>
+<ul>
+<li>This will be returned by the function <font color="#3232e0">HUE32()</font> and represents
+the Hue value of the given color in the range 0-360 degrees.</li>
+</ul>
+<h4>sat! <em>(SINGLE)</em></h4>
+<ul>
+<li>This will be returned by the function <font color="#3232e0">SAT32()</font> and represents
+the Saturation value of the given color in the range 0-100%.</li>
+</ul>
+<h4>bri! <em>(SINGLE)</em></h4>
+<ul>
+<li>This will be returned by the function <font color="#3232e0">BRI32()</font> and represents
+the Brightness value of the given color in the range 0-100%.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_ConvertSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

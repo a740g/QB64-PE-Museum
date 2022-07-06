@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BufToFile</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>BufToFile <em>(sub)</em></h2>
+<p>This subroutine will save the current contents of the designated buffer into
+the specified file. An existing file with the same name will be overwritten.</p>
+<p>The buffer itself remains unaffected regarding the current buffer position,
+set bookmarks, search criteria and active line endings mode. Only its state
+is set to &quot;unchanged&quot; after saving the file, hence you could easily setup an
+auto-save via a timer routine and after save continue working with the buffer
+as usual.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>BufToFile handle%, fileSpec$
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, which you wanna save into a file.</li>
+</ul>
+<h4>fileSpec$ <em>(STRING)</em></h4>
+<ul>
+<li>The name of the file for saving. You may also add a path, if required.</li>
+<li>Make sure any specified path exists to avoid file saving errors, those
+are not caught by this function (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>If you save a plain text buffer and want the line endings of the saved
+file to be suitable for a specific OS, then you may call the appropriate
+conversion subroutine <a href="ConvBufToAnyEol.html">ConvBufToNativeEol()</a>, <a href="ConvBufToAnyEol.html">ConvBufToWinEol()</a> or <a href="ConvBufToAnyEol.html">ConvBufToLnxMacEol()</a>
+right before calling this function.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

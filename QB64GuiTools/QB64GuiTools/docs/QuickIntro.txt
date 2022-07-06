@@ -1,0 +1,122 @@
+A quick introduction into the program structure
+===============================================
+
+The GuiTools Framework ??
+In general a very big library of many useful functions, which you will
+probably never need to its fullest extent, combined with its own special
+init and exit/cleanup procedures, designed to make sure that all programs
+made with the framework can co-exist and safely running at the same time
+without interferrences, but can nevertheless profit from shared resources.
+
+Ie: You get a ready to use program template/skeleton at hand, in which
+    you just add your GUI design and the handling code for your objects
+    in its contextual designated places, while leaving everything else
+    in the program just as it is.
+    Of course, the handling code can also contain instructions to add new
+    objects to the existing GUI, delete and/or modify existing objects or
+    even setup whole new forms on the fly, as the GuiTools Framework its
+    GUIs are organized in a completly dynamic manner internally.
+
+----------------------------------------------------------------------
+
+If you wanna try to do your own application, then the folder src_GuiApp
+is your starting point. This is a ready to use program skeleton, which
+you shouldn't mess up. Ie. your first task should be to make a copy of
+that folder with its entire contents and rename that copy as you like,
+eg. src_MyApp. Then also rename the file GuiApp.bas inside to MyApp.bas.
+
+First thing I want to bring to your attention is the fact, that everything
+inside GuiApp.bas (respectively MyApp.bas) are just GOSUB style subroutines,
+as well as regular SUBs and FUNCTIONs. The GOSUB subroutines are called from
+the appropriate places in the GuiTools Framework init procedure, which is
+mostly contained in and $INCLUDEd from the file dev_framework\GuiAppFrame.bi
+and therfore these subroutines are always running in the context of the main
+module and need to be ended with a simple RETURN instruction. Ie. there
+should be no END or SYSTEM in your own code.
+
+GuiApp/MyApp.bas has several sections, which you can easily find by searching
+for its headings or program labels, or simply by scrolling from top to bottom
+following the next paragraphs. This also gives you the chance to read the
+comments along the code.
+
+1. The heading "My Init/Exit Handlers" with the labels
+    - UserInitHandler:
+    - UserExitHandler:
+   For simple programs you may probably leave this section alone. You need
+   it, if you wanna embed MakeDATA/MakeCARR based files or if you need to
+   do your own special init/exit stuff.
+   The Init Handler is called before entering your main program and the
+   Exit Handler is called after your main program did RETURN.
+
+2. The heading "My Error Handler" with the label
+    - UserErrorHandler:
+   This is the regular error handler of your program. In its current form
+   it just shows a MessageBox about the error and will then nicely branch
+   back into the GuiTools Framework exit/cleanup procedure, which of course
+   also includes calling the UserExitHandler: label. You may add your stuff
+   in this error handler to deal with specific errors. See also:
+   - docs\doc_GuiAppFrame.bm\InternalErrHandler.html
+   - docs\doc_GuiAppFrame.bm\UserErrHandler.html
+
+Right after the error handler you find the label
+ - UserMain:
+As you may guess, this is your main program. It has mainly two sub-sections:
+
+3. The heading "My GUI Setup"
+   Here is the place where you setup the initial GUI objects, ie. the
+   objects available in your GUI right after program startup. Right in
+   front of this heading is an area commented as "Early required Globals",
+   which you should use in conjunction with the GUI setup as needed.
+   If there's a need in your program to dynamically add/remove/modify any
+   objects or even create whole new forms on the fly, then this can also
+   be done everywhere else within your program flow, by name in the event
+   handlers or in your own GOSUBs, SUBs and FUNCTIONs (see below). The
+   objects defined here just represent your startup GUI, which may be
+   all you need for simple applications with a static GUI only.
+
+4. The heading "My Main Loop"
+   This is the main loop of the application. You usually don't need to
+   change anything here. The main loop contains the operational event
+   handler for your entire GUI, ie. it calls the input handler and then
+   passes the received event messages through all event handler blocks,
+   which I've outsourced into its own files (see "handlers" sub-folder)
+   for better overview and contextual separation. Note that all these
+   handlers are still running in the context of the main module, hence
+   you don't need to SHARE any of your object handles created in the
+   "My GUI Setup" section to use it in the handlers. You should have a
+   look into this handler files to learn about the possible events. These
+   files are the places where you add your magic code into the application
+   to handle clicks, keypresses, mouse events etc., for the beginning you
+   should at least be familiar with GUIREFRESH, USERBREAK, KEYPRESS and
+   GADGETUP events. To exit the main loop and cleanly end your program
+   you just need to set the runtime variable "done%" to any non-zero value
+   (best -1 for "true") within any of the event handlers.
+
+After the main loop you find two more sections:
+
+5. The heading "My GOSUB routines" and
+6. The heading "My SUBs/FUNCs"
+   Here is the place for your own routines, SUBs and FUNCTIONs as needed.
+   As part of the latter section, you also have
+7. The heading "My Screen Setup/Cleanup" with the standard SUBs
+    - SetupScreen
+    - CloseScreen
+   These SUBs are used in your main program (UserMain:) to setup the
+   program window in the beginning and close it before the RETURN.
+
+After all this you find lots of $INCLUDE statements which will load the
+framework library with dozens of useful SUBs and FUNCTIONs which you can
+freely use in your code as required. You find desciptions of the available
+functions in the "docs" directory separated into sub-folders by context.
+You should at least have a look into "doc_GuiAppFrame.bm" for a list of
+common SUBs/FUNCTIONs and the globally SHARED variables, maybe there is
+something ready to use, which you don't need to code yourself (eg. temp
+or local user folders).
+
+If you need to embed any files (eg. images) into your program, then you
+can use one of the provided GuiTools applications MakeDATA or MakeCARR
+to convert the files into DATA lines or an data array on C/C++ level.
+The converted data files should go into the "inline" sub-folder and should
+be $INCLUDEd right here just like the already provided inline images.
+The writeback and cleanup of the embedded files should be done within the
+Init/Exit Handlers (see section 1.)

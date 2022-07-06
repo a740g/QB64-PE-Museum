@@ -1,0 +1,8 @@
+    IF BoolTagTrue%(mess$, "KEYPRESS") THEN
+        'Any key was pressed (INKEY$ input), find the read char in tag
+        '"KEY" delivered along with this event type. Note that key hits
+        'are filtered out (ie. do not deliver this event), if they are
+        'recognized as keyboard shortcut for any GUI object, or if they
+        'flow as regular input into any active Text/Number input field.
+    END IF
+

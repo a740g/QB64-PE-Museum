@@ -1,0 +1,647 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === KnownTags.txt ===                                             |
+'|                                                                   |
+'| == These are the general descriptions of all TAGS implemented so  |
+'| == far into the GuiTools classes. Note that there may be special  |
+'| == conditions from class to class (consult Class documentations). |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+================================================================================
+=== Used Syntax ================================================================
+================================================================================
+(----) = untyped data, depends on interpretation from case to case
+(WORD) = INTEGER (-32768 to 32767)
+(LONG) = LONG INTEGER (-2147483648 to 2147483647)
+(SING) = SINGLE (floating point)
+(DOUB) = DOUBLE (floating point)
+(TEXT) = STRING  (variable length)
+(BOOL) = can be INTEGER (but 0/-1 only)
+             or STRING  (but "false"/"true" or "no"/"yes" or "off"/"on" only)
+         Omitted BOOL tags are considered "false" for the INIT method call and
+         most other methods which take boolean tags as input. An exception is
+         the SET method, where omit simply means "don't change" current state,
+         while give it "true" or "false" will set or reset a state respectively.
+
+pub:   = Public tags, which are allowed to be used by the application for all
+         applicable method calls.
+int:   = Internal tags, which are used for class internal interconnection and
+         state handling, these should not be used by the application unless you
+         know exactly what you're doing, however reading any internal tags using
+         the GET method is considered "safe" and sometimes required.
+
+<....> = A list of options allowed for the tag for a specific class, the default
+         value is written in all upper case and will be used, if the tag was
+         omitted for object initialization. Exceptions may apply here and there.
+
+You may find tag names within the GuiTools sources, which are not described
+here. You should never mess with those undocumented tags or make any assumptions
+about its usage. In general they are probably undocumented for a good reason.
+
+First note that tag names should be unique within the given tagString$ argument,
+ie. avoid multiple tags of the same name within the same tagString$ (use SetTag
+instead of AddTag for automatic replacement of same named tags). Be aware, that
+always the 1st found tag is used/returned, if multiples exist.
+
+Further note that the INIT/SET/GET (and similar) methods of all classes can also
+handle any kind and number of user tags additional to the GuiTools tags specified
+below. This means, that you can store any data you may need within any object.
+This can be special IDs, counters, comments, debug information etc.. However, to
+not interfere with the regular GuiTools tags, you must give your own tags any kind
+of underscore separated ID such as a name prefix (eg. MY_ID or USER_DEBUG etc.).
+The GUI message handler will always return a reference to the object, which has
+focus or which was clicked. By this fact, you have immediate access to your own
+data associated with that object by calling its GET method to query your tags.
+
+Note also that every class does only check for the tags it needs for operation,
+hence all additional tags in the given tagString$ (inclusive user tags) are
+ignored for class operation. So don't be worry to have any unused/optional tags
+in the tagString$, it won't hurt the class or its operation.
+
+All tag names (GuiTools and User) are generally case insensitive and whitespace
+proof, ie. "ThisName" = "THISNAME" = "This NAME" = "  T   h I s    n  Am E   ".
+
+================================================================================
+=== Generic Class ==============================================================
+================================================================================
+(TEXT) CLASSNAME        pub: This tag is used and required only for the generic
+                             class GenC its INIT method call. It defines the
+                             object type to create, hence the tag value must be
+                             the name of any available object class (FrameC,
+                             ButtonC, TextC etc.). Should be obvious, but just
+                             to prevent questions: No, the name "GenC" makes no
+                             sense here and will lead to an ERROR response.
+
+================================================================================
+=== Data administration Classes ================================================
+================================================================================
+(LONG) LISTOBJECT       pub: If a list object shall be assigned to another object
+                             type, then this must be the Index of the ListC object
+                             to assign. Simply use the FUNCTION ListTag$ (ListClass.bm)
+                             given the object handle of the desired list, it will
+                             save you some keystrokes as it wraps the required tag
+                             remapping stuff.
+
+(TEXT) SORT             pub: Type of list sorting (Always ascending, simply read
+                             the list in REVERSE direction for decending order.)
+       - ListC               <alphabet|number|FIFO|none>
+                               fifo = first in first out, ie. always append new
+                                      records at the end of the list
+                               none = no defined order, ie. a new record is always
+                                      inserted right after the ACTUAL record, hence
+                                      you can define the insert position yourself
+                                      by setting the ACTUAL record first
+(----) DATA             pub: Any type of arbitrary data, sorting (if any) is done
+                             according to the contents of this tag, also searching
+                             will match this tag, so this tag can be seen as the
+                             "key" or "ID" of the record, whereas the relevant
+                             information is stored in any number of user tags.
+
+(BOOL) CONTINUE         pub: If true, then continue the search with the record
+                             following the last found one. If no record was found
+                             by a previous search or if this tag is set false or
+                             is omitted, then start with the first record again.
+                             Note that this tag is independent from the DATA tag,
+                             so even if you provide different data to search for,
+                             it will continue after the last found record, which
+                             may miss some matches existing before that record.
+                             Hence, this tag should only be used to continue a
+                             search for the same DATA to find multiple matches.
+(BOOL) NOCASE           pub: If true, then ignore case while searching, else the
+                             case is significant (ie. "Foo" <> "foo").
+(TEXT) PARTIAL          pub: Used to search for partial matches.
+       - ListC               <left|any|right> (No default here, if omitted, then
+                                               the search must match entirely.)
+
+(LONG) ACTUAL           pub: Number of selected record for next list operation,
+                             valid range is 1 to RECORDS, 0 returned by the GET
+                             method means list is empty, for all other methods
+                             you may simply use -1 to specify last record. Note
+                             that this value will shift to keep track of the
+                             selected record, if new records get enqueued prior
+                             or equal to the actual position. Note also that this
+                             value does wrap around to the opposite list end when
+                             reading the last (bottom) record, or the first (top)
+                             record in REVERSE mode.
+                             Note that this tag is also used by the multiple
+                             choice object classes CycleC, RadioC and ListviewC
+                             to designate the current choice (list record).
+(BOOL) REVERSE          pub: If true, then ACTUAL is decremented after READ method
+                             call, otherwise incremented. Note that most of other
+                             methods will not change ACTUAL, unless the ACTUAL tag
+                             was explicitly given to that call.
+                             Exceptions:
+                             - The DELETE method will decrement ACTUAL, if the
+                               last (bottom) record in the list is deleted, hence
+                               deleting the last remaining (final) record will
+                               return ACTUAL to 0 (list empty). In all other cases
+                               the value is not changed, as usually the remaining
+                               records will move up to the actual list position.
+                               This behavior allows for a complete list cleanup
+                               starting from any record in the list without the
+                               need to handle any special cases.
+                             - The SEARCH method will set ACTUAL to the found
+                               record, if it was called with the HOLD tag set
+                               true. Without HOLD tag or if no matching record
+                               was found, ACTUAL would remain unchanged.
+(BOOL) HOLD             pub: For READ method call:
+                             - If true, then don't increment/decrement ACTUAL
+                               after read action, useful if you need a record
+                               multiple times or another action shall be done on
+                               the same record. Note that this tag is valid for
+                               one READ method call only. The next call will
+                               regularly count on the ACTUAL value again according
+                               to the last active REVERSE state, unless HOLD is
+                               specified again.
+                             For SEARCH method call:
+                             - If true, then set the ACTUAL value to the found
+                               record (if any).
+(LONG) RECORDS          int: Number of records in the list, 0 if empty list.
+
+(LONG) FIRST            int: Index of the first record in list.
+(LONG) PREVIOUS         int: Index of the previous record in list.
+(LONG) CURRENT          int: Index of the current record in list.
+(LONG) NEXT             int: Index of the next record in list.
+(LONG) LAST             int: Index of the last record in list.
+(LONG) REFOBJ           int: Index of a multiple choice reference object
+
+================================================================================
+=== Object interconnection Classes =============================================
+================================================================================
+--- Increment/Decrement model (constant value change on trigger)
+-----
+(LONG) VALOBJECT        pub: Index of the value holding interconnected object.
+(TEXT) VALTAG           pub: Name of the value holding's tag to incr./decr.
+(DOUB) INCDECVAL        pub: The incr./decr. value to add/sub (pos.=incr./neg.=decr.).
+(LONG) TRIGOBJECT       pub: Index of the interconnected trigger object.
+(BOOL) INTONLY          pub: If true, then the add/sub results will be CLNGed.
+-----
+--- Forwarder model (direct value forwarding)
+-----
+(LONG) PRIOBJECT        pub: Index of the primary interconnected object.
+(TEXT) PRITAG           pub: Name of the primary's tag to forward.
+(LONG) SECOBJECT        pub: Index of the secondary interconnected object.
+(TEXT) SECTAG           pub: Name of the secondary's tag to forward.
+-----
+--- Ratio model (forwarding through an interposed ratio equation)
+-----
+(LONG) MULOBJECT        pub: Index of the multiplier interconnected object.
+(TEXT) MULTAG           pub: Name of the multiplier's tag to ratio forward.
+(TEXT) MULFORMAT        pub: Optional a PRINT USING (or IndexFormat$)
+                             format template for the multiplier's output,
+                             can be literal text and/or one numeric token.
+(DOUB) RATIO            pub: The ratio between the interconnected objects.
+(LONG) DIVOBJECT        pub: Index of the divisor interconnected object.
+(TEXT) DIVTAG           pub: Name of the divisor's tag to ratio forward.
+(TEXT) DIVFORMAT        pub: Optional a PRINT USING (or IndexFormat$)
+                             format template for the divisor's output,
+                             can be literal text and/or one numeric token.
+(BOOL) INTONLY          pub: If true, then the ratio results will be CLNGed.
+-----
+--- HsbRgb model (forwarding through an interposed HSB/RGB converter)
+-----
+(LONG) HUEOBJECT        pub: Index of the object containing the Hue value of the model
+(TEXT) HUETAG           pub: Name of the Hue object's value tag.
+(LONG) SATOBJECT        pub: Index of the object containing the Saturation value of the model
+(TEXT) SATTAG           pub: Name of the Saturation object's value tag.
+(LONG) BRIOBJECT        pub: Index of the object containing the Brightness value of the model
+(TEXT) BRITAG           pub: Name of the Brightness object's value tag.
+(LONG) REDOBJECT        pub: Index of the object containing the Red value of the model
+(TEXT) REDTAG           pub: Name of the Red object's value tag.
+(LONG) GREOBJECT        pub: Index of the object containing the Green value of the model
+(TEXT) GRETAG           pub: Name of the Green object's value tag.
+(LONG) BLUOBJECT        pub: Index of the object containing the Blue value of the model
+(TEXT) BLUTAG           pub: Name of the Blue object's value tag.
+
+================================================================================
+=== Visual GUI object Classes ==================================================
+================================================================================
+(LONG) GUIVIEW          pub: If several GuiViews (forms/windows) are used in the
+                             the App and a new object shall be initialized to be
+                             located in a specific view, then this must be the
+                             Index of that GuiView. Simply use FUNCTION ViewTag$
+                             (GuiClasses.bm) given the index returned by the
+                             FUNCTION CreateGuiView, it will save you some keystrokes
+                             as it wraps the required tag creating stuff.
+
+(WORD) LEFT             pub: Left pixel position to place the object.
+(WORD) TOP              pub: Top pixel position to place the object.
+(WORD) WIDTH            pub: Pixel width for 2-dimensional objects. ImageC can
+                             also take a negative width, which would flip the
+                             image around its vertical axis. Note that the LEFT
+                             tag must provide the right position in this case.
+(WORD) HEIGHT           pub: Pixel height for 2-dimensional objects. ImageC can
+                             also take a negative height, which would flip the
+                             image around its horizontal axis. Note that the TOP
+                             tag must provide the bottom position in this case.
+
+(WORD) LENGTH           pub: Pixel length for 1-dimensional objects.
+(TEXT) ALIGN            pub: Alignment for 1-dimensional objects.
+       - RulerC              <HORIZONTAL|vertical>
+
+(WORD) SPACING          pub: Pixel spacing between options in ListviewC and
+                             RadioC objects (defaults to 1 or 5 respectively).
+
+(TEXT) FORM             pub: Type of ruler/frame appearance, the level is raised
+                             by default, except for pure informative object types
+                             (eg. TextC), where it is always and unalterable recessed.
+       - RulerC              <RIDGE|solid>
+       - FrameC              <SIMPLE|ridge|solid>
+       - ImageC              <simple|ridge|solid> (No default here, if omitted,
+                                                   then no frame is drawn.)
+       - TextC               <simple|ridge|solid> (No default here, if omitted,
+                                                   then no frame is drawn. Also
+                                                   the level is always recessed.)
+       - RadioC              <simple|ridge|solid> (No default here, if omitted,
+                                                   then no frame is drawn.)
+(BOOL) RECESSED         pub: If true, then change the level to look recessed.
+                             Will have no effect for TextC objects.
+
+-----
+--- for understanding,
+--- TEXT is used for the text content placed inside objects
+-----
+(TEXT) TEXT             pub: Any text, usage depends on the object type.
+(TEXT) TEXTPLACE        pub: Text placement relativ to the object.
+       - RulerC              <left|CENTER|right>
+       - FrameC              <topleft|TOPCENTER|topright|
+                              bottomleft|bottomcenter|bottomright>
+       - StringC             <LEFT|center|right>
+       - TextC               <LEFT|center|right>
+       - RadioC              <left|RIGHT>
+(WORD) TEXTMOVEX        pub: Delta X adjustment for text.
+(WORD) TEXTMOVEY        pub: Delta Y adjustment for text. (Object's text position
+                             calculation is optimized for use of the QB64 inbuild
+                             fonts 8/14/16. Using custom (_LOADFONT) fonts may cause
+                             unprecise positions, use these tags for manual adjustment.
+                             Another use could be to make some space for an embedded
+                             image or symbol.)
+
+-----
+--- for understanding,
+--- LABEL is a descriptive text placed outside of any objects
+-----
+(TEXT) LABEL            pub: Any descriptive text for the object.
+(BOOL) LABELHIGH        pub: If true, then use guiHighPen% to print label, else
+                             guiShinePen% is used.
+(TEXT) LABELPLACE       pub: Label placement relativ to the object.
+       - All classes         <left|ABOVE|right|below>
+(WORD) LABELMOVEX       pub: Delta X adjustment for label.
+(WORD) LABELMOVEY       pub: Delta Y adjustment for label. (Object's label position
+                             calculation is optimized for use of the QB64 inbuild
+                             fonts 8/14/16. Using custom (_LOADFONT) fonts may cause
+                             unprecise positions, use these tags for manual adjustment.)
+
+(LONG) IMAGEOBJECT      pub: If an preloaded image object shall be assigned
+                             to another object type, then this must be the
+                             Index of the ImageC object to assign. Simply use
+                             the FUNCTION ImageTag$ (ImageClass.bm) given the
+                             object handle of the desired image, it will save
+                             you some keystrokes as it wraps the required tag
+                             remapping stuff.
+(TEXT) IMAGEFILE        pub: The filename (with or without path) of the image
+                             file to load. It's 1st tried to load the image
+                             from a given path, if that fails or no path was
+                             given, then images are automatically searched in
+                             various locations. When you publish a program,
+                             then simply distribute your EXE along with the
+                             "images" folder or embed your images into the EXE.
+(LONG) IMAGEHANDLE      pub: In alternative the image handle of any existing
+                             image (from _LOADIMAGE, _NEWIMAGE or _COPYIMAGE)
+                             in any color depth (1-32 bits). If given both
+                             (file & handle), then IMAGEFILE is ignored in
+                             general, but is still checked/used as fallback
+                             if IMAGEHANDLE is invalid. If the init method call
+                             fails or you call the kill method on an ImageC
+                             object created with this tag, then the given handle
+                             is freed automatically, hence the handle becomes
+                             invalid for further image operations.
+(BOOL) AREA             pub: If true, then the WIDTH and HEIGHT tags determine
+                             the area size to fill, otherwise they do specify
+                             the desired image size. That means, with AREA set
+                             true the original image size is preserved and the
+                             designated area is filled either by clipping too
+                             large images or by tiling too small ones. Without
+                             AREA (or if set false), the loaded image would be
+                             scaled to fit the given WIDTH/HEIGHT.
+(WORD) CLEARCOLOR       pub: Any color pen number (0-255), which shall be drawn
+                             transparent (see _CLEARCOLOR keyword in the wiki).
+                             Note that all loaded images are Floyd-Steinberg
+                             remapped in the GuiTools Framework, hence you
+                             should have a palette entry set up to match the
+                             respective color perfectly. Otherwise it could
+                             happen that your transparent color is compromised
+                             when the image is remapped. Full alpha transparency
+                             usually results into full black in the remapped
+                             image, which is pen 39 in GuiTools its palette.
+(BOOL) BACKFILL         pub: If true, then the image is installed as background
+                             for the program screen/window. Note there can be
+                             only one background image at a time, ie. INITing
+                             a new one will automatically dispose the current
+                             background image object (if any).
+
+(LONG) SYMBOLOBJECT     pub: If a preselected symbol object shall be assigned
+                             to another object type, then this must be the
+                             Index of the SymbolC object to assign. Simply use
+                             the FUNCTION SymbolTag$ (SymbolClass.bm) given the
+                             object handle of the desired symbol, it will save
+                             you some keystrokes as it wraps the required tag
+                             remapping stuff.
+(TEXT) WHICH            pub: The name of the desired symbol to create (see
+                             class documentation in SymbolClass.bm).
+(WORD) BACKPEN          pub: Color number to use for the portions of any
+                             symbol, which would by implemented symbol design
+                             be rendered with guiBackPen% by default.
+(WORD) SHADOWPEN        pub: Color number to use for the portions of any
+                             symbol, which would by implemented symbol design
+                             be rendered with guiShadowPen% by default.
+(WORD) SHINEPEN         pub: Color number to use for the portions of any
+                             symbol, which would by implemented symbol design
+                             be rendered with guiShinePen% by default.
+(WORD) BORDERPEN        pub: Color number to use for the surrounding lines
+                             (border) of the single polygons in a symbol,
+                             defaults to guiTextPen%.
+
+(BOOL) KEEPASPECT       pub: Currently used by Image- and SymbolClass.
+                             If true, then any required object scaling is
+                             done preserving the original aspect ratio.
+                             This is done in such a way, that the scaled
+                             image/symbol will never exceed its bounding
+                             box defined by the WIDTH and HEIGHT tags.
+(BOOL) STANDALONE       pub: Currently used by Image- and SymbolClass.
+                             If true, then this is a standalone object to be
+                             placed somewhere in the GUI. Note those objects
+                             cannot be assigned to other objects. Note also,
+                             that BACKFILL images and images/symbols placed
+                             onto a pager via the PAGEROBJECT tag do auto-
+                             matically imply STANDALONE for such objects.
+
+(TEXT) ALLOWED          pub: A string containing all allowed chars for StringC
+                             text/number input fields (eg. "-.1234567890" to
+                             allow numbers only), if ommitted or empty, then
+                             all ASCII chars in range 32-255 are allowed.
+                             Chars 0-31 cannot be used (ignored if given).
+                             Exception: char 21 (§)
+
+(----) MAXIMUM          pub: For StringC this is a WORD which designates the
+                             maximum input length in chars (default = 300).
+                             For SliderC it is a LONG which designates the
+                             maximum level of the slider (may be negative).
+(LONG) MINIMUM          pub: Used by SliderC, it designates the minimum level
+                             of the slider (may be negative).
+(LONG) LEVEL            pub: Holds the actual level of a SliderC object or
+                             the percentage of a ProgressC object. It can
+                             be used with INIT/SET methods to set the
+                             initial or a new level programatically.
+(TEXT) ALTMIN           pub: Alternative level output, if a slider is on its
+                             minimum level (eg. a volume slider's minimum
+                             could alternatively be displayed as "Mute").
+                             Note that this does only change the output,
+                             the LEVEL does still hold the numeric value.
+(TEXT) ALTMAX           pub: Alternative level output, if a slider is on its
+                             maximum level.
+(BOOL) NOSHOW           pub: Set true to suppress the level output in the
+                             slider's knob. You may use a ModelC Forwarder
+                             object to route the actual level to another
+                             display object instead. You may also use a
+                             ModelC Ratio object instead to implement a
+                             floating point slider (see GuiToolsFramework.pdf).
+
+(WORD) VISIBLENUM       pub: ScrollerC needs the number of visible lines/columns
+                             of the view it is connected to (represented by the
+                             current scroll knob size).
+(LONG) TOPNUM           pub: The first line/column number to be displayed in the
+                             visible area (represented by the current knob position
+                             within the scroller's container), starts at zero.
+(LONG) TOTALNUM         pub: Is the total number of lines/columns in the text
+                             buffer (projected to the scrollers container size).
+
+(WORD) HUE              pub: The current Hue represented by the ColorwheelC's knob,
+                             range is 0-360 degrees.
+(WORD) SATURATION       pub: The current Saturation represented by the ColorwheelC's
+                             knob, range is 0-100 percent.
+
+(LONG) PAGEROBJECT      pub: If pagers are used in the GUI and a new object is
+                             initialized to be located on a specific page, then
+                             this must be the Index of that PagerC object.
+                             Simply use the FUNCTION PagerTag$ (PagerClass.bm)
+                             given the object handle of the desired pager, it
+                             will save you some keystrokes as it wraps the
+                             required tag remapping stuff.
+(WORD) WALLLEFT         pub: The pager's wall area its left border coordinate.
+(WORD) WALLRIGHT        pub: The pager's wall area its right border coordinate.
+(WORD) WALLBOTTOM       pub: The pager's wall area its bottom border coordinate,
+                             note that the top border is right below of the
+                             clickable page/tab handle, hence TOP + HEIGHT tags.
+(TEXT) WALLIMAGE        pub: \  This 3 tags work exactly like the IMAGEFILE,
+(LONG) WALLHANDLE       pub:  > IMAGEHANDLE and AREA tags, but designate the
+(BOOL) WALLAREA         pub: /  pager's wall area background image only.
+(WORD) WALLPEN          pub: In alternative (or as fallback, if any image could
+                             not be loaded) you may also specify a single color
+                             pen number used to clear out the pager's wall area,
+                             this will default to guiBackPen%, if not given.
+
+(TEXT) TOOLTIP          pub: Any help or info text for the object, which is
+                             displayed, if the mouse pointer does rest over the
+                             object for a short time. If required, then you may
+                             give multiple text lines separated with a bar "|".
+(TEXT) SHORTCUT         pub: This tag defines a keyboard shortcut for the object.
+                             Must be the return value of the support FUNCTION
+                             MakeShortcut$ (see GuiClasses.bm).
+(BOOL) DISABLED         pub: If true, then the object is drawn ghosted and is
+                             not selectable until it is enabled again. Used
+                             for interactive objects only (Button, Pager etc.).
+(BOOL) PASSIVE          pub: Currently used by StringClass only.
+                             Force a text/number input field to be quiet on
+                             random unselection caused by user activity on any
+                             other GUI objects, hence the input field will not
+                             fire the GADGETUP event in such cases, but only
+                             if the field was explicitly confirmed by the user
+                             via an ENTER press.
+(BOOL) ACTIVE           pub: Currently used by PagerClass only.
+                             If true, then this object is the active one within
+                             a certain Pager/Tab group.
+(BOOL) CHECKED          pub: Currently used by CheckboxClass only.
+                             If true then the checkbox object in question is
+                             currently checked (or switched ON so to say),
+                             otherwise it's unchecked (or OFF).
+(BOOL) READONLY         pub: Currently used by ListviewClass only.
+                             If true then the listview object in question is
+                             in read-only mode, ie. the user may still browse
+                             the list, but can't select any entries.
+
+(LONG) OBJECT           pub: The object handle (index) returned by INIT method
+                             and required by all other method calls. Note that
+                             this tag always refers to an object of the called
+                             class, if additional other object types are required
+                             for any method call, then those tags will be named
+                             directly (eg. PAGEROBJECT, IMAGEOBJECT etc.).
+                             Classes may provide simple OBJECT tag remapping
+                             functions for this (eg. PagerTag$(), ImageTag$() etc.).
+(TEXT) ERROR            pub: An error message, may be returned by any method call
+                             and means the method could not finish properly.
+(TEXT) WARNING          pub: A warning message, may be returned by any method call
+                             and means the method could still finish by using
+                             internal fallbacks, or by simply ignoring the faulty
+                             behavior if it does not vitally affect the internal
+                             GUI operations. However, especially for the DRAW
+                             method this may mean, that an object is not rendered
+                             the way it was intended.
+
+(TEXT) TAGNAMES         pub: A comma separated list of tag names to query/process.
+
+(LONG) IHANDLE          int: Image handle returned by QB64 function _LOADIMAGE.
+(LONG) RHANDLE          int: Image handle returned by GuiTools function RemapImageFS&.
+
+(BOOL) FOCUS            int: If true, then the object does currently have focus.
+(BOOL) SELECTED         int: If true, then the object is curently selected.
+
+(BOOL) RELEASED         int: If true, then the object did lose its selected state
+                             while still/again having focus, in all other cases
+                             only SELECTED will fall back to false. Note this is
+                             a internal return value for the GUI message handler
+                             only, it is no object property/state.
+
+================================================================================
+=== GUI events returned by FUNCTION GetGUIMsg$() ===============================
+================================================================================
+(BOOL) GUIREFRESH       pub: Is true, if the GUI needs a complete refresh, that
+                             is redrawing all its objects in their hierachical
+                             order. Normally handled automatically by using the
+                             SUBs BeginGUIRefresh() & EndGUIRefresh().
+
+(BOOL) USERBREAK        pub: Is true, whenever the user did click the window's (X)
+                             button or pressed Ctrl-Break or Alt-F4 to exit.
+
+(BOOL) KEYPRESS         pub: Is true, if a (non-modifier) key was pressed.
+(TEXT) KEY              pub: This tag is delivered only together with KEYPRESS
+                             events, it's the retrieved key value (using INKEY$).
+                             Note that INKEY$ may return CHR$(0) + "char" for
+                             special keys like function or arrow keys. Note that
+                             these tags are returned only, if the keypress was
+                             not "eaten" by any object as its assigned SHORTCUT.
+                             See also the SHIFT, CTRL, ALT and MODKEYS tags.
+
+(BOOL) MOUSELBDOWN      pub: Is true, if the left mouse button was pressed, you
+                             should consider the button is still down, until you
+                             receive a MOUSELBUP event.
+(BOOL) MOUSELBUP        pub: Is true, if the left mouse button was released.
+(BOOL) MOUSEMBDOWN      pub: Same for middle mouse button.
+(BOOL) MOUSEMBUP        pub: Same for middle mouse button.
+(BOOL) MOUSERBDOWN      pub: Same for right mouse button.
+(BOOL) MOUSERBUP        pub: Same for right mouse button.
+                             See also the tags MOUSELB, MOUSEMB and MOUSERB.
+                             Note that the left button events are remapped to
+                             GADGETDOWN and GADGETUP, if the press/release did
+                             happen over the hotspot area of an clickable object.
+                             Hence there may be lonely MOUSELBUP events comming
+                             in, if the button was pressed while focusing an
+                             object (which will be mapped to GADGETDOWN), but
+                             then released after moving the mouse out of focus.
+                             So if necessary, you maybe should only handle such
+                             MOUSELBUP events for which you got an MOUSELBDOWN
+                             event in the first place (set a flag or something
+                             to know about).
+
+(BOOL) MOUSESCROLL      pub: Is true, if the mouse scroll wheel was turned.
+(WORD) SCRVAL           pub: This tag is delivered only together with MOUSESCROLL
+                             events, it's the retrieved scroll distance, which
+                             is negative for upwards turns and positive for down.
+                             Note that these tags are returned only, if the turn
+                             was not "eaten" by any object with movable elements
+                             like Sliders, Scrollers.
+
+(BOOL) MOUSEMOVE        pub: Is true, if the mouse was moved compared to its last
+                             known position (last GetGUIMsg$() call). See also
+                             the tags MOUSEX and MOUSEY. Note that this tag is
+                             returned only, if the move was not "eaten" by any
+                             object with movable elements like Sliders, Scrollers.
+
+-----
+--- The values of the next five tags are not simple booleans (true/false), but
+--- instead they indicate the index of the object, which has triggered the event.
+--- Simply use the FUNCTION ThisObject%() in your event handlers to easily match
+--  any of these five event tags against your GUI object handles as returned by
+--- the INIT method calls of the respective object classes.
+-----
+(LONG) MOUSEIN          pub: The mouse pointer has just entered the hotspot area
+                             of any clickable object, means the returned object
+                             just went into focus.
+(LONG) MOUSEOUT         pub: The mouse pointer has just left the hotspot area
+                             of any clickable object, means the returned object
+                             just did lose the focus.
+(LONG) MOUSEOVER        pub: The mouse does currently focus an clickable object,
+                             means the pointer is over the hotspot area of the
+                             returned object. Other than MOUSEIN/OUT, this event
+                             is send permanently 'til the object will lose focus.
+                             Note also that this tag's value may differ from the
+                             GADGETDOWN/UP event, if another object than the one
+                             focused is triggered by its keyboard shortcut.
+(LONG) GADGETDOWN       pub: The focused object went into selected state, means
+                             the left mouse button was pressed while the pointer
+                             was over the hotspot area. Note that this event is
+                             not necessarily followed by GADGETUP, as the user
+                             may move the mouse out of focus before releasing
+                             the left mouse button. This event is also repeated
+                             for every value change to allow immediate handling
+                             (eg. when typing into a StringC object or moving the
+                             knob of an SliderC or ScrollerC object etc.).
+(LONG) GADGETUP         pub: The focused object was successfully triggered, means
+                             after entering select state (GADGETDOWN), the left
+                             mouse button was released again while the pointer
+                             was still or again over that object. Hence, select
+                             a gadget but then moving the mouse away from the
+                             object before releasing the mouse button (outside
+                             of the object) will NOT trigger the object, it will
+                             just lose its selected state. However, as long as
+                             the mouse button is not released, you can move the
+                             pointer back over the object and it will remember
+                             its selected state.
+
+-----
+--- The modifier tags are delivered with every possible GUI event, if any of the
+--- according keys were hold down while the event did occur. That means you can
+--- check for shift/ctrl/alt-clicks on any object or take them in addition to the
+--- KEYPRESS/KEY tags. However, the modifier tags are never delivered by itself,
+--- as pressing a modifier key is not considered as input event.
+--- Spoken different: A modifier is no input, it just will modify another input.
+-----
+(BOOL) SHIFT            pub: Is true, if any Shift-Key was down.
+(BOOL) CTRL             pub: Is true, if any Ctrl-Key was down.
+(BOOL) ALT              pub: Is true, if any Alt-Key was down.
+(TEXT) MODKEYS          pub: If you need to know which keys exactly were down,
+                             then check the contents of this tag. It's a comma
+                             separated list of key names (all lower case):
+                             lshift = left shift key, rshift = right shift key
+                             lctrl  = left ctrl  key, rctrl  = right ctrl  key
+                             lalt   = left alt   key, ralt   = right alt   key
+                             Note that the AltGr key available on some keyboards
+                             does usually set CTRL+ALT true, while the MODKEYS
+                             are lctrl,ralt.
+
+-----
+--- The next five tags are not considered GUI events, but state indicators. They
+--- are delivered with every retrieved GUI message (GetGUIMsg$() call), doesn't
+--- matter if there was a real GUI event or not. This may come in handy when
+--- implementing some kind of drawing application, which needs constant mouse
+--- movement and button states.
+-----
+(WORD) MOUSEX           pub: Current mouse X position.
+(WORD) MOUSEY           pub: Current mouse Y position.
+(BOOL) MOUSELB          pub: Current left mouse button state.
+(BOOL) MOUSEMB          pub: Current middle mouse button state.
+(BOOL) MOUSERB          pub: Current right mouse button state.
+

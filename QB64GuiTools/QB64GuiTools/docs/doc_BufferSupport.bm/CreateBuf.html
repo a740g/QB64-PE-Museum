@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CreateBuf</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>CreateBuf <em>(function)</em></h2>
+<p>This function will prepare a new empty buffer for use and return its buffer
+handle. The buffer will use the OS native line endings mode and its initial
+state is &quot;changed&quot;.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>handle% = CreateBuf%
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>The handle of the new empty buffer, which you must later pass to the
+various other buffer functions to designate this buffer for operation.</li>
+<li>If no more buffers are available, then error SBE_NoMoreBuffers is
+returned (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>You may change the line endings mode at any time by calling the appropriate
+conversion subroutine <a href="ConvBufToAnyEol.html">ConvBufToNativeEol()</a>, <a href="ConvBufToAnyEol.html">ConvBufToWinEol()</a> or <a href="ConvBufToAnyEol.html">ConvBufToLnxMacEol()</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

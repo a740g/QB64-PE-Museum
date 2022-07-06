@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>EndOfBuf</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>EndOfBuf <em>(function)</em></h2>
+<p>This function will return a boolean value (flag), indicating whether the
+current buffer position in the specified buffer is at the buffer
+end position (ie. at <a href="GetBufLen.html">GetBufLen()</a> + 1) or not. It's similar to the EOF function
+for file access and mainly useful to check when sequentially reading from the
+buffer in a closed loop. However, as the current buffer position may change
+with any buffer operations, this flag is a snapshot of the current state only,
+hence it shouldn't be cached in a variable, but always used directly.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>eob% = EndOfBuf% (handle%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna check
+the &quot;End Of Buffer&quot; condition.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>eob% <em>(INTEGER)</em></h4>
+<ul>
+<li>Is true (-1), if the current position is at the buffer end, false (0) otherwise.</li>
+<li>The &quot;End Of Buffer&quot; position is one byte past the current buffer contents,
+where no more valid data is readable, but in which new data is appended when
+writing to the buffer end.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

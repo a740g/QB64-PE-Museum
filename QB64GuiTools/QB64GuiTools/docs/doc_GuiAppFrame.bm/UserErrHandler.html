@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>UserErrHandler</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>UserErrHandler <em>(sub)</em></h2>
+<p>Switch the error handling to the User error handler. Different from the
+Internal error handler, the globally SHARED variable appLastErr% is not
+cleared by this routine, instead it will keep the number of the last error
+(which was maybe set by the Internal error handler), so you can still check
+for an error from the Internal handler after you've switched back to the
+User handler. This behavior allows for shorter periods with the Internal
+handler active. The User handler itself will (again) store the number of
+any occurred error to the variable appLastErr% for later check and will then
+do some actions for the respective error. Finally it will RESUME to any
+appropriate position, which may either continue the program or do a regular
+cleanup and then abort the program, depending on the error. You may also add
+your own magic into the User error handler as needed.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>UserErrHandler
+</code></pre>
+
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

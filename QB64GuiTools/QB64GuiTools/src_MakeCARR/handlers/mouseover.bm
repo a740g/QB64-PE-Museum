@@ -1,0 +1,10 @@
+    IF ValidateTags%(mess$, "MOUSEOVER", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'Any clickable GUI object is currently in focus state, ie. the
+        'mousepointer is over the hotspot area of that object. Note this
+        'event is delivered permanently with every message, as long as
+        'the mousepointer remains over the hotspot area of any object.
+        'The function ThisObject%() does match the MOUSEOVER object with
+        'a given object to easily build handling blocks for your objects:
+        ' eg. IF ThisObject%(myObj$, message$, "MOUSEOVER") THEN ...
+    END IF
+

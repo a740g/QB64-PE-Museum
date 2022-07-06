@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ParseLine</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>ParseLine <em>(function)</em></h2>
+<p>Does parse the given input line and break the line up into its individual
+words or components according to the given separators and quoting chars.</p>
+<p>Any kind and number of the given separator chars will split the components
+unless they appear in quoted sections. Parts of the line enclosed by the
+given quotation char(s) will be handled as one word or component. For more
+specific information see the <strong><em>PARSING RULES</em></strong> below.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>ub&amp; = ParseLine&amp; (inpLine$, sepChars$, quoChars$, outArray$(), minUB&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>inpLine$ <em>(STRING)</em></h4>
+<ul>
+<li>The input line which you want to process. This may in fact be any
+sequence of chars including control chars and zeros.</li>
+</ul>
+<h4>sepChars$ <em>(STRING)</em></h4>
+<ul>
+<li>
+This string may contain up to 5 different chars, which shall serve as
+separators, such as tabs or spaces. More chars following the 5th one will
+be ignored.
+<ul>
+<li>If left empty, then only the given quoting char(s) will split the
+components.</li>
+</ul>
+</li>
+</ul>
+<h4>quoChars$ <em>(STRING)</em></h4>
+<ul>
+<li>
+This string may contain up to 2 different chars, which shall serve as
+quotation marks. More chars following the 2nd one will be ignored.
+<ul>
+<li>If left empty, then the regular quotation mark (<strong>&quot;</strong>) is used by default.</li>
+<li>If only one char is given, then it simply replaces the regular quotation
+mark (<strong>&quot;</strong>).</li>
+<li>
+If two chars are given, then the first one serves as opening quote mark
+and the second one as matching closing quote mark.
+<ul>
+<li>If both chars are identical, then it behaves like only one char again.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4>outArray$() <em>(STRING array)</em></h4>
+<ul>
+<li>This must be a 1-dimensional REDIMed (dynamic) <em>STRING</em> array of at
+least one element, in which the individual components will be stored.
+The array will be internally adjusted as needed for the number of
+components found in the input line. It will always keep the lower
+bound, but will raise or reduce the upper bound as needed.</li>
+</ul>
+<h4>minUB&amp; <em>(LONG)</em></h4>
+<ul>
+<li>
+Should be either zero or the minimum upper bound, which the output
+array shall have after the call. This can be used, if you expect a fix
+number of components.
+<ul>
+<li>If the input line has not enough components, then the unused array
+elements remain empty.</li>
+<li>Note that the array may still grow bigger, if the line has more
+components than expected.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>ub&amp; <em>(LONG)</em></h4>
+<ul>
+<li>The final upper bound of the output array after parsing. It will
+be negative (-1) if there was nothing to parse (ie. the input line
+was either empty or consisted of separators only), the given array
+remains unchanged in that case.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>PARSING RULES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h6><strong>Note that a char cannot be a separator and a quoting char at the same time, if required you've to workaround that by performing several parsing stages !!</strong></h6>
+<ul>
+<li>Any separators will split up the words or components as usual.</li>
+<li>Opening a quotation will also split (even without leading separators),
+ie. it will finish the currently processed (unquoted) component and begins
+the quoted one.</li>
+<li>Closing a quotation (even without trailing separators) will finish the
+current (quoted) component.</li>
+<li>Quoted components may be empty (&quot;&quot;) and produce an empty array entry
+in that case.</li>
+<li>An open quoted component with no closing mark in the remaining input line
+will be closed at the end of line (EOL), ie. the complete remaining line is
+taken (as is) in one quoted component.</li>
+<li>With respect to the latter two points, opening a quotation with the very
+last char of the input line will produce an additional empty array
+entry (as it is, in fact, an empty quoted component closed by EOL).</li>
+</ul>
+<h6><em>Quoting rules: (one char mode)</em></h6>
+<ul>
+<li>Very simple and logic, the 1st occurrence of the given quoting char opens
+a quote, the 2nd occurrence does close it, the 3rd will open the next quote,
+the 4th does close it again and so on.</li>
+</ul>
+<h6><em>Quoting rules: (two chars mode)</em></h6>
+<ul>
+<li>The occurrence of the opening quote mark (1st given char) does open a quote,
+further only a matching occurrence of the closing quote mark (2nd char)
+does close the (quoted) component.</li>
+<li>
+Nesting of several quotes is not supported, hence every quote must be closed,
+before another one may be opened, ie:
+<ul>
+<li>Further open/close markers inside a quote will be handled as literal text
+until the internal counter recognizes a matching close marker.</li>
+<li>Also close markers outside a quote will be handled as literal text as well.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

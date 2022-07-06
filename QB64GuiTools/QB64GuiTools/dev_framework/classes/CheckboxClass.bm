@@ -1,0 +1,293 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === CheckboxClass.bm ===                                          |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Checkbox Class ==================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide clickable checkbox's optionally with a text label
+'   placed next to it describing its function. You may also assign a
+'   keyboard shortcut, which shall toggle the checkbox state. If width
+'   and/or height aren't given, then the default size will be 31x31 pixels,
+'   which fits best for the nominal size of the checkmark symbol. If you
+'   give other sizes, scaling of the checkmark symbol is done without
+'   keeping its aspect ratio, so it's probably a good idea to stay with
+'   square checkbox sizes.
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION CheckboxC$ (method$, tagString$)
+CheckboxRes$ = ""
+classID$ = "CheckboxC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,IMAGEOBJECT,SYMBOLOBJECT,WIDTH,HEIGHT," +_
+                   "LABEL,LABELHIGH,LABELPLACE,LABELMOVEX,LABELMOVEY," +_
+                   "CHECKED,IMAGEFILE,IMAGEHANDLE,AREA," +_
+                   "TOOLTIP,SHORTCUT,DISABLED," '+ user tags
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "IMAGEOBJECT,SYMBOLOBJECT,CHECKED,DISABLED," '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or SELECTED,RELEASED,SHORTCUT (may be empty)
+    CASE ELSE
+        SetTag CheckboxRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+CheckboxC$ = CheckboxRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag CheckboxRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    ApplyPrefs classID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, CheckboxRes$, classID$, tagsID$) THEN
+        '--- object specific init ---
+        widt% = VAL(GetTagData$(tagsID$, "WIDTH", "31")): SetTag tagsID$, "WIDTH", LTRIM$(STR$(widt%))
+        heig% = VAL(GetTagData$(tagsID$, "HEIGHT", "31")): SetTag tagsID$, "HEIGHT", LTRIM$(STR$(heig%))
+        '--- check for assigned Image/Symbol ---
+        InitAssignedImgSym "IMAGEOBJECT", CheckboxRes$, classID$, tagsID$
+        InitAssignedImgSym "SYMBOLOBJECT", CheckboxRes$, classID$, tagsID$
+        '--- background/frame/symbol init ---
+        BeginChildInit
+        InitObjectBGImg this&, CheckboxRes$, classID$, tagsID$
+        fram$ = FrameC$("INIT", GetTags$(tagsID$, "LEFT,TOP,WIDTH,HEIGHT") + NewTag$("FORM", "simple"))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("FRM0", fram$)
+        symb$ = SymbolC$("INIT", NewTag$("WHICH", "Checkmark") + NewTag$("SHADOWPEN", LTRIM$(STR$(guiShadowPen%))) + NewTag$("LEFT", "9") + NewTag$("TOP", "7") + NewTag$("WIDTH", LTRIM$(STR$(widt% - 18))) + NewTag$("HEIGHT", LTRIM$(STR$(heig% - 14))))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("SYM0", symb$)
+        EndChildInit
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        ObjectsUnselect this&
+        '--- set result and schedule gui refresh ---
+        SetTag CheckboxRes$, "OBJECT", LTRIM$(STR$(this&))
+        SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, CheckboxRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = 0
+    IF SetAssignedImgSym%(this&, "IMAGEOBJECT", CheckboxRes$, classID$, tagsID$) THEN flag% = -1
+    IF SetAssignedImgSym%(this&, "SYMBOLOBJECT", CheckboxRes$, classID$, tagsID$) THEN flag% = -1
+    IF UpdateTag%(guiObjects$(objData%, this&), "CHECKED", tagsID$) THEN flag% = -1
+    temp$ = GetTagData$(tagsID$, "DISABLED", "n/a")
+    IF temp$ <> "n/a" THEN
+        IF BoolTagTrue%(tagsID$, "DISABLED") THEN
+            RemTags guiObjects$(objData%, this&), "FOCUS,SELECTED"
+            SetTag guiObjects$(objData%, this&), "DISABLED", "true"
+        ELSE
+            RemTag guiObjects$(objData%, this&), "DISABLED"
+        END IF
+        flag% = -1
+    END IF
+    '--- check any remaining user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- redraw and update object (if required) ---
+    IF flag% THEN resu$ = ObjectRefresh$(this&, "du", "")
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, CheckboxRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN CheckboxRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, CheckboxRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete child objects ---
+    resu$ = SymbolC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "SYM0"))
+    resu$ = FrameC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BBGIMG"))
+    '--- check for assigned Symbol/Image ---
+    KillAssignedImgSym this&, "SYMBOLOBJECT"
+    KillAssignedImgSym this&, "IMAGEOBJECT"
+    '--- check pager conditions ---
+    KillAssignedPager this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, CheckboxRes$, classID$, methodID$, tagsID$) THEN
+    '--- select drawing colors ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") AND BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+        back% = guiFillPen% 'back pen
+        focu% = guiFillTextPen%: disa% = guiFillPen% 'state pens
+        rebo$ = "true" 'recess border frame?
+    ELSE
+        back% = guiBackPen% 'back pen
+        focu% = guiHighPen%: disa% = guiFillPen% 'state pens
+        rebo$ = "false" 'recess border frame?
+    END IF
+    '--- get object's dimensions ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    '--- draw object ----
+    FillRectColor left%, topp%, widt%, heig%, back%
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    '--- image/symbol/frame object ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") THEN
+        LINE (left% + 4, topp% + 4)-(left% + widt% - 5, topp% + heig% - 5), focu%, B
+        BrightenObjectBG this&, left%, topp%, widt%, heig%
+        LINE (left% + 4, topp% + 4)-(left% + widt% - 5, topp% + heig% - 5), focu%, B
+    END IF
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "IMAGEOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYMBOLOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "CHECKED") THEN
+        resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYM0") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    END IF
+    resu$ = FrameC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "FRM0") + NewTag$("RECESSED", rebo$))
+    '--- label output ---
+    PrintObjectLabel this&, left%, topp%, widt%, heig%
+    '--- check on/off state ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN
+        FillRectRaster left%, topp%, widt%, heig%, disa%
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, CheckboxRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't update, if currently disabled ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN RETURN
+    '--- save old drawing relevant states ---
+    osta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED")
+    '--- check for shortcut trigger ---
+    shor$ = GetTagData$(guiObjects$(objData%, this&), "SHORTCUT", "n/a")
+    IF NOT BoolTagTrue%(osta$, "SELECTED") AND shor$ <> "n/a" AND guiASCObject& = 0 THEN
+        IF BoolTagTrue%(tagsID$, "KEYPRESS") THEN
+            IF ObjectShortcut%(shor$, tagsID$) THEN
+                SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                resu$ = CheckboxC$("DRAW", thisTag$)
+                IF NOT BoolTagTrue%(guiObjects$(0, 0), "EGRFLAG") THEN UpdateGuiViews: _DISPLAY
+                _DELAY 0.125
+                IF NOT BoolTagTrue%(osta$, "FOCUS") THEN RemTag guiObjects$(objData%, this&), "FOCUS"
+                RemTag guiObjects$(objData%, this&), "SELECTED"
+                ObjectsUnselect this&
+                resu% = ToggleBoolTag%(guiObjects$(objData%, this&), "CHECKED")
+                resu$ = CheckboxC$("DRAW", thisTag$)
+                SetTag CheckboxRes$, "RELEASED", LTRIM$(STR$(this&))
+                SetTag CheckboxRes$, "SHORTCUT", "true"
+                RETURN
+            END IF
+        END IF
+    END IF
+    '--- get mouse position and object dimensions ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    '--- check for mouse trigger ---
+    IF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+        SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+        IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+            SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+            SetTag CheckboxRes$, "SELECTED", LTRIM$(STR$(this&))
+        ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+            RemTag guiObjects$(objData%, this&), "SELECTED"
+            resu% = ToggleBoolTag%(guiObjects$(objData%, this&), "CHECKED")
+            SetTag CheckboxRes$, "RELEASED", LTRIM$(STR$(this&))
+        END IF
+    ELSE
+        RemTag guiObjects$(objData%, this&), "FOCUS"
+        IF BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+            RemTag guiObjects$(objData%, this&), "SELECTED"
+        END IF
+    END IF
+    '--- redraw object, if state has changed ---
+    nsta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED")
+    IF nsta$ <> osta$ THEN
+        resu$ = CheckboxC$("DRAW", thisTag$)
+    END IF
+END IF
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

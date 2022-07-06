@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FileSelect</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>FileSelect$ <em>(function)</em></h2>
+<p>Will display a interactive file selection dialog box. The dialog does
+use its own detached window but is aware of its parent program window,
+hence closing the parent window will close the FileSelect dialog too.
+The user may navigate through the file structure using the mouse or by
+directly typing/pasting content into the string fields. Optionally the
+filenames can be matched against a regular expression based name pattern
+to narrow down the displayed file lists, pattern matching doesn't affect
+drawer names.</p>
+<p>Note that regular expressions are very experimental within the older
+(pre-2019) QB64 versions and therefore not enabled by default. If you
+wanna use regex matching, then you must explicitly enable it in file
+<strong>dev_framework\GuiAppFrame.h</strong>, but first carefully read the comments at
+the top of that file and then, if you're really sure, uncomment the
+#define GTREGEX line by removing the leading //.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>filespec$ = FileSelect$ (winIcon$, winTitle$, opMode%, iniDir$, iniFile$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>winIcon$ <em>(STRING)</em></h4>
+<ul>
+<li>The filename of any image to use as the dialog window's header
+icon, you don't need to specify a path for images located in the
+ImageClass search tree. Give an empty string to use the default
+icon as set in <a href="SetupScreen.html">SetupScreen()</a>.</li>
+</ul>
+<h4>winTitle$ <em>(STRING)</em></h4>
+<ul>
+<li>The title for the dialog window. If you give an empty string, then
+it defaults either to &quot;Select a drawer ...&quot; for fsmDIRS% mode or
+&quot;Select a file ...&quot; for the modes fsmLOAD% and fsmSAVE%.</li>
+</ul>
+<h4>opMode% <em>(INTEGER)</em></h4>
+<ul>
+<li>Any of the operation mode constants defined in the global CONSTs
+section in the <strong>dev_framework\GuiAppFrame.bi</strong> file (see also below).</li>
+</ul>
+<h4>iniDir$ <em>(STRING)</em></h4>
+<ul>
+<li>The initial drawer in which to start the file navigation in. This
+can be a relative path according to the current work drawer. You may
+also give an empty string, then it will restore to the last active
+drawer from a former <font color="#3232e0">FileSelect$()</font> call or to the current work drawer,
+if this is the first call.</li>
+</ul>
+<h4>iniFile$ <em>(STRING)</em></h4>
+<ul>
+<li>
+This is an initial filename, depending on opMode% it is handled in
+different ways:
+<ul>
+<li>In fsmLOAD% mode, if the given file is found in the current drawer
+listing, then its name is highlighted automatically for immediate
+selection, otherwise the given name is discarded.</li>
+<li>In fsmSAVE% mode it is used to preset a default save filename.</li>
+<li>In fsmDIRS% mode this input has no effect and is ignored.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>filespec$ <em>(STRING)</em></h4>
+<ul>
+<li>
+This also depends on the actually used opMode%:
+<ul>
+<li>For fsmLOAD% and fsmSAVE% modes this is the finally chosen filename
+inclusive its full qualified absolute path, ie. starting with the driver letter.</li>
+<li>In fsmDIRS% mode it will be the finally selected full qualified absolute
+path ending with a trailing backslash.</li>
+</ul>
+</li>
+<li>The result may also be empty, if the user did close the FileSelect dialog
+without a selection, either by pressing <em>&lt;Esc&gt;</em> or clicking the <em>&quot;Cancel&quot;</em>
+button or by closing the dialog window via the <em>&quot;X&quot;</em> button.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>MODE CONSTANTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>fsmLOAD%</h4>
+<ul>
+<li>The most regular mode to request a filename for loading.</li>
+</ul>
+<h4>fsmSAVE%</h4>
+<ul>
+<li>This is a special mode to get a filename for saving. It works almost
+the same way as fsmLOAD%, but without the double click or <em>&lt;Enter&gt;</em> press
+quick selection (to avoid random unintended selection), the user must
+explicitly confirm the chosen filename by clicking the Select button.
+Also new folders can be easily created in this mode by type/append its
+name into the path string input field.</li>
+</ul>
+<h4>fsmDIRS%</h4>
+<ul>
+<li>Another special mode to select a directory only instead of a file,
+eg. to request a default directory for loading/saving.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

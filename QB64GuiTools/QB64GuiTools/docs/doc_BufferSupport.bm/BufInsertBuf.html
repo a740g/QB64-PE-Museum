@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BufInsertBuf</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>BufInsertBuf <em>(sub)</em></h2>
+<p>This subroutine will insert the entire contents of the given source buffer
+into the specified destination buffer starting at the destination's current
+buffer position.</p>
+<p>The call will also recalculate all bookmarks of the specified destination
+buffer to maintain its respective positions. Its current buffer position is
+updated accordingly and is on the first byte behind the inserted data after
+the call.</p>
+<p>The source buffer itself remains completely unchanged and in same state
+regarding its current buffer position, bookmarks, search criteria and active
+line endings mode, hence you can simply go on working with the source buffer
+as usual.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>BufInsertBuf handle%, fromHandle%
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, in which you want to insert
+the data (destination buffer).</li>
+</ul>
+<h4>fromHandle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of another valid buffer, from which you wanna take
+the data (source buffer).</li>
+<li>If inserting exceeds the 2GiB buffer limit, an error occurs (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>No matter which line endings mode is used in the destination buffer, the
+inserted data is not converted automatically into the respective format,
+as this would corrupt binary data.</li>
+<li>If you know you have inserted a plain text buffer, but you are not sure
+about the source buffer's line endings mode, then you should call the
+appropriate conversion subroutine <a href="ConvBufToAnyEol.html">ConvBufToNativeEol()</a>, <a href="ConvBufToAnyEol.html">ConvBufToWinEol()</a>
+or <a href="ConvBufToAnyEol.html">ConvBufToLnxMacEol()</a> right after inserting, to convert the data into
+the destination buffer's line endings format.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

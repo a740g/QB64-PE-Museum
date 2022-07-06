@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WriteBufLine</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>WriteBufLine <em>(sub)</em></h2>
+<p>This subroutine will write the given text into the specified buffer starting
+at the current buffer position and will automatically add the line break
+char(s) (according to the active line endings mode of the buffer). The
+operation is in that very similar to PRINT when writing to text files.</p>
+<p>The call will also recalculate all bookmarks to maintain its respective
+positions. The current buffer position is updated accordingly and is on the
+first byte behind the just written text + line break (ie. at the start
+of the next line) after the call. Hence, sequential writing is easily
+possible with subsequent calls.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>WriteBufLine handle%, text$
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, to which you wanna write to.</li>
+</ul>
+<h4>text$ <em>(STRING)</em></h4>
+<ul>
+<li>The text line to write into the buffer without any line break char(s),
+hence just as you would give it to PRINT, when writing into text files.</li>
+<li>When using this function to write several concatenated text lines at once,
+then make sure to use the proper line endings for the buffer to &quot;glue&quot; all
+the text lines together. Easiest way is to use the result of <a href="BufEolSeq.html">BufEolSeq$()</a> to ensure this.</li>
+<li>If writing exceeds the 2GiB buffer limit, an error occurs (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>Depending on the current buffer position, your write may go into the middle
+of another text line and split that line up.</li>
+<li>To make sure you write a new line entirely before or after the current line,
+you may want to move the current buffer position either to the start of the
+current line or the start of the next line before calling this subroutine, if
+this is not guaranteed automatically (eg. by writing lines sequentially).</li>
+<li>You may move the current buffer position to the current line's start
+using the function <a href="SeekBuf.html">SeekBuf()</a> with an displacement of zero (0) and mode
+SBM_LineStart.</li>
+<li>To move to the next line's start use LEN(<a href="BufEolSeq.html">BufEolSeq$()</a>) as displacement
+and mode SBM_LineEnd instead.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

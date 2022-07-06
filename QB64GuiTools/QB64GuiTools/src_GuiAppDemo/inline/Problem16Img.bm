@@ -1,0 +1,101 @@
+'============================================================
+'=== This file was created with MakeDATA.bas by RhoSigma, ===
+'=== you must $INCLUDE this at the end of your program.   ===
+'============================================================
+
+'------------------------------
+'--- WriteProblem16ImgData$ ---
+'------------------------------
+' This function will write the DATAs you've created with MakeDATA.bas
+' back to disk and so it rebuilds the original file.
+'
+' After the writeback call, only use the returned realFile$ to access the
+' written file. It's your given path, but with an maybe altered filename
+' (number added) in order to avoid the overwriting of an already existing
+' file with the same name in the given location.
+'----------
+' SYNTAX:
+'   realFile$ = WriteProblem16ImgData$ (wantFile$)
+'----------
+' INPUTS:
+'   --- wantFile$ ---
+'    The filename you would like to write the DATAs to, can contain
+'    a full or relative path.
+'----------
+' RESULT:
+'   --- realFile$ ---
+'    - On success this is the path and filename finally used after all
+'      applied checks, use only this returned filename to access the
+'      written file.
+'    - On failure this function will panic with the appropriate runtime
+'      error code which you may trap and handle as needed with your own
+'      ON ERROR GOTO... handler.
+'---------------------------------------------------------------------
+FUNCTION WriteProblem16ImgData$ (file$)
+'--- option _explicit requirements ---
+DIM po%, body$, ext$, num%, numL&, numB&, rawdata$, stroffs&, i&, dat&, ff%
+'--- separate filename body & extension ---
+FOR po% = LEN(file$) TO 1 STEP -1
+    IF MID$(file$, po%, 1) = "." THEN
+        body$ = LEFT$(file$, po% - 1)
+        ext$ = MID$(file$, po%)
+        EXIT FOR
+    ELSEIF MID$(file$, po%, 1) = "\" OR MID$(file$, po%, 1) = "/" OR po% = 1 THEN
+        body$ = file$
+        ext$ = ""
+        EXIT FOR
+    END IF
+NEXT po%
+'--- avoid overwriting of existing files ---
+num% = 1
+WHILE _FILEEXISTS(file$)
+    file$ = body$ + "(" + LTRIM$(STR$(num%)) + ")" + ext$
+    num% = num% + 1
+WEND
+'--- write DATAs ---
+RESTORE Problem16Img
+READ numL&, numB&
+rawdata$ = SPACE$((numL& * 4) + numB&)
+stroffs& = 1
+FOR i& = 1 TO numL&
+    READ dat&
+    MID$(rawdata$, stroffs&, 4) = MKL$(dat&)
+    stroffs& = stroffs& + 4
+NEXT i&
+IF numB& > 0 THEN
+    FOR i& = 1 TO numB&
+        READ dat&
+        MID$(rawdata$, stroffs&, 1) = CHR$(dat&)
+        stroffs& = stroffs& + 1
+    NEXT i&
+END IF
+ff% = FREEFILE
+OPEN file$ FOR OUTPUT AS ff%
+PRINT #ff%, rawdata$;
+CLOSE ff%
+'--- set result ---
+WriteProblem16ImgData$ = file$
+EXIT FUNCTION
+
+'--- DATAs representing the contents of file Problem16px.png
+'---------------------------------------------------------------------
+Problem16Img:
+DATA 112,24
+DATA &H474E5089,&H0A1A0A0D,&H0D000000,&H52444849,&H10000000,&H10000000,&H00000608,&HFFF31F00
+DATA &H01000061,&H4144499F,&H95DA7854,&H432BDDD1,&HF0071C61,&HF79CF3DF,&HB21D9C6D,&H5CBCB0D2
+DATA &HDC51BB50,&H5C8485C8,&HA524492C,&H4928A256,&H57EED45A,&HA52803F8,&H242528DC,&H4AE25E49
+DATA &H9651286E,&HAD335BC8,&HB39B39B1,&HB98E73F7,&HF7C7AB3F,&HFB7DF9F2,&H20F7EBF4,&H77B24830
+DATA &H9756A1C8,&HD4BB21AC,&HE8959696,&H675DC5D3,&H95E1C9D3,&H3D191751,&H0F933DA6,&H9D4D6B54
+DATA &H9B406AAE,&HDE9E0879,&H15C5F668,&H4EF01C8A,&HD5AD5005,&H603C990E,&H1FD3E0E2,&H32FCDB04
+DATA &H33520622,&H535401E3,&H019A076A,&H7220639A,&HF3650EFF,&H3C00FF4B,&HC9547ED3,&H7EB7ABD6
+DATA &HE11E5E10,&H6E9836FA,&H313CC90C,&H3AEEE890,&H0E87CF86,&H660039ED,&HB0CB8449,&H272CD6F2
+DATA &HCC80C41D,&H24946B72,&H839635B8,&HDD829622,&H6F56E88F,&H0C4FD922,&H5EC5CCC4,&HBA7D616C
+DATA &H630583AE,&HAF8EF9D8,&HC352A5F7,&HC4981BE4,&H73E3CC16,&H301023AC,&HCFF8ED82,&HBD267F68
+DATA &H0B7C0C4A,&H50663962,&HB9804180,&H5153657C,&H9973067A,&H2FE0623D,&H4AB89311,&H40C48C03
+DATA &HAC448A87,&H80E0AF60,&HE037C634,&H96556B8B,&HCA5812DA,&HB566CB99,&H35C2588D,&H888F67A6
+DATA &H2E24B881,&HAB3F1250,&HF2581A6A,&H8A1E78DF,&H8ACAB7EF,&H5688FC8B,&H4A7397AB,&H08031D3E
+DATA &H5767032C,&HE8F68DC1,&HB03110CF,&H80C3740C,&H55C73ACD,&HE15FDD99,&H6BC1D3E4,&H720265A4
+DATA &H21,&HA3,&HEE,&H2F,&H3A,&H34,&H99,&H11,&H46,&HFD,&HC4,&H06,&H00,&H00,&H00,&H00
+DATA &H49,&H45,&H4E,&H44,&HAE,&H42,&H60,&H82
+END FUNCTION
+

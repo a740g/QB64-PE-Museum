@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>RGBtoHSB</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ConvertSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>RGBtoHSB <em>(sub)</em></h2>
+<p>This routine converts a color given in values of the RGB colorspace to
+its respective representation within the HSB/HSV colorspace.</p>
+<p>Note that the results of this routine are returned as intended side
+effects through the given arguments, hence you must provide type <em>LONG</em>
+variables (signed or unsigned) for the results.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>RGBtoHSB red~&amp;, gre~&amp;, blu~&amp;, hue~&amp;, sat~&amp;, bri~&amp;
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>red~&amp; <em>(_UNSIGNED LONG)</em></h4>
+<ul>
+<li>The red component of the color to convert in the range 0-65535.</li>
+</ul>
+<h4>gre~&amp; <em>(_UNSIGNED LONG)</em></h4>
+<ul>
+<li>The green component of the color to convert in the range 0-65535.</li>
+</ul>
+<h4>blu~&amp; <em>(_UNSIGNED LONG)</em></h4>
+<ul>
+<li>The blue component of the color to convert in the range 0-65535.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>hue~&amp; <em>((_UNSIGNED) LONG variable)</em></h4>
+<ul>
+<li>The resulting Hue value, ranges from 0 for red over 21845 (&amp;H5555)
+for green and 43690 (&amp;HAAAA) for blue to 65535 (&amp;HFFFF) red again.</li>
+</ul>
+<h4>sat~&amp; <em>((_UNSIGNED) LONG variable)</em></h4>
+<ul>
+<li>The resulting Saturation value, which is 0 for 0% to 65535 for 100%.</li>
+</ul>
+<h4>bri~&amp; <em>((_UNSIGNED) LONG variable)</em></h4>
+<ul>
+<li>The resulting Brightness value, which is 0 for 0% to 65535 for 100%.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_ConvertSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

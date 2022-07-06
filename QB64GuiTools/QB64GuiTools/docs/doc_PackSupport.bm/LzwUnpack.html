@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LzwUnpack</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_PackSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>LzwUnpack$ <em>(function)</em></h2>
+<p>Decompress the given LZW packed data back to its original data format.
+This function will check the internally encoded signature to make sure
+the given data is really packed and originated by <a href="LzwPack.html">LzwPack$()</a>. After
+decompression it will also check the unpacked data against its original
+checksum (CRC32) to recognize eventual data corruption.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>unpacked$ = LzwUnpack$ (LzwData$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>LzwData$ <em>(STRING)</em></h4>
+<ul>
+<li>The LZW compressed data you want to decompress, usually the result
+of a former call to the <a href="LzwPack.html">LzwPack$()</a> function.</li>
+</ul>
+<blockquote>
+<h6><strong><em>Hidden feature inputs:</em></strong></h6>
+<ul>
+<li>There is a hidden feature in this library. In your main module you may
+define &quot;DIM SHARED lzwProgress$&quot; <em>(STRING)</em> and put the handle of any ProgressC
+class object defined in your GUI into that variable before actually
+calling <font color="#3232e0">LzwUnpack$()</font>. In that case the ProgressC object is updated while
+unpacking the data. If lzwProgress$ is left empty or not even DIM SHARED,
+then unpacking is done quietly. Note that lzwProgress$ is automatically
+cleared out after unpacking is finished to avoid accidentally reusing a
+maybe not longer valid object, hence you must newly provide the ProgressC
+object for each call. I use this unusual input way here, to keep the
+parameter list for the <font color="#3232e0">LzwUnpack$()</font> call compatible to that one provided
+in my <strong>lzwpacker.bm</strong> library or expressed different, this feature is a
+GuiTools based addition, which shall not interfere with <strong>lzwpacker.bm</strong>.</li>
+</ul>
+</blockquote>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>unpacked$ <em>(STRING)</em></h4>
+<ul>
+<li>The original (uncompressed) data or an empty string, if any of the
+above mentioned checks will fail.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_PackSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

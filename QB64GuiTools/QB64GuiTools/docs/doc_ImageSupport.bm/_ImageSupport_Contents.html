@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>_ImageSupport_Contents</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<pre><code>'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources &amp; Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === ImageSupport.bm ===                                           |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides some useful SUBs/FUNCTIONS for image processing.   |
+'| == Note that it supports true color (32-bit ARGB) images only.    |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+</code></pre>
+
+<h1>Image processing library</h1>
+<hr />
+<blockquote>
+<p><em>This small and easy to use library is providing various effects and filters.
+All functions support processing area selection by coordinates or by using
+a mask image.</em></p>
+<p><em>Note that this library supports true color (32-bit ARGB) images only, so
+you've to _PUTIMAGE onto a 32-bit surface prior using these functions, if
+your images doesn't meet this requirement by default.</em></p>
+</blockquote>
+<hr />
+<h3><u>Table of Contents</u></h3>
+<blockquote>
+<p><strong><em>GENERAL NOTES</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="ImageSupport-Common.html">Common Info</a>
+<ul>
+<li>informations about common inputs and results</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>IMAGE QUALITY</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="ModifyBrightness.html">ModifyBrightness</a>
+<ul>
+<li>change the general brightness of the given image</li>
+</ul>
+</li>
+<li>
+<a href="ModifyContrast.html">ModifyContrast</a>
+<ul>
+<li>change the contrast of the given image</li>
+</ul>
+</li>
+<li>
+<a href="ModifyGamma.html">ModifyGamma</a>
+<ul>
+<li>change the graylevel brightness (gamma) of the given image</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>SIMPLE EFFECTS</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="MakeGrayscale.html">MakeGrayscale</a>
+<ul>
+<li>make the given image into a B&amp;W photograph (strip color information)</li>
+</ul>
+</li>
+<li>
+<a href="MakeAntiqueTint.html">MakeAntiqueTint</a>
+<ul>
+<li>make the given image looking like an old yellowed photograph</li>
+</ul>
+</li>
+<li>
+<a href="MakeNegative.html">MakeNegative</a>
+<ul>
+<li>make the given image into a photograph negative (inverts all colors)</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>CHANNEL ALTERATION</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="ShiftARGB.html">ShiftARGB</a>
+<ul>
+<li>swap (re-order) the component channels of the given image</li>
+</ul>
+</li>
+<li>
+<a href="LimitARGB.html">LimitARGB</a>
+<ul>
+<li>crop each component's intensity of the given image into a defined range</li>
+</ul>
+</li>
+<li>
+<a href="AddConstant.html">AddConstant</a>
+<ul>
+<li>add a constant (component wise) to each pixel of the given image</li>
+</ul>
+</li>
+<li>
+<a href="SubConstant.html">SubConstant</a>
+<ul>
+<li>sub a constant (component wise) from each pixel of the given image</li>
+</ul>
+</li>
+<li>
+<a href="ExtractChannels.html">ExtractChannels</a>
+<ul>
+<li>extract the specified component channels from the given image</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>ADVANCED FILTERING</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="ExtractBitfields.html">ExtractBitfields</a>
+<ul>
+<li>extract the specified bitplanes (component wise) from the given image</li>
+</ul>
+</li>
+<li>
+<a href="ApplyFilter.html">ApplyFilter</a>
+<ul>
+<li>apply the specified filter to the given image (convolution)</li>
+</ul>
+</li>
+</ul>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

@@ -1,0 +1,418 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === ImageClass.bm ===                                             |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Image Class =====================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide a container for all loaded image files (such as
+'   background or PagerClass wall images) and does internally scale or
+'   tile them to the given image or fill area width/height if required.
+'   Also Floyd-Steinberg remapping for the actual screen palette is done.
+'    You may also use this class to place any standalone images within
+'   the GUI (eg. Logos), or to preload any images, which you can later
+'   assign to other objects like buttons. Once INIT'ed, you may assign
+'   a preloaded image to any number of other objects, ie. there is no
+'   limitation to a one by one assignment, which comes in handy if eg.
+'   many buttons shall get the same image.
+'    Note that you cannot KILL an image object as long as it is still
+'   assigned to any other object(s), ie. those parent objects must be
+'   either killed first or at least the image must be unassigned from
+'   those parent objects before you can KILL the image object itself.
+'   To unassign an image, simply call the SET method of the parent
+'   object in question with the tag IMAGEOBJECT = -1.
+'    When using the IMAGEFILE tag to specify an image file name, then
+'   you may omit the path, if the image file is located within the
+'   ImageClass's internal search tree, ie. the following locations are
+'   searched incl. all its sub-folders:
+'    1.) the GuiTools images folder in your qb64 folder (QB64GuiTools\images)
+'        - centralize your images here while you develop your applications
+'    2.) the current user's temp folder (appTempDir$)
+'        - this is preferred for embedded files write back
+'    3.) your distributed application folder (appHomePath$)
+'        - where your EXE is after installing your app package
+'   Note that the first found file is used. If you have multiple images
+'   with equal names in different sub-folders, then you must at least
+'   specify a relative path with enough significant folder names to be
+'   able to uniquely identify the desired image file. Eg. assume you have
+'       images\castle\texture.jpg
+'       images\cave\texture.jpg
+'       images\dungeon\texture.jpg
+'   If you now only specify 'texture.jpg' in the IMAGEFILE tag, then you
+'   would always get the 'castle\texture.jpg'. To get eg. the cave texture
+'   you must at least specify 'cave\texture.jpg' for unique identification.
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION ImageC$ (method$, tagString$)
+ImageRes$ = ""
+classID$ = "ImageC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "IMAGEFILE,IMAGEHANDLE,LEFT,TOP,"
+        'NOTE: The required tags IMAGEFILE and IMAGEHANDLE are mutually
+        '      exclusive. One of them must be there, if given both, then
+        '      IMAGEFILE is ignored in general, but is still checked/used
+        '      as fallback if IMAGEHANDLE is invalid. Init failure or a
+        '      later kill method call will free any given IMAGEHANDLE.
+        '      For preload images, which get assigned to other objects,
+        '      the LEFT and TOP positions must be relative to the parent
+        '      object's left/top position.
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,WIDTH,HEIGHT,AREA,KEEPASPECT,CLEARCOLOR," +_
+                   "STANDALONE,TOOLTIP,BACKFILL,FORM,RECESSED," '+ user tags
+        'NOTE: The optional tags PAGEROBJECT and BACKFILL are mutually
+        '      exclusive, if given both, then PAGEROBJECT is ignored.
+        '      Same is true for KEEPASPECT and AREA, if given both, then
+        '      KEEPASPECT is ignored.
+        '      PAGEROBJECT or BACKFILL also automatically implies STANDALONE.
+        '      There can be only one BACKFILL image per GuiView at a time,
+        '      defining a new one will automatically call the KILL method
+        '      on the respective GuiView's current backfill image.
+        '      GUIVIEW is effective for STANDALONE images only, also
+        '      TOOLTIP is used/shown for STANDALONE images only. The default
+        '      default tooltip is the image file name for disk loaded images.
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "" '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Newpal"
+        tagsReq$ = ""
+        tagsOpt$ = ""
+        GOSUB meNewpal
+        'Result Tags: empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "LEFT,TOP," 'properties of parent object
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or empty
+    CASE ELSE
+        SetTag ImageRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+ImageC$ = ImageRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF (NOT ValidateTags%(tagsID$, "IMAGEFILE,LEFT,TOP", 0)) AND _
+   (NOT ValidateTags%(tagsID$, "IMAGEHANDLE,LEFT,TOP", 0)) AND _
+   (NOT ValidateTags%(tagsID$, "PREVIEW,LEFT,TOP", 0)) THEN
+    SetTag ImageRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    IF BoolTagTrue%(tagsID$, "BACKFILL") AND (NOT BoolTagTrue%(tagsID$, "PREVIEW")) THEN RemTag tagsID$, "PAGEROBJECT"
+    IF NOT CheckInheritViewFromPager%(ImageRes$, classID$, tagsID$) THEN
+        ihan& = VAL(GetTagData$(tagsID$, "IMAGEHANDLE", "0"))
+        IF ihan& < -1 THEN _FREEIMAGE ihan&
+    ELSE
+        '--- check preconditions ---
+        IF BoolTagTrue%(tagsID$, "BACKFILL") OR BoolTagTrue%(tagsID$, "PREVIEW") THEN
+            IF NOT ValidateTags%(tagsID$, "WIDTH,HEIGHT", 0) THEN
+                SetTag tagsID$, "LEFT", "0": SetTag tagsID$, "TOP", "0"
+                SetTag tagsID$, "WIDTH", LTRIM$(STR$(_WIDTH)): SetTag tagsID$, "HEIGHT", LTRIM$(STR$(_HEIGHT))
+            END IF
+            IF NOT BoolTagTrue%(tagsID$, "IMAGEHANDLE") THEN RemTag tagsID$, "IMAGEHANDLE"
+            ApplyPrefs classID$ + ".Backfill", tagsID$
+            IF BoolTagTrue%(tagsID$, "PREVIEW") THEN
+                RemTags tagsID$, "BACKFILL,PREVIEW"
+                SetTag tagsID$, "STANDALONE", "true"
+            END IF
+        END IF
+        '--- try loading the image ---
+        ihan& = VAL(GetTagData$(tagsID$, "IMAGEHANDLE", "0"))
+        IF ihan& >= -1 THEN
+            '--- try loading from given path & set default tooltip ---
+            ifil$ = GetTagData$(tagsID$, "IMAGEFILE", "")
+            ihan& = _LOADIMAGE(ifil$, 32)
+            imus$ = PathPart$(ifil$): ifil$ = FilePart$(ifil$)
+            IF NOT ValidateTags%(tagsID$, "TOOLTIP", 0) THEN SetTag tagsID$, "TOOLTIP", ifil$
+            '--- on failure try to load from some predefined locations ---
+            IF ihan& >= -1 AND ifil$ <> "" THEN
+                '--- the GuiTools images folder in the qb64 folder (if EXEs saved in qb64 folder) ---
+                IF ihan& >= -1 THEN ihan& = _LOADIMAGE(SearchFile$("QB64GuiTools\images\", imus$, ifil$), 32)
+                '--- the GuiTools images folder in your qb64 folder (if EXEs saved in source folder) ---
+                IF ihan& >= -1 THEN ihan& = _LOADIMAGE(SearchFile$("..\images\", imus$, ifil$), 32)
+                '--- the current user's temp folder (preferred for embedded files write back) ---
+                IF ihan& >= -1 THEN ihan& = _LOADIMAGE(SearchFile$(appTempDir$, imus$, ifil$), 32)
+                '--- the distributed app folder (where the EXE is after installing the app package) ---
+                IF ihan& >= -1 THEN ihan& = _LOADIMAGE(SearchFile$(appHomePath$, imus$, ifil$), 32)
+            END IF
+        END IF
+        IF ihan& >= -1 THEN
+            SetTag ImageRes$, "ERROR", classID$ + "::" + methodID$ + " -> cannot load image file or handle"
+        ELSE
+            '--- adjust optional width/height overrides ---
+            IF BoolTagTrue%(tagsID$, "AREA") THEN
+                owid% = _WIDTH - VAL(GetTagData$(tagsID$, "LEFT", "0"))
+                ohei% = _HEIGHT - VAL(GetTagData$(tagsID$, "TOP", "0"))
+            ELSE
+                owid% = _WIDTH(ihan&): ohei% = _HEIGHT(ihan&)
+                widt% = VAL(GetTagData$(tagsID$, "WIDTH", LTRIM$(STR$(owid%))))
+                heig% = VAL(GetTagData$(tagsID$, "HEIGHT", LTRIM$(STR$(ohei%))))
+                IF ABS(widt%) <> owid% OR ABS(heig%) <> ohei% THEN
+                    sclx# = widt% / owid%: scly# = heig% / ohei%
+                    IF BoolTagTrue%(tagsID$, "KEEPASPECT") THEN
+                        IF ABS(sclx#) < ABS(scly#) THEN scly# = ABS(sclx#) * SGN(scly#): ELSE sclx# = ABS(scly#) * SGN(sclx#)
+                    END IF
+                    widt% = CINT(owid% * sclx#): heig% = CINT(ohei% * scly#)
+                    SetTag tagsID$, "WIDTH", LTRIM$(STR$(widt%))
+                    SetTag tagsID$, "HEIGHT", LTRIM$(STR$(heig%))
+                    than& = _NEWIMAGE(ABS(widt%), ABS(heig%), 32)
+                    IF than& < -1 THEN
+                        _PUTIMAGE , ihan&, than& 'scale image
+                        _FREEIMAGE ihan&
+                        ihan& = than&
+                    END IF
+                END IF
+            END IF
+            '--- general init ---
+            this& = NewObject&
+            InitGeneralProperties this&, classID$, flagsID$, tagsID$
+            '--- object specific init ---
+            SetTag tagsID$, "WIDTH", GetTagData$(tagsID$, "WIDTH", LTRIM$(STR$(owid%)))
+            SetTag tagsID$, "HEIGHT", GetTagData$(tagsID$, "HEIGHT", LTRIM$(STR$(ohei%)))
+            SetTag guiObjects$(objData%, this&), "IHANDLE", LTRIM$(STR$(ihan&))
+            '--- check backfill conditions ---
+            IF BoolTagTrue%(tagsID$, "BACKFILL") THEN
+                resu$ = ImageC$("KILL", ObjectTag$(guiViews$(guiAGVIndex&), "BGIMG"))
+                SetTag guiObjects$(objData%, this&), "STANDALONE", "true"
+                MID$(guiObjects$(objFlags%, this&), 2, 1) = "b"
+                SetTag guiViews$(guiAGVIndex&), "BGIMG", LTRIM$(STR$(this&))
+            END IF
+            '--- check pager conditions ---
+            IF NOT InitAssignedPager%(this&, ImageRes$, classID$, tagsID$) THEN
+                _FREEIMAGE ihan&
+            ELSE
+                IF MID$(guiObjects$(objFlags%, this&), 2, 1) = "p" THEN SetTag guiObjects$(objData%, this&), "STANDALONE", "true"
+                '--- frame init (if any) ---
+                IF ValidateTags%(tagsID$, "FORM", -1) THEN
+                    BeginChildInit
+                    fram$ = FrameC$("INIT", GetTags$(tagsID$, "LEFT,TOP,WIDTH,HEIGHT,FORM,RECESSED"))
+                    guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("FRM0", fram$)
+                    EndChildInit
+                ELSE
+                    RemTag tagsID$, "RECESSED"
+                END IF
+                '--- add required/optional tags ---
+                opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+                guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+                '--- add any remaining user tags ---
+                RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+                guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+                '--- set result and schedule gui refresh ---
+                SetTag ImageRes$, "OBJECT", LTRIM$(STR$(this&))
+                IF BoolTagTrue%(guiObjects$(objData%, this&), "STANDALONE") THEN
+                    IF BoolTagTrue%(guiObjects$(objData%, this&), "BACKFILL") THEN RemTag guiObjects$(objData%, this&), "TOOLTIP"
+                    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+                ELSE
+                    RemTags guiObjects$(objData%, this&), "GUIVIEW,TOOLTIP"
+                END IF
+            END IF
+        END IF
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, ImageRes$, classID$, methodID$, tagsID$) THEN
+    '--- check any user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, ImageRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN ImageRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, ImageRes$, classID$, methodID$, tagsID$) THEN
+    '--- check use count ---
+    reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+    IF reco& > 0 THEN
+        SetTag ImageRes$, "ERROR", classID$ + "::" + methodID$ + " -> object still in use"
+    ELSE
+        '--- 1st remove interconnections to this object ---
+        KillInterconnections this&
+        '--- delete child objects ---
+        resu$ = FrameC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+        '--- check pager conditions ---
+        KillAssignedPager this&
+        '--- free image handles ---
+        rhan& = VAL(GetTagData$(guiObjects$(objData%, this&), "RHANDLE", "0"))
+        IF rhan& < -1 THEN _FREEIMAGE rhan&
+        _FREEIMAGE VAL(GetTagData$(guiObjects$(objData%, this&), "IHANDLE", "0"))
+        '--- delete object and schedule gui refresh ---
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "BACKFILL") THEN RemTag guiViews$(guiAGVIndex&), "BGIMG"
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "STANDALONE") THEN SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+        guiObjects$(objData%, this&) = ""
+        guiObjects$(objType%, this&) = ""
+        guiObjects$(objFlags%, this&) = ""
+        guiObjects$(objConn%, this&) = ""
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meNewpal:
+'--- discard all remapped images ----
+FOR oix& = 1 TO UBOUND(guiObjects$, 2)
+    IF guiObjects$(objType%, oix&) = classID$ THEN
+        rhan& = VAL(GetTagData$(guiObjects$(objData%, oix&), "RHANDLE", "0"))
+        IF rhan& < -1 THEN _FREEIMAGE rhan&
+        RemTag guiObjects$(objData%, oix&), "RHANDLE"
+    END IF
+NEXT oix&
+'--- clear near color array and schedule gui refresh ---
+REDIM fsNearCol%(&HFFFFFF)
+SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, ImageRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't draw, if unassigned and not standalone ---
+    IF MID$(guiObjects$(objFlags%, this&), 2, 1) = "-" AND _
+        NOT BoolTagTrue%(guiObjects$(objData%, this&), "STANDALONE") THEN RETURN
+    '--- check for remapped image ---
+    ihan& = VAL(GetTagData$(guiObjects$(objData%, this&), "IHANDLE", "0"))
+    rhan& = VAL(GetTagData$(guiObjects$(objData%, this&), "RHANDLE", "0"))
+    IF rhan& >= -1 THEN rhan& = RemapImageFS&(ihan&, _DEST)
+    IF rhan& >= -1 THEN
+        SetTag ImageRes$, "ERROR", classID$ + "::" + methodID$ + " -> cannot remap image"
+    ELSE
+        SetTag guiObjects$(objData%, this&), "RHANDLE", LTRIM$(STR$(rhan&))
+        ccol$ = GetTagData$(guiObjects$(objData%, this&), "CLEARCOLOR", "n/a")
+        IF ccol$ <> "n/a" THEN _CLEARCOLOR VAL(ccol$), rhan&
+        '--- get parent's position ---
+        plft% = VAL(GetTagData$(tagsID$, "LEFT", "0"))
+        ptop% = VAL(GetTagData$(tagsID$, "TOP", "0"))
+        '--- get object's properties ---
+        left% = plft% + VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+        topp% = ptop% + VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+        widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+        heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+        '--- do flip corrections (_PUTIMAGE bug workaround) ---
+        IF widt% < 0 THEN left% = left% - 1: widt% = widt% + 2
+        IF heig% < 0 THEN topp% = topp% - 1: heig% = heig% + 2
+        '--- draw object ---
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "AREA") THEN
+            FillRectImage left%, topp%, widt%, heig%, rhan&
+        ELSE
+            _PUTIMAGE (left%, topp%)-(left% + widt% - 1, topp% + heig% - 1), rhan&
+        END IF
+        resu$ = FrameC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "FRM0") + tagsID$)
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, ImageRes$, classID$, methodID$, tagsID$) THEN
+    '--- get mouse position and object dimensions ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    '--- do flip adjustments ---
+    IF widt% < 0 THEN widt% = -widt%: left% = left% - widt%
+    IF heig% < 0 THEN heig% = -heig%: topp% = topp% - heig%
+    '--- check for mouse focus ---
+    IF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+        SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+    ELSE
+        RemTag guiObjects$(objData%, this&), "FOCUS"
+    END IF
+END IF
+RETURN
+END FUNCTION
+'----------------------------------
+FUNCTION CheckInheritViewFromPager% (classRes$, classID$, tagsID$)
+IF (NOT ChildInit%) AND (NOT BoolTagTrue%(tagsID$, "BACKFILL")) THEN
+    IF guiALBIndex& > 1 THEN 'inherit GuiView of active hover layer (if any)
+        view$ = GetTagData$(guiObjects$(objData%, guiALBIndex&), "GUIVIEW", "0")
+        IF view$ = "0" THEN RemTag tagsID$, "GUIVIEW": ELSE SetTag tagsID$, "GUIVIEW", view$
+    END IF
+END IF
+flag% = 0
+temp$ = GetTagData$(tagsID$, "PAGEROBJECT", "n/a")
+IF temp$ <> "n/a" THEN
+    page& = VAL(temp$)
+    IF page& < 1 OR page& > UBOUND(guiObjects$, 2) THEN
+        SetTag classRes$, "ERROR", classID$ + "::Init -> given PAGEROBJECT = undefined object"
+        flag% = -1
+    ELSE
+        IF guiObjects$(objType%, page&) <> "PagerC" THEN
+            SetTag classRes$, "ERROR", classID$ + "::Init -> given PAGEROBJECT = wrong object type"
+            flag% = -1
+        ELSE
+            IF (NOT ChildInit%) AND page& >= guiALBIndex& THEN 'inherit GuiView, if pager is on current layer
+                view$ = GetTagData$(guiObjects$(objData%, page&), "GUIVIEW", "0")
+                IF view$ = "0" THEN RemTag tagsID$, "GUIVIEW": ELSE SetTag tagsID$, "GUIVIEW", view$
+            END IF
+        END IF
+    END IF
+END IF
+IF NOT ChildInit% THEN SourceDestGuiView VAL(GetTagData$(tagsID$, "GUIVIEW", "0"))
+CheckInheritViewFromPager% = (NOT flag%)
+END FUNCTION
+'----------------------------------
+FUNCTION ImageTag$ (objectID$)
+ImageTag$ = NewTag$("IMAGEOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

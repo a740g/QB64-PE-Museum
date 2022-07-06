@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IndexFormat</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>IndexFormat$ <em>(function)</em></h2>
+<p>This function will perform PRINT USING style formatting and then return the
+formatted output string, so you can either store it in a variable or print
+it directly. However, compared to the regular PRINT USING conventions, this
+function has a couple of useful extensions.</p>
+<h2></h2>
+<p>The first and most important extension is argument position specification
+(indexing). That is, each formatting token used in the format template knows
+to which given argument it belongs to, hence the order of the various format
+tokens used in the template can be changed without the need of reordering the
+provided arguments too.</p>
+<h2></h2>
+<p>The second extension is a direct result of the first one. With indexing all
+arguments can be easily reused, simply by using the same index for several
+format tokens. It is not required to pass the reused arguments multiple times
+to the function.</p>
+<p>The indexing is done really simple in the form <strong>IS{PUFS}</strong>, where <strong>IS</strong> =
+index specifier (0-9/A-Z, hence 36 args max.) and <strong>PUFS</strong> = PRINT USING
+format symbols. That is, starting with your regular PRINT USING format
+template, you just need to go in and enclose each of your used format tokens
+in curly brackets and give it an index number or letter right in front of
+the opening bracket.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>Have a look on the following examples:</p>
+</blockquote>
+<h4>Assuming head = 1, hands = 2 and fingers = 10,</h4>
+</blockquote>
+<pre><code>PRINT USING &quot;## head, ## hands and ## fingers&quot;; head, hands, fingers
+PRINT USING &quot;## fingers, ## head and ## hands&quot;; head, hands, fingers
+PRINT IndexFormat$(&quot;2{##} fingers, 0{##} head and 1{##} hands&quot;,_
+          STR$(head) + &quot;|&quot; + STR$(hands) + &quot;|&quot; + STR$(fingers), &quot;|&quot;)
+</code></pre>
+
+<blockquote>
+<blockquote>
+<p>These three statements would produce the following output:</p>
+</blockquote>
+</blockquote>
+<pre><code>&quot; 1 head,  2 hands and 10 fingers&quot; (correct, args order matches the format template)
+&quot; 1 fingers,  2 head and 10 hands&quot; (wrong, args order doesn't match format template)
+&quot;10 fingers,  1 head and  2 hands&quot; (indexed, format template picks the right args)
+</code></pre>
+
+<blockquote>
+<blockquote>
+<p>Reuse any arguments without providing them multiple times:</p>
+</blockquote>
+</blockquote>
+<pre><code>PRINT IndexFormat$(&quot;0{##} head, 1{##} hands and 2{##} fingers, &quot; +_
+          &quot;also 1{##} feet and 2{##} toes&quot;,_
+          STR$(head) + &quot;|&quot; + STR$(hands) + &quot;|&quot; + STR$(fingers), &quot;|&quot;)
+</code></pre>
+
+<blockquote>
+<blockquote>
+<p>This would produce the following output:</p>
+</blockquote>
+</blockquote>
+<pre><code>&quot; 1 head,  2 hands and 10 fingers, also  2 feet and 10 toes&quot;
+</code></pre>
+
+</blockquote>
+<h2></h2>
+<p>The third extension is a small set of new <strong>PUFS</strong> to format numbers into
+binary, hexadecimal or octal notation, optional with a given output length.
+For completeness I've also added decimal (like bin/hex/oct integer only) and
+real numbers to take a number just as is, hence the way you would get it by
+calling LTRIM$(STR$(num)). The symbols are B/b, D/d, H/h, O/o and R/r
+respectively. For hexadecimal the case of the symbol determines whether to
+use the capital hex letters A-F or the small ones a-f.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>The optional output length directly follows the symbol given as decimal
+number:</p>
+</blockquote>
+</blockquote>
+<pre><code>0{H8}  = hex output (using uppercase letters) extended to 8 digits
+0{B16} = binary output extended to 16 digits
+0{O}   = octal output of variable length (as required)
+0{h}   = hex output of variable length (using lowercase letters)
+</code></pre>
+
+</blockquote>
+<ul>
+<li>If the length is used, then the formatted number is extended with leading
+zeros as required. Should the length draw to short to contain the number,
+then it is extended to the minimum required for the number and prefixed with
+a % as usual.</li>
+<li>If length is omitted (or zero/neg.), then the output length is variable,
+which is usually the minimum required number of digits for the given number.</li>
+</ul>
+<h2></h2>
+<p>As fourth extension, certain format tokens can be prefixed with a special
+preferences specifier in the form <strong>?p:</strong>, where the <strong>?</strong> and <strong>:</strong> are
+used to uniquely identify the specifier and the <strong>p</strong> in between is the
+actual (1-2 chars) preferences setting. The possible settings are
+(<strong>L</strong>)eft/(<strong>C</strong>)enter/(<strong>R</strong>)ight alignments for strings within a fixed
+length string field (\\ formatting), of course only if the given string
+is shorter than the field width. Further grouping of bin/dec/hex/oct outputs
+is possible in blocks with a certain amount of digits (<strong>1-99</strong>) and finally
+the dollar currency sign can be replaced with any other sign (eg. <strong>€</strong>) and
+the use of dots and commas can be flipped (<strong>,</strong>) when needed (for all
+regular number/currency formatting).</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>Here some examples for better understanding:</p>
+</blockquote>
+</blockquote>
+<pre><code>0{?c:\        \}    = center string in the specified field (if string &lt; field)
+0{?4:B16}           = 16 digit binary output in groups of 4 bits (0100 0110 0000 1001)
+0{?€:**$#####,.##}  = replace the $ sign in the output with the € sign
+0{?€,:**$#####,.##} = replace $ sign with € sign, also flip dots and commas
+0{?,:###.##}        = number without grouping, but comma instead of decimal dot
+</code></pre>
+
+</blockquote>
+<ul>
+<li>
+The case of alignment letters is ignored.
+<ul>
+<li>If multiple letters are given, then only the most left one counts.</li>
+<li>Unknown alignment letters fall back to left (PRINT USING default).</li>
+</ul>
+</li>
+<li>
+Grouping numbers can be one or two chars, using a leading zero or space
+for the values 1-9.
+<ul>
+<li>If the number is zero or negative, then no grouping is done.</li>
+</ul>
+</li>
+<li>The order of the currency replacement sign and/or the comma doesn't matter.
+The comma is a flag only, which triggers the dot/comma flipping.</li>
+</ul>
+<h2></h2>
+<p>The fifth and final extension is meant to make the task of writing the format
+templates somewhat more convenient, especially when it comes to inserting
+special control chars or extended ASCII chars. This extension easily allows
+the use of escape sequences as known from C/C++ and other languages.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>Using escape sequences within format templates:</p>
+</blockquote>
+</blockquote>
+<pre><code>fmt$ = &quot;Column-1&quot; + CHR$(9) + &quot;Column-2&quot;   (the bulky way adding a tabulator)
+fmt$ = &quot;Column-1\tColumn-2&quot;                (but real easy using the \t sequence)
+fmt$ = &quot;This is a \x22quoted\x22 section.&quot; (quotation with \x22 ASCII code)
+</code></pre>
+
+</blockquote>
+<ul>
+<li>Unfortunately we can't use <em>\&quot;</em> to insert a quotation mark, as the QB64
+compiler would see the <em>&quot;</em> used in the sequence as the regular end of the
+template string. However, as shown in the last example line we can use the
+octal or hex ASCII representations <em>\042</em> or <em>\x22</em> of the quotation mark.</li>
+</ul>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>formatted$ = IndexFormat$ (fmt$, arg$, sep$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>fmt$ <em>(STRING)</em></h4>
+<ul>
+<li>
+The format template as usual for PRINT USING, but all format tokens must
+be indexed, ie. enclosed in curly brackets with a leading one digit index
+number or letter, which designates the argument to use for the token according
+to the given arguments order.
+<ul>
+<li>All argument indices may be reused as often as you want.</li>
+<li>Missing arguments will be processed as empty or zero, no error will occur.</li>
+</ul>
+</li>
+<li>You may also use C/C++ style escape sequences.</li>
+</ul>
+<blockquote>
+<pre><code>\a = CHR$(7) ' audio bell             \b = CHR$(8) ' backspace
+\t = CHR$(9) ' tabulator              \n = CHR$(10) 'line feed
+\v = CHR$(11) 'vertical tabulator     \f = CHR$(12) 'form feed
+\r = CHR$(13) 'carriage return        \e = CHR$(27) 'escape
+      \nnn = octal ASCII code (    3 digits, eg. \042)
+      \xnn = hex ASCII code   (x + 2 digits, eg. \x3F)
+</code></pre>
+
+</blockquote>
+<ul>
+<li>
+Write _{, _} and _\ to get literal curly brackets or a backslash in
+the output.
+<ul>
+<li>All other format symbols doesn't need to be underscored anymore to make
+them literals.</li>
+<li>The underscore itself is literal automatically, if not followed by {}\.</li>
+<li>Inside the {} tokens no underscores are allowed at all, these can
+contain the PRINT USING or the new B/D/H/O/R format symbols only (with or
+without preferences specifiers).</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<blockquote>
+<h5><strong><em>Finally a feature overview of the new format template:</em></strong></h5>
+</blockquote>
+<pre><code>&quot;Some literal _{text_}: 0{##}. \x221{&amp;}\x22 2{?2:H8}&quot;
+         |    |     |   | |    |       |      \+/
+         |    |     |   | |    |       |       |
+         |    +--+--+   | |    +---+---+    preferences specifier
+         |       |      | |        |
+         |       |      | |   escape sequences can be used outside
+         |       |      | |   of the {} formatting tokens
+         |       |      | |
+         |       |      | +-- all format symbols must be inside {}
+         |       |      |
+         |       |      +---- index of the argument to use for this
+         |       |            token according to given args order
+         |       |
+         |       +---- {, } and \ need a leading underscore to get
+         |             them as literals in the output, but no other
+         |             symbols need the underscore anymore
+         |
+         +---- all other text outside {} is literal and taken as is
+</code></pre>
+
+</blockquote>
+<h4>arg$ <em>(STRING)</em></h4>
+<ul>
+<li>
+This is a concatenated string of all arguments separated by a user chosen
+char or string.
+<ul>
+<li>Choose a separator char, which is not used in the arguments itself. If
+you need all printable chars, then CHR$(0) might be suitable, or you can
+use a sequence of 2 or more chars which is unique enough to not interfere
+with the arguments itself, eg. &quot;<em>(+)</em>&quot;, &quot;<em>|^|</em>&quot; or similar.</li>
+<li>Use the STR$ function to add in the values of numeric variables.</li>
+<li>It won't hurt, if there are more arguments than used in the format template.</li>
+</ul>
+</li>
+</ul>
+<h4>sep$ <em>(STRING)</em></h4>
+<ul>
+<li>
+The char or string used to separate the arguments in the concatenated
+argument string.
+<ul>
+<li>Note this is required, even if you pass a single argument only.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>formatted$ <em>(STRING)</em></h4>
+<ul>
+<li>Regularly the formatted string as expected.</li>
+<li>If there's a problem with your provided format template, then the output
+is probably wrong (or at least not as expected), but unlike PRINT USING,
+this function will always try its best and never throw an <em>Illegal function
+call</em> error.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

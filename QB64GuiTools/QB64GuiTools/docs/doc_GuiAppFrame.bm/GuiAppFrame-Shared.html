@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GuiAppFrame-Shared</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>Globally SHARED variables <em>(GuiAppFrame.bi)</em></h2>
+<p>There are a couple of globally SHARED variables <strong>(read only)</strong> available
+for your convenience. These are mainly numbers and paths initialized by
+the GuiTools init procedure. Note that all path specifications will end
+with a trailing backslash, hence you can directly add your sub-path and/or
+filename to it.</p>
+<hr />
+<blockquote>
+<h4>appProgID$ <em>(STRING)</em></h4>
+<ul>
+<li>The unique ID of this program (every running GuiTools based program will
+get its own).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<h4>appHomeDrive$ <em>(STRING)</em></h4>
+<ul>
+<li>This program's home drive, ie. where the executable is located
+(eg. &quot;C:\&quot;).</li>
+</ul>
+<h4>appHomePath$ <em>(STRING)</em></h4>
+<ul>
+<li>This program's home directory, ie. where the executable is located
+(eg. &quot;C:\qb64\&quot;).</li>
+</ul>
+<h4>appFullExe$ <em>(STRING)</em></h4>
+<ul>
+<li>The full path/name of this program's executable file
+(eg. &quot;C:\qb64\GuiApp.exe&quot;).</li>
+</ul>
+<h4>appExeName$ <em>(STRING)</em></h4>
+<ul>
+<li>The name only of this program's executable file (eg. &quot;GuiApp.exe&quot;).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<h4>appPCName$ <em>(STRING)</em></h4>
+<ul>
+<li>Is this computer's name from environment set (eg. &quot;My Computer&quot;).</li>
+</ul>
+<h4>appLocalDir$ <em>(STRING)</em></h4>
+<ul>
+<li>
+The local appdata folder from environment set
+(eg. &quot;C:\Users\RhoSigma\AppData\Local\&quot;).
+<ul>
+<li>Your permanent user dependent settings and config files should go here.</li>
+</ul>
+</li>
+</ul>
+<h4>appTempDir$ <em>(STRING)</em></h4>
+<ul>
+<li>
+The temporary folder from environment set
+(eg. &quot;C:\Users\RhoSigma\AppData\Local\temp\&quot;).
+<ul>
+<li>Your temporary files should go here, you may use <a href="GetUniqueID.html">GetUniqueID$()</a> to obtain
+unique file names.</li>
+</ul>
+</li>
+</ul>
+<h4>appLastErr% <em>(INTEGER)</em></h4>
+<ul>
+<li>The last occurred runtime error number (if any).</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

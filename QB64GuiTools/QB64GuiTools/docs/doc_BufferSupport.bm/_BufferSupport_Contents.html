@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>_BufferSupport_Contents</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<pre><code>'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources &amp; Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === BufferSupport.bm ===                                          |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides the SUBs and FUNCTIONs of the String Buffer API.   |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+</code></pre>
+
+<h1>The Simplebuffer System</h1>
+<hr />
+<blockquote>
+<p><em>You may use it for simple file buffering, as container for your own text
+editor or as general purpose storage for your application data. You can
+read and write data, search data (fwd/rev), copy &amp; paste data blocks and
+use bookmarks. The buffer system supports Windows as well as Linux/MacOSX
+line endings and can convert one to the other.</em></p>
+</blockquote>
+<hr />
+<h3><u>Table of Contents</u></h3>
+<blockquote>
+<p><strong><em>GENERAL NOTES</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="BufferSupport-Common.html">Common Info</a>
+<ul>
+<li>general informations about the buffers and possible errors</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>SETUP, LOAD &amp; SAVE BUFFERS</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="CreateBuf.html">CreateBuf</a>
+<ul>
+<li>prepare a new empty buffer and return its handle</li>
+</ul>
+</li>
+<li>
+<a href="DisposeBuf.html">DisposeBuf</a>
+<ul>
+<li>destroy a buffer and erase all its data, its handle becomes available for reuse</li>
+</ul>
+</li>
+<li>
+<a href="FileToBuf.html">FileToBuf</a>
+<ul>
+<li>load an entire file into a new buffer</li>
+</ul>
+</li>
+<li>
+<a href="BufToFile.html">BufToFile</a>
+<ul>
+<li>write the current buffer contents into a new file</li>
+</ul>
+</li>
+<li>
+<a href="CloneBuf.html">CloneBuf</a>
+<ul>
+<li>create an exact clone of any buffer into a new buffer</li>
+</ul>
+</li>
+<li>
+<a href="BufInsertFile.html">BufInsertFile</a>
+<ul>
+<li>insert an entire file into any buffer at its current position</li>
+</ul>
+</li>
+<li>
+<a href="BufInsertBuf.html">BufInsertBuf</a>
+<ul>
+<li>insert the entire buffer contents into another buffer at its current position</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>READ &amp; WRITE DATA</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="ReadBufLine.html">ReadBufLine$</a>
+<ul>
+<li>read a line from any buffer (Simplebuffer synonym for LINE INPUT #file,...)</li>
+</ul>
+</li>
+<li>
+<a href="WriteBufLine.html">WriteBufLine</a>
+<ul>
+<li>write a line into any buffer (Simplebuffer synonym for PRINT #file,...)</li>
+</ul>
+</li>
+<li>
+<a href="DeleteBufLine.html">DeleteBufLine</a>
+<ul>
+<li>delete a line from any buffer</li>
+</ul>
+</li>
+<li>
+<a href="ReadBufRawData.html">ReadBufRawData$</a>
+<ul>
+<li>read any amount of raw bytes from any buffer (Simplebuffer synonym for GET #file,...)</li>
+</ul>
+</li>
+<li>
+<a href="WriteBufRawData.html">WriteBufRawData</a>
+<ul>
+<li>write any amount of raw bytes into any buffer (Simplebuffer synonym for PUT #file,...)</li>
+</ul>
+</li>
+<li>
+<a href="DeleteBufRawData.html">DeleteBufRawData</a>
+<ul>
+<li>delete any amount of raw bytes from any buffer</li>
+</ul>
+</li>
+<li>
+<a href="GetBufMemData.html">GetBufMemData</a>
+<ul>
+<li>read data from any buffer into the specified _MEM block</li>
+</ul>
+</li>
+<li>
+<a href="PutBufMemData.html">PutBufMemData</a>
+<ul>
+<li>write data from the specified _MEM block into any buffer</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>SET &amp; RECALL BOOKMARKS</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="SetBufMark.html">SetBufMark</a>
+<ul>
+<li>set a bookmark at the current buffer position and return its ID</li>
+</ul>
+</li>
+<li>
+<a href="RemoveBufMark.html">RemoveBufMark</a>
+<ul>
+<li>free (unset) any bookmark, its ID becomes available for reuse</li>
+</ul>
+</li>
+<li>
+<a href="GetBufMark.html">GetBufMark</a>
+<ul>
+<li>return any bookmark's current byte position in the buffer</li>
+</ul>
+</li>
+<li>
+<a href="GotoBufMark.html">GotoBufMark</a>
+<ul>
+<li>recall any bookmark and make it the new current buffer position</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>SEARCH DATA</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="SetBufFind.html">SetBufFind</a>
+<ul>
+<li>define the criteria (find or delimiter string) for a new search and return its ID</li>
+</ul>
+</li>
+<li>
+<a href="RemoveBufFind.html">RemoveBufFind</a>
+<ul>
+<li>free (delete) any search criteria, its ID becomes available for reuse</li>
+</ul>
+</li>
+<li>
+<a href="FindBufFR.html">FindBufFwd &amp; FindBufRev</a>
+<ul>
+<li>search for any defined criteria in forward or reverse direction</li>
+<li>may search a regular find string or any number of delimiter chars</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>COPY &amp; PASTE DATA</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="CopyBufBlock.html">CopyBufBlock</a>
+<ul>
+<li>copy a data block from any buffer to the clipboard</li>
+</ul>
+</li>
+<li>
+<a href="CutBufBlock.html">CutBufBlock</a>
+<ul>
+<li>copy a data block from any buffer to the clipboard and delete the data
+from the buffer</li>
+</ul>
+</li>
+<li>
+<a href="PasteBufBlock.html">PasteBufBlock</a>
+<ul>
+<li>paste a data block from the clipboard into any buffer</li>
+<li>insert at current buffer position or replace a selected block in the buffer</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>POSITION &amp; STATE CONTROL</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="SeekBuf.html">SeekBuf</a>
+<ul>
+<li>set the current buffer position according to the given placement
+characteristics</li>
+</ul>
+</li>
+<li>
+<a href="GetBufPos.html">GetBufPos</a>
+<ul>
+<li>return the current buffer position of the specified buffer</li>
+</ul>
+</li>
+<li>
+<a href="GetBufLen.html">GetBufLen</a>
+<ul>
+<li>return the current data size stored in the specified buffer</li>
+</ul>
+</li>
+<li>
+<a href="EndOfBuf.html">EndOfBuf</a>
+<ul>
+<li>return the current &quot;End Of Buffer&quot; condition (Simplebuffer synonym for EOF)</li>
+</ul>
+</li>
+<li>
+<a href="IsBufChanged.html">IsBufChanged</a>
+<ul>
+<li>return the current &quot;Change&quot; state of the specified buffer</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>EOL CONVERSION</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="BufEolSeq.html">BufEolSeq$</a>
+<ul>
+<li>return the current &quot;End Of Line&quot; (line break) char sequence in any buffer</li>
+</ul>
+</li>
+<li>
+<a href="ConvBufToAnyEol.html">ConvBufToNativeEol &amp; ConvBufToLnxMacEol &amp; ConvBufToWinEol</a>
+<ul>
+<li>switch any buffer to another line endings mode and convert the current
+buffer contents</li>
+</ul>
+</li>
+</ul>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CurrDIR</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>CurrDIR$ <em>(function)</em></h2>
+<p>Returns the program's current working directory. Right after program
+start it is usually equal to the globally SHARED variable appHomePath$,
+but it may change during runtime after using CHDIR calls. The behavior
+is in that equal to the new _CWD$ function available since QB64 v1.0,
+but I recommend using <font color="#3232e0">CurrDIR$()</font> instead, if you want your program to
+be usable with the older QB64 versions too.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>workdir$ = CurrDIR$
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>workdir$ <em>(STRING)</em></h4>
+<ul>
+<li>The full qualified path/name (ie. starting with the drive letter)
+of the current working directory without a trailing backslash.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

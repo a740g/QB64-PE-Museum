@@ -1,0 +1,494 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === SymbolClass.bm ===                                            |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Symbol Class ====================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide a number of free scalable polygon based symbols
+'   such as tapedeck icons, arrows etc. (see storage\Symbols.png).
+'   Symbols can be placed as standalone objects in the GUI or may be
+'   just preselected for later assignment to other objects like buttons.
+'   The symbol's default colors may be changed at INIT time or later on
+'   using the SET method. Note that the red/green condition pens and the
+'   media pens are usually changed by the SHINEPEN or SHADOWPEN tag, but
+'   you should waive to do so, as you would compromise user's preferences
+'   settings. Once INIT'ed, you may assign a preselected symbol to any
+'   number of other objects, ie. there's no limitation to a one by one
+'   assignment, which comes in handy if eg. many buttons shall get the
+'   same symbol. Just if you need different sized symbols, then you must
+'   init a symbol for every other size you need. Note that you cannot
+'   KILL a symbol object as long it is still assigned, hence the parent
+'   objects must be killed first or must be unassigned or reassigned with
+'   another symbol using the parent's SET method. To unassign a symbol
+'   simply set the tag SYMBOLOBJECT to any negative number for the SET call.
+'
+'SYMBOLNAMES:
+'   These are the names of the symbols implemented so far, you must
+'   specifiy the desired name using the WHICH tag:
+'       TapePause, TapeStop, TapePlay, TapeRecord, TapeEject
+'       TapePrevCh, TapeRewind, TapeForward, TapeNextCh
+'       ArrowUp, ArrowDown, ArrowLeft, ArrowRight
+'       Cycle, Checkmark, Cross, Star, Pentagon, Octagon
+'       Increment, Decrement
+'       MediaDisk, MediaDrawer, MediaFile
+'       RhoSigma
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION SymbolC$ (method$, tagString$)
+SymbolRes$ = ""
+classID$ = "SymbolC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "WHICH,LEFT,TOP,WIDTH,HEIGHT,"
+        'NOTE: For symbols, which are assigned to other objects, the
+        '      LEFT and TOP positions must be relative to the parent
+        '      object's left/top position.
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,KEEPASPECT,STANDALONE,TOOLTIP," +_
+                   "BACKPEN,SHADOWPEN,SHINEPEN,BORDERPEN," '+ user tags
+        '      PAGEROBJECT does also automatically imply STANDALONE.
+        '      GUIVIEW is effective for STANDALONE symbols only.
+        '      TOOLTIP is used/shown for STANDALONE symbols only.
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "BACKPEN,SHADOWPEN,SHINEPEN,BORDERPEN," '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "LEFT,TOP," 'properties of parent object
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or empty
+    CASE ELSE
+        SetTag SymbolRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+SymbolC$ = SymbolRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag SymbolRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, SymbolRes$, classID$, tagsID$) THEN
+        IF MID$(guiObjects$(objFlags%, this&), 2, 1) = "p" THEN SetTag guiObjects$(objData%, this&), "STANDALONE", "true"
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        '--- set result and schedule gui refresh ---
+        SetTag SymbolRes$, "OBJECT", LTRIM$(STR$(this&))
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "STANDALONE") THEN
+            SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+        ELSE
+            RemTags guiObjects$(objData%, this&), "GUIVIEW,TOOLTIP"
+        END IF
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, SymbolRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = UpdateTags%(guiObjects$(objData%, this&), "BACKPEN,SHADOWPEN,SHINEPEN,BORDERPEN", tagsID$)
+    '--- check any user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- redraw object (if required) ---
+    IF flag% THEN
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "STANDALONE") THEN
+            resu$ = ObjectRefresh$(this&, "d", "")
+        ELSE
+            SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+        END IF
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, SymbolRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN SymbolRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, SymbolRes$, classID$, methodID$, tagsID$) THEN
+    '--- check use count ---
+    reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+    IF reco& > 0 THEN
+        SetTag SymbolRes$, "ERROR", classID$ + "::" + methodID$ + " -> object still in use"
+    ELSE
+        '--- 1st remove interconnections to this object ---
+        KillInterconnections this&
+        '--- check pager conditions ---
+        KillAssignedPager this&
+        '--- delete object and schedule gui refresh ---
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "STANDALONE") THEN SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+        guiObjects$(objData%, this&) = ""
+        guiObjects$(objType%, this&) = ""
+        guiObjects$(objFlags%, this&) = ""
+        guiObjects$(objConn%, this&) = ""
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, SymbolRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't draw, if unassigned and not standalone ---
+    IF MID$(guiObjects$(objFlags%, this&), 2, 1) = "-" AND _
+        NOT BoolTagTrue%(guiObjects$(objData%, this&), "STANDALONE") THEN RETURN
+    '--- get parent's position ---
+    plft% = VAL(GetTagData$(tagsID$, "LEFT", "0"))
+    ptop% = VAL(GetTagData$(tagsID$, "TOP", "0"))
+    '--- get object's properties ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    whic$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "WHICH", "rhosigma"))
+    '--- preselect drawing colors ---
+    back% = guiBackPen%: shad% = guiShadowPen%
+    shin% = guiShinePen%: bord% = guiTextPen%
+    '--- select symbol to draw, adjust default colors ---
+    SELECT CASE whic$
+        CASE "tapepause": RESTORE SymbolClass_TapePause
+        CASE "tapestop": RESTORE SymbolClass_TapeStop
+        CASE "taperecord": RESTORE SymbolClass_TapeRecord
+        CASE "tapeplay": RESTORE SymbolClass_TapePlay
+        CASE "tapeprevch": RESTORE SymbolClass_TapePrevCh
+        CASE "taperewind": RESTORE SymbolClass_TapeRewind
+        CASE "tapeforward": RESTORE SymbolClass_TapeForward
+        CASE "tapenextch": RESTORE SymbolClass_TapeNextCh
+        CASE "tapeeject": RESTORE SymbolClass_TapeEject
+        CASE "arrowup": RESTORE SymbolClass_ArrowUp
+        CASE "arrowdown": RESTORE SymbolClass_ArrowDown
+        CASE "arrowleft": RESTORE SymbolClass_ArrowLeft
+        CASE "arrowright": RESTORE SymbolClass_ArrowRight
+        CASE "cycle": RESTORE SymbolClass_Cycle
+        CASE "checkmark": RESTORE SymbolClass_Checkmark: shad% = guiGreenPen%
+        CASE "cross": RESTORE SymbolClass_Cross: shad% = guiRedPen%
+        CASE "star": RESTORE SymbolClass_Star
+        CASE "pentagon": RESTORE SymbolClass_Pentagon
+        CASE "octagon": RESTORE SymbolClass_Octagon
+        CASE "increment": RESTORE SymbolClass_Increment
+        CASE "decrement": RESTORE SymbolClass_Decrement
+        CASE "mediadisk": RESTORE SymbolClass_MediaDisk: shad% = guiMediaDisk%
+        CASE "mediadrawer": RESTORE SymbolClass_MediaDrawer: shin% = guiMediaDrawer%
+        CASE "mediafile": RESTORE SymbolClass_MediaFile: shin% = guiMediaFile%
+        CASE ELSE: RESTORE SymbolClass_RhoSigma
+    END SELECT
+    '--- override colors, if any ---
+    back% = VAL(GetTagData$(guiObjects$(objData%, this&), "BACKPEN", LTRIM$(STR$(back%))))
+    shad% = VAL(GetTagData$(guiObjects$(objData%, this&), "SHADOWPEN", LTRIM$(STR$(shad%))))
+    shin% = VAL(GetTagData$(guiObjects$(objData%, this&), "SHINEPEN", LTRIM$(STR$(shin%))))
+    bord% = VAL(GetTagData$(guiObjects$(objData%, this&), "BORDERPEN", LTRIM$(STR$(bord%))))
+    '--- draw object ---
+    READ nomx%, nomy%, poly%, ppoi%
+    sclx# = (widt% - 1) / (nomx% - 1): scly# = (heig% - 1) / (nomy% - 1)
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "KEEPASPECT") THEN
+        IF sclx# < scly# THEN scly# = sclx#: ELSE sclx# = scly#
+    END IF
+    '--- regular polygon filling ---
+    FOR i% = 1 TO poly%
+        READ corn%, colo$
+        REDIM xarr%(corn% - 1)
+        REDIM yarr%(corn% - 1)
+        FOR j% = 0 TO corn% - 1
+            READ poix%, poiy%
+            xarr%(j%) = poix% * sclx# + left% + plft%
+            yarr%(j%) = poiy% * scly# + topp% + ptop%
+        NEXT j%
+        fill% = -1
+        SELECT CASE LCASE$(colo$)
+            CASE "back": fill% = back%
+            CASE "shadow": fill% = shad%
+            CASE "shine": fill% = shin%
+        END SELECT
+        FillPolygon xarr%(), yarr%(), fill%, bord%
+    NEXT i%
+    ERASE yarr%
+    ERASE xarr%
+    '--- PAINT polygon filling ---
+    FOR i% = 1 TO ppoi%
+        READ poix%, poiy%, colo$
+        SELECT CASE LCASE$(colo$)
+            CASE "back": fill% = back%
+            CASE "shadow": fill% = shad%
+            CASE "shine": fill% = shin%
+        END SELECT
+        poix% = poix% * sclx# + left% + plft%
+        poiy% = poiy% * scly# + topp% + ptop%
+        PAINT (poix%, poiy%), fill%, bord%
+    NEXT i%
+END IF
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, SymbolRes$, classID$, methodID$, tagsID$) THEN
+    '--- get mouse position and object dimensions ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    '--- check for mouse focus ---
+    IF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+        SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+    ELSE
+        RemTag guiObjects$(objData%, this&), "FOCUS"
+    END IF
+END IF
+RETURN
+'----------------------------------
+'1st DATA: designed width, designed height, num. polygons, num. PAINT points
+'2nd DATA: num. corners in following polygon, "fill color" ("none" for no fill)
+'3rd DATA: X/Y corner coordinate pairs (trace clockwise)
+'now repeat 2nd/3rd DATA for number of polygons specified in 1st DATA
+'IF PAINT points > 0 THEN define points
+'    DATA: X/Y coordinate pair for PAINT, "fill color"
+'    repeat for number of PAINT points specified in 1st DATA
+'END IF
+SymbolClass_TapePause:
+DATA 15,17,2,0
+DATA 4,"shine"
+DATA 0,16,0,0,5,0,5,16
+DATA 4,"shine"
+DATA 9,16,9,0,14,0,14,16
+'----------------
+SymbolClass_TapeStop:
+DATA 15,17,1,0
+DATA 4,"shine"
+DATA 0,16,0,0,14,0,14,16
+'----------------
+SymbolClass_TapeRecord:
+DATA 17,17,1,0
+DATA 12,"shine"
+DATA 0,8,1,4,4,1,8,0,12,1,15,4,16,8,15,12,12,15,8,16,4,15,1,12
+'----------------
+SymbolClass_TapePlay:
+DATA 15,17,1,0
+DATA 3,"shine"
+DATA 0,16,0,0,14,8
+'----------------
+SymbolClass_TapePrevCh:
+DATA 23,17,3,0
+DATA 4,"shine"
+DATA 0,16,0,0,4,0,4,16
+DATA 3,"shine"
+DATA 5,8,13,0,13,16
+DATA 3,"shine"
+DATA 14,8,22,0,22,16
+'----------------
+SymbolClass_TapeRewind:
+DATA 18,17,2,0
+DATA 3,"shine"
+DATA 0,8,8,0,8,16
+DATA 3,"shine"
+DATA 9,8,17,0,17,16
+'----------------
+SymbolClass_TapeForward:
+DATA 18,17,2,0
+DATA 3,"shine"
+DATA 0,16,0,0,8,8
+DATA 3,"shine"
+DATA 9,16,9,0,17,8
+'----------------
+SymbolClass_TapeNextCh:
+DATA 23,17,3,0
+DATA 3,"shine"
+DATA 0,16,0,0,8,8
+DATA 3,"shine"
+DATA 9,16,9,0,17,8
+DATA 4,"shine"
+DATA 18,16,18,0,22,0,22,16
+'----------------
+SymbolClass_TapeEject:
+DATA 19,17,2,0
+DATA 4,"shine"
+DATA 0,16,0,13,18,13,18,16
+DATA 3,"shine"
+DATA 0,10,9,0,18,10
+'----------------
+SymbolClass_ArrowUp:
+DATA 17,17,1,0
+DATA 4,"shine"
+DATA 0,16,8,0,16,16,8,10
+'----------------
+SymbolClass_ArrowDown:
+DATA 17,17,1,0
+DATA 4,"shine"
+DATA 0,0,8,6,16,0,8,16
+'----------------
+SymbolClass_ArrowLeft:
+DATA 17,17,1,0
+DATA 4,"shine"
+DATA 0,8,16,0,10,8,16,16
+'----------------
+SymbolClass_ArrowRight:
+DATA 17,17,1,0
+DATA 4,"shine"
+DATA 0,16,6,8,0,0,16,8
+'----------------
+SymbolClass_Cycle:
+DATA 17,17,1,0
+DATA 23,"shadow"
+DATA 0,13,0,3,3,0,11,0,14,3,14,5,16,5,13,8,10,5,12,5,12,4,10,2,4,2,2,4,2,12,4,14,10,14,12,12,12,11,14,11,14,13,11,16,3,16
+'----------------
+SymbolClass_Checkmark:
+DATA 13,17,1,0
+DATA 6,"shadow"
+DATA 0,8,2,7,4,10,9,0,12,0,4,16
+'----------------
+SymbolClass_Cross:
+DATA 17,17,1,0
+DATA 12,"shadow"
+DATA 0,14,6,8,0,2,2,0,8,6,14,0,16,2,10,8,16,14,14,16,8,10,2,16
+'----------------
+SymbolClass_Star:
+DATA 17,17,1,0
+DATA 10,"shine"
+DATA 0,7,6,7,8,0,10,7,16,7,11,10,13,16,8,12,3,16,5,10
+'----------------
+SymbolClass_Pentagon:
+DATA 17,17,1,0
+DATA 5,"shine"
+DATA 8,0,16,6,13,16,3,16,0,6
+'----------------
+SymbolClass_Octagon:
+DATA 17,17,1,0
+DATA 8,"shine"
+DATA 5,0,11,0,16,5,16,11,11,16,5,16,0,11,0,5
+'----------------
+SymbolClass_Increment:
+DATA 17,17,1,0
+DATA 12,"shine"
+DATA 0,10,0,6,6,6,6,0,10,0,10,6,16,6,16,10,10,10,10,16,6,16,6,10
+'----------------
+SymbolClass_Decrement:
+DATA 17,17,1,0
+DATA 4,"shine"
+DATA 0,10,0,6,16,6,16,10
+'----------------
+SymbolClass_MediaDisk:
+DATA 17,17,5,0
+DATA 5,"shadow"
+DATA 0,15,0,0,16,0,16,16,1,16
+DATA 4,"shine"
+DATA 2,8,2,0,14,0,14,8
+DATA 4,"back"
+DATA 2,16,2,10,10,10,10,16
+DATA 4,"shadow"
+DATA 10,16,10,10,14,10,14,16
+DATA 4,"shadow"
+DATA 4,15,4,12,5,12,5,15
+'----------------
+SymbolClass_MediaDrawer:
+DATA 21,17,5,0
+DATA 4,"shine"
+DATA 0,16,0,9,20,9,20,16
+DATA 4,"shine"
+DATA 2,5,2,0,18,0,18,5
+DATA 4,"back"
+DATA 1,9,3,5,17,5,19,9
+DATA 4,"shadow"
+DATA 7,13,7,12,13,12,13,13
+DATA 4,"shadow"
+DATA 8,3,8,2,12,2,12,3
+'----------------
+SymbolClass_MediaFile:
+DATA 21,17,8,0
+DATA 4,"back"
+DATA 0,16,0,3,20,3,20,16
+DATA 4,"shine"
+DATA 1,16,1,5,20,5,20,16
+DATA 4,"shadow"
+DATA 0,16,0,5,1,5,1,16
+DATA 4,"shadow"
+DATA 4,9,4,8,9,8,9,9
+DATA 4,"shadow"
+DATA 11,9,11,8,17,8,17,9
+DATA 4,"shadow"
+DATA 4,13,4,12,10,12,10,13
+DATA 4,"shadow"
+DATA 12,13,12,12,16,12,16,13
+DATA 6,"shine"
+DATA 10,3,10,1,11,0,19,0,20,1,20,3
+'----------------
+SymbolClass_RhoSigma:
+DATA 21,17,3,1
+DATA 12,"none"
+DATA 0,16,0,0,6,0,8,1,9,2,10,4,10,6,9,8,8,9,6,10,3,10,3,16
+DATA 6,"none"
+DATA 3,7,3,3,6,3,7,4,7,6,6,7
+DATA 16,"shadow"
+DATA 10,16,10,14,14,8,10,2,10,0,20,0,20,4,18,4,18,3,14,3,17,8,14,13,18,13,18,12,20,12,20,16
+DATA 1,15,"shadow"
+END FUNCTION
+'----------------------------------
+FUNCTION SymbolTag$ (objectID$)
+SymbolTag$ = NewTag$("SYMBOLOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

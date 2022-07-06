@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FileExtension</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>FileExtension$ <em>(function)</em></h2>
+<p>This simple function will return the name extension of the given file or
+folder name. That is the part right of the rightmost found dot (if any)
+starting with the dot itself. To get the regular name part left of the name
+extension, you would use the function <a href="FileNamePart.html">FileNamePart$()</a> instead.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>ext$ = FileExtension$ (file$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>file$ <em>(STRING)</em></h4>
+<ul>
+<li>The file or folder name to get the extension from. Empty input is allowed
+here and will result into an empty extension.</li>
+<li>May also have a path, then only the file part (<a href="FilePart.html">FilePart$()</a>) is checked.
+However, a given path does not affect the function result.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>ext$ <em>(STRING)</em></h4>
+<ul>
+<li>
+Depending on the given file or folder name:
+<ul>
+<li>
+The found name extension inclusive the leading dot (regular operation).
+<ul>
+<li>May be identical to <a href="FilePart.html">FilePart$</a>(file$), if it was
+a extension only (leading dot found).</li>
+</ul>
+</li>
+<li>Empty, if input was empty or a name part only without an actual extension
+(no dot found).</li>
+</ul>
+</li>
+<li>Should be logic, but just to clarify, the result will never contain
+a path, even if given in the input.</li>
+</ul>
+<h5>In either case (empty or not) the result is a valid extension to add to a file or folder name, as extensions are completely optional in any names.</h5>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

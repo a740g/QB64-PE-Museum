@@ -1,0 +1,6 @@
+    IF BoolTagTrue%(mess$, "MOUSERBUP") THEN
+        'The right mousebutton was released after is was pressed and maybe
+        'held down for a while. The current button state is also monitored
+        'in tag "MOUSERB", which is delivered with all messages.
+    END IF
+

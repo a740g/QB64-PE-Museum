@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>InternalErrHandler</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>InternalErrHandler <em>(sub)</em></h2>
+<p>Clear the globally SHARED variable appLastErr%, then switch the error
+handling to the Internal error handler. This handler will just
+store the error number into appLastErr% and then RESUME to the instruction
+following the one which caused the error. This behavior may be used to
+simply ignore any error or to check what error happened and accordingly
+control the further program flow.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>InternalErrHandler
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>Please use the Internal error handler for short term only, at best just
+for the instruction or function call which its errors shall be ignored or
+checked, then immediately switch back to the User error handler.
+Use this method even if it seems to be a waste of runtime (eg. if it would
+cause lots of handler switches within a closed loop). The general rule is
+to have the User handler active for most of the runtime to provide error
+informations to the user, if something goes wrong.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

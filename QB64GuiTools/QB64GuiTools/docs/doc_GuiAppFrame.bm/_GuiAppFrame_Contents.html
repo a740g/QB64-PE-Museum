@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>_GuiAppFrame_Contents</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<pre><code>'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources &amp; Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === GuiAppFrame.bm ===                                            |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides some useful SUBs and FUNCTIONs for common use.     |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+</code></pre>
+
+<h1>GuiTools base library</h1>
+<hr />
+<blockquote>
+<p><em>This document describes the common base stock of SUBs and FUNCTIONs available
+for use in all applications made with the GuiTools Framework. You also find
+a list of the useful shared variables.</em></p>
+</blockquote>
+<hr />
+<h3><u>Table of Contents</u></h3>
+<blockquote>
+<p><strong><em>GENERAL NOTES</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="GuiAppFrame-Shared.html">Globally SHARED Variables</a>
+<ul>
+<li>see which variables are globally available and what they contain</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>MISC FUNCTIONS</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="InternalErrHandler.html">InternalErrHandler</a>
+<ul>
+<li>activate the Internal Error Handler</li>
+</ul>
+</li>
+<li>
+<a href="UserErrHandler.html">UserErrHandler</a>
+<ul>
+<li>activate the User Error Handler</li>
+</ul>
+</li>
+<li>
+<a href="GetUniqueID.html">GetUniqueID$</a>
+<ul>
+<li>get a unique ID string (eg. for use as temporary file names)</li>
+</ul>
+</li>
+<li>
+<a href="MessageBox.html">MessageBox$</a>
+<ul>
+<li>show a MessageBox with one or more buttons</li>
+</ul>
+</li>
+<li>
+<a href="SetPrintMode.html">SetPrintMode</a>
+<ul>
+<li>allows to set a print mode by number (according to _PRINTMODE function)</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>STRING FUNCTIONS</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="BinStr.html">BinStr$</a>
+<ul>
+<li>convert any number into a binary string (_BIN$ synonym)</li>
+</ul>
+</li>
+<li>
+<a href="IndexFormat.html">IndexFormat$</a>
+<ul>
+<li>enhanced PRINT USING style formatting with several new features</li>
+</ul>
+</li>
+<li>
+<a href="LRStrip.html">LStrip$ &amp; RStrip$</a>
+<ul>
+<li>these are more versatile usable LTRIM$/RTRIM$ synonyms</li>
+</ul>
+</li>
+<li>
+<a href="RInstr.html">RInstr</a>
+<ul>
+<li>do INSTR from the right side of a string (_INSTRREV synonym)</li>
+</ul>
+</li>
+<li>
+<a href="ParseLine.html">ParseLine</a>
+<ul>
+<li>break up a string into its individual words or quoted components</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>FILESYSTEM FUNCTIONS</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="CurrDrives.html">CurrDrives$</a>
+<ul>
+<li>get the letters of currently available drives on the computer</li>
+</ul>
+</li>
+<li>
+<a href="CurrDIR.html">CurrDIR$</a>
+<ul>
+<li>get the current working directory of your program (_CWD$ synonym)</li>
+</ul>
+</li>
+<li>
+<a href="PathPart.html">PathPart$</a>
+<ul>
+<li>get the path out of any given file or folder specification</li>
+</ul>
+</li>
+<li>
+<a href="FilePart.html">FilePart$</a>
+<ul>
+<li>get the file/folder name out of a given file or folder specification</li>
+</ul>
+</li>
+<li>
+<a href="FileNamePart.html">FileNamePart$</a>
+<ul>
+<li>get the name part (ie. without extension) of any file or folder name</li>
+</ul>
+</li>
+<li>
+<a href="FileExtension.html">FileExtension$</a>
+<ul>
+<li>get the extension (ie. without name part) of any file or folder name</li>
+</ul>
+</li>
+<li>
+<a href="FileSelect.html">FileSelect$</a>
+<ul>
+<li>show a File Open or Save dialog box</li>
+</ul>
+</li>
+<li>
+<a href="SearchFile.html">SearchFile$</a>
+<ul>
+<li>recursively search a file in a given drive or folder</li>
+</ul>
+</li>
+<li>
+<a href="SafeOpenFile.html">SafeOpenFile</a>
+<ul>
+<li>try to open a file in an error safe way to avoid program abort</li>
+</ul>
+</li>
+<li>
+<a href="TempLog.html">TempLog</a>
+<ul>
+<li>register a temporary file for auto-delete at program end</li>
+</ul>
+</li>
+</ul>
+<h2></h2>
+<blockquote>
+<p>to be continued...</p>
+<p>Work in progress, please directly look into the <strong>GuiAppFrame.bm</strong> source
+file for descriptions of the remaining functions.</p>
+</blockquote>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

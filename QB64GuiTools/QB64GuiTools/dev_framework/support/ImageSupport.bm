@@ -1,0 +1,1335 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === ImageSupport.bm ===                                           |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides some useful SUBs/FUNCTIONS for image processing.   |
+'| == Note that it supports true color (32-bit ARGB) images only.    |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'--- docs\doc_ImageSupport.bm\ModifyBrightness.html
+'---------------------------------------------------------------------
+FUNCTION ModifyBrightness& (shan&, change#, minX%, minY%, maxX%, maxY%, mask&)
+ModifyBrightness& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- build histogram transformation table ---
+            IF change# < -1.0# THEN change# = -1.0
+            IF change# > 1.0# THEN change# = 1.0
+            REDIM hist%(0 TO 255)
+            FOR i% = 0 TO 255
+                v% = FIX(i% * (change# + 1.0#))
+                IF v% < 0 THEN v% = 0: ELSE IF v% > 255 THEN v% = 255
+                hist%(i%) = v%
+            NEXT i%
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) 'ignored (put through)
+                    newR% = hist%(_RED32(orgb~&))
+                    newG% = hist%(_GREEN32(orgb~&))
+                    newB% = hist%(_BLUE32(orgb~&))
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            ERASE hist%
+            '--- set result ---
+            ModifyBrightness& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\ModifyContrast.html
+'---------------------------------------------------------------------
+FUNCTION ModifyContrast& (shan&, change#, minX%, minY%, maxX%, maxY%, mask&)
+ModifyContrast& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- build histogram transformation table ---
+            IF change# < -1.0# THEN change# = -1.0
+            IF change# > 1.0# THEN change# = 1.0
+            REDIM hist%(0 TO 255)
+            c# = change# * 128.0#
+            IF change# <= 0.0# THEN
+                c# = -c#
+                dx# = 256.0
+                dy# = 256.0# - (2.0# * c#)
+                b# = c#
+            ELSE
+                dx# = 256.0# - (2.0# * c#)
+                IF dx# = 0.0# THEN dx# = 1.0#
+                dy# = 256.0
+                b# = 128.0# - ((256.0# * 128.0#) / dx#)
+            END IF
+            FOR i% = 0 TO 255
+                v% = FIX(((dy# * i%) / dx#) + b#)
+                IF v% < 0 THEN v% = 0: ELSE IF v% > 255 THEN v% = 255
+                hist%(i%) = v%
+            NEXT i%
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) 'ignored (put through)
+                    newR% = hist%(_RED32(orgb~&))
+                    newG% = hist%(_GREEN32(orgb~&))
+                    newB% = hist%(_BLUE32(orgb~&))
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            ERASE hist%
+            '--- set result ---
+            ModifyContrast& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\ModifyGamma.html
+'---------------------------------------------------------------------
+FUNCTION ModifyGamma& (shan&, gamma#, minX%, minY%, maxX%, maxY%, mask&)
+ModifyGamma& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- build histogram transformation table ---
+            IF gamma# <= 0.0# THEN gamma# = 0.001
+            IF gamma# > 10.0# THEN gamma# = 10.0
+            REDIM hist%(0 TO 255)
+            g# = 1.0# / gamma#
+            FOR i% = 0 TO 255
+                v% = FIX((((i% / 255.0#) ^ g#) * 255.0#) + 0.5#)
+                IF v% < 0 THEN v% = 0: ELSE IF v% > 255 THEN v% = 255
+                hist%(i%) = v%
+            NEXT i%
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) 'ignored (put through)
+                    newR% = hist%(_RED32(orgb~&))
+                    newG% = hist%(_GREEN32(orgb~&))
+                    newB% = hist%(_BLUE32(orgb~&))
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            ERASE hist%
+            '--- set result ---
+            ModifyGamma& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\MakeGrayscale.html
+'---------------------------------------------------------------------
+FUNCTION MakeGrayscale& (shan&, minX%, minY%, maxX%, maxY%, mask&)
+MakeGrayscale& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) 'ignored (put through)
+                    newV% = CINT((_RED32(orgb~&) * 0.299#) + (_GREEN32(orgb~&) * 0.587#) + (_BLUE32(orgb~&) * 0.114#))
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newV%, newV%, newV%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            MakeGrayscale& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\MakeAntiqueTint.html
+'---------------------------------------------------------------------
+FUNCTION MakeAntiqueTint& (shan&, minX%, minY%, maxX%, maxY%, mask&)
+MakeAntiqueTint& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a reduced contrast copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = ModifyContrast&(shan&, -0.25, minX%, minY%, maxX%, maxY%, mask&)
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) 'ignored (put through)
+                    newR% = _RED32(orgb~&)
+                    newG% = _GREEN32(orgb~&): newG% = newG% - CINT(newG% / 100 * 6)
+                    newB% = _BLUE32(orgb~&): newB% = newB% - CINT(newB% / 100 * 21)
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            MakeAntiqueTint& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\MakeNegative.html
+'---------------------------------------------------------------------
+FUNCTION MakeNegative& (shan&, minX%, minY%, maxX%, maxY%, mask&)
+MakeNegative& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) 'ignored (put through)
+                    newR% = 255 - _RED32(orgb~&)
+                    newG% = 255 - _GREEN32(orgb~&)
+                    newB% = 255 - _BLUE32(orgb~&)
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            MakeNegative& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\ShiftARGB.html
+'---------------------------------------------------------------------
+FUNCTION ShiftARGB& (shan&, order$, minX%, minY%, maxX%, maxY%, mask&)
+ShiftARGB& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- make order string a number (SELECT CASE speedup) ---
+            newOrder& = CVL(UCASE$(LEFT$(order$, 4)))
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- get pixel channels ---
+                    newA% = _ALPHA32(orgb~&)
+                    newR% = _RED32(orgb~&)
+                    newG% = _GREEN32(orgb~&)
+                    newB% = _BLUE32(orgb~&)
+                    '--- put new order pixel to dest ---
+                    SELECT CASE newOrder&
+                        CASE 1094862674: nrgb~& = _RGBA32(newG%, newB%, newA%, newR%) 'RGBA
+                        CASE 1380008519: nrgb~& = _RGBA32(newB%, newA%, newR%, newG%) 'GBAR
+                        CASE 1196572994: nrgb~& = _RGBA32(newA%, newR%, newG%, newB%) 'BARG
+                        CASE 1111574354: nrgb~& = _RGBA32(newG%, newA%, newB%, newR%) 'RGAB
+                        CASE 1380073799: nrgb~& = _RGBA32(newA%, newB%, newR%, newG%) 'GABR
+                        CASE 1196573249: nrgb~& = _RGBA32(newB%, newR%, newG%, newA%) 'ABRG
+                        CASE 1095193154: nrgb~& = _RGBA32(newR%, newG%, newA%, newB%) 'BRGA
+                        CASE 1112686919: nrgb~& = _RGBA32(newA%, newR%, newB%, newG%) 'GARB
+                        CASE 1195528769: nrgb~& = _RGBA32(newR%, newB%, newG%, newA%) 'ARBG
+                        CASE 1095189074: nrgb~& = _RGBA32(newB%, newG%, newA%, newR%) 'RBGA
+                        CASE 1380009794: nrgb~& = _RGBA32(newG%, newA%, newR%, newB%) 'BGAR
+                        CASE 1111966034: nrgb~& = _RGBA32(newA%, newG%, newB%, newR%) 'RAGB
+                        CASE 1380075329: nrgb~& = _RGBA32(newG%, newB%, newR%, newA%) 'AGBR
+                        CASE 1095909959: nrgb~& = _RGBA32(newB%, newR%, newA%, newG%) 'GBRA
+                        CASE 1195463234: nrgb~& = _RGBA32(newR%, newA%, newG%, newB%) 'BRAG
+                        CASE 1112688449: nrgb~& = _RGBA32(newG%, newR%, newB%, newA%) 'AGRB
+                        CASE 1094865479: nrgb~& = _RGBA32(newR%, newB%, newA%, newG%) 'GRBA
+                        CASE 1195459154: nrgb~& = _RGBA32(newB%, newA%, newG%, newR%) 'RBAG
+                        CASE 1380401474: nrgb~& = _RGBA32(newA%, newG%, newR%, newB%) 'BAGR
+                        CASE 1111577159: nrgb~& = _RGBA32(newR%, newA%, newB%, newG%) 'GRAB
+                        CASE 1195524434: nrgb~& = _RGBA32(newA%, newB%, newG%, newR%) 'RABG
+                        CASE 1380401729: nrgb~& = _RGBA32(newB%, newG%, newR%, newA%) 'ABGR
+                        CASE 1095911234: nrgb~& = _RGBA32(newG%, newR%, newA%, newB%) 'BGRA
+                        CASE ELSE: nrgb~& = orgb~& 'invalid (keep ARGB)
+                    END SELECT
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            ShiftARGB& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\LimitARGB.html
+'---------------------------------------------------------------------
+FUNCTION LimitARGB& (shan&, lowARGB&, highARGB&, minX%, minY%, maxX%, maxY%, mask&)
+LimitARGB& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- get limit values ---
+            lA% = _ALPHA32(lowARGB&): hA% = _ALPHA32(highARGB&)
+            lR% = _RED32(lowARGB&): hR% = _RED32(highARGB&)
+            lG% = _GREEN32(lowARGB&): hG% = _GREEN32(highARGB&)
+            lB% = _BLUE32(lowARGB&): hB% = _BLUE32(highARGB&)
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&)
+                    IF newA% < lA% THEN newA% = lA%: ELSE IF newA% > hA% THEN newA% = hA%
+                    newR% = _RED32(orgb~&)
+                    IF newR% < lR% THEN newR% = lR%: ELSE IF newR% > hR% THEN newR% = hR%
+                    newG% = _GREEN32(orgb~&)
+                    IF newG% < lG% THEN newG% = lG%: ELSE IF newG% > hG% THEN newG% = hG%
+                    newB% = _BLUE32(orgb~&)
+                    IF newB% < lB% THEN newB% = lB%: ELSE IF newB% > hB% THEN newB% = hB%
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            LimitARGB& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\AddConstant.html
+'---------------------------------------------------------------------
+FUNCTION AddConstant& (shan&, constARGB&, minX%, minY%, maxX%, maxY%, mask&)
+AddConstant& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- get constant values ---
+            cA% = _ALPHA32(constARGB&)
+            cR% = _RED32(constARGB&)
+            cG% = _GREEN32(constARGB&)
+            cB% = _BLUE32(constARGB&)
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) + cA%
+                    newR% = _RED32(orgb~&) + cR%
+                    newG% = _GREEN32(orgb~&) + cG%
+                    newB% = _BLUE32(orgb~&) + cB%
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            AddConstant& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\SubConstant.html
+'---------------------------------------------------------------------
+FUNCTION SubConstant& (shan&, constARGB&, minX%, minY%, maxX%, maxY%, mask&)
+SubConstant& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- get constant values ---
+            cA% = _ALPHA32(constARGB&)
+            cR% = _RED32(constARGB&)
+            cG% = _GREEN32(constARGB&)
+            cB% = _BLUE32(constARGB&)
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) - cA%
+                    newR% = _RED32(orgb~&) - cR%
+                    newG% = _GREEN32(orgb~&) - cG%
+                    newB% = _BLUE32(orgb~&) - cB%
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            SubConstant& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\ExtractChannels.html
+'---------------------------------------------------------------------
+FUNCTION ExtractChannels& (shan&, channels$, minX%, minY%, maxX%, maxY%, mask&)
+ExtractChannels& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- make channel operator flags ---
+            IF INSTR(UCASE$(channels$), "A") = 0 THEN opA% = 0: ELSE opA% = -1
+            IF INSTR(UCASE$(channels$), "R") = 0 THEN opR% = 0: ELSE opR% = -1
+            IF INSTR(UCASE$(channels$), "G") = 0 THEN opG% = 0: ELSE opG% = -1
+            IF INSTR(UCASE$(channels$), "B") = 0 THEN opB% = 0: ELSE opB% = -1
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = _ALPHA32(orgb~&) AND opA%
+                    newR% = _RED32(orgb~&) AND opR%
+                    newG% = _GREEN32(orgb~&) AND opG%
+                    newB% = _BLUE32(orgb~&) AND opB%
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            ExtractChannels& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\ExtractBitfields.html
+'---------------------------------------------------------------------
+FUNCTION ExtractBitfields& (shan&, fields%, scale%, channels$, minX%, minY%, maxX%, maxY%, mask&)
+ExtractBitfields& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- make channel operator flags ---
+            IF INSTR(UCASE$(channels$), "A") = 0 THEN opA% = 0: ELSE opA% = -1
+            IF INSTR(UCASE$(channels$), "R") = 0 THEN opR% = 0: ELSE opR% = -1
+            IF INSTR(UCASE$(channels$), "G") = 0 THEN opG% = 0: ELSE opG% = -1
+            IF INSTR(UCASE$(channels$), "B") = 0 THEN opB% = 0: ELSE opB% = -1
+            '--- adjust fields% and scale% ---
+            fields% = (fields% AND 255)
+            IF scale% <> 0 THEN
+                FOR b% = 7 TO 0 STEP -1
+                    IF (fields% AND (2 ^ b%)) <> 0 THEN
+                        scale% = 2 ^ (7 - b%)
+                        EXIT FOR
+                    END IF
+                NEXT b%
+            ELSE
+                scale% = 1
+            END IF
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                noff%& = nbuf.OFFSET + (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- get pixel ARGB value from source ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET nbuf, noff%&, orgb~&
+                    '--- modify pixel channels ---
+                    newA% = ((_ALPHA32(orgb~&) AND fields%) * scale%) AND opA%
+                    newR% = ((_RED32(orgb~&) AND fields%) * scale%) AND opR%
+                    newG% = ((_GREEN32(orgb~&) AND fields%) * scale%) AND opG%
+                    newB% = ((_BLUE32(orgb~&) AND fields%) * scale%) AND opB%
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, noff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    noff%& = noff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE mbuf
+            '--- set result ---
+            ExtractBitfields& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+END FUNCTION
+
+'--- docs\doc_ImageSupport.bm\ApplyFilter.html
+'---------------------------------------------------------------------
+FUNCTION ApplyFilter& (shan&, filter$, addovr%, divovr%, minX%, minY%, maxX%, maxY%, mask&)
+ApplyFilter& = -1 'so far return invalid handle (failure)
+IF shan& < -1 OR shan& = 0 THEN
+    IF _PIXELSIZE(shan&) = 4 THEN
+        '--- get source image size and a copy of the image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        nhan& = _NEWIMAGE(swid%, shei%, 32)
+        _PUTIMAGE , shan&, nhan&
+        '--- check given mask (if any) ---
+        IF mask& >= -1 THEN
+            mhan& = _NEWIMAGE(swid%, shei%, 256)
+            IF mhan& >= -1 THEN EXIT FUNCTION
+            d& = _DEST: _DEST mhan&: CLS , 15: _DEST d&
+        ELSE
+            mhan& = mask&
+            IF _PIXELSIZE(mhan&) <> 1 OR _
+               _WIDTH(mhan&) <> swid% OR _
+               _HEIGHT(mhan&) <> shei% THEN EXIT FUNCTION
+        END IF
+        '--- check selected processing area ---
+        IF minX% < 0 OR minX% >= swid% THEN minX% = 0
+        IF maxX% < 0 OR maxX% >= swid% THEN maxX% = swid% - 1
+        IF minY% < 0 OR minY% >= shei% THEN minY% = 0
+        IF maxY% < 0 OR maxY% >= shei% THEN maxY% = shei% - 1
+        '--- process copied image ---
+        $CHECKING:OFF
+        IF nhan& < -1 THEN
+            '--- init values for selected filter ---
+            SELECT CASE LCASE$(filter$)
+                '=== artistic ===
+                CASE "deep": RESTORE ApplyFilter_Deep
+                CASE "rushhour": RESTORE ApplyFilter_Rushhour
+                CASE "texture": RESTORE ApplyFilter_Texture
+                CASE "wooden": RESTORE ApplyFilter_Wooden
+                    '=== bluring ===
+                CASE "average3": RESTORE ApplyFilter_Average3
+                CASE "average5": RESTORE ApplyFilter_Average5
+                CASE "average7": RESTORE ApplyFilter_Average7
+                CASE "gauss4": RESTORE ApplyFilter_Gauss4
+                CASE "gauss8": RESTORE ApplyFilter_Gauss8
+                CASE "needglasses": RESTORE ApplyFilter_NeedGlasses
+                CASE "unsharpcam": RESTORE ApplyFilter_UnsharpCam
+                    '=== sharpen ===
+                CASE "lowsharpen": RESTORE ApplyFilter_LowSharpen
+                CASE "mediumsharpen": RESTORE ApplyFilter_MediumSharpen
+                CASE "highsharpen": RESTORE ApplyFilter_HighSharpen
+                CASE "mexicanhat": RESTORE ApplyFilter_MexicanHat 'similar to High, but better edges
+                    '=== edge detect ===
+                CASE "kirschn": RESTORE ApplyFilter_KirschN
+                CASE "kirschnw": RESTORE ApplyFilter_KirschNW
+                CASE "kirschw": RESTORE ApplyFilter_KirschW
+                CASE "kirschsw": RESTORE ApplyFilter_KirschSW
+                CASE "kirschs": RESTORE ApplyFilter_KirschS
+                CASE "kirschse": RESTORE ApplyFilter_KirschSE
+                CASE "kirsche": RESTORE ApplyFilter_KirschE
+                CASE "kirschne": RESTORE ApplyFilter_KirschNE
+                CASE "laplace4": RESTORE ApplyFilter_Laplace4
+                CASE "laplace8": RESTORE ApplyFilter_Laplace8
+                CASE "roberts1": RESTORE ApplyFilter_Roberts1
+                CASE "roberts2": RESTORE ApplyFilter_Roberts2
+                    '=== line detect ===
+                CASE "prewitt1": RESTORE ApplyFilter_Prewitt1
+                CASE "prewitt2": RESTORE ApplyFilter_Prewitt2
+                CASE "sobel1": RESTORE ApplyFilter_Sobel1
+                CASE "sobel2": RESTORE ApplyFilter_Sobel2
+                CASE ELSE: GOTO NullFilter
+            END SELECT
+            REDIM weight%(0 TO 6, 0 TO 6)
+            READ size%, add%, div%
+            size% = size% \ 2
+            IF addovr% <> 0 THEN add% = addovr%
+            IF divovr% <> 0 THEN div% = divovr%
+            FOR fy% = 0 TO 6
+                FOR fx% = 0 TO 6
+                    READ weight%(fy%, fx%)
+                NEXT fx%
+            NEXT fy%
+            '--- for speed we do direct memory access ---
+            DIM mbuf AS _MEM: mbuf = _MEMIMAGE(mhan&)
+            DIM sbuf AS _MEM: sbuf = _MEMIMAGE(shan&)
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&)
+            '--- iterate through pixels ---
+            FOR y% = minY% TO maxY%
+                moff%& = mbuf.OFFSET + (y% * swid%) + (minX%)
+                poff%& = (y% * swid% * 4) + (minX% * 4)
+                FOR x% = minX% TO maxX%
+                    '--- 1st clear values and get center pixel alpha ---
+                    _MEMGET mbuf, moff%&, mval~%%
+                    _MEMGET sbuf, sbuf.OFFSET + poff%&, orgb~&
+                    newA% = _ALPHA32(orgb~&): sumR& = 0: sumG& = 0: sumB& = 0
+                    '--- now iterate neighbour pixels according to filter matrix ---
+                    FOR fy% = y% - size% TO y% + size%
+                        foff%& = (fy% * swid% * 4) + ((x% - size%) * 4)
+                        FOR fx% = x% - size% TO x% + size%
+                            IF fy% >= 0 AND fy% < shei% AND _
+                               fx% >= 0 AND fx% < swid% THEN
+                                '--- get pixel ARGB value from source ---
+                                _MEMGET sbuf, sbuf.OFFSET + foff%&, orgb~&
+                            ELSE
+                                '--- use center pixel for positions outside image ---
+                                _MEMGET sbuf, sbuf.OFFSET + poff%&, orgb~&
+                            END IF
+                            '--- sum up pixel weights ---
+                            wt% = weight%(fy% - y% + 3, fx% - x% + 3)
+                            sumR& = sumR& + (_RED32(orgb~&) * wt%)
+                            sumG& = sumG& + (_GREEN32(orgb~&) * wt%)
+                            sumB& = sumB& + (_BLUE32(orgb~&) * wt%)
+                            '--- set next filter offset ---
+                            foff%& = foff%& + 4
+                        NEXT fx%
+                    NEXT fy%
+                    '--- finalize new pixel channels ---
+                    newR% = CINT(sumR& / div%) + add%
+                    newG% = CINT(sumG& / div%) + add%
+                    newB% = CINT(sumB& / div%) + add%
+                    '--- put new pixel ARGB value to dest ---
+                    nrgb~& = _RGBA32(newR%, newG%, newB%, newA%)
+                    IF mval~%% THEN _MEMPUT nbuf, nbuf.OFFSET + poff%&, nrgb~&
+                    '--- set next pixel offset ---
+                    poff%& = poff%& + 4
+                    moff%& = moff%& + 1
+                NEXT x%
+            NEXT y%
+            '--- cleanup ---
+            _MEMFREE nbuf
+            _MEMFREE sbuf
+            _MEMFREE mbuf
+            ERASE weight%
+            '--- set result ---
+            NullFilter:
+            ApplyFilter& = nhan&
+        END IF
+        $CHECKING:ON
+        IF mask& >= -1 THEN _FREEIMAGE mhan&
+    END IF
+END IF
+EXIT FUNCTION
+'--- Filter definitions format ---
+'FilterName:
+'DATA size, add, div (size must be 3, 5 or 7)
+'DATA seven values matrix row (7 such rows must be present)
+'-----
+ApplyFilter_Deep:
+DATA 5,0,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,0,3,0,0,0
+DATA 0,1,3,1,-3,-1,0
+DATA 0,0,0,-3,0,0,0
+DATA 0,0,0,-1,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Rushhour:
+DATA 5,-150,1
+DATA 0,0,0,0,0,0,0
+DATA 0,1,0,0,0,2,0
+DATA 0,0,2,0,1,0,0
+DATA 0,0,0,2,0,0,0
+DATA 0,0,-1,0,-2,0,0
+DATA 0,-2,0,0,0,-1,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Texture:
+DATA 5,0,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,-1,0,-1,0,0
+DATA 0,1,0,1,0,1,0
+DATA 0,0,-1,0,-1,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Wooden:
+DATA 3,0,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-2,0,0,0,0
+DATA 0,0,0,5,0,0,0
+DATA 0,0,0,0,-2,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Average3:
+DATA 3,0,9
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,1,1,1,0,0
+DATA 0,0,1,1,1,0,0
+DATA 0,0,1,1,1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Average5:
+DATA 5,0,25
+DATA 0,0,0,0,0,0,0
+DATA 0,1,1,1,1,1,0
+DATA 0,1,1,1,1,1,0
+DATA 0,1,1,1,1,1,0
+DATA 0,1,1,1,1,1,0
+DATA 0,1,1,1,1,1,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Average7:
+DATA 7,0,49
+DATA 1,1,1,1,1,1,1
+DATA 1,1,1,1,1,1,1
+DATA 1,1,1,1,1,1,1
+DATA 1,1,1,1,1,1,1
+DATA 1,1,1,1,1,1,1
+DATA 1,1,1,1,1,1,1
+DATA 1,1,1,1,1,1,1
+ApplyFilter_Gauss4:
+DATA 3,0,6
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,1,2,1,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Gauss8:
+DATA 3,0,16
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,1,2,1,0,0
+DATA 0,0,2,4,2,0,0
+DATA 0,0,1,2,1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_NeedGlasses:
+DATA 5,0,60
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,30,0,0,0,30,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_UnsharpCam:
+DATA 7,0,140
+DATA 30,0,0,10,0,0,10
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,20,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 30,0,0,30,0,0,10
+ApplyFilter_LowSharpen:
+DATA 3,0,8
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,-1,0,0,0
+DATA 0,0,-1,12,-1,0,0
+DATA 0,0,0,-1,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_MediumSharpen:
+DATA 3,0,6
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,-1,0,0,0
+DATA 0,0,-1,10,-1,0,0
+DATA 0,0,0,-1,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_HighSharpen:
+DATA 3,0,8
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-2,1,-2,0,0
+DATA 0,0,1,12,1,0,0
+DATA 0,0,-2,1,-2,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_MexicanHat:
+DATA 5,0,8
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,-1,0,0,0
+DATA 0,0,1,-2,1,0,0
+DATA 0,-1,-2,16,-2,-1,0
+DATA 0,0,1,-2,1,0,0
+DATA 0,0,0,-1,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschN:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,5,5,5,0,0
+DATA 0,0,-3,0,-3,0,0
+DATA 0,0,-3,-3,-3,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschNW:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,5,5,-3,0,0
+DATA 0,0,5,0,-3,0,0
+DATA 0,0,-3,-3,-3,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschW:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,5,-3,-3,0,0
+DATA 0,0,5,0,-3,0,0
+DATA 0,0,5,-3,-3,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschSW:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-3,-3,-3,0,0
+DATA 0,0,5,0,-3,0,0
+DATA 0,0,5,5,-3,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschS:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-3,-3,-3,0,0
+DATA 0,0,-3,0,-3,0,0
+DATA 0,0,5,5,5,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschSE:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-3,-3,-3,0,0
+DATA 0,0,-3,0,5,0,0
+DATA 0,0,-3,5,5,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschE:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-3,-3,5,0,0
+DATA 0,0,-3,0,5,0,0
+DATA 0,0,-3,-3,5,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_KirschNE:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-3,5,5,0,0
+DATA 0,0,-3,0,5,0,0
+DATA 0,0,-3,-3,-3,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Laplace4:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,1,-4,1,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Laplace8:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,1,1,1,0,0
+DATA 0,0,1,-8,1,0,0
+DATA 0,0,1,1,1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Roberts1:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,0,0,-1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Roberts2:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,1,0,0,0
+DATA 0,0,-1,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Prewitt1:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-1,0,1,0,0
+DATA 0,0,-1,0,1,0,0
+DATA 0,0,-1,0,1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Prewitt2:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-1,-1,-1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,1,1,1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Sobel1:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,1,0,-1,0,0
+DATA 0,0,2,0,-2,0,0
+DATA 0,0,1,0,-1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+ApplyFilter_Sobel2:
+DATA 3,128,1
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,1,2,1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,-1,-2,-1,0,0
+DATA 0,0,0,0,0,0,0
+DATA 0,0,0,0,0,0,0
+END FUNCTION
+

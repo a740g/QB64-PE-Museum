@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LineIntersection</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_PolygonSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>LineIntersection <em>(function)</em></h2>
+<p>Determines the intersection point of the line defined by points A and B
+with the line defined by points C and D. If the intersection point was
+found, then its position is stored in point I. If there is no determinable
+intersection point, then point I remains unchanged.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>success% = LineIntersection% (Ax#, Ay#, Bx#, By#, Cx#, Cy#, Dx#, Dy#, Ix#, Iy#)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>Ax#, Ay# <em>(DOUBLEs)</em></h4>
+<h4>Bx#, By# <em>(DOUBLEs)</em></h4>
+<ul>
+<li>The x/y coordinates of the start point (A) of the first line and
+its related endpoint (B).</li>
+</ul>
+<h4>Cx#, Cy# <em>(DOUBLEs)</em></h4>
+<h4>Dx#, Dy# <em>(DOUBLEs)</em></h4>
+<ul>
+<li>The x/y coordinates of the start point (C) of the second line and
+its related endpoint (D).</li>
+</ul>
+<h4>Ix#, Iy# <em>(DOUBLE variables)</em></h4>
+<ul>
+<li>These must be two type <em>DOUBLE</em> variables, where the x/y coordinates
+of the intersection point will be stored on success, note this is
+an intended argument side effect. On failure the values of the given
+variables remain unchanged.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>success% <em>(INTEGER)</em></h4>
+<ul>
+<li>This flag is true (-1) on success or false (0) on failure. On success
+the intersection point is stored in the given variables (Ix#, Iy#).</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_PolygonSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

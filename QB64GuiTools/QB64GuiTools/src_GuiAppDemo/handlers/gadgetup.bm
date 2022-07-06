@@ -1,0 +1,322 @@
+    IF ValidateTags%(mess$, "GADGETUP", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'This is the most important event type for GUI operation, it is
+        'delivered only, if an clickable GUI object went into focus, then
+        'got selected and finally got unselected while it still (or again)
+        'had focus, ie. the object was regularly clicked once and now the
+        'associated action should be executed. This event is also send,
+        'if any Text/Number input field is unselected, hence its input is
+        'completed. The function ThisObject%() does match the GADGETUP
+        'object with a given object to easily build handling blocks for your
+        'objects: eg. IF ThisObject%(myObj$, message$, "GADGETUP") THEN ...
+        '----------------
+        'As we usually know the object's types we've created, we could
+        'call the object methods of the respective class here directly,
+        'but even if the object types are known I recommend the use of
+        'the generic class "GenC$", which will route the call to the
+        'correct object class. This will eliminate the chance, that any
+        'object is processed with a wrong class, hence result in errors.
+        'Note also, that everything which is assigned to "dummy$" here,
+        'should of course be checked in a real application if needed,
+        'as any method call could likely return an ERROR/WARNING tag.
+        '--- Root Area ---
+        IF ThisObject%(OnOffButton$, mess$, "GADGETUP") THEN
+            IF btxt$ = "Other Button ON" THEN btxt$ = "Other Button OFF": ELSE btxt$ = "Other Button ON"
+            dummy$ = GenC$("SET", OnOffButton$ + NewTag$("TEXT", btxt$))
+            IF disa$ = "true" THEN disa$ = "false": ELSE disa$ = "true"
+            dummy$ = GenC$("SET", FrameSwitch$ + NewTag$("DISABLED", disa$))
+        END IF
+        IF ThisObject%(FrameSwitch$, mess$, "GADGETUP") THEN
+            IF ftxt$ = "Create Frame 2" THEN ftxt$ = "Erase Frame 2": ELSE ftxt$ = "Create Frame 2"
+            dummy$ = GenC$("SET", FrameSwitch$ + NewTag$("TEXT", ftxt$))
+            IF Frame2$ = "" THEN 'create frame object
+                'another init syntax using the generic class "GenC"
+                'with the "CLASSNAME" tag
+                Frame2$ = GenC$("INIT", NewTag$("CLASSNAME", "FrameC") + NewTag$("LEFT", "50") + NewTag$("TOP", "185") + NewTag$("WIDTH", "475") + NewTag$("HEIGHT", "200") + NewTag$("FORM", "solid") + NewTag$("TEXT", "Frame 2 (recessed)") + NewTag$("TEXTPLACE", "bottomcenter") + NewTag$("RECESSED", "true"))
+            ELSE 'delete frame object
+                dummy$ = GenC$("KILL", Frame2$)
+                Frame2$ = "" 'if the object handle is checked for initialization
+                'in another place, then always invalidate the handle after KILL
+            END IF
+        END IF
+        '--- Page tabs clicked ---
+        IF ThisObject%(Page1$, mess$, "GADGETUP") OR _
+           ThisObject%(Page2$, mess$, "GADGETUP") OR _
+           ThisObject%(Page3$, mess$, "GADGETUP") OR _
+           ThisObject%(Page4$, mess$, "GADGETUP") OR _
+           ThisObject%(Page5$, mess$, "GADGETUP") OR _
+           ThisObject%(Page6$, mess$, "GADGETUP") OR _
+           ThisObject%(Page7$, mess$, "GADGETUP") THEN
+            IF subClicks% < 15 THEN
+                dummy$ = GenC$("SET", Page1$ + NewTag$("ACTIVE", "true"))
+                dummy$ = MessageBox$("Info16px.png", "Just to mention...",_
+                                     "First try all SubPages please !!",_
+                                     "Ok, I'll")
+            END IF
+        END IF
+        '--- position the scroller image cutout when Page 6 was selected ---
+        IF ThisObject%(Page6$, mess$, "GADGETUP") THEN
+            GOSUB RefreshScrollImagePage6
+        END IF
+        '--- Page 1 ---
+        IF ThisObject%(KillTestButton1$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("KILL", Page1$) 'will also kill remaining child objects
+            dummy$ = GenC$("KILL", GreenCheckSym$) 'no longer needed
+        END IF
+        IF ThisObject%(KillTestButton2$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("KILL", Page3$) 'will also kill remaining child objects
+            dummy$ = GenC$("KILL", EndCycList$) 'kill multiple choice lists
+            dummy$ = GenC$("KILL", KillTestButton2$)
+        END IF
+        IF ThisObject%(KillTestButton3$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("KILL", Page2$) 'will also kill remaining child objects
+            dummy$ = GenC$("KILL", Page4$) 'will also kill remaining child objects
+            dummy$ = GenC$("KILL", Page5$) 'will also kill remaining child objects
+            dummy$ = GenC$("KILL", Page6$) 'will also kill remaining child objects
+            dummy$ = GenC$("KILL", Page7$) 'will also kill remaining child objects
+            dummy$ = GenC$("KILL", MultiRADListBGF$) 'kill multiple choice lists
+            dummy$ = GenC$("KILL", MultiRADListF$)
+            dummy$ = GenC$("KILL", MultiLVListPLAIN$)
+            dummy$ = GenC$("KILL", MultiLVListIMG$)
+            dummy$ = GenC$("KILL", MultiVE$) 'kill multiple choice list images
+            dummy$ = GenC$("KILL", MultiUS$): dummy$ = GenC$("KILL", MultiUK$)
+            dummy$ = GenC$("KILL", MultiTZ$): dummy$ = GenC$("KILL", MultiRU$)
+            dummy$ = GenC$("KILL", MultiQA$): dummy$ = GenC$("KILL", MultiPA$)
+            dummy$ = GenC$("KILL", MultiOM$): dummy$ = GenC$("KILL", MultiNA$)
+            dummy$ = GenC$("KILL", MultiMN$): dummy$ = GenC$("KILL", MultiLI$)
+            dummy$ = GenC$("KILL", MultiKR$): dummy$ = GenC$("KILL", MultiKE$)
+            dummy$ = GenC$("KILL", MultiJM$): dummy$ = GenC$("KILL", MultiIT$)
+            dummy$ = GenC$("KILL", MultiHT$): dummy$ = GenC$("KILL", MultiFR$)
+            dummy$ = GenC$("KILL", MultiET$): dummy$ = GenC$("KILL", MultiDK$)
+            dummy$ = GenC$("KILL", MultiDE$): dummy$ = GenC$("KILL", MultiCA$)
+            dummy$ = GenC$("KILL", MultiBR$): dummy$ = GenC$("KILL", MultiAU$)
+            dummy$ = GenC$("KILL", KillTestButton3$) 'finally kill the kill button
+        END IF
+        '--- Page 3 ---
+        IF ThisObject%(EndingChkBox1$, mess$, "GADGETUP") THEN
+            immq$ = GenC$("GET", EndingChkBox1$ + NewTag$("TAGNAMES", "CHECKED"))
+        END IF
+        IF ThisObject%(EndingChkBox2$, mess$, "GADGETUP") THEN
+            abou$ = GenC$("GET", EndingChkBox2$ + NewTag$("TAGNAMES", "CHECKED"))
+        END IF
+        IF ThisObject%(EndingChkBox3$, mess$, "GADGETUP") THEN
+            ctag$ = GenC$("GET", EndingChkBox3$ + NewTag$("TAGNAMES", "CHECKED"))
+            disa% = NOT BoolTagTrue%(ctag$, "CHECKED")
+            dummy$ = GenC$("SET", EndingIcSlider1to2$ + NewTag$("DISABLED", LTRIM$(STR$(disa%))))
+            GOSUB RefreshSizeGaugePage3
+        END IF
+        IF ThisObject%(EndingSlider1$, mess$, "GADGETUP") OR _
+           ThisObject%(EndingSlider2$, mess$, "GADGETUP") THEN
+            GOSUB RefreshSizeGaugePage3
+        END IF
+        IF ThisObject%(EndingCycler$, mess$, "GADGETUP") THEN
+            IF QuitButton$ <> "" THEN
+                odat$ = GenC$("GET", EndingCycler$ + NewTag$("TAGNAMES", "DATA")) 'get actual option DATA tag
+                dummy$ = GenC$("SET", QuitButton$ + NewTag$("TEXT", GetTagData$(odat$, "DATA", "")))
+            END IF
+        END IF
+        IF ThisObject%(EndingButton1$, mess$, "GADGETUP") THEN
+            QuitRuler1$ = RulerC$("INIT", NewTag$("LEFT", "615") + NewTag$("TOP", "150") + NewTag$("LENGTH", "270") + NewTag$("FORM", "ridge") + NewTag$("ALIGN", "vertical"))
+            QuitRuler2$ = RulerC$("INIT", NewTag$("LEFT", "985") + NewTag$("TOP", "150") + NewTag$("LENGTH", "270") + NewTag$("FORM", "ridge") + NewTag$("ALIGN", "vertical"))
+            'get quit button size from sliders and calculate position
+            wtag$ = GenC$("GET", EndingSlider1$ + NewTag$("TAGNAMES", "LEVEL"))
+            htag$ = GenC$("GET", EndingSlider2$ + NewTag$("TAGNAMES", "LEVEL"))
+            widt% = VAL(GetTagData$(wtag$, "LEVEL", "250")): left% = (((250 - widt%) \ 2) + 675)
+            heig% = VAL(GetTagData$(htag$, "LEVEL", "175")): topp% = (((175 - heig%) \ 2) + 160)
+            'get quit button text from cycler object
+            odat$ = GenC$("GET", EndingCycler$ + NewTag$("TAGNAMES", "DATA")) 'get actual option DATA tag
+            QuitButton$ = ButtonC$("INIT", NewTag$("SHORTCUT", MakeShortcut$("Return", 0, 0, 0)) +_
+                                           NewTag$("LEFT", LTRIM$(STR$(left%))) +_
+                                           NewTag$("TOP", LTRIM$(STR$(topp%))) +_
+                                           NewTag$("WIDTH", LTRIM$(STR$(widt%))) +_
+                                           NewTag$("HEIGHT", LTRIM$(STR$(heig%))) +_
+                                           NewTag$("TEXT", GetTagData$(odat$, "DATA", "")))
+            QuitState$ = TextC$("INIT", NewTag$("LEFT", "675") + NewTag$("TOP", "365") + NewTag$("WIDTH", "250") + NewTag$("HEIGHT", "40") + NewTag$("FORM", "ridge") + NewTag$("TEXTPLACE", "center") + NewTag$("LABEL", "Button State") + NewTag$("LABELHIGH", "true"))
+            dummy$ = GenC$("SET", EndingButton1$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", EndingButton2$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", EndingButton3$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", EndingChkBox1$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", EndingChkBox2$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", EndingSlider1$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", EndingSlider2$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", EndingChkBox3$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", KillTestButton2$ + NewTag$("DISABLED", "false"))
+        END IF
+        IF ThisObject%(EndingButton2$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("KILL", QuitRuler1$)
+            QuitRuler1$ = "" 'if the object handle is checked for initialization
+            'in another place, then always invalidate the handle after KILL
+            dummy$ = GenC$("KILL", QuitRuler2$)
+            QuitRuler2$ = "" 'if the object handle is checked for initialization
+            'in another place, then always invalidate the handle after KILL
+            dummy$ = GenC$("KILL", QuitButton$)
+            QuitButton$ = "" 'if the object handle is checked for initialization
+            'in another place, then always invalidate the handle after KILL
+            dummy$ = GenC$("KILL", QuitState$)
+            QuitState$ = "" 'if the object handle is checked for initialization
+            'in another place, then always invalidate the handle after KILL
+            dummy$ = GenC$("SET", EndingButton1$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", EndingButton2$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", EndingButton3$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", EndingChkBox1$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", EndingChkBox2$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", EndingSlider1$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", EndingSlider2$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", EndingChkBox3$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", KillTestButton2$ + NewTag$("DISABLED", "true"))
+        END IF
+        IF ThisObject%(EndingButton3$, mess$, "GADGETUP") THEN
+            DumpObjectArray "GuiAppDemoArray.txt"
+            dummy$ = MessageBox$("Info16px.png", "",_
+                                 "The Object Dump was written into file|" +_
+                                 CurrDIR$ + "\GuiAppDemoArray.txt",_
+                                 "Thank You")
+        END IF
+        '--- Page 4 ---
+        IF ThisObject%(IcChkBox1$, mess$, "GADGETUP") THEN
+            ctag$ = GenC$("GET", IcChkBox1$ + NewTag$("TAGNAMES", "CHECKED"))
+            disa% = NOT BoolTagTrue%(ctag$, "CHECKED")
+            dummy$ = GenC$("SET", IcSlider2to1$ + NewTag$("DISABLED", LTRIM$(STR$(disa%))))
+        END IF
+        IF ThisObject%(IcChkBox2$, mess$, "GADGETUP") THEN
+            ctag$ = GenC$("GET", IcChkBox2$ + NewTag$("TAGNAMES", "CHECKED"))
+            disa% = NOT BoolTagTrue%(ctag$, "CHECKED")
+            dummy$ = GenC$("SET", IcSlider2to3$ + NewTag$("DISABLED", LTRIM$(STR$(disa%))))
+        END IF
+        '--- Page 5 ---
+        IF ThisObject%(Page5$, mess$, "GADGETUP") OR _
+           ThisObject%(PalWheel$, mess$, "GADGETUP") OR _
+           ThisObject%(PalHSBSliderH$, mess$, "GADGETUP") OR _
+           ThisObject%(PalHSBSliderS$, mess$, "GADGETUP") OR _
+           ThisObject%(PalHSBSliderB$, mess$, "GADGETUP") OR _
+           ThisObject%(PalRGBSliderR$, mess$, "GADGETUP") OR _
+           ThisObject%(PalRGBSliderG$, mess$, "GADGETUP") OR _
+           ThisObject%(PalRGBSliderB$, mess$, "GADGETUP") THEN
+            GOSUB RefreshColorGaugePage5
+        END IF
+        '--- Page 6 ---
+        IF ThisObject%(ScrButton$, mess$, "GADGETUP") THEN
+            newi$ = FileSelect$("", "Select a new background... (GIF, JPG, PNG)", fsmLOAD%, fsStartDir$, "")
+            IF newi$ <> "" AND (LCASE$(RIGHT$(newi$, 4)) = ".gif" OR _
+                                LCASE$(RIGHT$(newi$, 4)) = ".jpg" OR _
+                                LCASE$(RIGHT$(newi$, 4)) = ".png") THEN
+                BackImage$ = ImageC$("INIT",_
+                        NewTag$("IMAGEFILE", newi$) +_
+                        NewTag$("BACKFILL", "true") +_
+                        NewTag$("KEEPASPECT", "true") +_
+                        NewTag$("WIDTH", "1024") +_
+                        NewTag$("HEIGHT", "10000") +_
+                        NewTag$("LEFT", "0") +_
+                        NewTag$("TOP", "0"))
+            END IF
+            fsStartDir$ = "" 'use last selected folder from now on
+        END IF
+        IF ThisObject%(ScrImgScrollerH$, mess$, "GADGETUP") OR _
+           ThisObject%(ScrImgScrollerV$, mess$, "GADGETUP") THEN
+            GOSUB RefreshScrollImagePage6
+        END IF
+        '--- Page 7 ---
+        IF ThisObject%(Page7$, mess$, "GADGETUP") OR _
+           ThisObject%(MultiLVwithIMG$, mess$, "GADGETUP") OR _
+           ThisObject%(MultiLVPlain$, mess$, "GADGETUP") OR _
+           ThisObject%(MultiRadio1$, mess$, "GADGETUP") THEN
+            GOSUB RefreshSelectionDisplaysPage7
+        END IF
+        '--- SubPage tabs clicked ---
+        IF ThisObject%(SubPage1$, mess$, "GADGETUP") THEN subClicks% = (subClicks% OR 1)
+        IF ThisObject%(SubPage2$, mess$, "GADGETUP") THEN subClicks% = (subClicks% OR 2)
+        IF ThisObject%(SubPage3$, mess$, "GADGETUP") THEN subClicks% = (subClicks% OR 4)
+        IF ThisObject%(SubPage4$, mess$, "GADGETUP") THEN subClicks% = (subClicks% OR 8)
+        IF subClicks% = 15 THEN GOSUB ChangePagerStatesPage1
+        '--- SubPage 1 ---
+        IF ThisObject%(Sub1Button$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("SET", SubPage1$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", RemoteButton1$ + NewTag$("DISABLED", "false"))
+        END IF
+        '--- SubPage 2 ---
+        IF ThisObject%(ColorTestButton1$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("SET", SubPage2$ + NewTag$("WALLPEN", "15"))
+            dummy$ = GenC$("SET", ColorTestButton1$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", ColorTestButton2$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", ColorTestButton3$ + NewTag$("DISABLED", "false"))
+        END IF
+        IF ThisObject%(ColorTestButton2$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("SET", SubPage2$ + NewTag$("WALLPEN", "11"))
+            dummy$ = GenC$("SET", ColorTestButton1$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", ColorTestButton2$ + NewTag$("DISABLED", "true"))
+            dummy$ = GenC$("SET", ColorTestButton3$ + NewTag$("DISABLED", "false"))
+        END IF
+        IF ThisObject%(ColorTestButton3$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("SET", SubPage2$ + NewTag$("WALLPEN", "23"))
+            dummy$ = GenC$("SET", ColorTestButton1$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", ColorTestButton2$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", ColorTestButton3$ + NewTag$("DISABLED", "true"))
+        END IF
+        '--- SubPage 3 ---
+        IF ThisObject%(RemoteButton1$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("SET", SubPage1$ + NewTag$("DISABLED", "false"))
+            dummy$ = GenC$("SET", RemoteButton1$ + NewTag$("DISABLED", "true"))
+        END IF
+        IF ThisObject%(RemoteButton2$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("SET", SubPage2$ + NewTag$("ACTIVE", "true"))
+            subClicks% = (subClicks% OR 2)
+        END IF
+        IF ThisObject%(RemoteButton3$, mess$, "GADGETUP") THEN
+            dummy$ = GenC$("SET", SubPage4$ + NewTag$("ACTIVE", "true"))
+            subClicks% = (subClicks% OR 8)
+        END IF
+        IF subClicks% = 15 THEN GOSUB ChangePagerStatesPage1
+        '--- SubPage 4 ---
+        IF ThisObject%(MessageButton1$, mess$, "GADGETUP") THEN
+            dummy$ = MessageBox$("Info16px.png", "",_
+                                 "Just a simple message...",_
+                                 "Ok")
+        END IF
+        IF ThisObject%(MessageButton2$, mess$, "GADGETUP") THEN
+            dummy$ = MessageBox$("Info16px.png", "",_
+                                 "Of course, the MessageBox is not|" +_
+                                 "limited to one line and one button.|" +_
+                                 "You may also ignore (cancel) any|" +_
+                                 "MessageBox by pressing <Esc> or|" +_
+                                 "click the box window's (X) button.|" +_
+                                 "There's also a link to the message's|" +_
+                                 "parent (program) window, try what's|" +_
+                                 "happening, if you (X) the main|" +_
+                                 "program window now...",_
+                                 "Like||Dislike")
+        END IF
+        IF ThisObject%(MessageButton3$, mess$, "GADGETUP") THEN
+            dummy$ = MessageBox$("Info16px.png", "",_
+                                 "The multiline feature of the MessageBox|" +_
+                                 "does also allow for empty lines and rulers.|~" +_
+                                 "There are also keyboard shortcuts for the|" +_
+                                 "buttons available:||" +_
+                                 "- For 1-button boxes just press <Enter> to|" +_
+                                 "  trigger the button.||" +_
+                                 "- For the multibutton boxes the number keys|" +_
+                                 "  1, 2, 3... to 0 are used for the first ten|" +_
+                                 "  buttons from left to right.",_
+                                 "1st|2nd|3rd|4th|5th")
+            IF dummy$ <> "" THEN
+                dummy$ = MessageBox$("Info16px.png", "",_
+                                     "You've acknowledged with the " + dummy$ + " button.",_
+                                     "Boah, how can you know?")
+            ELSE
+                dummy$ = MessageBox$("Info16px.png", "",_
+                                     "Why did you cancel the last MessageBox?|" +_
+                                     "It had so many nice buttons to choose from.",_
+                                     "Sorry, I'll try again...")
+            END IF
+        END IF
+        '--- Quit ---
+        IF ThisObject%(QuitButton$, mess$, "GADGETUP") THEN
+            IF NOT BoolTagTrue%(immq$, "CHECKED") THEN
+                result$ = MessageBox$("", appExeName$,_
+                                      "Do you really wanna quit?",_
+                                      "{SYM Checkmark * * * *}Yes||{SYM Cross * * * *}No")
+                IF result$ = "Yes" THEN done% = -1
+            ELSE
+                done% = -1
+            END IF
+        END IF
+    END IF
+

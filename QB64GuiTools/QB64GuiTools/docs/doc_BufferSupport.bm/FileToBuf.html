@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FileToBuf</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>FileToBuf <em>(function)</em></h2>
+<p>This function will load the entire contents of the given file into a new
+buffer and return its buffer handle. The current buffer position is on the
+first byte, the buffer will use the OS native line endings mode and its
+initial state after loading the file is &quot;unchanged&quot;.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>handle% = FileToBuf% (fileSpec$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>fileSpec$ <em>(STRING)</em></h4>
+<ul>
+<li>The name of the file you wanna load into the buffer. You may also add
+a path, if required.</li>
+<li>Make sure the specified file exists and its size is &lt;= 2GiB to avoid
+file loading errors, those are not caught by this function (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>The handle of the new loaded buffer, which you must later pass to the
+various other buffer functions to designate this buffer for operation.</li>
+<li>If no more buffers are available, then error SBE_NoMoreBuffers is
+returned (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>Although the buffer is in OS native line endings mode after loading, the
+file's data is not converted automatically into the respective format, as
+this would corrupt data in binary files.</li>
+<li>If you know you work with plain text files, but you are not sure about
+the origin (which OS) of the files, then you should call the <a href="ConvBufToAnyEol.html">ConvBufToNativeEol()</a>
+subroutine right after loading, to convert the file data into your OS's
+native line endings format.</li>
+<li>In alternative you can also force the buffer to use the one or other line
+endings mode using the subroutines <a href="ConvBufToAnyEol.html">ConvBufToWinEol()</a> or <a href="ConvBufToAnyEol.html">ConvBufToLnxMacEol()</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

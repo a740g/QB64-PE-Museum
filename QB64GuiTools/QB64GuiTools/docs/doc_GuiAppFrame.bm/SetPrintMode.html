@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SetPrintMode</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>SetPrintMode <em>(sub)</em></h2>
+<p>Does set the print mode according to the given mode number. The possible
+modes are equal to the results of the _PRINTMODE function. Ie. you
+can save the current print mode into a variable using the _PRINTMODE
+function, then change the mode as needed for your outputs, and later
+you can easily restore the old print mode by passing the saved value
+to this function.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>SetPrintMode pm%
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>pm% <em>(INTEGER)</em></h4>
+<ul>
+<li>Any of the mode numbers defined in the CONST section in the file
+<strong>dev_framework\GuiAppFrame.bi</strong>, or an earlier saved _PRINTMODE function result.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>MODE CONSTANTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>pmKEEP%</h4>
+<ul>
+<li>_PRINTMODE _KEEPBACKGROUND</li>
+</ul>
+<h4>pmONLY%</h4>
+<ul>
+<li>_PRINTMODE _ONLYBACKGROUND</li>
+</ul>
+<h4>pmFILL%</h4>
+<ul>
+<li>_PRINTMODE _FILLBACKGROUND</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

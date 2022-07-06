@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LimitARGB</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>LimitARGB <em>(function)</em></h2>
+<p>Sometimes you may want to limit the intensities of any channel(s)
+into a given range, eg. to remove noise in the lower intensities or
+to keep the alpha transparency within a certain range.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>newImg&amp; = LimitARGB&amp; (shan&amp;, lowARGB&amp;, highARGB&amp;, minX%, minY%, maxX%, maxY%, mask&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>lowARGB&amp;, highARGB&amp; <em>(LONGs)</em></h4>
+<ul>
+<li>The lower and upper limits for each channel combined in one
+<em>LONG</em> value respectively, you can write it as hex number directly
+(eg. &amp;HAARRGGBB) or use the result of the _RGBA32 function, where
+you can specify the limits for each channel as decimals. For any
+channels which shall remain unaffected, use the maximum possible
+range, ie. 0 for the lower limit and 255 for the upper limit.</li>
+</ul>
+<h4>shan&amp;, mask&amp; <em>(LONGs)</em></h4>
+<h4>minX%, minY%, maxX%, maxY% <em>(INTEGERs)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>newImg&amp; <em>(LONG)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

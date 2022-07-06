@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MessageBox</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>MessageBox$ <em>(function)</em></h2>
+<p>Will display a short message to the user and wait for acknowledgment.
+The MessageBox will popup in its own detached window but is aware of
+its parent program window, hence closing the parent window will also
+close the MessageBox too. The message can consist of one or more short
+text lines incl. empty lines and/or horizontal rulers. Also one or
+more buttons can be defined for acknowledgment. If only one button is
+defined, then its keyboard shortcut will be <em>&lt;Enter&gt;</em>. If multiple
+buttons exist, then the first ten buttons (from left to right) get the
+number keys <em>&lt;1&gt;</em>, <em>&lt;2&gt;</em>, <em>&lt;3&gt;</em> ... <em>&lt;0&gt;</em> assigned as their keyboard
+shortcuts.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>button$ = MessageBox$ (winIcon$, winTitle$, bodyText$, buttonText$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>winIcon$ <em>(STRING)</em></h4>
+<ul>
+<li>The filename of any image to use as the MessageBox's window header
+icon, you don't need to specify a path for images located in the
+ImageClass search tree. Give an empty string to use the default
+icon as set in <a href="SetupScreen.html">SetupScreen()</a>.</li>
+</ul>
+<h4>winTitle$ <em>(STRING)</em></h4>
+<ul>
+<li>The title for the MessageBox window, this defaults to &quot;App Message&quot;
+if an empty string is given.</li>
+</ul>
+<h4>bodyText$ <em>(STRING)</em></h4>
+<ul>
+<li>This is the message to display, use a vertical bar (|) as line
+separator, || will create an empty line, |~ creates a ruler instead.
+Line indention will be preserved and a leading dash (-) can be used
+to denote list items, they are replaced by a list bullet.</li>
+</ul>
+<h4>buttonText$ <em>(STRING)</em></h4>
+<ul>
+<li>The text for the button(s), use | again for button separation, the
+double bar || adds more space between buttons. You can also place
+a Image or Symbol specification right in front of each button's text
+using the following syntax:</li>
+</ul>
+<blockquote>
+<p><code>{IMG imagefile clear}</code></p>
+<h5>imagefile</h5>
+<ul>
+<li>The filename of the image to use (if it has spaces in its path/name,
+then enclose it in 'single' quotes). If the image file is located within
+the ImageClass search tree, then you may omit the path.</li>
+</ul>
+<h5>clear</h5>
+<ul>
+<li>Here you may specify a _CLEARCOLOR number (0-255), which shall be
+transparent, or a star (*) placeholder for none. For images with clear
+black alpha transparency (such as the provided icons) use number 39,
+which is black in the GuiTools Framework's palette.</li>
+</ul>
+<p><code>{SYM which back shadow shine border}</code></p>
+<h5>which</h5>
+<ul>
+<li>The name of the symbol to use (see <strong>dev_framework\classes\SymbolClass.bm</strong>).</li>
+</ul>
+<h5>back, shadow, shine, border</h5>
+<ul>
+<li>The respective color pens to use as number (0-255),
+or a star (*) placeholder to keep the symbol's default for
+the respective pen(s).</li>
+</ul>
+<h6><strong><em>Use only a single space for option separation, eg.:</em></strong></h6>
+<p><code>{IMG 'Error Icon.png' *} -&gt; quoted name, no _CLEARCOLOR</code></p>
+<p><code>{SYM Checkmark * 7 * *} -&gt; SHADOWPEN=7, all other default</code></p>
+<h6>All given images and symbols will be KEEPASPECT scaled to fit for the used button height.</h6>
+</blockquote>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>button$ <em>(STRING)</em></h4>
+<ul>
+<li>The user's response, which is the text of the pressed button as
+specified in buttonText$ or empty, if the user did ignore the
+message by simply pressing <em>&lt;Esc&gt;</em> or closing the MessageBox window
+via the <em>&quot;X&quot;</em> button.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

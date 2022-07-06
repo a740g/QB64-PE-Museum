@@ -1,0 +1,16 @@
+    IF ValidateTags%(mess$, "GADGETDOWN", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'Any clickable GUI object went into selected state, ie. the left
+        'mousebutton was pressed while the object had focus (MOUSEOVER).
+        'While the object in question remains selected, this event will
+        'also be repeated whenever any vital properties of the object do
+        'change due to user interaction (eg. typing into input fields or
+        'moving a slider/scroller etc.). As of this behavior, this event
+        'is perfectly usable, if you need to do some kind of immediate
+        'reaction for such an object. Nevertheless you should also provide
+        'a GADGETUP handler block for those immediate changing objects in
+        'order to not miss the finalized values. The function ThisObject%()
+        'does match the GADGETDOWN object with a given object to easily
+        'build handling blocks for your objects:
+        ' eg. IF ThisObject%(myObj$, message$, "GADGETDOWN") THEN ...
+    END IF
+

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FilePart</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>FilePart$ <em>(function)</em></h2>
+<p>This simple function will return the file part of the given file or folder
+specification. That is just the final name component after the rightmost
+backslash, which is usually the actual file or folder name without the path.
+To get the path, you would use the function <a href="PathPart.html">PathPart$()</a> instead.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>file$ = FilePart$ (fileSpec$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>fileSpec$ <em>(STRING)</em></h4>
+<ul>
+<li>The file or folder specification to get the file part from. Empty input
+is allowed here and will result into an empty file part.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>file$ <em>(STRING)</em></h4>
+<ul>
+<li>
+Depending on the given file or folder specification:
+<ul>
+<li>
+The final name component, usually the file or folder name (regular
+operation).
+<ul>
+<li>May be identical to fileSpec$, if it was a single name component only,
+which usually is a file or folder name in the current working directory (no
+backslash found).</li>
+</ul>
+</li>
+<li>Empty, if input was empty or a path only (trailing backslash found).</li>
+</ul>
+</li>
+</ul>
+<h6>While the first case (identical or not) is ok, you should explicitly check for the second case (empty) if required, as it may cause errors when trying to OPEN, MKDIR, CHDIR etc. with an empty name.</h6>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

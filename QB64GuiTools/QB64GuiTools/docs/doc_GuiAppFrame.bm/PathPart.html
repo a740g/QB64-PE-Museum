@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PathPart</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>PathPart$ <em>(function)</em></h2>
+<p>This simple function will return the path part of the given file or folder
+specification. That is the part up to and inclusive the rightmost backslash,
+but without the final name component, which is usually the actual file or
+folder name. To get that file or folder name, you would use the function
+<a href="FilePart.html">FilePart$()</a> instead.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>path$ = PathPart$ (fileSpec$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>fileSpec$ <em>(STRING)</em></h4>
+<ul>
+<li>The file or folder specification to get the path part from. Empty input
+is allowed here and will result into an empty path, which usually denotes
+the current working directory.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>path$ <em>(STRING)</em></h4>
+<ul>
+<li>
+Depending on the given file or folder specification:
+<ul>
+<li>
+The path part inclusive the trailing backslash (regular operation).
+<ul>
+<li>May be identical to fileSpec$, if it was a path only (trailing
+backslash found).</li>
+</ul>
+</li>
+<li>
+Empty, if input was empty or a single name component only, which usually
+denotes a file or folder name without an explicit path (no backslash found).
+<ul>
+<li>Both of it implies the current working directory as path.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5>In either case the result is a valid path eg. for CHDIR or to append new names to, if you wanna create new files (OPEN) or folders (MKDIR) in the same location as the given source object.</h5>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

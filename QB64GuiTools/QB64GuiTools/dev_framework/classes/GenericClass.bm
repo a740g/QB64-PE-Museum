@@ -1,0 +1,133 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === GenericClass.bm ===                                           |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Generic Class ===================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide a generic interface for method calls, if the type
+'   of an object is not known to call its object class directly. Another
+'   use is within loops, which process many different types of objects,
+'   here you can waive to any IF or SELECT CASE blocks to select the
+'   right class for every object. Simply use the generic class and your
+'   call is routed to the correct class automatically.
+'
+'METHODS:
+'   In general it does not hurt to use the generic class for all method
+'   calls, the tagString$ argument must provide the tags for the called
+'   object method, just for the INIT method the aditional tag CLASSNAME
+'   is required, as the object does not exist yet to extract its type.
+'    However, as not all object classes do support all methods, be
+'   prepared for ERROR/WARNING tag results. Check for these, if needed.
+'---------------------------------------------------------------------
+FUNCTION GenC$ (method$, tagString$)
+GenRes$ = ""
+classID$ = "GenC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "---"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "CLASSNAME," '+ required object init tags
+        tagsOpt$ = "" '+ optional object init tags + user tags
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Newpal"
+        tagsReq$ = "" 'ImageC pseudo method (w/o OBJECT)
+        tagsOpt$ = ""
+        objectID$ = "ImageC"
+        GOSUB meCallObjectClass
+        'Result Tags: empty
+    CASE ELSE
+        tagsReq$ = "OBJECT," '+ required object method tags
+        tagsOpt$ = "" '+ optional object method tags + user tags
+        GOSUB meOther
+        'Result Tags: ERROR/WARNING or object method specific result
+END SELECT
+GenC$ = GenRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag GenRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    object$ = GetTagData$(tagsID$, "CLASSNAME", "")
+    objectID$ = UCASE$(LEFT$(object$, 1)) + LCASE$(MID$(object$, 2, LEN(object$) - 2)) + UCASE$(RIGHT$(object$, 1))
+    GOSUB meCallObjectClass
+END IF
+RETURN
+'---------------------------------------------------------------------
+meOther:
+IF ValidObject%(this&, thisTag$, GenRes$, classID$, methodID$, tagsID$) THEN
+    objectID$ = guiObjects$(objType%, this&)
+    GOSUB meCallObjectClass
+END IF
+RETURN
+'----------------------------------
+meCallObjectClass:
+SELECT CASE objectID$
+    CASE "ModelC"
+        GenRes$ = ModelC$(methodID$, tagsID$)
+    CASE "ListC"
+        GenRes$ = ListC$(methodID$, tagsID$)
+    CASE "ImageC"
+        GenRes$ = ImageC$(methodID$, tagsID$)
+    CASE "SymbolC"
+        GenRes$ = SymbolC$(methodID$, tagsID$)
+    CASE "RulerC"
+        GenRes$ = RulerC$(methodID$, tagsID$)
+    CASE "FrameC"
+        GenRes$ = FrameC$(methodID$, tagsID$)
+    CASE "StringC"
+        GenRes$ = StringC$(methodID$, tagsID$)
+    CASE "TextC"
+        GenRes$ = TextC$(methodID$, tagsID$)
+    CASE "ProgressC"
+        GenRes$ = ProgressC$(methodID$, tagsID$)
+    CASE "PagerC"
+        GenRes$ = PagerC$(methodID$, tagsID$)
+    CASE "ButtonC"
+        GenRes$ = ButtonC$(methodID$, tagsID$)
+    CASE "CheckboxC"
+        GenRes$ = CheckboxC$(methodID$, tagsID$)
+    CASE "CycleC"
+        GenRes$ = CycleC$(methodID$, tagsID$)
+    CASE "RadioC"
+        GenRes$ = RadioC$(methodID$, tagsID$)
+    CASE "ListviewC"
+        GenRes$ = ListviewC$(methodID$, tagsID$)
+    CASE "SliderC"
+        GenRes$ = SliderC$(methodID$, tagsID$)
+    CASE "ScrollerC"
+        GenRes$ = ScrollerC$(methodID$, tagsID$)
+    CASE "ColorwheelC"
+        GenRes$ = ColorwheelC$(methodID$, tagsID$)
+    CASE ELSE
+        IF objectID$ = "" THEN
+            SetTag GenRes$, "ERROR", classID$ + "::" + methodID$ + " -> undefined object"
+        ELSE
+            SetTag GenRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown object type"
+        END IF
+END SELECT
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

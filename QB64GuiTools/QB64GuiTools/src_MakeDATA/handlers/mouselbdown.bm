@@ -1,0 +1,11 @@
+    IF BoolTagTrue%(mess$, "MOUSELBDOWN") THEN
+        'The left mousebutton got pressed, consider the button is still
+        'down until receiving a "MOUSELBUP" event. The current button
+        'state is also monitored in tag "MOUSELB", which is delivered
+        'with all messages. Note that this event type is automatically
+        'remapped to "GADGETDOWN" if the event happened while the mouse-
+        'pointer was over the hotspot area of any clickable GUI object,
+        'hence you don't need to deal with any checks yourself, if the
+        'button click did maybe select any object (see gadgetdown.bm).
+    END IF
+

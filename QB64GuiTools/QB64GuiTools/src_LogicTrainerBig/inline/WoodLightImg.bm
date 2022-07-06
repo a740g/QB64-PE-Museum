@@ -1,0 +1,79 @@
+'============================================================
+'=== This file was created with MakeCARR.bas by RhoSigma, ===
+'=== you must $INCLUDE this at the end of your program.   ===
+'============================================================
+
+'-----------------
+'--- Important ---
+'-----------------
+' If you need to move around this .bm file and its respective .h file
+' to fit in your project, then make sure the path in the DECLARE LIBRARY
+' statement below does match the actual .h file location. It's best to
+' specify a relative path assuming your QB64 installation folder as root.
+'---------------------------------------------------------------------
+
+'-------------------------------
+'--- WriteWoodLightImgArray$ ---
+'-------------------------------
+' This function will write the array(s) you've created with MakeCARR.bas
+' back to disk and so it rebuilds the original file.
+'
+' After the writeback call, only use the returned realFile$ to access the
+' written file. It's the full qualified absolute path and filename, which
+' is made by expanding your maybe given relative path and an maybe altered
+' filename (number added) in order to avoid the overwriting of an already
+' existing file with the same name in the given location. By this means
+' you'll always have safe access to the file, no matter how your current
+' working folder changes during runtime.
+'
+' If you wish, the written file can automatically be deleted for you when
+' your program will end, so you don't need to do the cleanup yourself.
+'----------
+' SYNTAX:
+'   realFile$ = WriteWoodLightImgArray$ (wantFile$, autoDel%)
+'----------
+' INPUTS:
+'   --- wantFile$ ---
+'    The filename you would like to write the array(s) to, can contain
+'    a full or relative path.
+'   --- autoDel% ---
+'    Shows whether you want the auto cleanup (see description above) at
+'    the program end or not (-1 = delete file, 0 = don't delete file).
+'----------
+' RESULT:
+'   --- realFile$ ---
+'    - On success this is the full qualified path and filename finally
+'      used after all applied checks, use only this returned filename
+'      to access the written file.
+'    - On failure (write/access) this will be an empty string, so you
+'      should check for this before trying to access/open the file.
+'---------------------------------------------------------------------
+FUNCTION WriteWoodLightImgArray$ (file$, clean%)
+'--- declare C/C++ function ---
+DECLARE LIBRARY "QB64GuiTools\src_LogicTrainerBig\inline\WoodLightImg" 'Do not add .h here !!
+    FUNCTION WriteWoodLightImgData$ (FileName$, BYVAL AutoClean%)
+END DECLARE
+'--- option _explicit requirements ---
+DIM po%, body$, ext$, num%
+'--- separate filename body & extension ---
+FOR po% = LEN(file$) TO 1 STEP -1
+    IF MID$(file$, po%, 1) = "." THEN
+        body$ = LEFT$(file$, po% - 1)
+        ext$ = MID$(file$, po%)
+        EXIT FOR
+    ELSEIF MID$(file$, po%, 1) = "\" OR MID$(file$, po%, 1) = "/" OR po% = 1 THEN
+        body$ = file$
+        ext$ = ""
+        EXIT FOR
+    END IF
+NEXT po%
+'--- avoid overwriting of existing files ---
+num% = 1
+WHILE _FILEEXISTS(file$)
+    file$ = body$ + "(" + LTRIM$(STR$(num%)) + ")" + ext$
+    num% = num% + 1
+WEND
+'--- write array & set result ---
+WriteWoodLightImgArray$ = WriteWoodLightImgData$(file$ + CHR$(0), clean%)
+END FUNCTION
+

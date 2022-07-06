@@ -1,0 +1,7 @@
+    IF BoolTagTrue%(mess$, "MOUSESCROLL") THEN
+        'The mouse its scroll wheel was turned, find the scroll distance
+        'in tag "SCRVAL" delivered along with this event type. Note that
+        'scroll movements are filtered out (ie. do not deliver this event),
+        'if they are recognized by any GUI object (SliderC, ScrollerC etc.).
+    END IF
+

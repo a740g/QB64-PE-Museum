@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ExtractBitfields</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>ExtractBitfields <em>(function)</em></h2>
+<p>You can use this effect to remove any bitplanes of an image.  This
+may not seem to be very useful at the first sight, but you can for
+example check for the amount of noise in your images by displaying
+the low pixel bits only.</p>
+<p>Bits are numbered so that zero (0) is the least significant bit and
+seven (7) is the highest significant.</p>
+<p>If you didn't understand all this explanation, you probably should
+read some books about computer graphics in general, as well as about
+binary numbers.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>newImg&amp; = ExtractBitfields&amp; (shan&amp;, fields%, scale%, channels$, minX%, minY%, maxX%, maxY%, mask&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>fields% <em>(INTEGER)</em></h4>
+<ul>
+<li>Any 8-bit mask specifying the bitplanes you wish to keep in the
+image.  For any set bit, the information of the respective bitplane
+is kept in the image, for any cleared bit the information will be
+discarded.  You may specify this as a binary bit mask directly
+(eg. &amp;B10110001) or convert it into hex or decimal.</li>
+</ul>
+<h4>scale% <em>(INTEGER)</em></h4>
+<ul>
+<li>If this flag is set true (&lt;&gt; 0), then the kept information is moved
+up to the highest possible intensity level (using the discarded bits
+on the highest significant end of fields% (if any), so basically a left
+shift of the kept information), which is useful if you extract the
+low bits only, which would otherwise result in a very dark image.</li>
+</ul>
+<h4>channels$ <em>(STRING)</em></h4>
+<ul>
+<li>Further specify the component channels to keep. This may be none,
+one or more of the letters &quot;A&quot;, &quot;R&quot;, &quot;G&quot; and &quot;B&quot;, which specify the
+channels you wanna keep in the image, the case and order of the
+letters doesn't matter.</li>
+</ul>
+<h4>shan&amp;, mask&amp; <em>(LONGs)</em></h4>
+<h4>minX%, minY%, maxX%, maxY% <em>(INTEGERs)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>newImg&amp; <em>(LONG)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

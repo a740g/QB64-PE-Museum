@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ModifyGamma</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>ModifyGamma <em>(function)</em></h2>
+<p>Due to the unlinear nature of display devices, a gamma correction must
+be used.  Most of the time this is done automatically by the display
+device, but occasionally you'll meet images that could benefit from
+additional gamma correction.  Gamma is usually defined as:</p>
+<pre><code>              g
+        F := A
+</code></pre>
+
+<p>where F = new value, A = old value and g = gamma correction.
+Obviously, gamma is a real (floating point) number and a value of 1.0
+means no correction at all.</p>
+<p>Basically, if you wish your image to be brighter, give a correction
+over 1.0, if you wish to darken it, give a correction below 1.0.
+The difference to the ordinary brightness adjustment is, that gamma
+is a graylevel adjustment, hence it will leave alone clear black and
+white, but affects all colors between.
+The alpha channel of the source image is retained and copied 1:1.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>newImg&amp; = ModifyGamma&amp; (shan&amp;, gamma#, minX%, minY%, maxX%, maxY%, mask&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>gamma# <em>(DOUBLE)</em></h4>
+<ul>
+<li>The gamma correction, must be between 0.001 and 10.0  (clipped)</li>
+</ul>
+<h4>shan&amp;, mask&amp; <em>(LONGs)</em></h4>
+<h4>minX%, minY%, maxX%, maxY% <em>(INTEGERs)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>newImg&amp; <em>(LONG)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

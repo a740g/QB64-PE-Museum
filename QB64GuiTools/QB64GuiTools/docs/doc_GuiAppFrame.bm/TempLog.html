@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TempLog</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>TempLog <em>(sub)</em></h2>
+<p>Add an entry to the global logging system for temporary files.
+All registered files will be deleted automatically during the program's
+cleanup procedure (ie. at regular program end, unexpected error
+abort or forced exit by the user (window's <em>&quot;X&quot;</em> button, <em>&lt;Alt-F4&gt;</em> etc.)).</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>TempLog file$, comm$
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>file$ <em>(STRING)</em></h4>
+<ul>
+<li>The name of the temporary file you did create, it's length is limited
+to 30 chars. Any included path will be ignored, as temporary files should
+naturally go into the system's TEMP path. Simply use the globally SHARED
+variable appTempDir$ + &quot;filename&quot; when working with temporary files.</li>
+</ul>
+<h4>comm$ <em>(STRING)</em></h4>
+<ul>
+<li>This can be an optional comment for that file (eg. contents etc.)
+or simply leave it empty. The length is limited to 80 chars.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>Although the files are deleted automatically, you should still KILL
+your temporary files, if not longer needed. Rather see this system as a
+safety net for correct cleanup in error situations or if the user hits the
+window's <em>&quot;X&quot;</em> button in a sudden unexpected time. The system is also smart
+enough to identify remaining temporary files of previously crashed GuiTools
+based programs. Those remains will be deleted as soon as a new GuiTools
+session is started, ie. when the first GuiTools based program is started
+after all running GuiTools programs were closed previously.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

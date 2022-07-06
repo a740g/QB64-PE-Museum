@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>HSBA32</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ConvertSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>HSB32 &amp; HSBA32 <em>(function)</em></h2>
+<p>Convenience functions for the HSB/HSV colorspace, parameters and results
+are similar to the QB64 functions _RGB32/_RGBA32 for the RGB colorspace
+with the only difference, that the HSB parameters are given as <em>SINGLEs</em>.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>color32value~&amp; = HSB32~&amp;  (hue!, sat!, bri!)
+color32value~&amp; = HSBA32~&amp; (hue!, sat!, bri!, alp%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>hue! <em>(SINGLE)</em></h4>
+<ul>
+<li>The Hue value of the desired color from 0-360 degrees. The color
+gradient starts with red (0 deg.), goes over yellow (60 deg.) to
+green (120 deg.), then further over cyan (180 deg.) to blue (240 deg.)
+and finally over magenta (300 deg.) back to red (360 or 0 deg.).</li>
+</ul>
+<h4>sat! <em>(SINGLE)</em></h4>
+<ul>
+<li>The Saturation value of the desired color from 0-100%, as lower this
+value is, as more the resulting color will fade into a gray value.</li>
+</ul>
+<h4>bri! <em>(SINGLE)</em></h4>
+<ul>
+<li>The Brightness value of the desired color from 0-100%, as higher this
+value is, as higher is the intensity of the resulting color.</li>
+</ul>
+<h4>alp% <em>(INTEGER)</em></h4>
+<ul>
+<li>The desired alpha intensity from 0-255 is directly put through to
+the RGB alpha channel (used by the <font color="#3232e0">HSBA32()</font> function only).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>color32value~&amp; <em>(_UNSIGNED LONG)</em></h4>
+<ul>
+<li>The <font color="#3232e0">HSB32()</font> function returns the converted and ready to use 32-bit
+ARGB color value with the specified hue, saturation and brightness
+intensities always with full alpha.</li>
+<li>The <font color="#3232e0">HSBA32()</font> function returns the converted and ready to use 32-bit
+ARGB color value with the specified hue, saturation, brightness and
+alpha component intensities.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_ConvertSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

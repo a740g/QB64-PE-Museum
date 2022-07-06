@@ -1,0 +1,7 @@
+    IF BoolTagTrue%(mess$, "MOUSEMBDOWN") THEN
+        'The middle mousebutton got pressed, consider the button is still
+        'down until receiving a "MOUSEMBUP" event. The current button
+        'state is also monitored in tag "MOUSEMB", which is delivered
+        'with all messages.
+    END IF
+

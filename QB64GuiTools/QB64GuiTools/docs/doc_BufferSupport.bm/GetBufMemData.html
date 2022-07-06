@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GetBufMemData</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>GetBufMemData <em>(sub)</em></h2>
+<p>This subroutine will fill the memory (referenced by the given memory block)
+with data from the buffer, ie. it reads data from the specified buffer
+starting at the current buffer position and copies the data to the referenced
+memory, continuing until the given memory block its size is filled. If the
+buffer has not sufficient data to fill the memory entirely, then the remaining
+bytes of the referenced memory remain undefined (probably garbage).</p>
+<p>The current buffer position is updated accordingly and is on the first byte
+behind the just read data after the call. Hence, sequential reading is easily
+possible with subsequent calls. You may use <a href="EndOfBuf.html">EndOfBuf()</a> to check, whether the
+buffer end is reached or not.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>GetBufMemData handle%, memData AS _MEM
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna read.</li>
+</ul>
+<h4>memData <em>(_MEM block)</em></h4>
+<ul>
+<li>The memory block, which its referenced memory shall be filled with data
+from the buffer.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>
+If required, the following functions may be used to set the current buffer
+position in advance:
+<ul>
+<li><a href="SeekBuf.html">SeekBuf()</a> with an appropriate displacement and seek mode.</li>
+<li><a href="GotoBufMark.html">GotoBufMark()</a> to restore to an earlier marked position.</li>
+<li><a href="FindBufFR.html">FindBufFwd()</a> or <a href="FindBufFR.html">FindBufRev()</a> to move to the next or previous occurrence
+of any criteria.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

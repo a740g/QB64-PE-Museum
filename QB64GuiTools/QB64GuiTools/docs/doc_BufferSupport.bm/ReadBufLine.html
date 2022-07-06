@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ReadBufLine</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>ReadBufLine$ <em>(function)</em></h2>
+<p>This function will return the remaining part of the current line, ie. it
+reads data from the specified buffer starting at the current buffer position
+(which may be anywhere in the line) and continuing until it finds the next
+line break (according to the active line endings mode of the buffer) or
+until the buffer end, if no more line breaks exist. The operation is in that
+very similar to LINE INPUT when reading from text files.</p>
+<p>The current buffer position is updated accordingly and is on the first byte
+behind the line break (ie. at the start of the next line) after the call.
+Hence, sequential reading is easily possible with subsequent calls. You may
+use <a href="EndOfBuf.html">EndOfBuf()</a> to check, whether the buffer end is reached or not.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>text$ = ReadBufLine$ (handle%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna read.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>text$ <em>(STRING)</em></h4>
+<ul>
+<li>The text read from the buffer without the actual line break char(s),
+similar to LINE INPUT, which returns lines also without the line breaks,
+when reading from text files.</li>
+<li>Depending on the current buffer position, this must not necessarily be the
+entire line as it is present in the buffer (see Notes).</li>
+<li>Will be an empty string, if the <a href="EndOfBuf.html">EndOfBuf()</a> condition is already true (-1)
+when the read operation begins. However, no error will occur in such a case.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>To make sure you read a line entirely, you may want to move the current
+buffer position to the start of the line before calling this function, if
+this is not guaranteed automatically (eg. by reading lines sequentially).</li>
+<li>You may move the current buffer position to the line start using the
+function <a href="SeekBuf.html">SeekBuf()</a> with an displacement of zero (0) and mode SBM_LineStart.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

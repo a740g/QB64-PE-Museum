@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LzwPack</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_PackSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>LzwPack$ <em>(function)</em></h2>
+<p>Perform LZW compression on the given source data and return the packed
+data on success. The source can be any sequence of bytes inclusive zeros
+and control chars.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>packed$ = LzwPack$ (SourceData$, MinRatio%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>SourceData$ <em>(STRING)</em></h4>
+<ul>
+<li>The data you want to compress. Note that very small data sizes may
+not compress very well and may cause this function to fail.</li>
+</ul>
+<h4>MinRatio% <em>(INTEGER)</em></h4>
+<ul>
+<li>Your desired minimum compression ratio, ie. how many percent the
+source data should be reduced at least, to consider it a successful
+run. Can be set to zero, then just one byte less than the source's
+size is considered a success. However, regular values should be 5-50%.</li>
+</ul>
+<blockquote>
+<h6><strong><em>Hidden feature inputs:</em></strong></h6>
+<ul>
+<li>There is a hidden feature in this library. In your main module you may
+define &quot;DIM SHARED lzwProgress$&quot; <em>(STRING)</em> and put the handle of any ProgressC
+class object defined in your GUI into that variable before actually
+calling <font color="#3232e0">LzwPack$()</font>. In that case the ProgressC object is updated while
+packing the data. If lzwProgress$ is left empty or not even DIM SHARED,
+then packing is done quietly. Note that lzwProgress$ is automatically
+cleared out after packing is finished to avoid accidentally reusing a
+maybe not longer valid object, hence you must newly provide the ProgressC
+object for each call. I use this unusual input way here, to keep the
+parameter list for the <font color="#3232e0">LzwPack$()</font> call compatible to that one provided
+in my <strong>lzwpacker.bm</strong> library or expressed different, this feature is a
+GuiTools based addition, which shall not interfere with <strong>lzwpacker.bm</strong>.</li>
+</ul>
+</blockquote>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>packed$ <em>(STRING)</em></h4>
+<ul>
+<li>The LZW compressed data on success or an empty string, if packing
+did not reach your desired minimum ratio.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_PackSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

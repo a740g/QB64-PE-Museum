@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ConvBufToAnyEol</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>ConvBufToNativeEol &amp; ConvBufToLnxMacEol &amp; ConvBufToWinEol <em>(sub)</em></h2>
+<p>These subroutines can be used to switch the specified buffer to use a different
+line endings mode. The current contents of the buffer will be converted to
+comply with the new mode. You can either convert the buffer to use the OS
+native line endings or you may force the buffer into a specific mode by using
+the respective subroutine.</p>
+<p><strong><em>Warning:</em></strong> <em>Use these converter routines for plain text buffers only.
+If used on buffers containing binary data, it will almost certainly corrupt
+those data!!</em></p>
+<p>The current buffer position is recalculated in such a way, that it
+is at the same position in the text as before the converter call.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>ConvBufToNativeEol handle%
+ConvBufToLnxMacEol handle%
+ConvBufToWinEol handle%
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, which you wanna convert to
+use another line endings mode.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

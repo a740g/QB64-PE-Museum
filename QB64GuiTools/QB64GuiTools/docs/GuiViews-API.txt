@@ -1,0 +1,61 @@
+GuiViews - the multiple forms/windows API of GuiTools
+=====================================================
+
+Find the following SUBs and FUNCTIONs and its respective descriptions in
+file dev_framework\classes\GuiClasses.bm.
+
+See also the example in folder src_MultiWinDemo to learn how to use these
+SUBs and FUNCTIONs to create multiple forms.
+
+---------------------------------
+--- PUBLIC (use where needed) ---
+---------------------------------
+
+FUNCTION CreateGuiView& (viewTitle$, viewWidth%, viewHeight%)
+- create a new GuiView with given characteristics
+- save the result in a variable for later use in ViewTag$() and others
+
+SUB DeleteGuiView (vix&)
+- close the given GuiView (if open), delete all objects designated to it
+  and finally free all resources allocated by CreateGuiView()
+- the GuiView index becomes invalid after this call
+
+SUB OpenGuiView (winIcon$, winTitle$, vix&)
+- open the given GuiView's window with optional icon and title
+- use in your event handlers as required
+- does not hurt if the respective window is already open
+
+SUB CloseGuiView (vix&)
+- close the given GuiView's window programmatically
+- use in your event handlers as required
+- does not hurt if the respective window is not open
+
+FUNCTION GuiViewIsOpen% (vix&)
+- given the result from CreateGuiView(), check if the respective GuiView's
+  window is currently open or not
+- use it to check whether the user did close a particular GuiView window
+
+FUNCTION ViewTag$ (vix&)
+- given the result from CreateGuiView(), create the GUIVIEW tag given to
+  object INIT calls to designate the object to the desired GuiView
+
+-------------------------------------
+--- GUIREFRESH event handler only ---
+-------------------------------------
+
+SUB SourceDestGuiView (vix&)
+- given the result from CreateGuiView(), it will set _SOURCE and _DEST
+  to the respective GuiView's image
+- mostly internal, you only need it to activate the desired GuiView, if
+  you wanna render own stuff in the GUIREFRESH event handler
+- if you need to change _SOURCE and _DEST yourself for any (temporary)
+  image operations, then make sure to save and later restore the old values
+
+----------------
+--- INTERNAL ---
+----------------
+
+SUB UpdateGuiViews
+- mostly internal, update all GuiView windows, similar to _DISPLAY
+- whenever a _DISPLAY is done, a UpdateGuiViews() should be done too
+

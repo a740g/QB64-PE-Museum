@@ -1,0 +1,201 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === RulerClass.bm ===                                             |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Ruler Class =====================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide horizontal and vertical ruler objects for easy
+'   optical separation of other objects. Horizontal ruler objects may
+'   also have a text label.
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION RulerC$ (method$, tagString$)
+RulerRes$ = ""
+classID$ = "RulerC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d--"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,LENGTH,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,ALIGN,FORM,RECESSED," +_
+                   "TEXT,TEXTPLACE,TEXTMOVEY," '+ user tags
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "" '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE ELSE
+        SetTag RulerRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+RulerC$ = RulerRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag RulerRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, RulerRes$, classID$, tagsID$) THEN
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        '--- set result and schedule gui refresh ---
+        SetTag RulerRes$, "OBJECT", LTRIM$(STR$(this&))
+        SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, RulerRes$, classID$, methodID$, tagsID$) THEN
+    '--- check any user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, RulerRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN RulerRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, RulerRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- check pager conditions ---
+    KillAssignedPager this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, RulerRes$, classID$, methodID$, tagsID$) THEN
+    '--- select drawing colors ---
+    tole% = guiShinePen%: bori% = guiShadowPen%: soli% = guiSolidPen% 'top/left & bottom/right & solid pens
+    text% = guiShadowPen%: high% = guiHighPen% 'text pens
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "RECESSED") THEN SWAP tole%, bori%
+    '--- get object's properties ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    leng% = VAL(GetTagData$(guiObjects$(objData%, this&), "LENGTH", "0"))
+    alig$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "ALIGN", "horizontal"))
+    form$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "FORM", "ridge"))
+    text$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "n/a")
+    IF text$ <> "n/a" THEN
+        text$ = " " + LTRIM$(RTRIM$(text$)) + " "
+        priw% = _PRINTWIDTH(text$)
+        plac$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "TEXTPLACE", "center"))
+        ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEY", "0"))
+        txto% = topp% - INT(_FONTHEIGHT / 2) + 1 + ymov%
+        SELECT CASE plac$
+            CASE "left"
+                txle% = left% + 16
+            CASE "center"
+                txle% = (left% + INT(leng% / 2)) - INT(priw% / 2)
+            CASE "right"
+                txle% = (left% + leng% - 1) - priw% - 16
+        END SELECT
+        REDIM clip~%%((_FONTHEIGHT * priw%) + 4)
+        GET (txle%, txto%)-(txle% + priw% - 1, txto% + _FONTHEIGHT - 1), clip~%%()
+    END IF
+    '--- draw object ---
+    disp% = 0
+    IF form$ = "solid" THEN disp% = 1
+    IF alig$ = "horizontal" THEN
+        LINE (left% + 1, topp% - 2 - disp%)-(left% + leng% - 2, topp% - 2 - disp%), tole%
+        LINE (left%, topp% - 1 - disp%)-(left% + leng% - 1, topp% - 1 - disp%), tole%
+        IF form$ = "solid" THEN LINE (left%, topp% - 1)-(left% + leng% - 1, topp%), soli%, B
+        LINE (left%, topp% + disp%)-(left% + leng% - 1, topp% + disp%), bori%
+        LINE (left% + 1, topp% + 1 + disp%)-(left% + leng% - 2, topp% + 1 + disp%), bori%
+        '--- text label (horizontal only) ---
+        IF text$ <> "n/a" THEN
+            PUT (txle%, txto%), clip~%%(), PSET
+            prim% = _PRINTMODE
+            SetPrintMode pmKEEP%
+            COLOR text%
+            _PRINTSTRING (txle% + 1, txto%), text$
+            COLOR high%
+            _PRINTSTRING (txle%, txto% - 1), text$
+            SetPrintMode prim%
+            ERASE clip~%%
+        END IF
+    ELSE
+        LINE (left% - 2 - disp%, topp% + 1)-(left% - 2 - disp%, topp% + leng% - 2), tole%
+        LINE (left% - 1 - disp%, topp%)-(left% - 1 - disp%, topp% + leng% - 1), tole%
+        IF form$ = "solid" THEN LINE (left% - 1, topp%)-(left%, topp% + leng% - 1), soli%, B
+        LINE (left% + disp%, topp%)-(left% + disp%, topp% + leng% - 1), bori%
+        LINE (left% + 1 + disp%, topp% + 1)-(left% + 1 + disp%, topp% + leng% - 2), bori%
+    END IF
+END IF
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

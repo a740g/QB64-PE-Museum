@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GetUniqueID</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>GetUniqueID$ <em>(function)</em></h2>
+<p>Obtain a unique identifier for use as anything you might need.</p>
+<p>All GuiTools based applications running at the same time do share
+the same ID source, so never a program can get an ID, which was
+already given to another program. For example, this behavior is
+perfect to obtain unique names for temporary files.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>uid$ = GetUniqueID$
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>uid$ <em>(STRING)</em></h4>
+<ul>
+<li>A unique ID, which you probably never get again during your
+current program runtime.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>The ID is using the form of 8.3 DOS filenames (NNNNNNNN.EEE).
+You can order up to 17592186044416 different IDs, before the
+algorithm restarts the sequence. To give you a slight idea of this
+number think of 1000 running GuiApps at the same time and each of
+the Apps is ordering a new ID every second. Nevertheless it would
+still need approx. 557 years until the algorithm would restart.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

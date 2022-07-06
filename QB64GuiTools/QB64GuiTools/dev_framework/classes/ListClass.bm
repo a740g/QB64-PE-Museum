@@ -1,0 +1,588 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === ListClass.bm ===                                              |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== List Class ======================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide a container for any number of arbitrary data
+'   records. The structure is implemented as doubly linked list, so
+'   it can be read in forward or reverse direction. The class offers a
+'   number of methods to easily operate the list. This class has no
+'   visible or interactive properties, it is used for data storage and
+'   administration only.
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'
+'   INIT -- Initialize a new (empty) list object. Will return the object
+'           handle on success (as OBJECT tag).
+'
+'   SET  -- Alterate the list object's properties according to the
+'           given tags. Note that some properties may not allowed to
+'           be changed after object initialization.
+'
+'   GET  -- Query any of the list object's properties according to the
+'           given list of tags (TAGNAMES tag). The values are returned
+'           as regular tags.
+'
+'   KILL -- Delete the given list object. The returned object handle
+'           from the INIT method call becomes invalid after calling
+'           this method. Note that deleting a list object will also
+'           delete any remaining records in the list.
+'
+'  STORE -- Store a new record in the given list object. If sorting is
+'           active, then the new record will be enqueued accordingly,
+'           otherwise the new record is inserted right after the selected
+'           record (if ACTUAL tag is given, then first adjust the selected
+'           record accordingly). The selected record (ACTUAL tag) will be
+'           adjusted, if this is required according to the insert position.
+'
+'   ADD  -- Add or replace any information (user tags) in the selected
+'           record (if ACTUAL tag is given, then first adjust the
+'           selected record accordingly). The selected record counter is
+'           only adjusted, if the ACTUAL tag was specified. Note that you
+'           cannot change the DATA tag, it will be ignored if specified.
+'
+'   READ -- Read the selected record (if ACTUAL tag is given, then first
+'           adjust the selected record accordingly). After reading select
+'           the next record according to REVERSE/HOLD states. Wrap around
+'           after reading the top/bottom record of the list. The records
+'           are returned as regular tags (DATA + user tags).
+'
+' SEARCH -- Search a record according to the given DATA tag and return
+'           its entire contents just like the READ method does. If no
+'           matching record was found, then the result is empty. It is
+'           also possible to search for partial matches and a search
+'           can be continued to find multiple matches. This method does
+'           not change the selected record (ACTUAL tag), except if you
+'           specify the HOLD tag, which will then mark the found record
+'           (if any) as the new selected record.
+'
+'   REM  -- Remove any information (user tags) according to the given
+'           list of tags (TAGNAMES tag) from the selected record (if
+'           ACTUAL tag is given, then first adjust the selected record
+'           accordingly). The selected record counter is only adjusted,
+'           if the ACTUAL tag was specified. Note that you cannot remove
+'           the DATA tag, it will be ignored if specified.
+'
+' DELETE -- Delete the selected record (if ACTUAL tag is given, then first
+'           adjust the selected record accordingly). Following remaining
+'           records are moved up to fill the gap. The selected record
+'           (ACTUAL tag) is only adjusted when deleting the last (bottom)
+'           record in list.
+'---------------------------------------------------------------------
+FUNCTION ListC$ (method$, tagString$)
+ListRes$ = ""
+classID$ = "ListC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "---"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = ""
+        tagsOpt$ = "SORT," '+ user tags
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "ACTUAL,REVERSE," '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Store"
+        tagsReq$ = "OBJECT,DATA,"
+        tagsOpt$ = "ACTUAL,IMAGEOBJECT,SYMBOLOBJECT," '+ user tags
+        'NOTE: Images and/or Symbols will appear in ListviewC objects only.
+        '      Don't use images/symbol objects which are already assigned
+        '      to other GUI objects, create new ones for exclusive use in
+        '      the list. Once created an image/symbol can be attached to as
+        '      many records as needed. Use one object type per record only,
+        '      ie. image or symbol, not both. Init the images/symbols
+        '      with HEIGHT = _FONTHEIGHT + SPACING (a ListviewC tag)
+        '      and  WIDTH  = CINT((_FONTHEIGHT + SPACING) / 3 * 4), hence
+        '      a 4:3 ratio size locked to the used font size but still
+        '      adjustable by varying the Listview's line spacing. The
+        '      LEFT/TOP tags are adjusted internally, init them with zeros,
+        '      KEEPASPECT may be used as usual, if required.
+        GOSUB meStore
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Add"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "ACTUAL," '+ user tags
+        GOSUB meAdd
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Read"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "ACTUAL,REVERSE,HOLD,"
+        GOSUB meRead
+        'Result Tags: ERROR/WARNING or DATA + user tags
+    CASE "Search"
+        tagsReq$ = "OBJECT,DATA,"
+        tagsOpt$ = "CONTINUE,NOCASE,PARTIAL,HOLD,"
+        GOSUB meSearch
+        'Result Tags: ERROR/WARNING or DATA + user tags (may be empty)
+    CASE "Rem"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "ACTUAL,TAGNAMES," 'list of user tags only
+        GOSUB meRem
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Delete"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "ACTUAL,"
+        GOSUB meDelete
+        'Result Tags: ERROR/WARNING or empty
+    CASE ELSE
+        SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+ListC$ = ListRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+'--- check required tags ---
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = classID$
+    guiObjects$(objFlags%, this&) = flagsID$
+    guiObjects$(objConn%, this&) = ""
+    IF ChildInit% THEN MID$(guiObjects$(objFlags%, this&), 2, 1) = "c"
+    '--- object specific init ---
+    SetTag guiObjects$(objData%, this&), "ACTUAL", "0"
+    SetTag guiObjects$(objData%, this&), "RECORDS", "0"
+    '--- add required/optional tags ---
+    opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+    guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+    '--- add any remaining user tags ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+    '--- set result ---
+    SetTag ListRes$, "OBJECT", LTRIM$(STR$(this&))
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+    temp$ = GetTagData$(tagsID$, "ACTUAL", "n/a")
+    IF temp$ <> "n/a" THEN
+        IF reco& = 0 THEN
+            SetTag ListRes$, "WARNING", classID$ + "::" + methodID$ + " -> can't set ACTUAL on empty list"
+            GOTO labSetReverse
+        END IF
+        actu& = VAL(temp$)
+        IF actu& < 0 THEN actu& = reco& 'last record requested
+        IF actu& < 1 OR actu& > reco& THEN
+            SetTag ListRes$, "WARNING", classID$ + "::" + methodID$ + " -> tag ACTUAL out of valid range"
+            GOTO labSetReverse
+        END IF
+        SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu&))
+        node& = VAL(GetTagData$(guiObjects$(objData%, this&), "FIRST", "0"))
+        FOR i& = 1 TO actu& - 1
+            node& = VAL(GetTagData$(guiObjects$(objData%, node&), "NEXT", "0"))
+        NEXT i&
+        SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(node&))
+    END IF
+    labSetReverse:
+    upd% = UpdateTag%(guiObjects$(objData%, this&), "REVERSE", tagsID$)
+    '--- check any remaining user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN ListRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete remaining records ---
+    DO
+        resu$ = ListC$("DELETE", thisTag$ + GetTag$(tagsID$, "REFOBJ"))
+    LOOP WHILE resu$ = ""
+    '--- then delete the list object ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+END IF
+RETURN
+'---------------------------------------------------------------------
+meStore:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required tags ---
+    IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+        SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+    ELSE
+        '--- adjust actual position ---
+        temp$ = GetTag$(tagsID$, "ACTUAL")
+        IF temp$ <> "" THEN
+            resu$ = GetTagData$(ListC$("SET", thisTag$ + temp$ + GetTag$(tagsID$, "REFOBJ")), "WARNING", "n/a")
+            IF resu$ <> "n/a" THEN 'remap error + exit
+                SetTag ListRes$, "ERROR", LEFT$(resu$, 7) + methodID$ + MID$(resu$, 11)
+                RETURN
+            END IF
+        END IF
+        '--- init new record ---
+        stor& = NewObject&
+        guiObjects$(objData%, stor&) = ""
+        guiObjects$(objType%, stor&) = classID$ + ".Storage"
+        guiObjects$(objFlags%, stor&) = "---"
+        guiObjects$(objConn%, stor&) = ""
+        '--- check for assigned Image/Symbol ---
+        InitAssignedImgSym "IMAGEOBJECT", ListRes$, classID$, tagsID$
+        InitAssignedImgSym "SYMBOLOBJECT", ListRes$, classID$, tagsID$
+        IF GetTags$(tagsID$, "IMAGEOBJECT,SYMBOLOBJECT") <> "" THEN
+            SetTag guiObjects$(objData%, this&), "HASLVIS", "true"
+        END IF
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        RemTags tagsID$, guiCallTags$
+        guiObjects$(objData%, stor&) = guiObjects$(objData%, stor&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, stor&) = guiObjects$(objData%, stor&) + tagsID$
+        '--- insert to list according to sort type ---
+        actu& = VAL(GetTagData$(guiObjects$(objData%, this&), "ACTUAL", "0"))
+        reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+        prev& = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "0"))
+        node& = VAL(GetTagData$(guiObjects$(objData%, prev&), "NEXT", "0"))
+        sort$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "SORT", "fifo"))
+        IF sort$ = "fifo" OR sort$ = "none" OR reco& = 0 THEN
+            '--- no real sort or first record ---
+            IF sort$ = "fifo" OR reco& = 0 OR node& = 0 THEN
+                GOSUB meAddTail
+                IF reco& = 0 THEN
+                    SetTag guiObjects$(objData%, this&), "FIRST", LTRIM$(STR$(stor&))
+                    SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(stor&))
+                    SetTag guiObjects$(objData%, this&), "ACTUAL", "1"
+                END IF
+            ELSE
+                GOSUB meInsert
+            END IF
+        ELSE
+            '--- sort by alphabet or numbers ---
+            ndat$ = UCASE$(GetTagData$(guiObjects$(objData%, stor&), "DATA", ""))
+            node& = VAL(GetTagData$(guiObjects$(objData%, this&), "FIRST", "0"))
+            odat$ = UCASE$(GetTagData$(guiObjects$(objData%, node&), "DATA", ""))
+            IF sort$ = "alphabet" THEN less% = (ndat$ < odat$): ELSE less% = (VAL(ndat$) < VAL(odat$))
+            IF less% THEN
+                '--- special case, new record becomes first ---
+                SetTag guiObjects$(objData%, this&), "FIRST", LTRIM$(STR$(stor&))
+                SetTag guiObjects$(objData%, stor&), "PREVIOUS", "0"
+                SetTag guiObjects$(objData%, stor&), "NEXT", LTRIM$(STR$(node&))
+                SetTag guiObjects$(objData%, node&), "PREVIOUS", LTRIM$(STR$(stor&))
+                SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu& + 1))
+            ELSE
+                '--- enqueue new record, use FIFO for equals ---
+                addi% = 1
+                curr& = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "0"))
+                DO
+                    prev& = node&: IF prev& = curr& THEN addi% = 0
+                    node& = VAL(GetTagData$(guiObjects$(objData%, prev&), "NEXT", "0"))
+                    IF node& = 0 THEN EXIT DO
+                    odat$ = UCASE$(GetTagData$(guiObjects$(objData%, node&), "DATA", ""))
+                    IF sort$ = "alphabet" THEN less% = (ndat$ < odat$): ELSE less% = (VAL(ndat$) < VAL(odat$))
+                LOOP UNTIL less%
+                IF node& = 0 THEN
+                    GOSUB meAddTail
+                ELSE
+                    GOSUB meInsert
+                    SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu& + addi%))
+                END IF
+            END IF
+        END IF
+        SetTag guiObjects$(objData%, this&), "RECORDS", LTRIM$(STR$(reco& + 1))
+    END IF
+END IF
+RETURN
+'----------------------------------
+meInsert:
+SetTag guiObjects$(objData%, prev&), "NEXT", LTRIM$(STR$(stor&))
+SetTag guiObjects$(objData%, stor&), "PREVIOUS", LTRIM$(STR$(prev&))
+SetTag guiObjects$(objData%, stor&), "NEXT", LTRIM$(STR$(node&))
+SetTag guiObjects$(objData%, node&), "PREVIOUS", LTRIM$(STR$(stor&))
+RETURN
+'----------------------------------
+meAddTail:
+prev& = VAL(GetTagData$(guiObjects$(objData%, this&), "LAST", "0"))
+SetTag guiObjects$(objData%, prev&), "NEXT", LTRIM$(STR$(stor&))
+SetTag guiObjects$(objData%, stor&), "PREVIOUS", LTRIM$(STR$(prev&))
+SetTag guiObjects$(objData%, stor&), "NEXT", "0"
+SetTag guiObjects$(objData%, this&), "LAST", LTRIM$(STR$(stor&))
+RETURN
+'---------------------------------------------------------------------
+meAdd:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- adjust actual position ---
+    temp$ = GetTag$(tagsID$, "ACTUAL")
+    IF temp$ <> "" THEN
+        resu$ = GetTagData$(ListC$("SET", thisTag$ + temp$ + GetTag$(tagsID$, "REFOBJ")), "WARNING", "n/a")
+        IF resu$ <> "n/a" THEN 'remap error + exit
+            SetTag ListRes$, "ERROR", LEFT$(resu$, 7) + methodID$ + MID$(resu$, 11)
+            RETURN
+        END IF
+    END IF
+    '--- check any user tag changes ---
+    reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+    IF reco& = 0 THEN
+        SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> no records (list empty)"
+        RETURN
+    END IF
+    stor& = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "0"))
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, stor&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+END IF
+RETURN
+'---------------------------------------------------------------------
+meRead:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- adjust read position/direction ---
+    temp$ = GetTags$(tagsID$, "ACTUAL,REVERSE")
+    IF temp$ <> "" THEN
+        resu$ = GetTagData$(ListC$("SET", thisTag$ + temp$ + GetTag$(tagsID$, "REFOBJ")), "WARNING", "n/a")
+        IF resu$ <> "n/a" THEN 'remap error + exit
+            SetTag ListRes$, "ERROR", LEFT$(resu$, 7) + methodID$ + MID$(resu$, 11)
+            RETURN
+        END IF
+    END IF
+    '--- read current record ---
+    actu& = VAL(GetTagData$(guiObjects$(objData%, this&), "ACTUAL", "0"))
+    reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+    IF reco& = 0 THEN
+        SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> no records (list empty)"
+        RETURN
+    END IF
+    resu$ = guiObjects$(objData%, VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "0")))
+    prev$ = GetTagData$(resu$, "PREVIOUS", "0")
+    succ$ = GetTagData$(resu$, "NEXT", "0")
+    '--- increment/decrement read position ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "REVERSE") THEN addi% = -1: ELSE addi% = 1
+    IF BoolTagTrue%(tagsID$, "HOLD") THEN addi% = 0
+    SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu& + addi%))
+    IF addi% < 0 THEN
+        IF VAL(prev$) = 0 THEN
+            prev$ = GetTagData$(guiObjects$(objData%, this&), "LAST", "0")
+            SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(reco&))
+        END IF
+        SetTag guiObjects$(objData%, this&), "CURRENT", prev$
+    ELSEIF addi% > 0 THEN
+        IF VAL(succ$) = 0 THEN
+            succ$ = GetTagData$(guiObjects$(objData%, this&), "FIRST", "0")
+            SetTag guiObjects$(objData%, this&), "ACTUAL", "1"
+        END IF
+        SetTag guiObjects$(objData%, this&), "CURRENT", succ$
+    END IF
+    '--- set result w/o the internal tags ---
+    RemTags resu$, guiPrivTags$
+    ListRes$ = resu$
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSearch:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required tags ---
+    IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+        SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+    ELSE
+        reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+        IF reco& = 0 THEN
+            SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> no records (list empty)"
+            RETURN
+        END IF
+        idat$ = GetTagData$(tagsID$, "DATA", "")
+        ncas% = BoolTagTrue%(tagsID$, "NOCASE")
+        part$ = LCASE$(GetTagData$(tagsID$, "PARTIAL", ""))
+        IF ncas% THEN idat$ = UCASE$(idat$)
+        '--- search listed records ---
+        firs$ = GetTagData$(guiObjects$(objData%, this&), "FIRST", "0")
+        IF BoolTagTrue%(tagsID$, "CONTINUE") THEN firs$ = GetTagData$(guiObjects$(objData%, this&), "CONTINUE", firs$)
+        RemTag guiObjects$(objData%, this&), "CONTINUE"
+        node& = VAL(firs$)
+        WHILE node& > 0
+            sdat$ = GetTagData$(guiObjects$(objData%, node&), "DATA", "")
+            IF ncas% THEN sdat$ = UCASE$(sdat$)
+            IF LEN(sdat$) >= LEN(idat$) THEN
+                IF part$ = "left" THEN
+                    IF LEFT$(sdat$, LEN(idat$)) = idat$ THEN EXIT WHILE
+                ELSEIF part$ = "any" THEN
+                    IF INSTR(sdat$, idat$) <> 0 THEN EXIT WHILE
+                ELSEIF part$ = "right" THEN
+                    IF RIGHT$(sdat$, LEN(idat$)) = idat$ THEN EXIT WHILE
+                ELSE
+                    IF sdat$ = idat$ THEN EXIT WHILE
+                END IF
+            END IF
+            node& = VAL(GetTagData$(guiObjects$(objData%, node&), "NEXT", "0"))
+        WEND
+        '--- set result w/o the internal tags and do CONTINUE/HOLD checks ---
+        IF node& > 0 THEN
+            ListRes$ = guiObjects$(objData%, node&)
+            RemTags ListRes$, guiPrivTags$
+            succ$ = GetTagData$(guiObjects$(objData%, node&), "NEXT", "0")
+            IF VAL(succ$) > 0 THEN SetTag guiObjects$(objData%, this&), "CONTINUE", succ$
+            IF BoolTagTrue%(tagsID$, "HOLD") THEN
+                SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(node&))
+                actu& = 0
+                DO
+                    actu& = actu& + 1
+                    node& = VAL(GetTagData$(guiObjects$(objData%, node&), "PREVIOUS", "0"))
+                LOOP UNTIL node& = 0
+                SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu&))
+            END IF
+        END IF
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meRem:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- adjust actual position ---
+    temp$ = GetTag$(tagsID$, "ACTUAL")
+    IF temp$ <> "" THEN
+        resu$ = GetTagData$(ListC$("SET", thisTag$ + temp$ + GetTag$(tagsID$, "REFOBJ")), "WARNING", "n/a")
+        IF resu$ <> "n/a" THEN 'remap error + exit
+            SetTag ListRes$, "ERROR", LEFT$(resu$, 7) + methodID$ + MID$(resu$, 11)
+            RETURN
+        END IF
+    END IF
+    '--- remove given user tags ---
+    reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+    IF reco& = 0 THEN
+        SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> no records (list empty)"
+        RETURN
+    END IF
+    stor& = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "0"))
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN
+        temp$ = UCASE$(LTRIM$(RTRIM$(temp$)))
+        IF LEFT$(temp$, 1) = "," THEN temp$ = MID$(temp$, 2)
+        IF RIGHT$(temp$, 1) <> "," THEN temp$ = temp$ + ","
+        ket% = 0
+        DO
+            bra% = ket% + 1
+            ket% = INSTR(bra%, temp$, ",")
+            IF ket% > bra% THEN
+                utag$ = LTRIM$(RTRIM$(MID$(temp$, bra%, ket% - bra%)))
+                IF utag$ <> "" THEN
+                    IF utag$ <> "DATA" THEN RemTag guiObjects$(objData%, stor&), utag$
+                END IF
+            END IF
+        LOOP WHILE ket% > 0
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDelete:
+IF ValidObject%(this&, thisTag$, ListRes$, classID$, methodID$, tagsID$) THEN
+    '--- adjust actual position ---
+    temp$ = GetTag$(tagsID$, "ACTUAL")
+    IF temp$ <> "" THEN
+        resu$ = GetTagData$(ListC$("SET", thisTag$ + temp$ + GetTag$(tagsID$, "REFOBJ")), "WARNING", "n/a")
+        IF resu$ <> "n/a" THEN 'remap error + exit
+            SetTag ListRes$, "ERROR", LEFT$(resu$, 7) + methodID$ + MID$(resu$, 11)
+            RETURN
+        END IF
+    END IF
+    '--- remove current record from list ---
+    actu& = VAL(GetTagData$(guiObjects$(objData%, this&), "ACTUAL", "0"))
+    reco& = VAL(GetTagData$(guiObjects$(objData%, this&), "RECORDS", "0"))
+    IF reco& = 0 THEN
+        SetTag ListRes$, "ERROR", classID$ + "::" + methodID$ + " -> no records (list empty)"
+        RETURN
+    END IF
+    stor& = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "0"))
+    prev$ = GetTagData$(guiObjects$(objData%, stor&), "PREVIOUS", "0")
+    succ$ = GetTagData$(guiObjects$(objData%, stor&), "NEXT", "0")
+    SetTag guiObjects$(objData%, VAL(prev$)), "NEXT", succ$
+    SetTag guiObjects$(objData%, VAL(succ$)), "PREVIOUS", prev$
+    IF (reco& - 1) = 0 THEN
+        RemTags guiObjects$(objData%, this&), "FIRST,CURRENT,LAST"
+    ELSE
+        IF VAL(prev$) = 0 THEN
+            SetTag guiObjects$(objData%, this&), "FIRST", succ$
+            SetTag guiObjects$(objData%, this&), "CURRENT", succ$
+        ELSEIF VAL(succ$) = 0 THEN
+            SetTag guiObjects$(objData%, this&), "LAST", prev$
+            SetTag guiObjects$(objData%, this&), "CURRENT", prev$
+        ELSE
+            SetTag guiObjects$(objData%, this&), "CURRENT", succ$
+        END IF
+    END IF
+    SetTag guiObjects$(objData%, this&), "RECORDS", LTRIM$(STR$(reco& - 1))
+    IF VAL(succ$) = 0 THEN SetTag guiObjects$(objData%, this&), "ACTUAL", LTRIM$(STR$(actu& - 1))
+    '--- check for assigned Symbol/Image ---
+    KillAssignedImgSym stor&, "SYMBOLOBJECT"
+    KillAssignedImgSym stor&, "IMAGEOBJECT"
+    '--- finally delete record ---
+    guiObjects$(objData%, stor&) = ""
+    guiObjects$(objType%, stor&) = ""
+    guiObjects$(objFlags%, stor&) = ""
+    guiObjects$(objConn%, stor&) = ""
+END IF
+RETURN
+END FUNCTION
+'----------------------------------
+FUNCTION ListTag$ (objectID$)
+ListTag$ = NewTag$("LISTOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

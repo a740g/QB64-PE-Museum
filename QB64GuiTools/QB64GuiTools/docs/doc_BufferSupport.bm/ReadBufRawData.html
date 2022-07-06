@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ReadBufRawData</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>ReadBufRawData$ <em>(function)</em></h2>
+<p>This function will return the requested amount of subsequent bytes, ie. it
+reads data from the specified buffer starting at the current buffer position
+and continuing until the requested amount of bytes was read or until the
+buffer end, whichever case is first. The function will return the data as is,
+hence including all control chars. The operation is in that very similar to
+GET when reading from files.</p>
+<p>The current buffer position is updated accordingly and is on the first byte
+behind the just read data after the call. Hence, sequential reading is easily
+possible with subsequent calls. You may use <a href="EndOfBuf.html">EndOfBuf()</a> to check, whether the
+buffer end is reached or not.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>rawData$ = ReadBufRawData$ (handle%, size&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna read.</li>
+</ul>
+<h4>size&amp; <em>(LONG)</em></h4>
+<ul>
+<li>The amount of bytes to read from the buffer.</li>
+<li>Note there's an intended side effect on this argument. If the read would
+go past the buffer end, then size&amp; is adjusted to the remaining amount of
+bytes in the buffer.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>rawData$ <em>(STRING)</em></h4>
+<ul>
+<li>The raw data read from the buffer inclusive all control chars. You may get
+back numbers using the various _CV functions or VAL, depending on the
+method you used to write those numbers.</li>
+<li>Will be an empty string, if the <a href="EndOfBuf.html">EndOfBuf()</a> condition is already true (-1)
+when the read operation begins. However, no error will occur in such a case.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>
+If required, the following functions may be used to set the current buffer
+position in advance:
+<ul>
+<li><a href="SeekBuf.html">SeekBuf()</a> with an appropriate displacement and seek mode.</li>
+<li><a href="GotoBufMark.html">GotoBufMark()</a> to restore to an earlier marked position.</li>
+<li><a href="FindBufFR.html">FindBufFwd()</a> or <a href="FindBufFR.html">FindBufRev()</a> to move to the next or previous occurrence
+of any criteria.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

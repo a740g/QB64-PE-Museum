@@ -1,0 +1,59 @@
+    IF ValidateTags%(mess$, "GADGETDOWN", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'Any clickable GUI object went into selected state, ie. the left
+        'mousebutton was pressed while the object had focus (MOUSEOVER).
+        'While the object in question remains selected, this event will
+        'also be repeated whenever any vital properties of the object do
+        'change due to user interaction (eg. typing into input fields or
+        'moving a slider/scroller etc.). As of this behavior, this event
+        'is perfectly usable, if you need to do some kind of immediate
+        'reaction for such an object. Nevertheless you should also provide
+        'a GADGETUP handler block for those immediate changing objects in
+        'order to not miss the finalized values. The function ThisObject%()
+        'does match the GADGETDOWN object with a given object to easily
+        'build handling blocks for your objects:
+        ' eg. IF ThisObject%(myObj$, message$, "GADGETDOWN") THEN ...
+        '--- Page tabs clicked ---
+        IF ThisObject%(Page1$, mess$, "GADGETDOWN") OR _
+           ThisObject%(Page2$, mess$, "GADGETDOWN") OR _
+           ThisObject%(Page3$, mess$, "GADGETDOWN") OR _
+           ThisObject%(Page4$, mess$, "GADGETDOWN") OR _
+           ThisObject%(Page5$, mess$, "GADGETDOWN") OR _
+           ThisObject%(Page6$, mess$, "GADGETDOWN") OR _
+           ThisObject%(Page7$, mess$, "GADGETDOWN") THEN
+            IF subClicks% < 15 THEN
+                dummy$ = GenC$("SET", Page1$ + NewTag$("ACTIVE", "true"))
+                dummy$ = MessageBox$("Info16px.png", "Just to mention...",_
+                                     "First try all SubPages please !!",_
+                                     "Ok, I'll")
+            END IF
+        END IF
+        '--- Page 3 ---
+        IF ThisObject%(EndingSlider1$, mess$, "GADGETDOWN") OR _
+           ThisObject%(EndingSlider2$, mess$, "GADGETDOWN") THEN
+            GOSUB RefreshSizeGaugePage3
+        END IF
+        '--- Page 5 ---
+        IF ThisObject%(Page5$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalWheel$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalHSBSliderH$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalHSBSliderS$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalHSBSliderB$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalRGBSliderR$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalRGBSliderG$, mess$, "GADGETDOWN") OR _
+           ThisObject%(PalRGBSliderB$, mess$, "GADGETDOWN") THEN
+            GOSUB RefreshColorGaugePage5
+        END IF
+        '--- Page 6 ---
+        IF ThisObject%(ScrImgScrollerH$, mess$, "GADGETDOWN") OR _
+           ThisObject%(ScrImgScrollerV$, mess$, "GADGETDOWN") THEN
+            GOSUB RefreshScrollImagePage6
+        END IF
+        '--- Page 7 ---
+        IF ThisObject%(Page7$, mess$, "GADGETDOWN") OR _
+           ThisObject%(MultiLVwithIMG$, mess$, "GADGETDOWN") OR _
+           ThisObject%(MultiLVPlain$, mess$, "GADGETDOWN") OR _
+           ThisObject%(MultiRadio1$, mess$, "GADGETDOWN") THEN
+            GOSUB RefreshSelectionDisplaysPage7
+        END IF
+    END IF
+

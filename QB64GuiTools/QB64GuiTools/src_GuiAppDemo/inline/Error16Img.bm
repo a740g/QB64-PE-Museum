@@ -1,0 +1,108 @@
+'============================================================
+'=== This file was created with MakeDATA.bas by RhoSigma, ===
+'=== you must $INCLUDE this at the end of your program.   ===
+'============================================================
+
+'----------------------------
+'--- WriteError16ImgData$ ---
+'----------------------------
+' This function will write the DATAs you've created with MakeDATA.bas
+' back to disk and so it rebuilds the original file.
+'
+' After the writeback call, only use the returned realFile$ to access the
+' written file. It's your given path, but with an maybe altered filename
+' (number added) in order to avoid the overwriting of an already existing
+' file with the same name in the given location.
+'----------
+' SYNTAX:
+'   realFile$ = WriteError16ImgData$ (wantFile$)
+'----------
+' INPUTS:
+'   --- wantFile$ ---
+'    The filename you would like to write the DATAs to, can contain
+'    a full or relative path.
+'----------
+' RESULT:
+'   --- realFile$ ---
+'    - On success this is the path and filename finally used after all
+'      applied checks, use only this returned filename to access the
+'      written file.
+'    - On failure this function will panic with the appropriate runtime
+'      error code which you may trap and handle as needed with your own
+'      ON ERROR GOTO... handler.
+'---------------------------------------------------------------------
+FUNCTION WriteError16ImgData$ (file$)
+'--- option _explicit requirements ---
+DIM po%, body$, ext$, num%, numL&, numB&, rawdata$, stroffs&, i&, dat&, ff%
+'--- separate filename body & extension ---
+FOR po% = LEN(file$) TO 1 STEP -1
+    IF MID$(file$, po%, 1) = "." THEN
+        body$ = LEFT$(file$, po% - 1)
+        ext$ = MID$(file$, po%)
+        EXIT FOR
+    ELSEIF MID$(file$, po%, 1) = "\" OR MID$(file$, po%, 1) = "/" OR po% = 1 THEN
+        body$ = file$
+        ext$ = ""
+        EXIT FOR
+    END IF
+NEXT po%
+'--- avoid overwriting of existing files ---
+num% = 1
+WHILE _FILEEXISTS(file$)
+    file$ = body$ + "(" + LTRIM$(STR$(num%)) + ")" + ext$
+    num% = num% + 1
+WEND
+'--- write DATAs ---
+RESTORE Error16Img
+READ numL&, numB&
+rawdata$ = SPACE$((numL& * 4) + numB&)
+stroffs& = 1
+FOR i& = 1 TO numL&
+    READ dat&
+    MID$(rawdata$, stroffs&, 4) = MKL$(dat&)
+    stroffs& = stroffs& + 4
+NEXT i&
+IF numB& > 0 THEN
+    FOR i& = 1 TO numB&
+        READ dat&
+        MID$(rawdata$, stroffs&, 1) = CHR$(dat&)
+        stroffs& = stroffs& + 1
+    NEXT i&
+END IF
+ff% = FREEFILE
+OPEN file$ FOR OUTPUT AS ff%
+PRINT #ff%, rawdata$;
+CLOSE ff%
+'--- set result ---
+WriteError16ImgData$ = file$
+EXIT FUNCTION
+
+'--- DATAs representing the contents of file Error16px.png
+'---------------------------------------------------------------------
+Error16Img:
+DATA 184,0
+DATA &H474E5089,&H0A1A0A0D,&H0D000000,&H52444849,&H10000000,&H10000000,&H00000608,&HFFF31F00
+DATA &H02000061,&H414449A7,&HA5DA7854,&HD3485BD2,&HF0071C51,&HDDFFF9EF,&H3A6E2EE6,&H5E45A9D1
+DATA &H0FA98BB2,&HD14C351A,&H8456A307,&H90F506E6,&H928895D8,&HB3020A1E,&H8CA87A87,&HA9E88A08
+DATA &HA8ADE920,&H91515829,&HE0508608,&H792F326D,&H3EED51A9,&H73739B9B,&H3FFFFFDB,&H44119BFD
+DATA &H7E074565,&HCE73BF2F,&H72F8FCE7,&H9173FE08,&H762736E5,&H31CE3EEC,&H89E4BA8C,&H819FEDB9
+DATA &H17756DC9,&HCE1BF4D3,&HF61848D2,&HCA970F91,&HFEB6745E,&HB5B33035,&H9A595CBE,&H06CDA037
+DATA &H0E0F8F18,&H15DB812F,&H79E9B8DA,&H011FE0E7,&H0641A19B,&HAE90F279,&H95115D76,&H29248128
+DATA &H5801D198,&HBCE38227,&HCFF4CA40,&H03CBA23A,&H6A630655,&H4523F175,&H87243A41,&HEE3D125B
+DATA &H5F7879FA,&HE3E5305B,&H5DDD354D,&H4E02DFE6,&H598A8343,&H5D4F9BA9,&H4F2F00AB,&H5CF9BC83
+DATA &H79B91FA2,&H31DBEC19,&H8479784C,&H654A42E2,&H2FD0FDC7,&HFD6D7B01,&HAA9ECD5D,&H0339C403
+DATA &HFC87CBA2,&H3F4499D8,&H1814E174,&H6A6230CB,&H7B4CDE1D,&HDD7D0DDB,&H9C027F07,&H8AF98DDB
+DATA &HA4EFC5CD,&HDEB114D9,&H0B736057,&H93BB6CA1,&H321E0BD8,&H81EDEB82,&HFD02B74A,&HCCCC3E93
+DATA &HD134142E,&H001FFBD0,&HBECEF557,&H2DBCDA94,&H3810F8FC,&H7D1213BB,&HDB57540D,&H7DE68097
+DATA &H21BA7AE0,&H3701CF4B,&H29E3C71F,&H82E36F7B,&HE03BE6BF,&H64986494,&HB287FAF5,&H2B9C165C
+DATA &H07302100,&HA41AD576,&H00907ADC,&H4277FB02,&H154158B0,&H04F0D069,&HFA1CC756,&H23A6FD67
+DATA &H0139A091,&HDC8B7278,&H99D513CA,&H6818C8FC,&H0B880C92,&H811F9C10,&H0BC49CD4,&HD820E8DC
+DATA &H28D042AC,&H4735289F,&H83D9B660,&H1AFDE77B,&H27B466E2,&H6E1BA715,&H0681F380,&H8502A0C2
+DATA &H5D82F5E0,&H6BAA1EBD,&H832840F7,&H841351C0,&HD7200B61,&H50F22E80,&H40A7C071,&H772E5D04
+DATA &H5457F10B,&H52C6A4C6,&H169D6F09,&HE5011DBF,&H4769C045,&H54257952,&H65BFB76D,&HF06624D0
+DATA &H03289C52,&H5103CC34,&HC5815A0E,&HE4079753,&H4D154573,&H9D032A6E,&H400201B2,&HB1181CE3
+DATA &H64188704,&H4A88235D,&H5695C88D,&H81E56724,&H5978A846,&H1A4B1100,&H3872E823,&H16F44296
+DATA &H95AA5097,&H079C6885,&HF10275F7,&H88BA3C5C,&H9A26CDB8,&H1CCC843C,&H38865650,&H04E783C7
+DATA &HEE014A71,&H976AA2F0,&H00BE43DF,&HE330B259,&H2A2500EC,&H00000000,&H444E4549,&H826042AE
+END FUNCTION
+

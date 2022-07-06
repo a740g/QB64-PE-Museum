@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IsBufChanged</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>IsBufChanged <em>(function)</em></h2>
+<p>This function will return a boolean value (flag), indicating whether the
+current buffer contents was changed or not. New via <a href="CreateBuf.html">CreateBuf()</a> created
+empty buffers are &quot;changed&quot; by default, while those buffers loaded from
+a file via <a href="FileToBuf.html">FileToBuf()</a> will remain &quot;unchanged&quot; until any data is written
+or deleted. Regularly all writes or deletes will cause a &quot;changed&quot; state.
+A call to <a href="BufToFile.html">BufToFile()</a> will reset a buffer to &quot;unchanged&quot;.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>change% = IsBufChanged% (handle%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna check
+the &quot;Change&quot; state.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>change% <em>(INTEGER)</em></h4>
+<ul>
+<li>Is true (-1), if the buffer contents is &quot;changed&quot;, false (0) otherwise.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

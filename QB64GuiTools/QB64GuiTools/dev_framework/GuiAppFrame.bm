@@ -1,0 +1,1696 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === GuiAppFrame.bm ===                                            |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides some useful SUBs and FUNCTIONs for common use.     |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'--- docs\doc_GuiAppframe.bm\InternalErrHandler.html
+'---------------------------------------------------------------------
+SUB InternalErrHandler
+appLastErr% = 0
+IF UCASE$(ErrorHandlerSwitch$) <> "DISABLED" THEN
+    ON ERROR GOTO InternalErrorHandler
+ELSE
+    ON ERROR GOTO 0
+END IF
+END SUB
+
+'--- docs\doc_GuiAppframe.bm\UserErrHandler.html
+'---------------------------------------------------------------------
+SUB UserErrHandler
+IF UCASE$(ErrorHandlerSwitch$) = "ON" THEN
+    ON ERROR GOTO UserErrorHandler
+ELSE
+    ON ERROR GOTO 0
+END IF
+END SUB
+
+'--- docs\doc_GuiAppframe.bm\GetUniqueID.html
+'---------------------------------------------------------------------
+FUNCTION GetUniqueID$
+REDIM vars(0) AS ChunkVARS
+'--- exclusivly access the unique ID source file ---
+mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-univars.tmp" + CHR$(0))
+iff% = SafeOpenFile%("B", appTempDir$ + "univars.tmp")
+ptr& = SeekChunk&(iff%, 1, CHvarsID$)
+GET iff%, , vars(0)
+'--- create ID and update vital values ---
+GetUniqueID$ = RIGHT$("00000000" + HEX$(vars(0).varsFID), 8) + "." + RIGHT$("000" + HEX$(vars(0).varsEID), 3)
+vars(0).varsEID = vars(0).varsEID + 1
+IF vars(0).varsEID = 4096 THEN
+    vars(0).varsEID = 0
+    IF NOT vars(0).varsIDF THEN
+        vars(0).varsFID = vars(0).varsFID + 1
+    ELSE
+        vars(0).varsFID = -2147483648
+        vars(0).varsIDF = 0
+    END IF
+    IF vars(0).varsFID = 2147483647 THEN
+        vars(0).varsIDF = -1
+    END IF
+END IF
+'--- update & close the unique ID source file ---
+PUT iff%, ptr&, vars(0)
+CLOSE iff%
+UnlockMutex mtx%&
+'--- cleanup & return ---
+ERASE vars
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\MessageBox.html
+'---------------------------------------------------------------------
+FUNCTION MessageBox$ (winIcon$, winTitle$, bodyText$, buttonText$)
+MessageBox$ = ""
+IF winTitle$ <> "*** RhoSigma-MessageBox-HandlerCall ***" THEN
+    '--- MessageBox Setup Block ---
+    iBodyText$ = bodyText$ + " "
+    iButtonText$ = buttonText$ + " "
+    IF LTRIM$(RTRIM$(iBodyText$)) = "" THEN
+        iBodyText$ = "No message specified !! "
+        iButtonText$ = "Oops! "
+    END IF
+    IF LTRIM$(RTRIM$(iButtonText$)) = "" OR INSTR(iButtonText$, "}") = LEN(iButtonText$) - 1 THEN iButtonText$ = iButtonText$ + "Got It! "
+    temp% = 0: txte% = 0: isfl% = 0
+    txtn% = 0: butn% = 0
+    txtw% = 0: butw% = 0
+    tl% = LEN(iBodyText$)
+    FOR i% = 1 TO tl%
+        c$ = MID$(iBodyText$, i%, 1)
+        IF c$ = "|" OR c$ = "~" OR i% = tl% THEN
+            IF temp% = 0 THEN txte% = txte% + 1
+            IF temp% > txtw% THEN txtw% = temp%
+            temp% = 0
+            txtn% = txtn% + 1
+        ELSE
+            temp% = temp% + 8
+        END IF
+    NEXT i%
+    txtw% = txtw% + 4 'add for frame thickness
+    bl% = LEN(iButtonText$)
+    FOR i% = 1 TO bl%
+        c$ = MID$(iButtonText$, i%, 1)
+        IF c$ = "{" THEN
+            isfl% = -1
+            temp% = temp% + 26
+            i% = INSTR(i% + 1, iButtonText$, "}") + 1
+            c$ = MID$(iButtonText$, i%, 1)
+        END IF
+        IF c$ = "|" OR i% = bl% THEN
+            IF temp% > butw% THEN butw% = temp%
+            temp% = 0
+            butn% = butn% + 1
+        ELSE
+            temp% = temp% + 8
+        END IF
+    NEXT i%
+    butw% = butw% + 10 'inner button spacing
+    butw% = ((butw% + 7) AND -8) 'round to next multiple of 8
+
+    ospc% = 8 'nominal object spacing
+    txtl% = (2 * ospc%): txtt% = (2 * ospc%): txth% = 20
+    fral% = txtl% - ospc%: frat% = txtt% - ospc%: fraw% = txtw% + (2 * ospc%): frah% = (txtn% * txth%) - (txte% * INT(txth% / 3)) + (2 * ospc%)
+    butl% = fral%: butt% = frat% + frah% + ospc%
+    IF isfl% THEN buth% = 31: ELSE buth% = 26
+    temp% = butn% * butw% 'extend width to # of buttons
+    IF butn% > 1 THEN temp% = temp% + ((butn% - 1) * ospc%) '+ inter button spacing
+    IF temp% > fraw% THEN
+        diff% = temp% - fraw%
+        fraw% = temp%
+        txtl% = txtl% + INT(diff% / 2)
+    ELSEIF fraw% > temp% THEN
+        diff% = fraw% - temp%
+        butl% = butl% + INT(diff% / 2)
+    END IF
+    winw% = fraw% + (2 * ospc%): winh% = frah% + buth% + (3 * ospc%)
+
+    file$ = GetUniqueID$
+    TempLog file$, "MODULE: MessageBox CONTENTS: Handshake and parameter exchange file."
+    rff% = SafeOpenFile%("O", appTempDir$ + file$)
+    PRINT #rff%, NewTag$("WIDTH", LTRIM$(STR$(winw%)));
+    PRINT #rff%, NewTag$("HEIGHT", LTRIM$(STR$(winh%)));
+    PRINT #rff%, NewTag$("TITLE", winTitle$)
+    PRINT #rff%, NewTag$("CLASSNAME", "TextC");
+    PRINT #rff%, NewTag$("LEFT", LTRIM$(STR$(fral%)));
+    PRINT #rff%, NewTag$("TOP", LTRIM$(STR$(frat%)));
+    PRINT #rff%, NewTag$("WIDTH", LTRIM$(STR$(fraw%)));
+    PRINT #rff%, NewTag$("HEIGHT", LTRIM$(STR$(frah%)));
+    PRINT #rff%, NewTag$("FORM", "simple")
+    temp$ = ""
+    tl% = LEN(iBodyText$)
+    FOR i% = 1 TO tl%
+        c$ = MID$(iBodyText$, i%, 1)
+        IF c$ = "|" OR c$ = "~" OR i% = tl% THEN
+            IF temp$ = "" THEN
+                IF c$ = "~" THEN
+                    PRINT #rff%, NewTag$("CLASSNAME", "RulerC");
+                    PRINT #rff%, NewTag$("LENGTH", LTRIM$(STR$(txtw%)));
+                    PRINT #rff%, NewTag$("ALIGN", "horizontal");
+                    PRINT #rff%, NewTag$("FORM", "ridge");
+                    PRINT #rff%, NewTag$("TOP", LTRIM$(STR$(txtt% + INT(INT(txth% * 0.66) / 2) + 1)));
+                ELSE
+                    PRINT #rff%, NewTag$("CLASSNAME", "TextC");
+                    PRINT #rff%, NewTag$("TOP", LTRIM$(STR$(txtt%)));
+                    PRINT #rff%, NewTag$("HEIGHT", LTRIM$(STR$(INT(txth% * 0.66))));
+                END IF
+                txtt% = txtt% + INT(txth% * 0.66)
+            ELSE
+                PRINT #rff%, NewTag$("CLASSNAME", "TextC");
+                PRINT #rff%, NewTag$("TOP", LTRIM$(STR$(txtt%)));
+                PRINT #rff%, NewTag$("HEIGHT", LTRIM$(STR$(txth%)));
+                txtt% = txtt% + txth%
+            END IF
+            PRINT #rff%, NewTag$("LEFT", LTRIM$(STR$(txtl%)));
+            PRINT #rff%, NewTag$("WIDTH", LTRIM$(STR$(txtw%)));
+            FOR j% = 1 TO LEN(temp$)
+                IF MID$(temp$, j%, 1) = " " THEN
+                    MID$(temp$, j%, 1) = CHR$(255)
+                ELSE
+                    IF MID$(temp$, j%, 1) = "-" THEN MID$(temp$, j%, 1) = CHR$(4)
+                    EXIT FOR
+                END IF
+            NEXT j%
+            PRINT #rff%, NewTag$("TEXT", temp$)
+            temp$ = ""
+        ELSE
+            temp$ = temp$ + c$
+        END IF
+    NEXT i%
+    temp$ = "": temp% = 1
+    bl% = LEN(iButtonText$)
+    REDIM butArgs$(0)
+    FOR i% = 1 TO bl%
+        c$ = MID$(iButtonText$, i%, 1)
+        IF c$ = "{" THEN
+            j% = INSTR(i% + 1, iButtonText$, "}") + 1
+            ub% = ParseLine&(MID$(iButtonText$, i% + 1, j% - i% - 2), MKI$(&H0920), "'", butArgs$(), 5)
+            IF UCASE$(butArgs$(0)) = "IMG" THEN
+                PRINT #rff%, NewTag$("CLASSNAME", "ImageC");
+                PRINT #rff%, NewTag$("IMAGEFILE", butArgs$(1));
+                PRINT #rff%, NewTag$("LEFT", "7");
+                IF butArgs$(2) <> "*" THEN PRINT #rff%, NewTag$("CLEARCOLOR", butArgs$(2));
+            ELSEIF UCASE$(butArgs$(0)) = "SYM" THEN
+                PRINT #rff%, NewTag$("CLASSNAME", "SymbolC");
+                PRINT #rff%, NewTag$("WHICH", butArgs$(1));
+                PRINT #rff%, NewTag$("LEFT", "8");
+                IF butArgs$(2) <> "*" THEN PRINT #rff%, NewTag$("BACKPEN", butArgs$(2));
+                IF butArgs$(3) <> "*" THEN PRINT #rff%, NewTag$("SHADOWPEN", butArgs$(3));
+                IF butArgs$(4) <> "*" THEN PRINT #rff%, NewTag$("SHINEPEN", butArgs$(4));
+                IF butArgs$(5) <> "*" THEN PRINT #rff%, NewTag$("BORDERPEN", butArgs$(5));
+            END IF
+            PRINT #rff%, NewTag$("KEEPASPECT", "true");
+            PRINT #rff%, NewTag$("TOP", "7");
+            PRINT #rff%, NewTag$("HEIGHT", LTRIM$(STR$(buth% - 14)));
+            PRINT #rff%, NewTag$("WIDTH", "50")
+            i% = j%
+            c$ = MID$(iButtonText$, i%, 1)
+        END IF
+        IF c$ = "|" OR i% = bl% THEN
+            IF temp$ <> "" THEN
+                PRINT #rff%, NewTag$("CLASSNAME", "ButtonC");
+                IF temp% < 11 THEN
+                    IF butn% = 1 THEN
+                        PRINT #rff%, NewTag$("SHORTCUT", MakeShortcut$("Return", 0, 0, 0));
+                    ELSE
+                        PRINT #rff%, NewTag$("SHORTCUT", MakeShortcut$(RIGHT$(STR$(temp%), 1), 0, 0, 0));
+                        temp% = temp% + 1
+                    END IF
+                END IF
+                PRINT #rff%, NewTag$("LEFT", LTRIM$(STR$(butl%)));
+                PRINT #rff%, NewTag$("TOP", LTRIM$(STR$(butt%)));
+                PRINT #rff%, NewTag$("WIDTH", LTRIM$(STR$(butw%)));
+                PRINT #rff%, NewTag$("HEIGHT", LTRIM$(STR$(buth%)));
+                PRINT #rff%, NewTag$("TEXT", temp$)
+                temp$ = ""
+            END IF
+            butl% = butl% + butw% + ospc%
+        ELSE
+            temp$ = temp$ + c$
+        END IF
+    NEXT i%
+    ERASE butArgs$
+    CLOSE rff%
+
+    parMtx%& = PlantMutex%&("Global\RhoSigma-GuiApp-MBParent-" + appProgID$ + CHR$(0))
+    putMtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-" + file$ + CHR$(0))
+    SHELL _HIDE _DONTWAIT CHR$(34) + appFullExe$ + CHR$(34) + " XOBEGASSEM '" + winIcon$ + "' " + file$ + " " + appProgID$
+    WHILE NOT CheckMutex%("Global\RhoSigma-GuiApp-MessageBoxHandler-" + appProgID$ + CHR$(0))
+        _LIMIT 20
+    WEND
+    UnlockMutex putMtx%&
+    WHILE CheckMutex%("Global\RhoSigma-GuiApp-MessageBoxHandler-" + appProgID$ + CHR$(0))
+        _LIMIT 20
+        IF _EXIT THEN
+            SetTag guiObjects$(0, 0), "USERBREAK", "true"
+            EXIT WHILE
+        END IF
+    WEND
+    RemoveMutex parMtx%&
+    WHILE CheckMutex%("Global\RhoSigma-GuiApp-MessageBoxHandler-" + appProgID$ + CHR$(0))
+        _LIMIT 20
+    WEND
+    _DELAY 0.1
+
+    rff% = SafeOpenFile%("I", appTempDir$ + file$)
+    LINE INPUT #rff%, temp$
+    CLOSE rff%
+    KILL appTempDir$ + file$
+    MessageBox$ = temp$
+ELSE
+    '--- MessageBox Handler Block ---
+    runMtx%& = PlantMutex%&("Global\RhoSigma-GuiApp-MessageBoxHandler-" + buttonText$ + CHR$(0))
+    getMtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-" + bodyText$ + CHR$(0))
+    rff% = SafeOpenFile%("I", appTempDir$ + bodyText$)
+    ON ERROR GOTO 0 'avoid recursion, in case of errors
+    LINE INPUT #rff%, tags$
+    SetupScreen VAL(GetTagData$(tags$, "WIDTH", "320")), VAL(GetTagData$(tags$, "HEIGHT", "240")), -1
+    winImg$ = ImageC$("INIT", NewTag$("IMAGEFILE", winIcon$) + NewTag$("LEFT", "0") + NewTag$("TOP", "0"))
+    winIco& = VAL(GetTagData$(ImageC$("GET", winImg$ + NewTag$("TAGNAMES", "IHANDLE")), "IHANDLE", "0"))
+    IF winIco& < -1 THEN _ICON winIco&
+    temp$ = ImageC$("KILL", winImg$)
+    _FONT 16
+    _TITLE GetTagData$(tags$, "TITLE", "App Message")
+    otag$ = ""
+    WHILE NOT EOF(rff%)
+        LINE INPUT #rff%, tags$
+        IF otag$ <> "" THEN tags$ = tags$ + otag$
+        temp$ = GenC$("INIT", tags$)
+        clas$ = GetTagData$(tags$, "CLASSNAME", "n/a")
+        IF clas$ = "ImageC" AND NOT ValidateTags%(temp$, "ERROR", 0) THEN
+            otag$ = ImageTag$(temp$) + NewTag$("TEXTMOVEX", "13")
+        ELSEIF clas$ = "SymbolC" AND NOT ValidateTags%(temp$, "ERROR", 0) THEN
+            otag$ = SymbolTag$(temp$) + NewTag$("TEXTMOVEX", "12")
+        ELSE
+            otag$ = ""
+        END IF
+    WEND
+    CLOSE rff%
+    rff% = SafeOpenFile%("O", appTempDir$ + bodyText$)
+    ON ERROR GOTO 0 'avoid recursion, in case of errors
+    PRINT #rff%, ""
+    CLOSE rff%
+    UserErrHandler 'allow for ERROR 1000 immediate exits again
+    BeginGUIRefresh
+    IF guiViews$(0) = "" THEN FillRectRaster 0, 0, _WIDTH, _HEIGHT, guiShinePen%
+    EndGUIRefresh
+    DO
+        _LIMIT 50
+        IF NOT CheckMutex%("Global\RhoSigma-GuiApp-MBParent-" + buttonText$ + CHR$(0)) THEN ERROR 1000 'parent is gone, so we do
+        mess$ = GetGUIMsg$
+        IF BoolTagTrue%(mess$, "USERBREAK") THEN rff% = 0 'cancel (window X button)
+        IF BoolTagTrue%(mess$, "KEYPRESS") THEN
+            IF GetTagData$(mess$, "KEY", "") = CHR$(27) THEN rff% = 0 'cancel (Esc)
+        END IF
+        IF ValidateTags%(mess$, "GADGETUP", 0) THEN
+            butt$ = ObjectTag$(mess$, "GADGETUP")
+            rff% = SafeOpenFile%("O", appTempDir$ + bodyText$)
+            ON ERROR GOTO 0 'avoid recursion, in case of errors
+            PRINT #rff%, GetTagData$(ButtonC$("GET", butt$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            CLOSE rff%
+            rff% = 0
+        END IF
+    LOOP WHILE rff% > 0
+    CloseScreen
+    UnlockMutex getMtx%&
+    RemoveMutex runMtx%&
+END IF
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\SetPrintMode.html
+'---------------------------------------------------------------------
+SUB SetPrintMode (pm%)
+SELECT CASE pm%
+    CASE pmKEEP%: _PRINTMODE _KEEPBACKGROUND
+    CASE pmONLY%: _PRINTMODE _ONLYBACKGROUND
+    CASE pmFILL%: _PRINTMODE _FILLBACKGROUND
+END SELECT
+END SUB
+
+'--- docs\doc_GuiAppframe.bm\BinStr.html
+'---------------------------------------------------------------------
+FUNCTION BinStr$ (value&&)
+'--- init ---
+temp~&& = value&&
+binTmp$ = STRING$(64, "0"): charPos% = 64: highPos% = 64
+'--- convert ---
+DO
+    IF (temp~&& AND 1) THEN ASC(binTmp$, charPos%) = 49: highPos% = charPos%
+    charPos% = charPos% - 1: temp~&& = temp~&& \ 2
+LOOP UNTIL temp~&& = 0
+'--- adjust negative size ---
+IF value&& < 0 THEN
+    IF -value&& < &H0080000000~&& THEN highPos% = 33
+    IF -value&& < &H0000008000~&& THEN highPos% = 49
+    IF -value&& < &H0000000080~&& THEN highPos% = 57
+END IF
+'--- set result ---
+BinStr$ = MID$(binTmp$, highPos%)
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\IndexFormat.html
+'---------------------------------------------------------------------
+FUNCTION IndexFormat$ (fmt$, arg$, sep$)
+'--- init ---
+args$ = arg$ 'avoid side effects
+shan& = _SOURCE: dhan& = _DEST: than& = _NEWIMAGE(256, 1, 0)
+_SOURCE than&: _DEST than&
+REDIM argArr$(0 TO 35) 'all args empty
+'--- parse arguments ---
+IF RIGHT$(args$, LEN(sep$)) <> sep$ THEN args$ = args$ + sep$
+FOR idx% = 0 TO 35
+    cpos& = INSTR(args$, sep$): IF cpos& = 0 THEN EXIT FOR
+    argArr$(idx%) = LEFT$(args$, cpos& - 1)
+    args$ = MID$(args$, cpos& + LEN(sep$))
+NEXT idx%
+'--- process format template ---
+res$ = "": lit% = 0: tok% = 0: ft$ = "": idx% = -1
+FOR cpos& = 1 TO LEN(fmt$)
+    cch$ = MID$(fmt$, cpos&, 1)
+    IF cch$ = "_" AND lit% = 0 THEN 'take next \{} as literal
+        IF NOT tok% THEN lit% = -1
+    ELSEIF cch$ = "\" AND lit% = 0 AND tok% = 0 THEN 'insert esc sequence
+        IF cpos& < LEN(fmt$) THEN
+            SELECT CASE UCASE$(MID$(fmt$, cpos& + 1, 1))
+                CASE "A": och$ = CHR$(7) ' audio bell
+                CASE "B": och$ = CHR$(8) ' backspace
+                CASE "T": och$ = CHR$(9) ' tabulator
+                CASE "N": och$ = CHR$(10) 'line feed
+                CASE "V": och$ = CHR$(11) 'vertical tabulator
+                CASE "F": och$ = CHR$(12) 'form feed
+                CASE "R": och$ = CHR$(13) 'carriage return
+                CASE "E": och$ = CHR$(27) 'escape
+                CASE "0", "1", "2", "3" '  octal ASCII (3 digits)
+                    och$ = CHR$(VAL("&O" + MID$(fmt$, cpos& + 1, 3)))
+                    cpos& = cpos& + 2
+                CASE "X" '                 hex ASCII (x + 2 digits)
+                    och$ = CHR$(VAL("&H" + MID$(fmt$, cpos& + 2, 2)))
+                    cpos& = cpos& + 2
+                CASE ELSE: och$ = "" '     ignore unknowns
+            END SELECT
+            res$ = res$ + och$
+            cpos& = cpos& + 1: opos& = cpos&
+        END IF
+    ELSEIF cch$ = "{" AND lit% = 0 THEN 'begin of formatting token
+        IF idx% = -1 THEN
+            och$ = UCASE$(MID$(fmt$, cpos& - 1, 1)): tok% = -1
+            IF ((cpos& - 1) = opos&) OR ((och$ < "0" OR och$ > "9") AND (och$ < "A" OR och$ > "Z")) THEN och$ = "-"
+            IF och$ = "-" THEN och$ = "0": ELSE res$ = LEFT$(res$, LEN(res$) - 1)
+            IF och$ >= "A" THEN idx% = ASC(och$) - 55: ELSE idx% = VAL(och$)
+        END IF
+    ELSEIF cch$ = "}" AND lit% = 0 THEN 'end of formatting token
+        IF idx% >= 0 THEN
+            GOSUB doArgFormat: res$ = res$ + tmp$
+            tok% = 0: ft$ = "": idx% = -1
+        END IF
+    ELSE 'accumulate chars/symbols in correct channel
+        IF lit% AND INSTR("\{}", cch$) = 0 THEN cch$ = "_" + cch$
+        IF tok% THEN ft$ = ft$ + cch$: ELSE res$ = res$ + cch$
+        lit% = 0
+    END IF
+NEXT cpos&
+'--- cleanup & set result ---
+ERASE argArr$
+_SOURCE shan&: _DEST dhan&: _FREEIMAGE than&
+IndexFormat$ = res$
+EXIT FUNCTION
+'-----------------------------
+doArgFormat:
+CLS: tmp$ = "": fp$ = "": ft$ = LTRIM$(RTRIM$(ft$))
+IF LEFT$(ft$, 1) = "?" THEN
+    tyl% = INSTR(2, ft$, ":")
+    IF tyl% > 0 THEN fp$ = LEFT$(MID$(ft$, 2, tyl% - 2), 2): ft$ = LTRIM$(MID$(ft$, tyl% + 1)) 'extract format prefs
+END IF
+IF ft$ = "" THEN RETURN 'empty token = empty formatted
+SELECT CASE UCASE$(LEFT$(ft$, 1))
+    CASE "!", "&", "\" 'regular string formatting
+        IF LEFT$(ft$, 1) = "\" THEN
+            tyl% = INSTR(2, ft$, "\"): IF tyl% = 0 THEN ft$ = "\" + ft$: tyl% = 2
+            IF LTRIM$(fp$) <> "" AND LEN(argArr$(idx%)) < tyl% THEN
+                SELECT CASE LEFT$(LTRIM$(fp$), 1)
+                    CASE "C", "c": tyl% = (tyl% - LEN(argArr$(idx%))) \ 2
+                    CASE "R", "r": tyl% = tyl% - LEN(argArr$(idx%))
+                    CASE ELSE: tyl% = 0 'L or Unknown is default (left)
+                END SELECT
+                argArr$(idx%) = SPACE$(tyl%) + argArr$(idx%)
+            END IF
+        END IF
+        PRINT USING ft$; argArr$(idx%);: fp$ = ""
+    CASE "B", "D", "H", "O", "R" 'extended number formatting (bin/dec/hex/oct/real)
+        typ$ = LEFT$(ft$, 1): tyl% = VAL(MID$(ft$, 2))
+        SELECT CASE typ$
+            CASE "B", "b": tmp$ = BinStr$(VAL(argArr$(idx%)))
+            CASE "D", "d": tmp$ = LTRIM$(STR$(_ROUND(VAL(argArr$(idx%)))))
+            CASE "H", "h"
+                tmp$ = HEX$(VAL(argArr$(idx%)))
+                IF typ$ = "H" THEN tmp$ = UCASE$(tmp$): ELSE tmp$ = LCASE$(tmp$)
+            CASE "O", "o": tmp$ = OCT$(VAL(argArr$(idx%)))
+            CASE "R", "r": tmp$ = LTRIM$(STR$(VAL(argArr$(idx%)))): fp$ = ""
+        END SELECT
+        IF tyl% > 0 THEN 'adjust field length (if any)
+            IF LEN(tmp$) <= tyl% THEN
+                tmp$ = RIGHT$(STRING$(tyl%, "0") + tmp$, tyl%): idx% = INSTR(tmp$, "-")
+                IF idx% > 0 THEN
+                    typ$ = UCASE$(MID$(tmp$, idx% - 1, 1))
+                    IF typ$ <> "E" AND typ$ <> "D" THEN tmp$ = "-" + LEFT$(tmp$, idx% - 1) + MID$(tmp$, idx% + 1)
+                END IF
+            ELSE
+                tmp$ = "%" + tmp$
+            END IF
+        END IF
+        IF LTRIM$(fp$) <> "" THEN 'apply grouping (if any)
+            typ$ = "": tyl% = 0
+            FOR idx% = LEN(tmp$) TO 1 STEP -1
+                typ$ = MID$(tmp$, idx%, 1) + typ$: tyl% = tyl% + 1
+                IF tyl% = VAL(fp$) THEN typ$ = " " + typ$: tyl% = 0
+            NEXT idx%
+            tmp$ = LTRIM$(typ$): IF LEFT$(tmp$, 2) = "- " THEN tmp$ = "-" + MID$(tmp$, 3)
+        END IF
+        RETURN
+    CASE ELSE 'regular number formatting (or invalid nonsense)
+        IF INSTR(ft$, "**") = 0 AND INSTR(ft$, "$$") = 0 AND INSTR(ft$, "#") = 0 THEN
+            PRINT ft$; 'take nonsense as is
+        ELSE
+            PRINT USING ft$; VAL(argArr$(idx%));
+        END IF
+END SELECT
+tyl% = INSTR(fp$, ","): IF tyl% > 0 THEN MID$(fp$, tyl%, 1) = " "
+fp$ = LTRIM$(RTRIM$(fp$))
+FOR idx% = 1 TO POS(0) - 1
+    typ$ = CHR$(SCREEN(1, idx%)): ft$ = typ$
+    IF fp$ <> "" AND typ$ = "$" THEN ft$ = fp$
+    IF tyl% > 0 AND typ$ = "," THEN ft$ = "."
+    IF tyl% > 0 AND typ$ = "." THEN ft$ = ","
+    tmp$ = tmp$ + ft$
+NEXT idx%
+RETURN
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\LRStrip.html
+'---------------------------------------------------------------------
+FUNCTION LStrip$ (mode%, arg$)
+le& = LEN(arg$)
+FOR x& = 1 TO le&
+    ch% = ASC(arg$, x&)
+    IF x& < le& THEN
+        nch% = ASC(arg$, x& + 1)
+        IF nch% >= 97 THEN nch% = nch% - 32
+    ELSE
+        nch% = -1
+    END IF
+    SELECT CASE mode%
+        CASE stmZERO%
+            IF (ch% <> 0) THEN EXIT FOR
+        CASE stmCTRL%
+            IF (ch% > 31 AND ch% <> 127) THEN EXIT FOR
+        CASE stmBLANK%
+            IF (ch% <> 9 AND ch% <> 32) THEN EXIT FOR
+        CASE stmWHITE%
+            IF ((ch% < 9 OR ch% > 13) AND ch% <> 32) THEN EXIT FOR
+        CASE stmQUOTE%
+            IF (ch% <> 34) THEN EXIT FOR
+        CASE stmFIXED%
+            IF (ch% <> 0) AND (ch% <> 9 AND ch% <> 32) THEN EXIT FOR
+        CASE stmTEXT%
+            IF (ch% > 31 AND ch% <> 127) AND (ch% <> 9 AND ch% <> 32) AND (ch% <> 34) THEN EXIT FOR
+        CASE stmVALUE%
+            IF (ch% = 38 AND (nch% = 66 OR nch% = 72 OR nch% = 79)) OR _
+               ((ch% = 43 OR ch% = 45) AND (nch% = 46 OR (nch% >= 48 AND nch% <= 57))) OR _
+               (ch% = 46 AND (nch% >= 48 AND nch% <= 57)) OR _
+               (ch% >= 48 AND ch% <= 57) THEN EXIT FOR
+    END SELECT
+NEXT x&
+LStrip$ = MID$(arg$, x&)
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\LRStrip.html
+'---------------------------------------------------------------------
+FUNCTION RStrip$ (mode%, arg$)
+le& = LEN(arg$)
+FOR x& = le& TO 1 STEP -1
+    ch% = ASC(arg$, x&)
+    SELECT CASE mode%
+        CASE stmZERO%
+            IF (ch% <> 0) THEN EXIT FOR
+        CASE stmCTRL%
+            IF (ch% > 31 AND ch% <> 127) THEN EXIT FOR
+        CASE stmBLANK%
+            IF (ch% <> 9 AND ch% <> 32) THEN EXIT FOR
+        CASE stmWHITE%
+            IF ((ch% < 9 OR ch% > 13) AND ch% <> 32) THEN EXIT FOR
+        CASE stmQUOTE%
+            IF (ch% <> 34) THEN EXIT FOR
+        CASE stmFIXED%
+            IF (ch% <> 0) AND (ch% <> 9 AND ch% <> 32) THEN EXIT FOR
+        CASE stmTEXT%
+            IF (ch% > 31 AND ch% <> 127) AND (ch% <> 9 AND ch% <> 32) AND (ch% <> 34) THEN EXIT FOR
+        CASE stmVALUE%
+            IF (ch% >= 48 AND ch% <= 57) THEN EXIT FOR
+    END SELECT
+NEXT x&
+RStrip$ = LEFT$(arg$, x&)
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\RInstr.html
+'---------------------------------------------------------------------
+FUNCTION RInstr& (start&, source$, find$)
+'--- avoid side effect on passed arg ---
+iStart& = start&
+'--- get string length, set search range ---
+sLe& = LEN(source$): fLe& = LEN(find$): dStPo& = sLe& - fLe& + 1 'default start position
+IF iStart& <= 0 OR iStart& > dStPo& THEN iStart& = dStPo&
+IF sLe& < fLe& THEN iStart& = 0
+'--- perform search ---
+sPo& = sLe&
+IF fLe& > 0 THEN 'avoid a match of "" = ""
+    FOR sPo& = iStart& TO 1 STEP -1
+        FOR fPo& = 0 TO fLe& - 1
+            IF ASC(source$, sPo& + fPo&) <> ASC(find$, fPo& + 1) THEN EXIT FOR
+        NEXT fPo&
+        IF fPo& = fLe& THEN EXIT FOR
+    NEXT sPo&
+END IF
+'--- return result ---
+RInstr& = sPo&
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\ParseLine.html
+'---------------------------------------------------------------------
+FUNCTION ParseLine& (inpLine$, sepChars$, quoChars$, outArray$(), minUB&)
+'--- so far return nothing ---
+ParseLine& = -1
+'--- init & check some runtime variables ---
+ilen& = LEN(inpLine$): icnt& = 1
+IF ilen& = 0 THEN EXIT FUNCTION
+slen% = LEN(sepChars$)
+IF slen% > 0 THEN s1% = ASC(sepChars$, 1)
+IF slen% > 1 THEN s2% = ASC(sepChars$, 2)
+IF slen% > 2 THEN s3% = ASC(sepChars$, 3)
+IF slen% > 3 THEN s4% = ASC(sepChars$, 4)
+IF slen% > 4 THEN s5% = ASC(sepChars$, 5)
+IF slen% > 5 THEN slen% = 5 'max. 5 chars, ignore the rest
+IF LEN(quoChars$) > 0 THEN q1% = ASC(quoChars$, 1): ELSE q1% = 34
+IF LEN(quoChars$) > 1 THEN q2% = ASC(quoChars$, 2): ELSE q2% = q1%
+oalb& = LBOUND(outArray$): oaub& = UBOUND(outArray$): ocnt& = oalb&
+'--- skip preceding separators ---
+plSkipSepas:
+flag% = 0
+WHILE icnt& <= ilen& AND NOT flag%
+    ch% = ASC(inpLine$, icnt&)
+    SELECT CASE slen%
+        CASE 0: flag% = -1
+        CASE 1: flag% = ch% <> s1%
+        CASE 2: flag% = ch% <> s1% AND ch% <> s2%
+        CASE 3: flag% = ch% <> s1% AND ch% <> s2% AND ch% <> s3%
+        CASE 4: flag% = ch% <> s1% AND ch% <> s2% AND ch% <> s3% AND ch% <> s4%
+        CASE 5: flag% = ch% <> s1% AND ch% <> s2% AND ch% <> s3% AND ch% <> s4% AND ch% <> s5%
+    END SELECT
+    icnt& = icnt& + 1
+WEND
+IF NOT flag% THEN 'nothing else? - then exit
+    IF ocnt& > oalb& GOTO plEnd
+    EXIT FUNCTION
+END IF
+'--- redim to clear array on 1st word/component ---
+IF ocnt& = oalb& THEN REDIM outArray$(oalb& TO oaub&)
+'--- expand array, if required ---
+plNextWord:
+IF ocnt& > oaub& THEN
+    oaub& = oaub& + 10
+    REDIM _PRESERVE outArray$(oalb& TO oaub&)
+END IF
+'--- get current word/component until next separator ---
+flag% = 0: nest% = 0: spos& = icnt& - 1
+WHILE icnt& <= ilen& AND NOT flag%
+    IF ch% = q1% AND nest% = 0 THEN
+        nest% = 1
+    ELSEIF ch% = q1% AND nest% > 0 THEN
+        nest% = nest% + 1
+    ELSEIF ch% = q2% AND nest% > 0 THEN
+        nest% = nest% - 1
+    END IF
+    ch% = ASC(inpLine$, icnt&)
+    SELECT CASE slen%
+        CASE 0: flag% = (nest% = 0 AND (ch% = q1%)) OR (nest% = 1 AND ch% = q2%)
+        CASE 1: flag% = (nest% = 0 AND (ch% = s1% OR ch% = q1%)) OR (nest% = 1 AND ch% = q2%)
+        CASE 2: flag% = (nest% = 0 AND (ch% = s1% OR ch% = s2% OR ch% = q1%)) OR (nest% = 1 AND ch% = q2%)
+        CASE 3: flag% = (nest% = 0 AND (ch% = s1% OR ch% = s2% OR ch% = s3% OR ch% = q1%)) OR (nest% = 1 AND ch% = q2%)
+        CASE 4: flag% = (nest% = 0 AND (ch% = s1% OR ch% = s2% OR ch% = s3% OR ch% = s4% OR ch% = q1%)) OR (nest% = 1 AND ch% = q2%)
+        CASE 5: flag% = (nest% = 0 AND (ch% = s1% OR ch% = s2% OR ch% = s3% OR ch% = s4% OR ch% = s5% OR ch% = q1%)) OR (nest% = 1 AND ch% = q2%)
+    END SELECT
+    icnt& = icnt& + 1
+WEND
+epos& = icnt& - 1
+IF ASC(inpLine$, spos&) = q1% THEN spos& = spos& + 1
+outArray$(ocnt&) = MID$(inpLine$, spos&, epos& - spos&)
+ocnt& = ocnt& + 1
+'--- more words/components following? ---
+IF flag% AND ch% = q1% AND nest% = 0 GOTO plNextWord
+IF flag% GOTO plSkipSepas
+IF (ch% <> q1%) AND (ch% <> q2% OR nest% = 0) THEN outArray$(ocnt& - 1) = outArray$(ocnt& - 1) + CHR$(ch%)
+'--- final array size adjustment, then exit ---
+plEnd:
+IF ocnt& - 1 < minUB& THEN ocnt& = minUB& + 1
+REDIM _PRESERVE outArray$(oalb& TO (ocnt& - 1))
+ParseLine& = ocnt& - 1
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\CurrDrives.html
+'---------------------------------------------------------------------
+FUNCTION CurrDrives$
+cdm& = GetLogicalDrives&
+drives$ = "": i& = (2 ^ 25): d% = ASC("Z")
+DO
+    IF (cdm& AND i&) THEN drives$ = CHR$(d%) + drives$
+    i& = i& \ 2: d% = d% - 1
+LOOP UNTIL i& = 0
+CurrDrives$ = drives$
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\CurrDIR.html
+'---------------------------------------------------------------------
+FUNCTION CurrDIR$
+tmp$ = SPACE$(264)
+tle% = GetCurrentDirectoryA&(LEN(tmp$), tmp$)
+CurrDIR$ = LEFT$(tmp$, tle%)
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\PathPart.html
+'---------------------------------------------------------------------
+FUNCTION PathPart$ (fileSpec$)
+PathPart$ = ""
+sPo% = RInstr&(0, fileSpec$, "\")
+IF sPo% > 0 THEN PathPart$ = LEFT$(fileSpec$, sPo%)
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\FilePart.html
+'---------------------------------------------------------------------
+FUNCTION FilePart$ (fileSpec$)
+FilePart$ = fileSpec$
+sPo% = RInstr&(0, fileSpec$, "\")
+IF sPo% > 0 THEN FilePart$ = MID$(fileSpec$, sPo% + 1)
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\FileNamePart.html
+'---------------------------------------------------------------------
+FUNCTION FileNamePart$ (file$)
+FileNamePart$ = file$
+sPo% = RInstr&(0, file$, "\"): dPo% = RInstr&(0, file$, ".")
+IF dPo% > 0 AND dPo% > sPo% THEN FileNamePart$ = LEFT$(file$, dPo% - 1)
+IF sPo% = LEN(file$) OR dPo% = sPo% + 1 THEN FileNamePart$ = ""
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\FileExtension.html
+'---------------------------------------------------------------------
+FUNCTION FileExtension$ (file$)
+FileExtension$ = ""
+sPo% = RInstr&(0, file$, "\"): dPo% = RInstr&(0, file$, ".")
+IF dPo% > 0 AND dPo% > sPo% THEN FileExtension$ = MID$(file$, dPo%)
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\FileSelect.html
+'---------------------------------------------------------------------
+FUNCTION FileSelect$ (winIcon$, winTitle$, opMode%, iniDir$, iniFile$)
+FileSelect$ = ""
+IF winTitle$ <> "*** RhoSigma-FileSelect-HandlerCall ***" THEN
+    '--- FileSelect Setup Block ---
+    STATIC fsPatt$, fsCurr$
+    IF fsPatt$ = "" THEN fsPatt$ = "(.*)"
+    IF iniDir$ = "" THEN iniDir$ = fsCurr$
+
+    file$ = GetUniqueID$
+    TempLog file$, "MODULE: FileSelect CONTENTS: Handshake and parameter exchange file."
+    rff% = SafeOpenFile%("O", appTempDir$ + file$)
+    PRINT #rff%, NewTag$("TITLE", winTitle$);
+    PRINT #rff%, NewTag$("TEXT", fsPatt$);
+    PRINT #rff%, NewTag$("TEXT", iniDir$);
+    PRINT #rff%, NewTag$("TEXT", iniFile$)
+    CLOSE rff%
+
+    parMtx%& = PlantMutex%&("Global\RhoSigma-GuiApp-FSParent-" + appProgID$ + CHR$(0))
+    putMtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-" + file$ + CHR$(0))
+    SHELL _HIDE _DONTWAIT CHR$(34) + appFullExe$ + CHR$(34) + " TCELESELIF '" + winIcon$ + "' " + LTRIM$(STR$(opMode%)) + " " + file$ + " " + appProgID$
+    WHILE NOT CheckMutex%("Global\RhoSigma-GuiApp-FileSelectHandler-" + appProgID$ + CHR$(0))
+        _LIMIT 20
+    WEND
+    UnlockMutex putMtx%&
+    WHILE CheckMutex%("Global\RhoSigma-GuiApp-FileSelectHandler-" + appProgID$ + CHR$(0))
+        _LIMIT 20
+        IF _EXIT THEN
+            SetTag guiObjects$(0, 0), "USERBREAK", "true"
+            EXIT WHILE
+        END IF
+    WEND
+    RemoveMutex parMtx%&
+    WHILE CheckMutex%("Global\RhoSigma-GuiApp-FileSelectHandler-" + appProgID$ + CHR$(0))
+        _LIMIT 20
+    WEND
+    _DELAY 0.1
+
+    rff% = SafeOpenFile%("I", appTempDir$ + file$)
+    LINE INPUT #rff%, fsTemp$
+    LINE INPUT #rff%, fsPatt$
+    LINE INPUT #rff%, fsCurr$
+    CLOSE rff%
+    KILL appTempDir$ + file$
+    FileSelect$ = fsTemp$
+ELSE
+    '--- FileSelect Handler Block ---
+    runMtx%& = PlantMutex%&("Global\RhoSigma-GuiApp-FileSelectHandler-" + iniFile$ + CHR$(0))
+    getMtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-" + iniDir$ + CHR$(0))
+    '--- get handshake tags ---
+    rff% = SafeOpenFile%("I", appTempDir$ + iniDir$)
+    LINE INPUT #rff%, tags$: CLOSE rff%
+    '--- init window ---
+    SetupScreen 440, 520, -1
+    winImg$ = ImageC$("INIT", NewTag$("IMAGEFILE", winIcon$) + NewTag$("LEFT", "0") + NewTag$("TOP", "0"))
+    winIco& = VAL(GetTagData$(ImageC$("GET", winImg$ + NewTag$("TAGNAMES", "IHANDLE")), "IHANDLE", "0"))
+    IF winIco& < -1 THEN _ICON winIco&
+    resu$ = ImageC$("KILL", winImg$)
+    titl$ = "Select a file ...": mode$ = "File Load Mode."
+    IF opMode% = fsmDIRS% THEN
+        titl$ = "Select a drawer ..."
+        mode$ = "Folder Only Mode."
+    ELSEIF opMode% = fsmSAVE% THEN
+        mode$ = "File Save Mode."
+    END IF
+    _TITLE GetTagData$(tags$, "TITLE", titl$)
+    _FONT 16
+    '--- build GUI ---
+    nore% = (NOT RegexIsActive%): nofi% = (opMode% = fsmDIRS%)
+    back% = guiLoadBack%: IF opMode% = fsmSAVE% THEN back% = guiSaveBack%
+    inim$ = ImageC$("INIT", NewTag$("LEFT", "0") + NewTag$("TOP", "0") + NewTag$("WIDTH", "42") + NewTag$("HEIGHT", "32") +_
+                     NewTag$("IMAGEFILE", "Info32px.png") + NewTag$("CLEARCOLOR", "39") + NewTag$("KEEPASPECT", "true"))
+    erim$ = ImageC$("INIT", NewTag$("LEFT", "0") + NewTag$("TOP", "0") + NewTag$("WIDTH", "42") + NewTag$("HEIGHT", "32") +_
+                     NewTag$("IMAGEFILE", "Error32px.png") + NewTag$("CLEARCOLOR", "39") + NewTag$("KEEPASPECT", "true"))
+    dlsy$ = SymbolC$("INIT", NewTag$("LEFT", "0") + NewTag$("TOP", "0") + NewTag$("WIDTH", "21") + NewTag$("HEIGHT", "17") +_
+                     NewTag$("WHICH", "MediaDisk") + NewTag$("KEEPASPECT", "true"))
+    fldr$ = SymbolC$("INIT", NewTag$("LEFT", "0") + NewTag$("TOP", "0") + NewTag$("WIDTH", "21") + NewTag$("HEIGHT", "17") +_
+                     NewTag$("WHICH", "MediaDrawer") + NewTag$("KEEPASPECT", "true"))
+    flfi$ = SymbolC$("INIT", NewTag$("LEFT", "0") + NewTag$("TOP", "0") + NewTag$("WIDTH", "21") + NewTag$("HEIGHT", "17") +_
+                     NewTag$("WHICH", "MediaFile") + NewTag$("KEEPASPECT", "true"))
+    rlis$ = ListC$("INIT", "")
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", CHR$(255)))
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", CHR$(255)) + ImageTag$(inim$))
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", STRING$(3, CHR$(255)) + "please wait,"))
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", CHR$(255)))
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", STRING$(6, CHR$(255)) + "reading directory ..."))
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", CHR$(255)))
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", STRING$(2, CHR$(255)) + CHR$(4) + " hit any key to abort reading and show"))
+    resu$ = ListC$("STORE", rlis$ + NewTag$("DATA", STRING$(4, CHR$(255)) + "what I have so far ..."))
+    allo$ = ""
+    FOR i% = 32 TO 255
+        SELECT CASE i%
+            CASE 34, 42, 47, 58, 60, 62, 63, 92, 124
+                'not allowed
+            CASE ELSE
+                allo$ = allo$ + CHR$(i%)
+        END SELECT
+    NEXT i%
+    fstx$ = TextC$("INIT", NewTag$("LEFT", "8") + NewTag$("TOP", "8") + NewTag$("WIDTH", "424") + NewTag$("HEIGHT", "30") +_
+                   NewTag$("TEXT", "Dirs: 0 / Files: 0 / Usage: 0") + NewTag$("TEXTPLACE", "center") + NewTag$("FORM", "ridge") +_
+                   NewTag$("TOOLTIP", "<<< Statistics >>>|Usage is the overall size of|the currently listed files."))
+    fslv$ = ListviewC$("INIT", NewTag$("LEFT", "8") + NewTag$("TOP", "43") + NewTag$("WIDTH", "424") + NewTag$("HEIGHT", "328") +_
+                       NewTag$("SPACING", "3") + NewTag$("READONLY", "true") + ListTag$(rlis$) +_
+                       NewTag$("TOOLTIP", "Listing of the currently selected folder.|The dialog is in " + mode$ + "|--------------------|You may navigate the list using the mouse.|While the mouse is resting over the list|area, the arrow keys incl. Home, End, PgUp|and PgDown can be used as well. Also|Ctrl + wheel is same as arrow keys."))
+    refo$ = NewTag$("REFOBJ", GetTagData$(fslv$, "OBJECT", "0"))
+    fsre$ = StringC$("INIT", NewTag$("LEFT", "77") + NewTag$("TOP", "375") + NewTag$("WIDTH", "355") + NewTag$("HEIGHT", "30") +_
+                     ExtractTag$(tags$, "TEXT") + NewTag$("MAXIMUM", "40") + NewTag$("DISABLED", LTRIM$(STR$(nore% OR nofi%))) +_
+                     NewTag$("LABEL", "Pattern:") + NewTag$("LABELHIGH", "true") + NewTag$("LABELPLACE", "left") +_
+                     NewTag$("TOOLTIP", "RegEx based pattern to filter the file|list, folder names are not affected.|The matching process does ignore case."))
+    fspa$ = StringC$("INIT", NewTag$("LEFT", "53") + NewTag$("TOP", "409") + NewTag$("WIDTH", "379") + NewTag$("HEIGHT", "30") +_
+                     ExtractTag$(tags$, "TEXT") + NewTag$("MAXIMUM", "246") + NewTag$("ALLOWED", ":\" + allo$) +_
+                     NewTag$("LABEL", "Path:") + NewTag$("LABELHIGH", "true") + NewTag$("LABELPLACE", "left") +_
+                     NewTag$("TOOLTIP", "Currently selected path.|Append a new name to create a|new folder in File Save Mode."))
+    fsfi$ = StringC$("INIT", NewTag$("LEFT", "53") + NewTag$("TOP", "443") + NewTag$("WIDTH", "379") + NewTag$("HEIGHT", "30") +_
+                     ExtractTag$(tags$, "TEXT") + NewTag$("MAXIMUM", "259") + NewTag$("ALLOWED", allo$) + NewTag$("PASSIVE", "true") + NewTag$("DISABLED", LTRIM$(STR$(nofi%))) +_
+                     NewTag$("LABEL", "File:") + NewTag$("LABELHIGH", "true") + NewTag$("LABELPLACE", "left") +_
+                     NewTag$("TOOLTIP", "Currently selected file.|Enter or change its name|in File Save Mode here."))
+    sesy$ = SymbolC$("INIT", NewTag$("LEFT", "16") + NewTag$("TOP", "7") + NewTag$("WIDTH", "50") + NewTag$("HEIGHT", "17") +_
+                     NewTag$("WHICH", "Checkmark") + NewTag$("KEEPASPECT", "true"))
+    sebu$ = ButtonC$("INIT", NewTag$("LEFT", "8") + NewTag$("TOP", "481") + NewTag$("WIDTH", "100") + NewTag$("HEIGHT", "31") +_
+                     NewTag$("TEXT", "Select") + NewTag$("TEXTMOVEX", "8") + SymbolTag$(sesy$) + NewTag$("DISABLED", "true") +_
+                     NewTag$("TOOLTIP", "Take selected file/folder|and close the dialog.|Left double-click on the|file in the list or press|<Enter> does the same in|File Load Mode only."))
+    drsy$ = SymbolC$("INIT", NewTag$("LEFT", "14") + NewTag$("TOP", "7") + NewTag$("WIDTH", "50") + NewTag$("HEIGHT", "17") +_
+                     NewTag$("WHICH", "MediaDisk") + NewTag$("KEEPASPECT", "true"))
+    drbu$ = ButtonC$("INIT", NewTag$("LEFT", "116") + NewTag$("TOP", "481") + NewTag$("WIDTH", "100") + NewTag$("HEIGHT", "31") +_
+                     NewTag$("TEXT", "Drives") + NewTag$("TEXTMOVEX", "10") + SymbolTag$(drsy$) +_
+                     NewTag$("TOOLTIP", "List all drives.|Pressing <D> or a|middle-click will|do the same."))
+    pasy$ = SymbolC$("INIT", NewTag$("LEFT", "13") + NewTag$("TOP", "7") + NewTag$("WIDTH", "50") + NewTag$("HEIGHT", "17") +_
+                     NewTag$("WHICH", "MediaDrawer") + NewTag$("KEEPASPECT", "true"))
+    pabu$ = ButtonC$("INIT", NewTag$("LEFT", "224") + NewTag$("TOP", "481") + NewTag$("WIDTH", "100") + NewTag$("HEIGHT", "31") +_
+                     NewTag$("TEXT", "Parent") + NewTag$("TEXTMOVEX", "13") + SymbolTag$(pasy$) +_
+                     NewTag$("TOOLTIP", "One folder back.|Press <Backspace> or|a right-click will|do the same."))
+    casy$ = SymbolC$("INIT", NewTag$("LEFT", "14") + NewTag$("TOP", "7") + NewTag$("WIDTH", "50") + NewTag$("HEIGHT", "17") +_
+                     NewTag$("WHICH", "Cross") + NewTag$("KEEPASPECT", "true"))
+    cabu$ = ButtonC$("INIT", NewTag$("LEFT", "332") + NewTag$("TOP", "481") + NewTag$("WIDTH", "100") + NewTag$("HEIGHT", "31") +_
+                     NewTag$("TEXT", "Cancel") + NewTag$("TEXTMOVEX", "10") + SymbolTag$(casy$) +_
+                     NewTag$("TOOLTIP", "Close the dialog|without selection.|Pressing <Esc> or|closing the window|will do the same."))
+    BeginGUIRefresh
+    IF guiViews$(0) = "" THEN FillRectColor 0, 0, _WIDTH, _HEIGHT, back%
+    EndGUIRefresh
+    GOSUB fsReadDir
+    GOSUB fsChkButtonStates
+    '--- operate GUI ---
+    DO
+        _LIMIT 50
+        IF NOT CheckMutex%("Global\RhoSigma-GuiApp-FSParent-" + iniFile$ + CHR$(0)) THEN
+            GOSUB fsWriteCancelResult
+            ERROR 1000 'parent is gone, so we do
+        END IF
+        mess$ = GetGUIMsg$
+        IF BoolTagTrue%(mess$, "USERBREAK") THEN
+            GOSUB fsWriteCancelResult
+            rff% = 0 'cancel (window X button)
+        END IF
+        kpFlag% = 0
+        IF BoolTagTrue%(mess$, "KEYPRESS") THEN
+            IF GetTagData$(mess$, "KEY", "") = CHR$(8) THEN
+                RemTag mess$, "GADGETUP": kpFlag% = -1
+                mess$ = mess$ + ChildTag$("GADGETUP", pabu$) 'fake parent button event
+            ELSEIF GetTagData$(mess$, "KEY", "") = CHR$(13) THEN
+                RemTag mess$, "GADGETUP": kpFlag% = -1
+                mess$ = mess$ + ChildTag$("GADGETUP", fslv$) 'fake listview event
+            ELSEIF GetTagData$(mess$, "KEY", "") = CHR$(27) THEN
+                GOSUB fsWriteCancelResult
+                rff% = 0 'cancel (Esc)
+            ELSEIF UCASE$(GetTagData$(mess$, "KEY", "")) = "D" THEN
+                RemTag mess$, "GADGETUP": kpFlag% = -1
+                mess$ = mess$ + ChildTag$("GADGETUP", drbu$) 'fake drives button event
+            END IF
+        END IF
+        IF ValidateTags%(mess$, "GADGETUP", 0) OR BoolTagTrue%(mess$, "MOUSEMBDOWN") OR _
+                                                  BoolTagTrue%(mess$, "MOUSERBDOWN") THEN
+            curr$ = GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            file$ = GetTagData$(StringC$("GET", fsfi$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            '-----
+            IF ThisObject%(fslv$, mess$, "GADGETUP") THEN
+                node$ = ListviewC$("GET", fslv$ + NewTag$("TAGNAMES", "DATA,FSREAL"))
+                entr$ = GetTagData$(node$, "DATA", ""): real$ = GetTagData$(node$, "FSREAL", "n/a")
+                IF RIGHT$(entr$, 7) = "<DRIVE>" THEN
+                    IF (odir$ = entr$) OR kpFlag% THEN
+                        resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", LEFT$(entr$, 3)))
+                        GOSUB fsReadDir
+                        odir$ = "": dcdt% = 0
+                        ofil$ = "": dcft% = 0
+                    ELSE
+                        odir$ = entr$: dcdt% = 15
+                        ofil$ = "": dcft% = 0
+                    END IF
+                ELSEIF real$ <> "n/a" THEN
+                    IF RIGHT$(entr$, 8) = "<DRAWER>" THEN
+                        IF (odir$ = real$) OR kpFlag% THEN
+                            resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", curr$ + real$))
+                            GOSUB fsReadDir
+                            odir$ = "": dcdt% = 0
+                            ofil$ = "": dcft% = 0
+                        ELSE
+                            odir$ = real$: dcdt% = 15
+                            ofil$ = "": dcft% = 0
+                        END IF
+                    ELSE
+                        IF ((ofil$ = real$) OR kpFlag%) AND (opMode% <> fsmSAVE%) THEN
+                            IF RIGHT$(entr$, 8) <> "<DENIED>" THEN
+                                GOSUB fsWriteSelectResult
+                                rff% = 0 'select (double click)
+                            END IF
+                        ELSE
+                            resu$ = StringC$("SET", fsfi$ + NewTag$("TEXT", real$))
+                            file$ = real$
+                            odir$ = "": dcdt% = 0
+                            ofil$ = real$: dcft% = 15
+                        END IF
+                    END IF
+                END IF
+            END IF
+            IF ThisObject%(fsre$, mess$, "GADGETUP") THEN
+                patt$ = GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+                IF patt$ <> "" THEN
+                    vali% = RegexMatch%("TestString" + CHR$(0), patt$ + CHR$(0))
+                    IF vali% < 0 THEN
+                        resu$ = MessageBox$("Error16px.png", "FileSelect",_
+                                            "Error in RegEx pattern, fallback method will match all.|~" +_
+                                            " - " + RegexError$(vali%), "{SYM Checkmark * * * *}Continue")
+                    END IF
+                ELSE
+                    resu$ = StringC$("SET", fsre$ + NewTag$("TEXT", "(.*)"))
+                END IF
+                GOSUB fsReadDir
+            END IF
+            IF ThisObject%(fspa$, mess$, "GADGETUP") THEN
+                WHILE LEFT$(curr$, 1) = "\": curr$ = MID$(curr$, 2): WEND
+                resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", curr$))
+                IF opMode% = fsmSAVE% THEN
+                    IF MID$(curr$, 2, 2) <> ":\" THEN curr$ = CurrDIR$ + "\" + curr$
+                    IF NOT _DIREXISTS(curr$) THEN
+                        resu$ = MessageBox$("Error16px.png", "FileSelect",_
+                                            "Path does not exist yet !!",_
+                                            "{SYM Checkmark * * * *}Create|{SYM Cross * * * *}Ignore")
+                        IF resu$ = "Create" THEN
+                            colo% = 0
+                            FOR i% = 1 TO LEN(curr$)
+                                IF MID$(curr$, i%, 1) = ":" THEN colo% = colo% + 1
+                            NEXT i%
+                            IF colo% > 1 THEN
+                                resu$ = MessageBox$("Error16px.png", "FileSelect",_
+                                                    "Invalid char (:) in name !!", "")
+                            ELSE
+                                REDIM car$(0)
+                                cub% = ParseLine&(curr$, "\", "*", car$(), 0)
+                                IF cub% > 0 THEN
+                                    temp$ = car$(0)
+                                    FOR i% = 1 TO cub%
+                                        temp$ = temp$ + "\" + car$(i%)
+                                        IF NOT _DIREXISTS(temp$) THEN
+                                            InternalErrHandler
+                                            MKDIR temp$
+                                            UserErrHandler
+                                        END IF
+                                    NEXT i%
+                                END IF
+                                ERASE car$
+                            END IF
+                        END IF
+                    END IF
+                END IF
+                GOSUB fsReadDir
+            END IF
+            IF ThisObject%(fsfi$, mess$, "GADGETUP") THEN
+                WHILE LEFT$(file$, 1) = "\": file$ = MID$(file$, 2): WEND
+                IF MID$(file$, 2, 2) = ":\" THEN curr$ = ""
+                IF file$ <> "" AND _DIREXISTS(curr$ + file$) THEN
+                    curr$ = curr$ + file$
+                    resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", curr$))
+                    resu$ = StringC$("SET", fsfi$ + NewTag$("TEXT", ""))
+                    GOSUB fsReadDir
+                ELSE
+                    spos% = RInstr&(0, file$, "\")
+                    IF spos% = 0 THEN
+                        GOSUB fsChkFile
+                        IF opMode% <> fsmSAVE% AND _FILEEXISTS(curr$ + file$) THEN
+                            GOSUB fsWriteSelectResult
+                            rff% = 0 'select (typed filename)
+                        END IF
+                    ELSE
+                        curr$ = curr$ + LEFT$(file$, spos% - 1)
+                        resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", curr$))
+                        resu$ = StringC$("SET", fsfi$ + NewTag$("TEXT", MID$(file$, spos% + 1)))
+                        GOSUB fsReadDir
+                    END IF
+                END IF
+            END IF
+            IF ThisObject%(sebu$, mess$, "GADGETUP") THEN
+                IF opMode% = fsmSAVE% AND LEN(curr$ + file$) > 259 THEN
+                    resu$ = MessageBox$("Error16px.png", "FileSelect",_
+                                        "Path + File to long !!|~" +_
+                                        "Use other location or|" +_
+                                        "shortcut the filename.", "")
+                ELSE
+                    GOSUB fsWriteSelectResult
+                    rff% = 0 'select (button)
+                END IF
+            END IF
+            IF ThisObject%(drbu$, mess$, "GADGETUP") OR BoolTagTrue%(mess$, "MOUSEMBDOWN") THEN
+                resu$ = ListC$("KILL", dlis$): dlis$ = ListC$("INIT", ""): temp$ = CurrDrives$
+                FOR i% = 1 TO LEN(temp$)
+                    resu$ = ListC$("STORE", dlis$ + NewTag$("DATA", MID$(temp$, i%, 1) + ":\" + SPACE$(35) + "<DRIVE>") + SymbolTag$(dlsy$))
+                NEXT i%
+                resu$ = TextC$("SET", fstx$ + NewTag$("TEXT", "Drives:" + STR$(LEN(temp$))))
+                resu$ = ListviewC$("SET", fslv$ + NewTag$("READONLY", "false") + NewTag$("ACTUAL", "0") + ListTag$(dlis$))
+                dlis% = -1
+            END IF
+            IF ThisObject%(pabu$, mess$, "GADGETUP") OR BoolTagTrue%(mess$, "MOUSERBDOWN") THEN
+                IF (NOT disa%) OR dlis% THEN
+                    IF NOT dlis% THEN
+                        curr$ = GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+                        spos% = RInstr&(LEN(curr$) - 1, curr$, "\"): IF spos% = 0 THEN spos% = 1
+                        curr$ = LEFT$(curr$, spos% - 1)
+                        resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", curr$))
+                    END IF
+                    GOSUB fsReadDir
+                END IF
+            END IF
+            IF ThisObject%(cabu$, mess$, "GADGETUP") THEN
+                GOSUB fsWriteCancelResult
+                rff% = 0 'cancel (button)
+            END IF
+            '-----
+            GOSUB fsChkButtonStates
+        END IF
+        IF dcdt% > 0 THEN
+            dcdt% = dcdt% - 1
+            IF dcdt% = 0 THEN odir$ = ""
+        END IF
+        IF dcft% > 0 THEN
+            dcft% = dcft% - 1
+            IF dcft% = 0 THEN ofil$ = ""
+        END IF
+    LOOP WHILE rff% > 0
+    CloseScreen
+    UnlockMutex getMtx%&
+    RemoveMutex runMtx%&
+END IF
+EXIT FUNCTION
+'----------------------------------
+fsWriteSelectResult:
+rff% = SafeOpenFile%("O", appTempDir$ + iniDir$)
+PRINT #rff%, curr$; file$
+PRINT #rff%, GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+PRINT #rff%, curr$
+CLOSE rff%
+RETURN
+'----------------------------------
+fsWriteCancelResult:
+rff% = SafeOpenFile%("O", appTempDir$ + iniDir$)
+PRINT #rff%, ""
+PRINT #rff%, GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+PRINT #rff%, GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+CLOSE rff%
+RETURN
+'----------------------------------
+fsChkButtonStates:
+IF opMode% = fsmSAVE% OR opMode% = fsmDIRS% THEN
+    disa% = (NOT _DIREXISTS(curr$)) OR aerr%
+    IF opMode% = fsmSAVE% AND file$ = "" THEN disa% = -1
+ELSE
+    disa% = (NOT _FILEEXISTS(curr$ + file$))
+END IF
+resu$ = ButtonC$("SET", sebu$ + NewTag$("DISABLED", LTRIM$(STR$(disa%))))
+IF LEN(curr$) = 3 AND RIGHT$(curr$, 2) = ":\" THEN disa% = -1: ELSE disa% = 0
+resu$ = ButtonC$("SET", pabu$ + NewTag$("DISABLED", LTRIM$(STR$(disa%))))
+RETURN
+'----------------------------------
+fsReadDir:
+dlis% = 0: aerr% = 0: ro$ = NewTag$("READONLY", "false")
+resu$ = ListviewC$("SET", fslv$ + NewTag$("READONLY", "true") + ListTag$(rlis$))
+resu$ = ListC$("KILL", tlis$) 'kill old temp dir list
+tlis$ = ListC$("INIT", "") 'create new temp dir list
+resu$ = ListC$("KILL", flis$) 'kill old file list
+flis$ = ListC$("INIT", "") 'create new file list
+
+nd& = 0: nf& = 0: nu&& = 0: dfut$ = "Dirs:0{&} / Files:1{&} / Usage:2{&}"
+text$ = IndexFormat$(dfut$, STR$(nd&) + "|" + STR$(nf&) + "|" + STR$(nu&&), "|")
+resu$ = TextC$("SET", fstx$ + NewTag$("TEXT", text$))
+
+patt$ = GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+curr$ = GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", CurrDIR$)
+IF curr$ = "" THEN curr$ = CurrDIR$
+IF NOT _DIREXISTS(curr$) THEN
+    resu$ = ListC$("STORE", flis$ + NewTag$("DATA", CHR$(255))): ro$ = NewTag$("READONLY", "true")
+    resu$ = ListC$("STORE", flis$ + NewTag$("DATA", CHR$(255)) + ImageTag$(erim$))
+    IF LEN(curr$) = 3 AND RIGHT$(curr$, 2) = ":\" THEN
+        resu$ = ListC$("STORE", flis$ + NewTag$("DATA", STRING$(6, CHR$(255)) + "permission denied or"))
+        resu$ = ListC$("STORE", flis$ + NewTag$("DATA", STRING$(7, CHR$(255)) + "no media in (removeable) drive ..."))
+    ELSE
+        resu$ = ListC$("STORE", flis$ + NewTag$("DATA", STRING$(6, CHR$(255)) + "path not found ..."))
+    END IF
+    actu$ = "0": GOTO fsChkFile
+ELSE
+    IF LEN(curr$) > 3 OR MID$(curr$, 2, 1) <> ":" THEN
+        ocur$ = CurrDIR$
+        InternalErrHandler
+        CHDIR curr$
+        UserErrHandler
+        IF appLastErr% = 0 THEN
+            curr$ = CurrDIR$
+        ELSEIF appLastErr% = 76 THEN
+            resu$ = ListC$("STORE", flis$ + NewTag$("DATA", CHR$(255))): ro$ = NewTag$("READONLY", "true")
+            resu$ = ListC$("STORE", flis$ + NewTag$("DATA", CHR$(255)) + ImageTag$(erim$))
+            resu$ = ListC$("STORE", flis$ + NewTag$("DATA", STRING$(6, CHR$(255)) + "permission denied ..."))
+            aerr% = -1
+        END IF
+        CHDIR ocur$
+    END IF
+END IF
+IF RIGHT$(curr$, 1) <> "\" THEN curr$ = curr$ + "\"
+resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", curr$))
+
+dhan%& = BeginDirRead%&(curr$ + CHR$(0))
+IF dhan%& <> 0 THEN
+    div% = 10
+    DO
+        entr$ = GetDirEntry$(dhan%&)
+        IF entr$ <> "" AND entr$ <> "." AND entr$ <> ".." THEN
+            IF _DIREXISTS(curr$ + entr$) THEN
+                real$ = entr$
+                IF LEN(entr$) > 34 THEN
+                    entr$ = LEFT$(entr$, 31) + "..."
+                ELSE
+                    entr$ = entr$ + SPACE$(34 - LEN(entr$))
+                END IF
+                resu$ = ListC$("STORE", tlis$ + NewTag$("DATA", entr$ + "   <DRAWER>") + NewTag$("FSREAL", real$) + SymbolTag$(fldr$))
+                nd& = nd& + 1
+            ELSE
+                IF NOT nofi% THEN
+                    IF RegexMatch%(UCASE$(entr$) + CHR$(0), UCASE$(patt$) + CHR$(0)) THEN 'if match or faulty regex
+                        eff% = SafeOpenFile%("B", curr$ + entr$)
+                        IF eff% <> 0 THEN
+                            elof$ = LTRIM$(STR$(LOF(eff%) AND &HFFFFFFFFFFFFFFFF)) 'force int64 for STR$()
+                            elof$ = SPACE$(11 - LEN(elof$)) + elof$
+                            CLOSE eff%
+                            nu&& = nu&& + VAL(elof$)
+                        ELSE
+                            elof$ = "   <DENIED>"
+                        END IF
+                        real$ = entr$
+                        IF LEN(entr$) > 34 THEN
+                            entr$ = LEFT$(entr$, 31) + "..."
+                        ELSE
+                            entr$ = entr$ + SPACE$(34 - LEN(entr$))
+                        END IF
+                        resu$ = ListC$("STORE", flis$ + NewTag$("DATA", entr$ + elof$) + NewTag$("FSREAL", real$) + SymbolTag$(flfi$))
+                        nf& = nf& + 1
+                    END IF
+                END IF
+            END IF
+            IF ((nd& + nf&) MOD div%) = 0 THEN
+                IF (nd& + nf&) = 100 THEN div% = 100
+                text$ = IndexFormat$(dfut$, STR$(nd&) + "|" + STR$(nf&) + "|" + STR$(nu&&), "|")
+                resu$ = TextC$("SET", fstx$ + NewTag$("TEXT", text$))
+            END IF
+        END IF
+    LOOP UNTIL entr$ = "" OR INKEY$ <> ""
+    EndDirRead dhan%&
+    text$ = IndexFormat$(dfut$, STR$(nd&) + "|" + STR$(nf&) + "|" + STR$(nu&&), "|")
+    resu$ = TextC$("SET", fstx$ + NewTag$("TEXT", text$))
+END IF
+
+tlob& = VAL(GetTagData$(tlis$, "OBJECT", "0")): trec& = VAL(GetTagData$(guiObjects$(objData%, tlob&), "RECORDS", "0"))
+IF trec& > 0 THEN
+    flob& = VAL(GetTagData$(flis$, "OBJECT", "0")): frec& = VAL(GetTagData$(guiObjects$(objData%, flob&), "RECORDS", "0"))
+    SetTag guiObjects$(objData%, flob&), "RECORDS", LTRIM$(STR$(trec& + frec&))
+    tnod& = VAL(GetTagData$(guiObjects$(objData%, tlob&), "LAST", "0")): fnod& = VAL(GetTagData$(guiObjects$(objData%, flob&), "FIRST", "0"))
+    SetTag guiObjects$(objData%, tnod&), "NEXT", LTRIM$(STR$(fnod&)): SetTag guiObjects$(objData%, fnod&), "PREVIOUS", LTRIM$(STR$(tnod&))
+    RemTag guiObjects$(objData%, flob&), "FIRST": guiObjects$(objData%, flob&) = guiObjects$(objData%, flob&) + GetTags$(guiObjects$(objData%, tlob&), "FIRST,HASLVIS")
+    guiObjects$(objData%, tlob&) = NewTag$("ACTUAL", "0") + NewTag$("RECORDS", "0")
+END IF
+
+fsChkFile:
+file$ = GetTagData$(StringC$("GET", fsfi$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+reco$ = GetTagData$(ListC$("GET", flis$ + refo$ + NewTag$("TAGNAMES", "RECORDS")), "RECORDS", "0")
+IF nofi% THEN file$ = ""
+IF VAL(reco$) > 0 THEN
+    IF file$ <> "" THEN
+        resu$ = ListC$("SEARCH", flis$ + refo$ + NewTag$("DATA", file$) + NewTag$("PARTIAL", "left") + NewTag$("NOCASE", "true") + NewTag$("HOLD", "true"))
+        IF resu$ <> "" THEN actu$ = GetTagData$(ListC$("GET", flis$ + refo$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "1")
+    END IF
+    IF file$ = "" OR resu$ = "" THEN actu$ = "0"
+ELSE
+    resu$ = ListC$("STORE", flis$ + NewTag$("DATA", CHR$(255))): ro$ = NewTag$("READONLY", "true")
+    resu$ = ListC$("STORE", flis$ + NewTag$("DATA", CHR$(255)) + ImageTag$(inim$))
+    IF nofi% THEN
+        resu$ = ListC$("STORE", flis$ + NewTag$("DATA", STRING$(6, CHR$(255)) + "no more directories here ..."))
+    ELSEIF patt$ <> "(.*)" THEN
+        resu$ = ListC$("STORE", flis$ + NewTag$("DATA", STRING$(6, CHR$(255)) + "no pattern matches here ..."))
+    ELSE
+        resu$ = ListC$("STORE", flis$ + NewTag$("DATA", STRING$(6, CHR$(255)) + "empty directory ..."))
+    END IF
+    actu$ = "0"
+END IF
+
+IF actu$ = "0" AND opMode% <> fsmSAVE% THEN file$ = ""
+resu$ = StringC$("SET", fsfi$ + NewTag$("TEXT", file$))
+resu$ = ListviewC$("SET", fslv$ + ro$ + NewTag$("ACTUAL", actu$) + ListTag$(flis$))
+RETURN
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\SearchFile.html
+'---------------------------------------------------------------------
+FUNCTION SearchFile$ (startDir$, mustHave$, file$)
+'--- check & init variables ---
+IF startDir$ = "" THEN iPath$ = CurrDIR$: ELSE iPath$ = startDir$
+iMust$ = UCASE$(mustHave$): iFile$ = UCASE$(FilePart$(file$))
+found% = 0: SearchFile$ = ""
+'--- check/get full start path ---
+IF NOT _DIREXISTS(iPath$) THEN EXIT FUNCTION
+ocd$ = CurrDIR$: CHDIR iPath$: iPath$ = CurrDIR$: CHDIR ocd$
+'--- search in path & sub-folders ---
+InitLocalStack
+DO
+    IF RIGHT$(iPath$, 1) <> "\" THEN iPath$ = iPath$ + "\"
+    dhan%& = BeginDirRead%&(iPath$ + CHR$(0))
+    IF dhan%& <> 0 THEN
+        DO
+            entry$ = GetDirEntry$(dhan%&)
+            IF entry$ <> "" AND entry$ <> "." AND entry$ <> ".." THEN
+                IF _DIREXISTS(iPath$ + entry$) THEN
+                    PushStr iPath$ + entry$
+                ELSE
+                    IF UCASE$(entry$) = iFile$ THEN
+                        IF INSTR(UCASE$(iPath$), iMust$) > 0 THEN
+                            SearchFile$ = iPath$ + FilePart$(file$)
+                            found% = -1
+                        END IF
+                    END IF
+                END IF
+            END IF
+        LOOP UNTIL found% OR entry$ = ""
+        EndDirRead dhan%
+    END IF
+    iPath$ = PopStr$
+LOOP UNTIL found% OR iPath$ = ""
+RestoreStack
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\SafeOpenFile.html
+'---------------------------------------------------------------------
+FUNCTION SafeOpenFile% (mode$, file$)
+ff% = FREEFILE
+InternalErrHandler
+SELECT CASE UCASE$(LEFT$(mode$, 1))
+    CASE "A": OPEN file$ FOR APPEND LOCK WRITE AS ff%
+    CASE "B": OPEN file$ FOR BINARY LOCK WRITE AS ff%
+    CASE "I": OPEN file$ FOR INPUT SHARED AS ff%
+    CASE "O": OPEN file$ FOR OUTPUT LOCK WRITE AS ff%
+    CASE "R": OPEN file$ FOR RANDOM LOCK WRITE AS ff%
+END SELECT
+UserErrHandler
+IF appLastErr% <> 0 THEN ff% = 0 'if error, then invalidate result
+SafeOpenFile% = ff%
+END FUNCTION
+
+'--- docs\doc_GuiAppframe.bm\TempLog.html
+'---------------------------------------------------------------------
+SUB TempLog (file$, comm$)
+REDIM thdr(0) AS ChunkTHDR
+REDIM tlog(0) AS ChunkTLOG
+'--- exclusivly access the temp logfile ---
+mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-templog.tmp" + CHR$(0))
+iff% = SafeOpenFile%("B", appTempDir$ + "templog.tmp")
+ptr& = SeekChunk&(iff%, 1, CHthdrID$)
+GET iff%, , thdr(0)
+'--- check for a free entry to use ---
+IF thdr(0).thdrUNUSED > 0 THEN
+    thdr(0).thdrUNUSED = thdr(0).thdrUNUSED - 1
+    PUT iff%, ptr&, thdr(0)
+    ptr& = SeekChunk&(iff%, 1, CHfreeID$)
+    GET iff%, , tlog(0)
+    flag% = -1
+ELSE
+    flag% = 0
+END IF
+'--- init entry with given info ---
+tlog(0).tlogSTDC.chunkID = CHtlogID$
+tlog(0).tlogSTDC.chunkLEN = CHtlogLEN%
+tlog(0).tlogNAME = FilePart$(file$)
+tlog(0).tlogACCESSOR = appProgID$
+tlog(0).tlogCOMMENT = comm$
+'--- write updated/new entry & close logfile ---
+IF flag% THEN
+    PUT iff%, ptr&, tlog(0)
+ELSE
+    PUT iff%, LOF(iff%) + 1, tlog(0)
+    SizeUpdate iff%, tlogSIZEOF%
+END IF
+CLOSE iff%
+UnlockMutex mtx%&
+'--- cleanup & return ---
+ERASE tlog
+ERASE thdr
+END SUB
+
+'---------------------------------------------------------------------
+'Function:  Attempt to set the the IFF file pointer to the next found
+'           data chunk of the given type, starting at given position.
+'
+'Synopsis:  ptr& = SeekChunk& (fileNum%, start&, chunkID$)
+'
+'Result:    ptr&     --> the byte position within the file, where you
+'                        find the next chunk of given type, zero if no
+'                        chunk of that type is found, negative on error
+'                        (not a valid IFF file)
+'
+'Inputs:    fileNum% --> the file ID you got from SafeOpenFile%("B",...)
+'           start&   --> start position in file, 0 = current
+'           chunkID$ --> the 4 char ID of the wanted chunk (see the TYPE
+'                        defines in file GuiAppFrame.bi)
+'
+'Notes:     In case of error/not found the file pointer is reset to TOF,
+'           in case of success it is set to found byte position.
+'---------------------------------------------------------------------
+FUNCTION SeekChunk& (fileNum%, start&, chunkID$)
+'--- check optional start position ---
+IF start& > 0 THEN iStart& = start&: ELSE iStart& = SEEK(fileNum%)
+'--- check file type and get valid data size ---
+REDIM scChunk(0) AS Chunk
+cnt& = -1: GET fileNum%, 1, scChunk(0)
+IF scChunk(0).chunkID <> CHformID$ GOTO scNotIFF
+vds& = scChunk(0).chunkLEN + chunkSIZEOF%
+'--- search next chunk after given start ---
+cnt& = 13: DO
+    GET fileNum%, cnt&, scChunk(0)
+    IF cnt& >= iStart& AND scChunk(0).chunkID = chunkID$ THEN EXIT DO
+    cnt& = cnt& + chunkSIZEOF% + ((scChunk(0).chunkLEN + 1) AND -2)
+    IF cnt& > vds& THEN cnt& = 0
+LOOP UNTIL cnt& = 0
+'--- set the file pointer ---
+scNotIFF:
+SEEK fileNum%, 1
+IF cnt& > 0 THEN SEEK fileNum%, cnt&
+ERASE scChunk
+'--- return result ---
+SeekChunk& = cnt&
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Function:  Update the FORM-Chunk of an IFF file to new size after adding
+'           additional data chunks.
+'
+'Synopsis:  VOID SizeUpdate (fileNum%, raise&)
+'
+'Inputs:    fileNum% --> the file ID you got from SafeOpenFile%("B",...)
+'           raise&   --> the size of the data chunk you added to that file
+'
+'Notes:     The file pointer is reset to TOF after this routine was called.
+'           Does nothing with non-IFF files. Checks against LOF().
+'---------------------------------------------------------------------
+SUB SizeUpdate (fileNum%, raise&)
+'--- check file type ---
+REDIM suChunk(0) AS Chunk
+GET fileNum%, 1, suChunk(0)
+IF suChunk(0).chunkID <> CHformID$ GOTO suNotIFF
+'--- update valid data size ---
+pad%% = 0: vds& = suChunk(0).chunkLEN + raise&
+IF (vds& AND 1) THEN
+    PUT fileNum%, LOF(fileNum%) + 1, pad%%
+    vds& = vds& + 1
+END IF
+IF vds& > LOF(fileNum%) - 8 THEN vds& = LOF(fileNum%) - 8
+suChunk(0).chunkLEN = vds&
+PUT fileNum%, 1, suChunk(0)
+'--- reset the file pointer ---
+suNotIFF:
+SEEK fileNum%, 1
+ERASE suChunk
+END SUB
+
+'---------------------------------------------------------------------
+'Function: Push the given string argument to the top of stack.
+'
+'Synopsis: VOID PushStr (arg$)
+'
+'Inputs:   arg$ --> the STRING argument to push to the stack, use
+'                   PushStr(STR$(num)) to pass in a number
+'---------------------------------------------------------------------
+SUB PushStr (arg$)
+ub& = UBOUND(appStackArr$) + 1
+REDIM _PRESERVE appStackArr$(ub&)
+appStackArr$(ub&) = arg$
+END SUB
+
+'---------------------------------------------------------------------
+'Function: Get the topmost entry from stack and remove that entry from
+'          the stack.
+'
+'Synopsis: var$ = PopStr$ (VOID)
+'
+'Result:   var$ --> the entry from stack as type STRING, use VAL(PopStr$)
+'                   to get back a number
+'
+'Notes:    If there are no more entries on the stack (or on the current
+'          local stack part), then this function returns an empty string.
+'---------------------------------------------------------------------
+FUNCTION PopStr$
+ub& = UBOUND(appStackArr$)
+arg$ = appStackArr$(ub&)
+IF arg$ = "*** RhoSigma-Stack-LocalMark ***" OR arg$ = "*** RhoSigma-Stack-Bottom ***" THEN
+    PopStr$ = ""
+    EXIT FUNCTION
+END IF
+REDIM _PRESERVE appStackArr$(ub& - 1)
+PopStr$ = arg$
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Function: Init a local stack part in preparation for easy removing of
+'          remaining entries.
+'
+'Synopsis: VOID InitLocalStack (VOID)
+'
+'Notes:    To properly remove a local stack part a matching subsequent
+'          call of SUB RestoreStack is required.
+'---------------------------------------------------------------------
+SUB InitLocalStack
+PushStr "*** RhoSigma-Stack-LocalMark ***"
+END SUB
+
+'---------------------------------------------------------------------
+'Function: Removes all remaining entries from a local stack part and does
+'          erase the local stack part.
+'
+'Synopsis: VOID RestoreStack (VOID)
+'
+'Notes:    Don't call this SUB, if there was no local stack part initialized
+'          by a previous matching call of SUB InitLocalStack. Otherwise you
+'          risk to corrupt the stack.
+'---------------------------------------------------------------------
+SUB RestoreStack
+ub& = UBOUND(appStackArr$)
+WHILE appStackArr$(ub&) <> "*** RhoSigma-Stack-LocalMark ***" AND appStackArr$(ub&) <> "*** RhoSigma-Stack-Bottom ***"
+    ub& = ub& - 1
+WEND
+IF appStackArr$(ub&) = "*** RhoSigma-Stack-Bottom ***" THEN EXIT SUB 'a least protect the global stack on unmatched calls
+REDIM _PRESERVE appStackArr$(ub& - 1)
+END SUB
+
+'---------------------------------------------------------------------
+'Opaque fill of the given rectangular area with the given color.
+'---------------------------------------------------------------------
+'xs%   = left pixel position of the rectangle
+'ys%   = top pixel position of the rectangle
+'wi%   = pixel width of the rectangle
+'he%   = pixel height of the rectangle
+'cpen% = color pen for filling
+'---------------------------------------------------------------------
+SUB FillRectColor (xs%, ys%, wi%, he%, cpen%)
+LINE (xs%, ys%)-(xs% + wi% - 1, ys% + he% - 1), cpen%, BF
+END SUB
+
+'---------------------------------------------------------------------
+'Raster fill of the given rectangular area with the given color. Means
+'draw every 2nd pixel with an offset of 1px from line to line. The grid
+'is aligned, so that drawing two overlapping rectangles will not lead
+'to an opaque filled overlap area.
+'---------------------------------------------------------------------
+'xs%   = left pixel position of the rectangle
+'ys%   = top pixel position of the rectangle
+'wi%   = pixel width of the rectangle
+'he%   = pixel height of the rectangle
+'rpen% = color pen for the drawn raster pixels
+'---------------------------------------------------------------------
+SUB FillRectRaster (xs%, ys%, wi%, he%, rpen%)
+sdot% = &B1010101010101010: sgap% = &B0101010101010101
+IF (xs% AND 1) THEN SWAP sdot%, sgap%
+IF (ys% AND 1) THEN SWAP sdot%, sgap%
+FOR y% = ys% TO ys% + he% - 1
+    LINE (xs%, y%)-(xs% + wi% - 1, y%), rpen%, , sdot%
+    SWAP sgap%, sdot%
+NEXT y%
+END SUB
+
+'---------------------------------------------------------------------
+'Image fill of the given rectangular area with the given image. The
+'given image must not necessarily match the rectangle size, bigger ones
+'are cropped, smaller ones will be tiled. Also the image may be flipped
+'around its vertical/horizontal axis by specifying a negative size for
+'width/height respectively, but note that in those cases the top/left
+'positions must mark the respectively opposite side of the fill area.
+'---------------------------------------------------------------------
+'xs%   = left pixel position of the rectangle
+'ys%   = top pixel position of the rectangle
+'wi%   = pixel width of the rectangle
+'he%   = pixel height of the rectangle
+'ihan& = the 8-bit (256 colors) image used for filling
+'---------------------------------------------------------------------
+SUB FillRectImage (xs%, ys%, wi%, he%, ihan&)
+tcol% = _CLEARCOLOR(ihan&): _CLEARCOLOR _NONE, ihan&
+than& = _NEWIMAGE(ABS(wi%), ABS(he%), 256)
+IF than& < -1 THEN
+    FOR y% = 0 TO ABS(he%) - 1 STEP _HEIGHT(ihan&)
+        FOR x% = 0 TO ABS(wi%) - 1 STEP _WIDTH(ihan&)
+            _PUTIMAGE (x%, y%)-(x% + _WIDTH(ihan&) - 1, y% + _HEIGHT(ihan&) - 1), ihan&, than&
+        NEXT x%
+    NEXT y%
+    IF tcol% > -1 THEN _CLEARCOLOR tcol%, than&
+    _PUTIMAGE (xs%, ys%)-(xs% + wi% - 1, ys% + he% - 1), than&
+    _FREEIMAGE than&
+END IF
+END SUB
+
+'---------------------------------------------------------------------
+'Function: Will remap the colors of any given image to use the palette
+'          of the given 256 colors (8-bit) destination screen, so that it
+'          can be displayed on that screen using _PUTIMAGE with as less
+'          than possible quality loss. For best results this function does
+'          also apply a Floyd-Steinberg error diffusion matrix on the
+'          given image to further improve its display quality.
+'           The original image is not changed, instead the new remapped
+'          image is returned in a new handle, also _SOURCE & _DEST handles
+'          are not changed by this function.
+'           The algorithm is optimized for speed to the fullest extent
+'          possible on the QB64 language level.
+'
+'Synopsis: rhan& = RemapImageFS& (ohan&, dhan&)
+'
+'Result:   rhan& --> the handle of the new remapped image, check it for
+'                    validity before use (rhan& < -1, as for any other
+'                    image handles in QB64)
+'
+'Inputs:   ohan& --> the handle of the original source image to remap,
+'                    may be an image of any color depth (1-32 bits)
+'          dhan& --> the handle of the 8-bit destination image, usually
+'                    the 256 colors screen the image shall be displayed
+'                    on (for the GuiTools Framework this is "appScreen&"),
+'                    note that the destinations color palette must already
+'                    be setup prior calling this function
+'
+'Notes:    For the use of this function a globally shared array must be
+'          DIMed in an appropriate place: REDIM SHARED fsNearCol%(&HFFFFFF).
+'          For the GuiTools Framework this is already done within its init
+'          procedure in file GuiAppFrame.bi.
+'---------------------------------------------------------------------
+FUNCTION RemapImageFS& (ohan&, dhan&)
+RemapImageFS& = -1 'so far return invalid handle
+shan& = ohan& 'avoid side effect on given argument
+IF shan& < -1 THEN
+    '--- check/adjust source image & get new 8-bit image ---
+    swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+    IF _PIXELSIZE(shan&) <> 4 THEN
+        than& = _NEWIMAGE(swid%, shei%, 32)
+        IF than& >= -1 THEN EXIT FUNCTION
+        _PUTIMAGE , shan&, than&
+        shan& = than&
+    ELSE
+        than& = -1 'avoid freeing below
+    END IF
+    nhan& = _NEWIMAGE(swid%, shei%, 256)
+    '--- Floyd-Steinberg error distribution arrays ---
+    rhan& = _NEWIMAGE(swid%, 2, 32) 'these are missused as LONG arrays,
+    ghan& = _NEWIMAGE(swid%, 2, 32) 'with CHECKING:OFF this is much faster
+    bhan& = _NEWIMAGE(swid%, 2, 32) 'than real QB64 arrays
+    '--- curr/next row offsets (for distribution array access) ---
+    cro% = 0: nro% = swid% * 4 'will be swapped after each pixel row
+    '--- the matrix values are extended by 16384 to avoid slow floating ---
+    '--- point ops and to allow for integer storage in the above arrays ---
+    '--- also it's a power of 2, which may be optimized into a bitshift ---
+    seven% = (7 / 16) * 16384 'X+1,Y+0 error fraction
+    three% = (3 / 16) * 16384 'X-1,Y+1 error fraction
+    five% = (5 / 16) * 16384 'X+0,Y+1 error fraction
+    one% = (1 / 16) * 16384 'X+1,Y+1 error fraction
+    '--- if all is good, then start remapping ---
+    $CHECKING:OFF
+    IF nhan& < -1 AND rhan& < -1 AND ghan& < -1 AND bhan& < -1 THEN
+        _COPYPALETTE dhan&, nhan& 'dest palette to new image
+        '--- for speed we do direct memory access ---
+        DIM sbuf AS _MEM: sbuf = _MEMIMAGE(shan&): soff%& = sbuf.OFFSET
+        DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&): noff%& = nbuf.OFFSET
+        DIM rbuf AS _MEM: rbuf = _MEMIMAGE(rhan&): roff%& = rbuf.OFFSET
+        DIM gbuf AS _MEM: gbuf = _MEMIMAGE(ghan&): goff%& = gbuf.OFFSET
+        DIM bbuf AS _MEM: bbuf = _MEMIMAGE(bhan&): boff%& = bbuf.OFFSET
+        '--- iterate through pixels ---
+        FOR y% = 0 TO shei% - 1
+            FOR x% = 0 TO swid% - 1
+                '--- curr/prev/next pixel offsets ---
+                cpo% = x% * 4: ppo% = cpo% - 4: npo% = cpo% + 4
+                '--- get pixel ARGB value from source ---
+                srgb~& = _MEMGET(sbuf, soff%&, _UNSIGNED LONG)
+                '--- add distributed error, shrink by 16384, clear error ---
+                '--- current pixel X+0, Y+0 (= cro% (current row offset)) ---
+                poff% = cro% + cpo% 'pre-calc full pixel offset
+                sr% = ((srgb~& AND &HFF0000~&) \ 65536) + (_MEMGET(rbuf, roff%& + poff%, LONG) \ 16384) 'red
+                sg% = ((srgb~& AND &HFF00~&) \ 256) + (_MEMGET(gbuf, goff%& + poff%, LONG) \ 16384) 'green
+                sb% = (srgb~& AND &HFF~&) + (_MEMGET(bbuf, boff%& + poff%, LONG) \ 16384) 'blue
+                _MEMPUT rbuf, roff%& + poff%, 0 AS LONG 'clearing each single pixel error using _MEMPUT
+                _MEMPUT gbuf, goff%& + poff%, 0 AS LONG 'turns out even faster than clearing the entire
+                _MEMPUT bbuf, boff%& + poff%, 0 AS LONG 'pixel row using _MEMFILL at the end of the loop
+                '--- find nearest color ---
+                crgb~& = _RGBA32(sr%, sg%, sb%, 0) 'used for fast value clipping + channel merge
+                IF fsNearCol%(crgb~&) > 0 THEN
+                    npen% = fsNearCol%(crgb~&) - 1 'already known
+                ELSE
+                    npen% = FindColor&(sr%, sg%, sb%, nhan&, 24, 255 - guiReservedPens%) 'not known, find one
+                    fsNearCol%(crgb~&) = npen% + 1 'save for later use
+                END IF
+                '--- put colormapped pixel to dest ---
+                _MEMPUT nbuf, noff%&, npen% AS _UNSIGNED _BYTE
+                '------------------------------------------
+                '--- Floyd-Steinberg error distribution ---
+                '------------------------------------------
+                '--- You may comment this block out, to see the
+                '--- result without applied FS matrix.
+                '-----
+                '--- get dest palette RGB value, calc error to clipped source ---
+                nrgb~& = _PALETTECOLOR(npen%, nhan&)
+                er% = ((crgb~& AND &HFF0000~&) - (nrgb~& AND &HFF0000~&)) \ 65536
+                eg% = ((crgb~& AND &HFF00~&) - (nrgb~& AND &HFF00~&)) \ 256
+                eb% = (crgb~& AND &HFF~&) - (nrgb~& AND &HFF~&)
+                '--- distribute error according to FS matrix ---
+                IF x% > 0 THEN
+                    '--- X-1, Y+1 (= nro% (next row offset)) ---
+                    poff% = nro% + ppo% 'pre-calc full pixel offset
+                    _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * three%) AS LONG 'red
+                    _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * three%) AS LONG 'green
+                    _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * three%) AS LONG 'blue
+                END IF
+                '--- X+0, Y+1 (= nro% (next row offset)) ---
+                poff% = nro% + cpo% 'pre-calc full pixel offset
+                _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * five%) AS LONG 'red
+                _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * five%) AS LONG 'green
+                _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * five%) AS LONG 'blue
+                IF x% < (swid% - 1) THEN
+                    '--- X+1, Y+0 (= cro% (current row offset)) ---
+                    poff% = cro% + npo% 'pre-calc full pixel offset
+                    _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * seven%) AS LONG 'red
+                    _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * seven%) AS LONG 'green
+                    _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * seven%) AS LONG 'blue
+                    '--- X+1, Y+1 (= nro% (next row offset)) ---
+                    poff% = nro% + npo% 'pre-calc full pixel offset
+                    _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * one%) AS LONG 'red
+                    _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * one%) AS LONG 'green
+                    _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * one%) AS LONG 'blue
+                END IF
+                '------------------------------------------
+                '--- End of FS ----------------------------
+                '------------------------------------------
+                noff%& = noff%& + 1 'next dest pixel
+                soff%& = soff%& + 4 'next source pixel
+            NEXT x%
+            tmp% = cro%: cro% = nro%: nro% = tmp% 'exchange distribution array row offsets
+        NEXT y%
+        '--- memory cleanup ---
+        _MEMFREE bbuf
+        _MEMFREE gbuf
+        _MEMFREE rbuf
+        _MEMFREE nbuf
+        _MEMFREE sbuf
+        '--- set result ---
+        RemapImageFS& = nhan&
+        nhan& = -1 'avoid freeing below
+    END IF
+    $CHECKING:ON
+    '--- remapping done or error, cleanup remains ---
+    IF bhan& < -1 THEN _FREEIMAGE bhan&
+    IF ghan& < -1 THEN _FREEIMAGE ghan&
+    IF rhan& < -1 THEN _FREEIMAGE rhan&
+    IF nhan& < -1 THEN _FREEIMAGE nhan&
+    IF than& < -1 THEN _FREEIMAGE than&
+END IF
+END FUNCTION
+
+'****************************************************
+'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppIcon.bm'
+'****************************************************
+

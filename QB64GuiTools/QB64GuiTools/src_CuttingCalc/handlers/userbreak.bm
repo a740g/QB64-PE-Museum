@@ -1,0 +1,12 @@
+    IF BoolTagTrue%(mess$, "USERBREAK") THEN
+        'The user did click the program window's (X) button or pressed
+        'Ctrl-Break or Alt-F4 to exit the program. Here you should check
+        'for any changed but unsaved data, maybe notifying the user, then
+        'save it or not (depending on user response) and finally set all
+        'conditions to allow the main loop to exit and the program to
+        'cleanup and terminate.
+
+        '--- nothing special to do in this app ---
+        done% = -1
+    END IF
+

@@ -1,0 +1,127 @@
+    IF ValidateTags%(mess$, "GADGETUP", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'This is the most important event type for GUI operation, it is
+        'delivered only, if an clickable GUI object went into focus, then
+        'got selected and finally got unselected while it still (or again)
+        'had focus, ie. the object was regularly clicked once and now the
+        'associated action should be executed. This event is also send,
+        'if any Text/Number input field is unselected, hence its input is
+        'completed. The function ThisObject%() does match the GADGETUP
+        'object with a given object to easily build handling blocks for your
+        'objects: eg. IF ThisObject%(myObj$, message$, "GADGETUP") THEN ...
+        IF ThisObject%(InputSource$, mess$, "GADGETUP") THEN
+            tmp$ = GetTagData$(GenC$("GET", InputSource$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            srcPath$ = PathPart$(tmp$): src$ = FilePart$(tmp$): tmp$ = ""
+            IF src$ <> "" THEN
+                IF tar$ = "" THEN
+                    IF LCASE$(FileExtension$(src$)) <> ".bm" THEN
+                        tmpT$ = NewTag$("TEXT", srcPath$ + FileNamePart$(src$) + ".bm")
+                        tmpH$ = NewTag$("TEXT", srcPath$ + FileNamePart$(src$) + ".h")
+                    ELSE
+                        tmpT$ = NewTag$("TEXT", srcPath$ + src$ + ".bm")
+                        tmpH$ = NewTag$("TEXT", srcPath$ + src$ + ".h")
+                    END IF
+                END IF
+                res$ = GenC$("SET", InputTarget$ + NewTag$("DISABLED", "no") + tmpT$)
+                res$ = GenC$("SET", GetTarget$ + NewTag$("DISABLED", "no"))
+                res$ = GenC$("SET", InputHeader$ + NewTag$("DISABLED", "no") + tmpH$)
+                res$ = GenC$("SET", GetHeader$ + NewTag$("DISABLED", "no"))
+                res$ = GenC$("SET", Reset$ + NewTag$("DISABLED", "no"))
+            END IF
+        END IF
+        IF ThisObject%(GetSource$, mess$, "GADGETUP") THEN
+            tmp$ = FileSelect$("", "Select the source file...", fsmLOAD%, srcPath$, src$)
+            IF tmp$ <> "" THEN
+                res$ = GenC$("SET", InputSource$ + NewTag$("TEXT", tmp$))
+                srcPath$ = PathPart$(tmp$): src$ = FilePart$(tmp$): tmp$ = ""
+                IF src$ <> "" THEN
+                    IF tar$ = "" THEN
+                        IF LCASE$(FileExtension$(src$)) <> ".bm" THEN
+                            tmpT$ = NewTag$("TEXT", srcPath$ + FileNamePart$(src$) + ".bm")
+                            tmpH$ = NewTag$("TEXT", srcPath$ + FileNamePart$(src$) + ".h")
+                        ELSE
+                            tmpT$ = NewTag$("TEXT", srcPath$ + src$ + ".bm")
+                            tmpH$ = NewTag$("TEXT", srcPath$ + src$ + ".h")
+                        END IF
+                    END IF
+                    res$ = GenC$("SET", InputTarget$ + NewTag$("DISABLED", "no") + tmpT$)
+                    res$ = GenC$("SET", GetTarget$ + NewTag$("DISABLED", "no"))
+                    res$ = GenC$("SET", InputHeader$ + NewTag$("DISABLED", "no") + tmpH$)
+                    res$ = GenC$("SET", GetHeader$ + NewTag$("DISABLED", "no"))
+                    res$ = GenC$("SET", Reset$ + NewTag$("DISABLED", "no"))
+                END IF
+            END IF
+        END IF
+        IF ThisObject%(InputTarget$, mess$, "GADGETUP") OR _
+           ThisObject%(InputSource$, mess$, "GADGETUP") OR _
+           ThisObject%(GetSource$, mess$, "GADGETUP") THEN
+            tmp$ = GetTagData$(GenC$("GET", InputTarget$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            tarPath$ = PathPart$(tmp$): tar$ = FilePart$(tmp$): tmp$ = ""
+            tarName$ = FileNamePart$(tar$)
+        END IF
+        IF ThisObject%(GetTarget$, mess$, "GADGETUP") THEN
+            tmp$ = FileSelect$("", "Select the target file...", fsmSAVE%, tarPath$, tar$)
+            IF tmp$ <> "" THEN
+                res$ = GenC$("SET", InputTarget$ + NewTag$("TEXT", tmp$))
+                tarPath$ = PathPart$(tmp$): tar$ = FilePart$(tmp$): tmp$ = ""
+                tarName$ = FileNamePart$(tar$)
+            END IF
+        END IF
+        IF ThisObject%(InputHeader$, mess$, "GADGETUP") OR _
+           ThisObject%(InputSource$, mess$, "GADGETUP") OR _
+           ThisObject%(GetSource$, mess$, "GADGETUP") THEN
+            tmp$ = GetTagData$(GenC$("GET", InputHeader$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            hdrPath$ = PathPart$(tmp$): hdr$ = FilePart$(tmp$): tmp$ = ""
+            hdrName$ = FileNamePart$(hdr$)
+        END IF
+        IF ThisObject%(GetHeader$, mess$, "GADGETUP") THEN
+            tmp$ = FileSelect$("", "Select the header file...", fsmSAVE%, hdrPath$, hdr$)
+            IF tmp$ <> "" THEN
+                res$ = GenC$("SET", InputHeader$ + NewTag$("TEXT", tmp$))
+                hdrPath$ = PathPart$(tmp$): hdr$ = FilePart$(tmp$): tmp$ = ""
+                hdrName$ = FileNamePart$(hdr$)
+            END IF
+        END IF
+        IF ThisObject%(UseLzw$, mess$, "GADGETUP") THEN
+            IF BoolTagTrue%(GenC$("GET", UseLzw$ + NewTag$("TAGNAMES", "CHECKED")), "CHECKED") THEN
+                res$ = GenC$("SET", InputRatio$ + NewTag$("DISABLED", "no")): use% = -1
+            ELSE
+                res$ = GenC$("SET", InputRatio$ + NewTag$("DISABLED", "yes")): use% = 0
+            END IF
+        END IF
+        IF ThisObject%(Start$, mess$, "GADGETUP") THEN
+            rat% = VAL(GetTagData$(GenC$("GET", InputRatio$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "20"))
+            IF ConvertFile% THEN
+                res$ = GenC$("SET", InputSource$ + NewTag$("TEXT", ""))
+                srcPath$ = "": src$ = ""
+                res$ = GenC$("SET", InputTarget$ + NewTag$("TEXT", "") + NewTag$("DISABLED", "yes"))
+                tarPath$ = "": tar$ = "": tarName$ = ""
+                res$ = GenC$("SET", GetTarget$ + NewTag$("DISABLED", "yes"))
+                res$ = GenC$("SET", InputHeader$ + NewTag$("TEXT", "") + NewTag$("DISABLED", "yes"))
+                hdrPath$ = "": hdr$ = "": hdrName$ = ""
+                res$ = GenC$("SET", GetHeader$ + NewTag$("DISABLED", "yes"))
+                res$ = GenC$("SET", Reset$ + NewTag$("DISABLED", "yes"))
+            END IF
+            res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", "0"))
+        END IF
+        IF ThisObject%(Reset$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", InputSource$ + NewTag$("TEXT", ""))
+            srcPath$ = "": src$ = ""
+            res$ = GenC$("SET", InputTarget$ + NewTag$("TEXT", "") + NewTag$("DISABLED", "yes"))
+            tarPath$ = "": tar$ = "": tarName$ = ""
+            res$ = GenC$("SET", GetTarget$ + NewTag$("DISABLED", "yes"))
+            res$ = GenC$("SET", InputHeader$ + NewTag$("TEXT", "") + NewTag$("DISABLED", "yes"))
+            hdrPath$ = "": hdr$ = "": hdrName$ = ""
+            res$ = GenC$("SET", GetHeader$ + NewTag$("DISABLED", "yes"))
+            res$ = GenC$("SET", Reset$ + NewTag$("DISABLED", "yes"))
+        END IF
+        IF ThisObject%(Cancel$, mess$, "GADGETUP") THEN done% = -1
+        '-----
+        IF src$ <> "" AND tar$ <> "" AND hdr$ <> "" THEN
+            res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "ready"))
+            res$ = GenC$("SET", Start$ + NewTag$("DISABLED", "no"))
+        ELSE
+            res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "get inputs"))
+            res$ = GenC$("SET", Start$ + NewTag$("DISABLED", "yes"))
+        END IF
+    END IF
+

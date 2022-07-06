@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BufInsertFile</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>BufInsertFile <em>(sub)</em></h2>
+<p>This subroutine will insert the entire contents of the given file into
+the specified buffer starting at its current buffer position.</p>
+<p>The call will also recalculate all bookmarks to maintain its respective
+positions. The current buffer position is updated accordingly and is on
+the first byte behind the inserted data after the call.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>BufInsertFile handle%, fileSpec$
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, in which you want to insert
+the file data.</li>
+</ul>
+<h4>fileSpec$ <em>(STRING)</em></h4>
+<ul>
+<li>The name of the file to insert. You may also add a path, if required.</li>
+<li>Make sure the specified file exists to avoid file loading errors, those
+are not caught by this function. Also if inserting exceeds the 2GiB buffer
+limit, an error occurs (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>No matter which line endings mode is used in the buffer, the inserted
+file's data is not converted automatically into the respective format, as
+this would corrupt data in binary files.</li>
+<li>If you know you have inserted a plain text file, but you are not sure
+about the origin (which OS) of the file, then you should call the appropriate
+conversion subroutine <a href="ConvBufToAnyEol.html">ConvBufToNativeEol()</a>, <a href="ConvBufToAnyEol.html">ConvBufToWinEol()</a> or
+<a href="ConvBufToAnyEol.html">ConvBufToLnxMacEol()</a> right after inserting the file, to convert the file
+data into the buffer's line endings format.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

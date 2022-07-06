@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CutBufBlock</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>CutBufBlock <em>(function)</em></h2>
+<p>This function will copy the data block between the current buffer position
+and the given bound position to the clipboard and then delete the data block
+from the specified buffer. Apart from deleting the data block, this function
+is similar to <a href="CopyBufBlock.html">CopyBufBlock()</a>. The current buffer position is on the first
+byte behind the just cut out data block after the call.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>err% = CutBufBlock% (handle%, bound&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna cut out
+the data.</li>
+</ul>
+<h4>bound&amp; <em>(LONG)</em></h4>
+<ul>
+<li>
+This is the position of the opposite end of the data block to cut out.
+<ul>
+<li>The 1st end is always the current buffer position.</li>
+</ul>
+</li>
+<li>The bound may be less than, equal to, or greater than the current position,
+although equal would result into copying &amp; cutting nothing.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>err% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is usually zero (0) on success, or error SBE_OutOfBounds, if the
+given bound was out of the valid buffer data, which is 1 to <a href="GetBufLen.html">GetBufLen()</a> + 1
+(see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

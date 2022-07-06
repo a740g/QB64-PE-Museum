@@ -1,0 +1,658 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === StringClass.bm ===                                            |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== String Class ====================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide single line string input objects. The input area
+'   will be framed and the typed string can be left/right justified
+'   or centered within the area. Vertically it will always be centered
+'   in the area. The available editing/control shortcuts are:
+'    Return/Enter          -> confirm input and deselect input field
+'    Tab/CursorDown        -> select next visible input field (if any)
+'    Shift-Tab/CursorUp    -> select previous visible input field (if any)
+'    CursorLeft/Right      -> move cursor one char left/right respectivly
+'    Home/Shift-CursorLeft -> move cursor to start of line
+'    End/Shift-CursorRight -> move cursor to End of line
+'    Backspace             -> delete char left of cursor (if any)
+'    Del                   -> delete char right of cursor (if any)
+'    Shift-Backspace       -> delete from cursor to start of line
+'    Shift-Del             -> delete from cursor to end of line
+'    Ctrl-q/Ctrl-z         -> undo changes since last field selection
+'    Ctrl-x                -> cut entire content to clipboard (quick field clear)
+'    Ctrl-c                -> copy entire content to clipboard
+'    Ctrl-v                -> paste from clipboard (insert at cursor position)
+'    Shift-Ctrl-v          -> paste from clipboard (clear field, then paste)
+'   Note that (if necessary) all disallowed chars are removed from the
+'   pasted content and also the resulting field content will be cropped
+'   to the allowed maximum input length.
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION StringC$ (method$, tagString$)
+StringRes$ = ""
+classID$ = "StringC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,WIDTH,HEIGHT,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,IMAGEOBJECT,SYMBOLOBJECT," +_
+                   "ALLOWED,MAXIMUM,TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY," +_
+                   "LABEL,LABELHIGH,LABELPLACE,LABELMOVEX,LABELMOVEY," +_
+                   "IMAGEFILE,IMAGEHANDLE,AREA," +_
+                   "TOOLTIP,SHORTCUT,DISABLED,PASSIVE," '+ user tags
+        'NOTE: Given TEXT its length may exceed the given MAXIMUM, which
+        '      will temporarily raise the maximum value up to text length.
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "IMAGEOBJECT,SYMBOLOBJECT," +_
+                   "TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY,DISABLED," '+ user tags
+        'NOTE: Given TEXT its length may exceed the initialized MAXIMUM, which
+        '      will temporarily raise the maximum value up to text length.
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or SELECTED,RELEASED,SHORTCUT (may be empty)
+    CASE ELSE
+        SetTag StringRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+StringC$ = StringRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag StringRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    ApplyPrefs classID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, StringRes$, classID$, tagsID$) THEN
+        '--- object specific init ---
+        allo$ = GetTagData$(tagsID$, "ALLOWED", ""): temp$ = ""
+        IF allo$ <> "" THEN
+            FOR i% = 1 TO LEN(allo$)
+                ch% = ASC(allo$, i%)
+                IF ch% = 21 OR ch% >= 32 THEN temp$ = temp$ + CHR$(ch%)
+            NEXT i%
+        ELSE
+            temp$ = CHR$(21)
+            FOR ch% = 32 TO 255: temp$ = temp$ + CHR$(ch%): NEXT ch%
+        END IF
+        SetTag tagsID$, "ALLOWED", temp$
+        '-----
+        widt% = VAL(GetTagData$(tagsID$, "WIDTH", "0"))
+        part$ = GetTagData$(tagsID$, "TEXT", "")
+        curr% = LEN(part$) + 1
+        WHILE _PRINTWIDTH(part$) > widt% - 12: part$ = MID$(part$, 2): WEND
+        firs% = curr% - LEN(part$)
+        SetTag guiObjects$(objData%, this&), "FIRST", LTRIM$(STR$(firs%))
+        SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(curr%))
+        '--- check for assigned Image/Symbol ---
+        InitAssignedImgSym "IMAGEOBJECT", StringRes$, classID$, tagsID$
+        InitAssignedImgSym "SYMBOLOBJECT", StringRes$, classID$, tagsID$
+        '--- background/frame init ---
+        BeginChildInit
+        InitObjectBGImg this&, StringRes$, classID$, tagsID$
+        fram$ = FrameC$("INIT", GetTags$(tagsID$, "LEFT,TOP,WIDTH,HEIGHT") + NewTag$("FORM", "ridge"))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("FRM0", fram$)
+        EndChildInit
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        ObjectsUnselect this&
+        '--- set result and schedule gui refresh ---
+        SetTag StringRes$, "OBJECT", LTRIM$(STR$(this&))
+        SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = 0
+    IF SetAssignedImgSym%(this&, "IMAGEOBJECT", StringRes$, classID$, tagsID$) THEN flag% = -1
+    IF SetAssignedImgSym%(this&, "SYMBOLOBJECT", StringRes$, classID$, tagsID$) THEN flag% = -1
+    IF UpdateTags%(guiObjects$(objData%, this&), "TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY", tagsID$) THEN flag% = -1
+    text$ = GetTag$(tagsID$, "TEXT"): temp$ = GetTagData$(text$, "TEXT", "n/a")
+    IF temp$ = "n/a" THEN
+        IF text$ <> "" THEN
+            RemTags guiObjects$(objData%, this&), "TEXT,FIRST,CURRENT": flag% = -1
+        END IF
+    ELSE
+        IF flag% THEN
+            widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+            curr% = LEN(temp$) + 1
+            WHILE _PRINTWIDTH(temp$) > widt% - 12: temp$ = MID$(temp$, 2): WEND
+            firs% = curr% - LEN(temp$)
+            SetTag guiObjects$(objData%, this&), "FIRST", LTRIM$(STR$(firs%))
+            SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(curr%))
+        END IF
+    END IF
+    temp$ = GetTagData$(tagsID$, "DISABLED", "n/a")
+    IF temp$ <> "n/a" THEN
+        IF BoolTagTrue%(tagsID$, "DISABLED") THEN
+            RemTags guiObjects$(objData%, this&), "FOCUS,SELECTED"
+            SetTag guiObjects$(objData%, this&), "DISABLED", "true"
+        ELSE
+            RemTag guiObjects$(objData%, this&), "DISABLED"
+        END IF
+        flag% = -1
+    END IF
+    '--- check any remaining user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- redraw and update object (if required) ---
+    IF flag% THEN resu$ = ObjectRefresh$(this&, "du", "")
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN StringRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete child objects ---
+    resu$ = FrameC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BBGIMG"))
+    '--- check for assigned Symbol/Image ---
+    KillAssignedImgSym this&, "SYMBOLOBJECT"
+    KillAssignedImgSym this&, "IMAGEOBJECT"
+    '--- check pager conditions ---
+    KillAssignedPager this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
+    '--- select drawing colors ---
+    back% = guiBackPen%: text% = guiTextPen% 'text pens
+    focu% = guiHighPen%: disa% = guiFillPen% 'state pens
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+        back% = guiFillPen%: text% = guiFillTextPen%
+        focu% = guiFillTextPen%
+    END IF
+    '--- get object's dimensions ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    '--- draw object ----
+    FillRectColor left%, topp%, widt%, heig%, back%
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    '--- image/symbol/frame object ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") THEN
+        LINE (left% + 4, topp% + 4)-(left% + widt% - 5, topp% + heig% - 5), focu%, B
+        BrightenObjectBG this&, left%, topp%, widt%, heig%
+        LINE (left% + 4, topp% + 4)-(left% + widt% - 5, topp% + heig% - 5), focu%, B
+    END IF
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "IMAGEOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYMBOLOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = FrameC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    '--- label output ---
+    PrintObjectLabel this&, left%, topp%, widt%, heig%
+    '--- text output ---
+    text$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "")
+    plac$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "TEXTPLACE", "left"))
+    xmov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEX", "0"))
+    ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEY", "0"))
+    firs% = VAL(GetTagData$(guiObjects$(objData%, this&), "FIRST", "1"))
+    curr% = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "1"))
+    part$ = MID$(text$, firs%)
+    WHILE _PRINTWIDTH(part$) > widt% - 12
+        part$ = LEFT$(part$, LEN(part$) - 1)
+    WEND
+    txto% = (topp% + INT(heig% / 2)) - INT(_FONTHEIGHT / 2)
+    SELECT CASE plac$
+        CASE "left"
+            txle% = left% + 6
+        CASE "center"
+            txle% = (left% + INT(widt% / 2)) - INT(_PRINTWIDTH(part$) / 2)
+        CASE "right"
+            txle% = (left% + widt% - 1) - _PRINTWIDTH(part$) - 6
+    END SELECT
+    prim% = _PRINTMODE
+    SetPrintMode pmKEEP%
+    COLOR text%
+    _PRINTSTRING (txle% + 1 + xmov%, txto% + 1 + ymov%), part$
+    SetPrintMode prim%
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "CSRON") THEN
+            LINE (txle% + 0 + xmov% + _PRINTWIDTH(LEFT$(part$, curr% - firs%)), txto% + 1 + ymov%)-(txle% + 1 + xmov% + _PRINTWIDTH(LEFT$(part$, curr% - firs%)), txto% + 1 + ymov% + _FONTHEIGHT - 1), guiFillTextPen%, BF
+        END IF
+        PrintObjectTooltip -1 'redraw maybe covered tooltip (if any)
+    END IF
+    '--- check on/off state ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN
+        FillRectRaster left%, topp%, widt%, heig%, disa%
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't update, if currently disabled ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN RETURN
+    '--- save old drawing relevant states ---
+    osta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED,CSRON")
+    '--- blink cursor ---
+    IF BoolTagTrue%(osta$, "SELECTED") THEN
+        tval# = TIMER(0.001): tval# = tval# - INT(tval#)
+        IF tval# < 0.5 THEN
+            SetTag guiObjects$(objData%, this&), "CSRON", "true"
+        ELSE
+            RemTag guiObjects$(objData%, this&), "CSRON"
+        END IF
+        SetTag StringRes$, "IMMFLAG", "true"
+    END IF
+    '--- check for shortcut trigger ---
+    shor$ = GetTagData$(guiObjects$(objData%, this&), "SHORTCUT", "n/a")
+    IF NOT BoolTagTrue%(osta$, "SELECTED") AND shor$ <> "n/a" AND guiASCObject& = 0 THEN
+        IF BoolTagTrue%(tagsID$, "KEYPRESS") THEN
+            IF ObjectShortcut%(shor$, tagsID$) THEN
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                ObjectsUnselect this&
+                resu$ = StringC$("DRAW", thisTag$)
+                SetTag StringRes$, "SELECTED", LTRIM$(STR$(this&))
+                SetTag StringRes$, "SHORTCUT", "true"
+                guiASCObject& = this&
+                undo$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "")
+                SetTag guiObjects$(objData%, this&), "UNDO", undo$
+                SetTag StringRes$, "IMMFLAG", "true"
+                RETURN
+            END IF
+        END IF
+    END IF
+    '--- get mouse position and object dimensions ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    gvix& = VAL(GetTagData$(guiObjects$(objData%, this&), "GUIVIEW", "0"))
+    '--- check for mouse trigger ---
+    IF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+        SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+        IF NOT BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+            SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+            IF guiASCObject& <> 0 AND guiASCObject& <> this& THEN
+                IF BoolTagTrue%(guiObjects$(objData%, guiASCObject&), "CHANGED") THEN _
+                   SetTag StringRes$, "RELEASED", LTRIM$(STR$(guiASCObject&))
+                RemTags guiObjects$(objData%, guiASCObject&), "SELECTED,UNDO,CHANGED"
+                resu$ = ObjectRefresh$(guiASCObject&, "d", "")
+            END IF
+            SetTag StringRes$, "SELECTED", LTRIM$(STR$(this&))
+            guiASCObject& = this&
+            undo$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "")
+            SetTag guiObjects$(objData%, this&), "UNDO", undo$
+        ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "KEYPRESS") THEN
+            IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(13) THEN
+                RemTags guiObjects$(objData%, this&), "SELECTED,UNDO,CHANGED"
+                SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                guiASCObject& = 0
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(9) OR _
+                   GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                RemTag guiObjects$(objData%, this&), "SELECTED"
+                DO
+                    fobj& = guiASCObject& + 1: guiASCObject& = 0
+                    FOR oix& = fobj& TO UBOUND(guiObjects$, 2)
+                        IF guiObjects$(objType%, oix&) = classID$ AND _
+                           VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                            guiASCObject& = oix&
+                            EXIT FOR
+                        END IF
+                    NEXT oix&
+                    IF guiASCObject& = 0 THEN
+                        FOR oix& = guiALBIndex& TO fobj& - 1
+                            IF guiObjects$(objType%, oix&) = classID$ AND _
+                               VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                                guiASCObject& = oix&
+                                EXIT FOR
+                            END IF
+                        NEXT oix&
+                    END IF
+                    IF NOT BoolTagTrue%(guiObjects$(objData%, guiASCObject&), "DISABLED") THEN
+                        page& = VAL(GetTagData$(guiObjects$(objData%, guiASCObject&), "PAGEROBJECT", "0"))
+                        IF page& = 0 OR (BoolTagTrue%(guiObjects$(objData%, page&), "ACTIVE") AND _
+                                     NOT BoolTagTrue%(guiObjects$(objData%, page&), "DISABLED")) THEN
+                            SetTag guiObjects$(objData%, guiASCObject&), "SELECTED", "true"
+                            resu$ = ObjectRefresh$(guiASCObject&, "d", ""): fobj& = 0
+                        END IF
+                    END IF
+                LOOP UNTIL fobj& = 0
+                IF guiASCObject& <> this& THEN
+                    IF BoolTagTrue%(guiObjects$(objData%, this&), "CHANGED") THEN _
+                       SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                    RemTags guiObjects$(objData%, this&), "UNDO,CHANGED"
+                    SetTag StringRes$, "SELECTED", LTRIM$(STR$(guiASCObject&))
+                    undo$ = GetTagData$(guiObjects$(objData%, guiASCObject&), "TEXT", "")
+                    SetTag guiObjects$(objData%, guiASCObject&), "UNDO", undo$
+                END IF
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + CHR$(15) OR _
+                   GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                RemTag guiObjects$(objData%, this&), "SELECTED"
+                DO
+                    fobj& = guiASCObject& - 1: guiASCObject& = 0
+                    FOR oix& = fobj& TO guiALBIndex& STEP -1
+                        IF guiObjects$(objType%, oix&) = classID$ AND _
+                           VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                            guiASCObject& = oix&
+                            EXIT FOR
+                        END IF
+                    NEXT oix&
+                    IF guiASCObject& = 0 THEN
+                        FOR oix& = UBOUND(guiObjects$, 2) TO fobj& + 1 STEP -1
+                            IF guiObjects$(objType%, oix&) = classID$ AND _
+                               VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                                guiASCObject& = oix&
+                                EXIT FOR
+                            END IF
+                        NEXT oix&
+                    END IF
+                    IF NOT BoolTagTrue%(guiObjects$(objData%, guiASCObject&), "DISABLED") THEN
+                        page& = VAL(GetTagData$(guiObjects$(objData%, guiASCObject&), "PAGEROBJECT", "0"))
+                        IF page& = 0 OR (BoolTagTrue%(guiObjects$(objData%, page&), "ACTIVE") AND _
+                                     NOT BoolTagTrue%(guiObjects$(objData%, page&), "DISABLED")) THEN
+                            SetTag guiObjects$(objData%, guiASCObject&), "SELECTED", "true"
+                            resu$ = ObjectRefresh$(guiASCObject&, "d", ""): fobj& = 0
+                        END IF
+                    END IF
+                LOOP UNTIL fobj& = 0
+                IF guiASCObject& <> this& THEN
+                    IF BoolTagTrue%(guiObjects$(objData%, this&), "CHANGED") THEN _
+                       SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                    RemTags guiObjects$(objData%, this&), "UNDO,CHANGED"
+                    SetTag StringRes$, "SELECTED", LTRIM$(STR$(guiASCObject&))
+                    undo$ = GetTagData$(guiObjects$(objData%, guiASCObject&), "TEXT", "")
+                    SetTag guiObjects$(objData%, guiASCObject&), "UNDO", undo$
+                END IF
+            ELSE
+                GOSUB meEditHook
+                IF cflg% THEN SetTag StringRes$, "SELECTED", LTRIM$(STR$(this&))
+            END IF
+            SetTag StringRes$, "SHORTCUT", "true"
+        END IF
+    ELSE
+        RemTag guiObjects$(objData%, this&), "FOCUS"
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+            IF (BoolTagTrue%(tagsID$, "MOUSELB") OR BoolTagTrue%(tagsID$, "MOUSEMB") OR BoolTagTrue%(tagsID$, "MOUSERB")) AND guiASCObject& = this& THEN
+                IF BoolTagTrue%(guiObjects$(objData%, this&), "CHANGED") THEN _
+                   SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                RemTags guiObjects$(objData%, this&), "SELECTED,UNDO,CHANGED"
+                guiASCObject& = 0
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") THEN
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(13) THEN
+                    RemTags guiObjects$(objData%, this&), "SELECTED,UNDO,CHANGED"
+                    SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                    guiASCObject& = 0
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(9) OR _
+                       GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                    RemTag guiObjects$(objData%, this&), "SELECTED"
+                    DO
+                        fobj& = guiASCObject& + 1: guiASCObject& = 0
+                        FOR oix& = fobj& TO UBOUND(guiObjects$, 2)
+                            IF guiObjects$(objType%, oix&) = classID$ AND _
+                               VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                                guiASCObject& = oix&
+                                EXIT FOR
+                            END IF
+                        NEXT oix&
+                        IF guiASCObject& = 0 THEN
+                            FOR oix& = guiALBIndex& TO fobj& - 1
+                                IF guiObjects$(objType%, oix&) = classID$ AND _
+                                   VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                                    guiASCObject& = oix&
+                                    EXIT FOR
+                                END IF
+                            NEXT oix&
+                        END IF
+                        IF NOT BoolTagTrue%(guiObjects$(objData%, guiASCObject&), "DISABLED") THEN
+                            page& = VAL(GetTagData$(guiObjects$(objData%, guiASCObject&), "PAGEROBJECT", "0"))
+                            IF page& = 0 OR (BoolTagTrue%(guiObjects$(objData%, page&), "ACTIVE") AND _
+                                         NOT BoolTagTrue%(guiObjects$(objData%, page&), "DISABLED")) THEN
+                                SetTag guiObjects$(objData%, guiASCObject&), "SELECTED", "true"
+                                resu$ = ObjectRefresh$(guiASCObject&, "d", ""): fobj& = 0
+                            END IF
+                        END IF
+                    LOOP UNTIL fobj& = 0
+                    IF guiASCObject& <> this& THEN
+                        IF BoolTagTrue%(guiObjects$(objData%, this&), "CHANGED") THEN _
+                           SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                        RemTags guiObjects$(objData%, this&), "UNDO,CHANGED"
+                        SetTag StringRes$, "SELECTED", LTRIM$(STR$(guiASCObject&))
+                        undo$ = GetTagData$(guiObjects$(objData%, guiASCObject&), "TEXT", "")
+                        SetTag guiObjects$(objData%, guiASCObject&), "UNDO", undo$
+                    END IF
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + CHR$(15) OR _
+                       GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                    RemTag guiObjects$(objData%, this&), "SELECTED"
+                    DO
+                        fobj& = guiASCObject& - 1: guiASCObject& = 0
+                        FOR oix& = fobj& TO guiALBIndex& STEP -1
+                            IF guiObjects$(objType%, oix&) = classID$ AND _
+                               VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                                guiASCObject& = oix&
+                                EXIT FOR
+                            END IF
+                        NEXT oix&
+                        IF guiASCObject& = 0 THEN
+                            FOR oix& = UBOUND(guiObjects$, 2) TO fobj& + 1 STEP -1
+                                IF guiObjects$(objType%, oix&) = classID$ AND _
+                                   VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = gvix& THEN
+                                    guiASCObject& = oix&
+                                    EXIT FOR
+                                END IF
+                            NEXT oix&
+                        END IF
+                        IF NOT BoolTagTrue%(guiObjects$(objData%, guiASCObject&), "DISABLED") THEN
+                            page& = VAL(GetTagData$(guiObjects$(objData%, guiASCObject&), "PAGEROBJECT", "0"))
+                            IF page& = 0 OR (BoolTagTrue%(guiObjects$(objData%, page&), "ACTIVE") AND _
+                                         NOT BoolTagTrue%(guiObjects$(objData%, page&), "DISABLED")) THEN
+                                SetTag guiObjects$(objData%, guiASCObject&), "SELECTED", "true"
+                                resu$ = ObjectRefresh$(guiASCObject&, "d", ""): fobj& = 0
+                            END IF
+                        END IF
+                    LOOP UNTIL fobj& = 0
+                    IF guiASCObject& <> this& THEN
+                        IF BoolTagTrue%(guiObjects$(objData%, this&), "CHANGED") THEN _
+                           SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                        RemTags guiObjects$(objData%, this&), "UNDO,CHANGED"
+                        SetTag StringRes$, "SELECTED", LTRIM$(STR$(guiASCObject&))
+                        undo$ = GetTagData$(guiObjects$(objData%, guiASCObject&), "TEXT", "")
+                        SetTag guiObjects$(objData%, guiASCObject&), "UNDO", undo$
+                    END IF
+                ELSE
+                    GOSUB meEditHook
+                    IF cflg% THEN SetTag StringRes$, "SELECTED", LTRIM$(STR$(this&))
+                END IF
+                SetTag StringRes$, "SHORTCUT", "true"
+            END IF
+        END IF
+    END IF
+    '--- redraw object, if state has changed ---
+    nsta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED,CSRON")
+    IF nsta$ <> osta$ THEN
+        resu$ = StringC$("DRAW", thisTag$)
+        SetTag StringRes$, "IMMFLAG", "true"
+    END IF
+END IF
+RETURN
+'----------------------------------
+meEditHook:
+defa$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "")
+allo$ = GetTagData$(guiObjects$(objData%, this&), "ALLOWED", "")
+maxx% = VAL(GetTagData$(guiObjects$(objData%, this&), "MAXIMUM", "300"))
+firs% = VAL(GetTagData$(guiObjects$(objData%, this&), "FIRST", "1"))
+curr% = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "1"))
+leng% = LEN(defa$): IF leng% > maxx% THEN maxx% = leng%
+ik$ = GetTagData$(tagsID$, "KEY", "n/a"): cflg% = 0
+IF INSTR(allo$, ik$) > 0 AND leng% < maxx% THEN
+    'regular allowed input
+    defa$ = LEFT$(defa$, curr% - 1) + ik$ + MID$(defa$, curr%): curr% = curr% + 1: cflg% = -1
+    IF _PRINTWIDTH(MID$(defa$, firs%, curr% - firs%)) > widt% - 12 THEN firs% = firs% + 1
+ELSEIF ik$ = CHR$(0) + "K" OR ik$ = CHR$(0) + "M" OR ik$ = CHR$(0) + "G" OR ik$ = CHR$(0) + "O" THEN
+    IF ik$ = CHR$(0) + "G" OR _
+      (ik$ = CHR$(0) + "K" AND BoolTagTrue%(tagsID$, "SHIFT")) THEN
+        '<Home> or <Shift-CsrLft> = jump to start
+        curr% = 1: firs% = 1
+    ELSEIF ik$ = CHR$(0) + "O" OR _
+          (ik$ = CHR$(0) + "M" AND BoolTagTrue%(tagsID$, "SHIFT")) THEN
+        '<End> or <Shift-CsrRgt> = jump to end
+        curr% = leng% + 1: part$ = defa$
+        WHILE _PRINTWIDTH(part$) > widt% - 12: part$ = MID$(part$, 2): WEND
+        firs% = curr% - LEN(part$)
+    ELSEIF ik$ = CHR$(0) + "K" THEN
+        '<CsrLft> = cursor one char left
+        IF curr% > 1 THEN curr% = curr% - 1
+        IF curr% < firs% THEN firs% = firs% - 1
+    ELSE
+        '<CsrRgt> = cursor one char right
+        IF curr% < leng% + 1 THEN curr% = curr% + 1
+        IF _PRINTWIDTH(MID$(defa$, firs%, curr% - firs%)) > widt% - 12 THEN firs% = firs% + 1
+    END IF
+ELSEIF ik$ = CHR$(8) OR ik$ = CHR$(0) + "S" THEN
+    IF leng% > 0 THEN
+        IF ik$ = CHR$(8) AND BoolTagTrue%(tagsID$, "SHIFT") THEN
+            '<Shift-Backspace> = delete to start
+            defa$ = MID$(defa$, curr%): curr% = 1: firs% = 1
+        ELSEIF ik$ = CHR$(0) + "S" AND BoolTagTrue%(tagsID$, "SHIFT") THEN
+            '<Shift-Del> = delete to end
+            defa$ = LEFT$(defa$, curr% - 1)
+        ELSEIF ik$ = CHR$(8) THEN
+            '<Backspace> = delete char left
+            defa$ = LEFT$(defa$, curr% - 2) + MID$(defa$, curr%)
+            IF curr% > 1 THEN curr% = curr% - 1
+            IF curr% < firs% THEN firs% = firs% - 1
+        ELSE
+            '<Del> = delete char right
+            defa$ = LEFT$(defa$, curr% - 1) + MID$(defa$, curr% + 1)
+        END IF
+        cflg% = -1
+    END IF
+ELSEIF ik$ = CHR$(3) OR ik$ = CHR$(24) THEN
+    IF leng% > 0 THEN
+        '<Ctrl c> = copy / <Ctrl x> = cut
+        _CLIPBOARD$ = defa$
+        IF ik$ = CHR$(24) THEN defa$ = "": curr% = 1: firs% = 1: cflg% = -1 'cut
+    END IF
+ELSEIF ik$ = CHR$(22) THEN
+    '<Ctrl v> = paste insert / <Ctrl-Shift v> = clear paste
+    IF BoolTagTrue%(tagsID$, "SHIFT") THEN
+        ntxt$ = "": curr% = 1: firs% = 1
+        rtxt$ = ""
+    ELSE
+        ntxt$ = LEFT$(defa$, curr% - 1)
+        rtxt$ = MID$(defa$, curr%)
+    END IF
+    clip$ = _CLIPBOARD$
+    'remove disallowed chars
+    FOR i% = 1 TO LEN(clip$)
+        mi$ = MID$(clip$, i%, 1)
+        IF INSTR(allo$, mi$) > 0 THEN
+            ntxt$ = ntxt$ + mi$: curr% = curr% + 1
+            IF _PRINTWIDTH(MID$(ntxt$, firs%, curr% - firs%)) > widt% - 12 THEN firs% = firs% + 1
+        END IF
+    NEXT i%
+    ntxt$ = ntxt$ + rtxt$
+    'crop to allowed maximum length
+    IF LEN(ntxt$) <= maxx% THEN defa$ = ntxt$: ELSE defa$ = LEFT$(ntxt$, maxx%)
+    cflg% = -1
+ELSEIF ik$ = CHR$(17) OR ik$ = CHR$(26) THEN
+    '<Ctrl q> / <Ctrl z> = undo changes since last field activation
+    defa$ = GetTagData$(guiObjects$(objData%, this&), "UNDO", ""): leng% = LEN(defa$): cflg% = 1 'flag rem chg
+    IF curr% > leng% + 1 THEN
+        curr% = leng% + 1: part$ = defa$
+        WHILE _PRINTWIDTH(part$) > widt% - 12: part$ = MID$(part$, 2): WEND
+        firs% = curr% - LEN(part$)
+    END IF
+END IF
+IF cflg% THEN
+    SetTag guiObjects$(objData%, this&), "TEXT", defa$
+    IF NOT BoolTagTrue%(guiObjects$(objData%, this&), "PASSIVE") THEN _
+       SetTag guiObjects$(objData%, this&), "CHANGED", "true"
+END IF
+IF cflg% > 0 THEN RemTag guiObjects$(objData%, this&), "CHANGED"
+SetTag guiObjects$(objData%, this&), "FIRST", LTRIM$(STR$(firs%))
+SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(curr%))
+IF ik$ <> "" THEN SetTag guiObjects$(objData%, this&), "CSRON", "true"
+resu$ = StringC$("DRAW", thisTag$)
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

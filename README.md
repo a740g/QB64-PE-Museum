@@ -69,6 +69,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QB64 Menu Library | Menu routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | QB64 Graphics Line Input Library | Line Input routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | QB64 Sprite Library | Sprite routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| GuiTools GUI Library | A GUI library by [Roland Heyder](https://github.com/RhoSigma-QB64) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
 | QBasic Beautifier | QB code beautifier by Kewbie_newbie |
 | QBasic Nventory | (i)nventory manager by [Morwic](https://github.com/morwic) |

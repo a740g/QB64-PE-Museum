@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FindBufFR</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>FindBufFwd &amp; FindBufRev <em>(function)</em></h2>
+<p>These functions will search for the criteria, which were earlier defined
+for the specified buffer using the <a href="SetBufFind.html">SetBufFind()</a> function. Depending on the
+called function the search will be performed in forward or reverse direction
+but in both cases starting at the current buffer position. If the criteria
+is found, then the found position is returned and it will also automatically
+become the new current buffer position. If the criteria is otherwise not
+found, then zero is returned and the current buffer position remains unchanged.
+The found position remains valid until you write or delete data in the
+respective buffer.</p>
+<p>For a sequential search to find all occurrences of the criteria in the
+buffer, you would simply call the same direction search function ever
+again until you get no more hits.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>found&amp; = FindBufFwd&amp; (handle%, findID%, method%, treat%)
+found&amp; = FindBufRev&amp; (handle%, findID%, method%, treat%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, in which you wanna search the
+specified criteria.</li>
+</ul>
+<h4>findID% <em>(INTEGER)</em></h4>
+<ul>
+<li>The ID number of the criteria to search. You got the ID from the
+respective <a href="SetBufFind.html">SetBufFind()</a> call.</li>
+</ul>
+<h4>method% <em>(INTEGER)</em></h4>
+<ul>
+<li>This flag determines how to use the specified criteria, ie. how the search
+shall actually be performed. It must be one of the flags defined in the
+<strong>simplebuffer.bi</strong> file (see also below).</li>
+</ul>
+<h4>treat% <em>(INTEGER)</em></h4>
+<ul>
+<li>This flag determines how to treat any lower/upper case differences in the
+search criteria and the searched buffer data. It must be one of the flags
+defined in the <strong>simplebuffer.bi</strong> file (see below).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>found&amp; <em>(LONG)</em></h4>
+<ul>
+<li>This is either the found position on success, or zero (0), if no more
+occurrences of the specified search criteria were found.</li>
+<li>If the return value is negative, then it is any of the error numbers defined
+in the <strong>simplebuffer.bi</strong> file (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>METHOD FLAGS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>SBF_FullData</h4>
+<ul>
+<li>Do a regular search, hence look for the search criteria as a whole
+unbroken string.</li>
+</ul>
+<h4>SBF_Delimiter</h4>
+<ul>
+<li>Make a delimiter search, hence the search criteria is not used as
+whole string, but as a list of delimiter chars to look for. The function
+returns as soon as any of the listed chars is found.</li>
+</ul>
+<h4>SBF_InvDelimiter</h4>
+<ul>
+<li>Make a inverse delimiter search. Same as above, but here the function
+returns as soon as any char is found, which is not listed as delimiter.</li>
+</ul>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>TREATMENT FLAGS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>SBF_AsWritten</h4>
+<ul>
+<li>Simply treat all criteria and buffer data as is, hence &quot;Foo&quot; &lt;&gt; &quot;foo&quot;.</li>
+</ul>
+<h4>SBF_IgnoreCase</h4>
+<ul>
+<li>Use this flag to ignore the written case of all data, hence &quot;Foo&quot; = &quot;foo&quot;.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

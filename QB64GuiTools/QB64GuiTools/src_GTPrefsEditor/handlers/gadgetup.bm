@@ -1,0 +1,140 @@
+    IF ValidateTags%(mess$, "GADGETUP", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'This is the most important event type for GUI operation, it is
+        'delivered only, if an clickable GUI object went into focus, then
+        'got selected and finally got unselected while it still (or again)
+        'had focus, ie. the object was regularly clicked once and now the
+        'associated action should be executed. This event is also send,
+        'if any Text/Number input field is unselected, hence its input is
+        'completed. The function ThisObject%() does match the GADGETUP
+        'object with a given object to easily build handling blocks for your
+        'objects: eg. IF ThisObject%(myObj$, message$, "GADGETUP") THEN ...
+        IF ThisObject%(SectLView$, mess$, "GADGETUP") THEN
+            SetPrefs section$, options
+            oldSect$ = section$
+            sectTags$ = GenC$("GET", SectLView$ + NewTag$("TAGNAMES", "ACTUAL,DATA"))
+            numSect$ = GetTagData$(sectTags$, "ACTUAL", "")
+            section$ = GetTagData$(sectTags$, "DATA", "")
+            IF oldSect$ <> section$ THEN
+                GetPrefs section$, options
+                GOTO BuildGUI
+            END IF
+        END IF
+        IF ThisObject%(StdButt$, mess$, "GADGETUP") THEN
+            options.csetIMAGE = "": options.csetTILE = 0
+            options.csetHOVR = -1: options.csetFOVR = -1: options.csetPMOD = 0
+            IF section$ = "Global.Colors" THEN SetColors StdColors$
+            SetPrefs section$, options
+            oldSect$ = section$
+            GOTO BuildGUI
+        END IF
+        IF ThisObject%(PenLView$, mess$, "GADGETUP") THEN
+            actPen% = VAL(GetTagData$(GenC$("GET", PenLView$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "1"))
+            SELECT CASE actPen%
+                CASE 1: col% = guiBackPen%
+                CASE 2: col% = guiTextPen%
+                CASE 3: col% = guiHighPen%
+                CASE 4: col% = guiFillPen%
+                CASE 5: col% = guiFillTextPen%
+                CASE 6: col% = guiShinePen%
+                CASE 7: col% = guiShadowPen%
+                CASE 8: col% = guiSolidPen%
+                CASE 9: col% = guiGreenPen%
+                CASE 10: col% = guiRedPen%
+                CASE 11: col% = guiLoadBack%
+                CASE 12: col% = guiSaveBack%
+                CASE 13: col% = guiMediaDisk%
+                CASE 14: col% = guiMediaDrawer%
+                CASE 15: col% = guiMediaFile%
+            END SELECT
+            res$ = GenC$("SET", ColorLView$ + NewTag$("ACTUAL", LTRIM$(STR$(col% + 1))))
+            res$ = GenC$("SET", PalColor$ + NewTag$("LEVEL", LTRIM$(STR$(col%))))
+            GOSUB UpdatePaletteTool
+        END IF
+        IF ThisObject%(ColorLView$, mess$, "GADGETUP") THEN
+            col% = VAL(GetTagData$(GenC$("GET", ColorLView$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "1")) - 1
+            SELECT CASE actPen%
+                CASE 1: guiBackPen% = col%
+                CASE 2: guiTextPen% = col%
+                CASE 3: guiHighPen% = col%
+                CASE 4: guiFillPen% = col%
+                CASE 5: guiFillTextPen% = col%
+                CASE 6: guiShinePen% = col%
+                CASE 7: guiShadowPen% = col%
+                CASE 8: guiSolidPen% = col%
+                CASE 9: guiGreenPen% = col%
+                CASE 10: guiRedPen% = col%
+                CASE 11: guiLoadBack% = col%
+                CASE 12: guiSaveBack% = col%
+                CASE 13: guiMediaDisk% = col%
+                CASE 14: guiMediaDrawer% = col%
+                CASE 15: guiMediaFile% = col%
+            END SELECT
+            res$ = GenC$("SET", PalColor$ + NewTag$("LEVEL", LTRIM$(STR$(col%))))
+            GOSUB UpdatePaletteTool
+            SetPrefs section$, options
+            oldSect$ = section$
+            GOTO BuildGUI
+        END IF
+        IF ThisObject%(ImageOpt$, mess$, "GADGETUP") THEN
+            options.csetIMAGE = GetTagData$(GenC$("GET", ImageOpt$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            SetPrefs section$, options
+            oldSect$ = section$
+            GOTO BuildGUI
+        END IF
+        IF ThisObject%(GetFile$, mess$, "GADGETUP") THEN
+            tmpF$ = FileSelect$("", "Select default background Image...", fsmLOAD%, fsDir$, fsFile$)
+            IF tmpF$ <> "" THEN
+                options.csetIMAGE = tmpF$
+                SetPrefs section$, options
+                oldSect$ = section$
+                GOTO BuildGUI
+            END IF
+        END IF
+        IF ThisObject%(TileOpt$, mess$, "GADGETUP") THEN
+            options.csetTILE = VAL(GetTagData$(GenC$("GET", TileOpt$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "")) - 2
+            SetPrefs section$, options
+            oldSect$ = section$
+            GOTO BuildGUI
+        END IF
+        IF ThisObject%(HOvrOpt$, mess$, "GADGETUP") THEN
+            IF section$ = "PagerC.WallPen" THEN
+                pen$ = GetTagData$(GenC$("GET", HOvrOpt$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "-1")
+                options.csetHOVR = VAL(pen$)
+                SetPrefs section$, options
+                res$ = GenC$("SET", PreObjBlank$ + NewTag$("WALLPEN", pen$) + NewTag$("PREVIEW", "yes"))
+                res$ = GenC$("SET", PreObjPen$ + NewTag$("WALLPEN", pen$) + NewTag$("PREVIEW", "yes"))
+            ELSE
+                options.csetHOVR = BoolTagTrue%(GenC$("GET", HOvrOpt$ + NewTag$("TAGNAMES", "CHECKED")), "CHECKED")
+            END IF
+            SetPrefs section$, options
+            oldSect$ = section$
+            GOTO BuildGUI
+        END IF
+        IF ThisObject%(FOvrOpt$, mess$, "GADGETUP") THEN
+            options.csetFOVR = BoolTagTrue%(GenC$("GET", FOvrOpt$ + NewTag$("TAGNAMES", "CHECKED")), "CHECKED")
+            SetPrefs section$, options
+            oldSect$ = section$
+            GOTO BuildGUI
+        END IF
+        IF ThisObject%(PModOpt$, mess$, "GADGETUP") THEN
+            options.csetPMOD = VAL(GetTagData$(GenC$("GET", PModOpt$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "")) - 2
+            SetPrefs section$, options
+            oldSect$ = section$
+            GOTO BuildGUI
+        END IF
+        '--- palette tool events ---
+        IF ThisObject%(PalColor$, mess$, "GADGETUP") THEN
+            GOSUB UpdatePaletteTool
+        END IF
+        IF ThisObject%(PalWheel$, mess$, "GADGETUP") OR _
+           ThisObject%(PalHSBSliderH$, mess$, "GADGETUP") OR _
+           ThisObject%(PalHSBSliderS$, mess$, "GADGETUP") OR _
+           ThisObject%(PalHSBSliderB$, mess$, "GADGETUP") OR _
+           ThisObject%(PalRGBSliderR$, mess$, "GADGETUP") OR _
+           ThisObject%(PalRGBSliderG$, mess$, "GADGETUP") OR _
+           ThisObject%(PalRGBSliderB$, mess$, "GADGETUP") THEN
+            GOSUB ChangePalette
+            SetPrefs section$, options
+        END IF
+    END IF
+

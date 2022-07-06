@@ -1,0 +1,18 @@
+    IF ValidateTags%(mess$, "GADGETUP", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'This is the most important event type for GUI operation, it is
+        'delivered only, if an clickable GUI object went into focus, then
+        'got selected and finally got unselected while it still (or again)
+        'had focus, ie. the object was regularly clicked once and now the
+        'associated action should be executed. This event is also send,
+        'if any Text/Number input field is unselected, hence its input is
+        'completed. The function ThisObject%() does match the GADGETUP
+        'object with a given object to easily build handling blocks for your
+        'objects: eg. IF ThisObject%(myObj$, message$, "GADGETUP") THEN ...
+        IF ThisObject%(QuitButton$, mess$, "GADGETUP") THEN
+            result$ = MessageBox$("", appExeName$,_
+                                  "Do you really wanna quit?",_
+                                  "{SYM Checkmark * * * *}Yes||{SYM Cross * * * *}No")
+            IF result$ = "Yes" THEN done% = -1
+        END IF
+    END IF
+

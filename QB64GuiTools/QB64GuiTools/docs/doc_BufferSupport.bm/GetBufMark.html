@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GetBufMark</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>GetBufMark <em>(function)</em></h2>
+<p>This function will return the current byte position of the bookmark with
+the given ID in the specified buffer. The returned position remains valid
+until you write or delete data in the respective buffer, which could cause
+any bookmarks to move to different positions.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>markPos&amp; = GetBufMark&amp; (handle%, markID%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, from which you wanna query
+the bookmark position.</li>
+</ul>
+<h4>markID% <em>(INTEGER)</em></h4>
+<ul>
+<li>The ID number of the desired bookmark. You got the ID from the
+respective <a href="SetBufMark.html">SetBufMark()</a> call.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>markPos&amp; <em>(LONG)</em></h4>
+<ul>
+<li>On success (positive value) this is the retrieved bookmark position,
+on failure (negative value) it is any of the error numbers defined in
+the <strong>simplebuffer.bi</strong> file (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

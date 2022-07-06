@@ -1,0 +1,209 @@
+    IF ValidateTags%(mess$, "GADGETUP", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'This is the most important event type for GUI operation, it is
+        'delivered only, if an clickable GUI object went into focus, then
+        'got selected and finally got unselected while it still (or again)
+        'had focus, ie. the object was regularly clicked once and now the
+        'associated action should be executed. This event is also send,
+        'if any Text/Number input field is unselected, hence its input is
+        'completed. The function ThisObject%() does match the GADGETUP
+        'object with a given object to easily build handling blocks for your
+        'objects: eg. IF ThisObject%(myObj$, message$, "GADGETUP") THEN ...
+        IF ThisObject%(NewButton$, mess$, "GADGETUP") THEN
+            GOSUB cleanUp
+            try% = 0: chk% = 0
+            Col1$ = "": Col2$ = "": Col3$ = "": Col4$ = "": Col5$ = ""
+            GOSUB initGuess
+            res$ = GenC$("SET", NewButton$ + NewTag$("DISABLED", "true"))
+            RANDOMIZE TIMER
+            code$ = CHR$(RangeRand%(248, 255))
+            code$ = code$ + CHR$(RangeRand%(248, 255))
+            code$ = code$ + CHR$(RangeRand%(248, 255))
+            code$ = code$ + CHR$(RangeRand%(248, 255))
+            code$ = code$ + CHR$(RangeRand%(248, 255))
+            text$ = TextC$("INIT",_
+                    NewTag$("IMAGEFILE", "Marble.jpg") +_
+                    NewTag$("FORM", "ridge") +_
+                    NewTag$("LEFT", "323") +_
+                    NewTag$("TOP", "687") +_
+                    NewTag$("WIDTH", "244") +_
+                    NewTag$("HEIGHT", "36") +_
+                    NewTag$("TEXTPLACE", "center") +_
+                    NewTag$("TEXT", "generated..."))
+        END IF
+        IF ThisObject%(CheckButton$, mess$, "GADGETUP") THEN
+            symb$ = GenC$("GET", Col1$ + NewTag$("TAGNAMES", "SYMBOLOBJECT"))
+            colo$ = GenC$("GET", ObjectTag$(symb$, "SYMBOLOBJECT") + NewTag$("TAGNAMES", "SHINEPEN"))
+            game$ = CHR$(VAL(GetTagData$(colo$, "SHINEPEN", "32")))
+            symb$ = GenC$("GET", Col2$ + NewTag$("TAGNAMES", "SYMBOLOBJECT"))
+            colo$ = GenC$("GET", ObjectTag$(symb$, "SYMBOLOBJECT") + NewTag$("TAGNAMES", "SHINEPEN"))
+            game$ = game$ + CHR$(VAL(GetTagData$(colo$, "SHINEPEN", "32")))
+            symb$ = GenC$("GET", Col3$ + NewTag$("TAGNAMES", "SYMBOLOBJECT"))
+            colo$ = GenC$("GET", ObjectTag$(symb$, "SYMBOLOBJECT") + NewTag$("TAGNAMES", "SHINEPEN"))
+            game$ = game$ + CHR$(VAL(GetTagData$(colo$, "SHINEPEN", "32")))
+            symb$ = GenC$("GET", Col4$ + NewTag$("TAGNAMES", "SYMBOLOBJECT"))
+            colo$ = GenC$("GET", ObjectTag$(symb$, "SYMBOLOBJECT") + NewTag$("TAGNAMES", "SHINEPEN"))
+            game$ = game$ + CHR$(VAL(GetTagData$(colo$, "SHINEPEN", "32")))
+            symb$ = GenC$("GET", Col5$ + NewTag$("TAGNAMES", "SYMBOLOBJECT"))
+            colo$ = GenC$("GET", ObjectTag$(symb$, "SYMBOLOBJECT") + NewTag$("TAGNAMES", "SHINEPEN"))
+            game$ = game$ + CHR$(VAL(GetTagData$(colo$, "SHINEPEN", "32")))
+            temp$ = code$: num% = 0: win% = (game$ = code$)
+            FOR g% = 1 TO 5
+                IF ASC(game$, g%) = ASC(temp$, g%) THEN
+                    MID$(game$, g%, 1) = CHR$(32)
+                    MID$(temp$, g%, 1) = CHR$(32)
+                    PushStr ButtonC$("INIT",_
+                            SymbolTag$(BlackSymbol$) +_
+                            NewTag$("IMAGEFILE", "Marble.jpg") +_
+                            NewTag$("AREA", "true") +_
+                            NewTag$("LEFT", STR$(324 + (num% * 52))) +_
+                            NewTag$("TOP", STR$(32 + (try% * 52))) +_
+                            NewTag$("WIDTH", "36") +_
+                            NewTag$("HEIGHT", "36"))
+                    num% = num% + 1
+                END IF
+            NEXT g%
+            FOR g% = 1 TO 5
+                gch$ = MID$(game$, g%, 1)
+                IF gch$ <> CHR$(32) THEN
+                    posi% = INSTR(temp$, gch$)
+                    IF posi% > 0 THEN
+                        MID$(temp$, posi%, 1) = CHR$(32)
+                        PushStr ButtonC$("INIT",_
+                                SymbolTag$(WhiteSymbol$) +_
+                                NewTag$("IMAGEFILE", "Marble.jpg") +_
+                                NewTag$("AREA", "true") +_
+                                NewTag$("LEFT", STR$(324 + (num% * 52))) +_
+                                NewTag$("TOP", STR$(32 + (try% * 52))) +_
+                                NewTag$("WIDTH", "36") +_
+                                NewTag$("HEIGHT", "36"))
+                        num% = num% + 1
+                    END IF
+                END IF
+            NEXT g%
+            WHILE num% < 5
+                PushStr ButtonC$("INIT",_
+                        NewTag$("IMAGEFILE", "Marble.jpg") +_
+                        NewTag$("AREA", "true") +_
+                        NewTag$("LEFT", STR$(324 + (num% * 52))) +_
+                        NewTag$("TOP", STR$(32 + (try% * 52))) +_
+                        NewTag$("WIDTH", "36") +_
+                        NewTag$("HEIGHT", "36"))
+                num% = num% + 1
+            WEND
+            try% = try% + 1: chk% = 0
+            res$ = GenC$("SET", CheckButton$ + NewTag$("DISABLED", "true"))
+            IF win% THEN
+                GOSUB showCode
+                InitHoverLayer 0, 77, 50, 446, 114
+                text$ = TextC$("INIT",_
+                        NewTag$("IMAGEFILE", "Marble.jpg") +_
+                        NewTag$("FORM", "ridge") +_
+                        NewTag$("LEFT", "95") +_
+                        NewTag$("TOP", "68") +_
+                        NewTag$("WIDTH", "410") +_
+                        NewTag$("HEIGHT", "36") +_
+                        NewTag$("TEXTPLACE", "center") +_
+                        NewTag$("TEXT", "Congratulations, you got it!"))
+                butt$ = ButtonC$("INIT",_
+                        NewTag$("IMAGEFILE", "WoodLight.jpg") +_
+                        NewTag$("AREA", "true") +_
+                        NewTag$("LEFT", "195") +_
+                        NewTag$("TOP", "116") +_
+                        NewTag$("WIDTH", "210") +_
+                        NewTag$("HEIGHT", "30") +_
+                        NewTag$("TEXT", "Continue"))
+            ELSE
+                IF try% < 12 THEN
+                    GOSUB initGuess
+                ELSE
+                    GOSUB showCode
+                    InitHoverLayer 0, 77, 50, 446, 114
+                    text$ = TextC$("INIT",_
+                            NewTag$("IMAGEFILE", "Marble.jpg") +_
+                            NewTag$("FORM", "ridge") +_
+                            NewTag$("LEFT", "95") +_
+                            NewTag$("TOP", "68") +_
+                            NewTag$("WIDTH", "410") +_
+                            NewTag$("HEIGHT", "36") +_
+                            NewTag$("TEXTPLACE", "center") +_
+                            NewTag$("TEXT", "Sorry, you lose!"))
+                    butt$ = ButtonC$("INIT",_
+                            NewTag$("IMAGEFILE", "WoodLight.jpg") +_
+                            NewTag$("AREA", "true") +_
+                            NewTag$("LEFT", "195") +_
+                            NewTag$("TOP", "116") +_
+                            NewTag$("WIDTH", "210") +_
+                            NewTag$("HEIGHT", "30") +_
+                            NewTag$("TEXT", "Continue"))
+                END IF
+            END IF
+        END IF
+        IF ThisObject%(butt$, mess$, "GADGETUP") THEN
+            PushStr Col1$: Col1$ = ""
+            PushStr Col2$: Col2$ = ""
+            PushStr Col3$: Col3$ = ""
+            PushStr Col4$: Col4$ = ""
+            PushStr Col5$: Col5$ = ""
+            res$ = GenC$("KILL", butt$): butt$ = ""
+            res$ = GenC$("KILL", text$): text$ = ""
+            res$ = GenC$("SET", NewButton$ + NewTag$("DISABLED", "false"))
+        END IF
+        IF ThisObject%(Col1$, mess$, "GADGETUP") THEN
+            chk% = chk% OR 1: lbp% = 1
+            GOSUB initColorChooser
+            obj$ = Col1$
+        END IF
+        IF ThisObject%(Col2$, mess$, "GADGETUP") THEN
+            chk% = chk% OR 2: lbp% = 2
+            GOSUB initColorChooser
+            obj$ = Col2$
+        END IF
+        IF ThisObject%(Col3$, mess$, "GADGETUP") THEN
+            chk% = chk% OR 4: lbp% = 4
+            GOSUB initColorChooser
+            obj$ = Col3$
+        END IF
+        IF ThisObject%(Col4$, mess$, "GADGETUP") THEN
+            chk% = chk% OR 8: lbp% = 8
+            GOSUB initColorChooser
+            obj$ = Col4$
+        END IF
+        IF ThisObject%(Col5$, mess$, "GADGETUP") THEN
+            chk% = chk% OR 16: lbp% = 16
+            GOSUB initColorChooser
+            obj$ = Col5$
+        END IF
+        IF ThisObject%(C1$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(RedSymbol$))
+            GOSUB killColorChooser
+        END IF
+        IF ThisObject%(C2$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(YellowSymbol$))
+            GOSUB killColorChooser
+        END IF
+        IF ThisObject%(C3$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(GreenSymbol$))
+            GOSUB killColorChooser
+        END IF
+        IF ThisObject%(C4$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(BlueSymbol$))
+            GOSUB killColorChooser
+        END IF
+        IF ThisObject%(C5$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(PinkSymbol$))
+            GOSUB killColorChooser
+        END IF
+        IF ThisObject%(C6$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(LilacSymbol$))
+            GOSUB killColorChooser
+        END IF
+        IF ThisObject%(C7$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(OrangeSymbol$))
+            GOSUB killColorChooser
+        END IF
+        IF ThisObject%(C8$, mess$, "GADGETUP") THEN
+            res$ = GenC$("SET", obj$ + SymbolTag$(BrownSymbol$))
+            GOSUB killColorChooser
+        END IF
+    END IF
+

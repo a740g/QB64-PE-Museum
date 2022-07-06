@@ -1,0 +1,286 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === PolygonSupport.bm ===                                         |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides some useful SUBs/FUNCTIONs for Polygon handling.   |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'--- docs\doc_PolygonSupport.bm\PointInPolygon.html
+'---------------------------------------------------------------------
+FUNCTION PointInPolygon% (chkX%, chkY%, srcPolyX%(), srcPolyY%(), ic&&, oc&&)
+'--- check arrays ---
+sLow% = LBOUND(srcPolyX%): sUpp% = UBOUND(srcPolyX%)
+IF LBOUND(srcPolyY%) <> sLow% OR UBOUND(srcPolyY%) <> sUpp% THEN ERROR 97 'mismatch of X and Y array (source polygon)
+'--- count number of nodes ---
+pip% = 0: pre% = sUpp%
+FOR cur% = sLow% TO sUpp%
+    IF (srcPolyY%(cur%) < chkY% AND srcPolyY%(pre%) >= chkY%) OR (srcPolyY%(pre%) < chkY% AND srcPolyY%(cur%) >= chkY%) THEN
+        nx% = srcPolyX%(cur%) + ((chkY% - srcPolyY%(cur%)) / (srcPolyY%(pre%) - srcPolyY%(cur%)) * (srcPolyX%(pre%) - srcPolyX%(cur%)))
+        IF nx% < chkX% THEN pip% = (NOT pip%)
+    END IF
+    pre% = cur%
+NEXT cur%
+'--- fill the pixel, if requested ---
+IF pip% THEN
+    IF ic&& >= 0 THEN PSET (chkX%, chkY%), ic&&
+ELSE
+    IF oc&& >= 0 THEN PSET (chkX%, chkY%), oc&&
+END IF
+'--- set result ---
+PointInPolygon% = pip%
+END FUNCTION
+
+'--- docs\doc_PolygonSupport.bm\PolygonInPolygon.html
+'---------------------------------------------------------------------
+FUNCTION PolygonInPolygon% (chkPolyX%(), chkPolyY%(), srcPolyX%(), srcPolyY%(), ic&&, oc&&, sc&&)
+'--- check arrays ---
+cLow% = LBOUND(chkPolyX%): cUpp% = UBOUND(chkPolyX%)
+IF LBOUND(chkPolyY%) <> cLow% OR UBOUND(chkPolyY%) <> cUpp% THEN ERROR 97 'mismatch of X and Y array (check polygon)
+sLow% = LBOUND(srcPolyX%): sUpp% = UBOUND(srcPolyX%)
+IF LBOUND(srcPolyY%) <> sLow% OR UBOUND(srcPolyY%) <> sUpp% THEN ERROR 97 'mismatch of X and Y array (source polygon)
+'--- find bounding box of entire check polygon ---
+minX% = 32767: maxX% = 0: minY% = 32767: maxY% = 0
+FOR cur% = cLow% TO cUpp%
+    IF chkPolyX%(cur%) < minX% THEN minX% = chkPolyX%(cur%)
+    IF chkPolyX%(cur%) > maxX% THEN maxX% = chkPolyX%(cur%)
+    IF chkPolyY%(cur%) < minY% THEN minY% = chkPolyY%(cur%)
+    IF chkPolyY%(cur%) > maxY% THEN maxY% = chkPolyY%(cur%)
+NEXT cur%
+'--- build a list of nodes ---
+aPix& = 0: iPix& = 0
+FOR pixY% = minY% TO maxY%
+    REDIM nodeX%(0 TO cUpp% + 2)
+    nCnt% = 0: pre% = cUpp%
+    FOR cur% = cLow% TO cUpp%
+        IF (chkPolyY%(cur%) < pixY% AND chkPolyY%(pre%) >= pixY%) OR (chkPolyY%(pre%) < pixY% AND chkPolyY%(cur%) >= pixY%) THEN
+            nodeX%(nCnt%) = chkPolyX%(cur%) + ((pixY% - chkPolyY%(cur%)) / (chkPolyY%(pre%) - chkPolyY%(cur%)) * (chkPolyX%(pre%) - chkPolyX%(cur%)))
+            nCnt% = nCnt% + 1
+        END IF
+        pre% = cur%
+    NEXT cur%
+    '--- sort the nodes via a simple Bubble sort ---
+    cur% = 0
+    WHILE cur% < (nCnt% - 1)
+        IF nodeX%(cur%) > nodeX%(cur% + 1) THEN
+            SWAP nodeX%(cur%), nodeX%(cur% + 1)
+            IF cur% THEN cur% = cur% - 1
+        ELSE
+            cur% = cur% + 1
+        END IF
+    WEND
+    '--- fill the pixels between node pairs ---
+    FOR cur% = 0 TO nCnt% STEP 2
+        IF nodeX%(cur%) >= maxX% THEN EXIT FOR
+        IF nodeX%(cur% + 1) > minX% THEN
+            IF nodeX%(cur%) < minX% THEN nodeX%(cur%) = minX%
+            IF nodeX%(cur% + 1) > maxX% THEN nodeX%(cur% + 1) = maxX%
+            IF nodeX%(cur%) = nodeX%(cur% + 1) THEN
+                aPix& = aPix& + 1
+                IF PointInPolygon%(nodeX%(cur%), pixY%, srcPolyX%(), srcPolyY%(), ic&&, oc&&) THEN iPix& = iPix& + 1
+            ELSE
+                FOR pixX% = nodeX%(cur%) + 1 TO nodeX%(cur% + 1)
+                    aPix& = aPix& + 1
+                    IF PointInPolygon%(pixX%, pixY%, srcPolyX%(), srcPolyY%(), ic&&, oc&&) THEN iPix& = iPix& + 1
+                NEXT pixX%
+            END IF
+        END IF
+    NEXT cur%
+NEXT pixY%
+'--- draw surrounding border, if requested ---
+IF sc&& >= 0 THEN
+    pre% = cUpp%
+    FOR cur% = cLow% TO cUpp%
+        LINE (chkPolyX%(pre%), chkPolyY%(pre%))-(chkPolyX%(cur%), chkPolyY%(cur%)), sc&&
+        pre% = cur%
+    NEXT cur%
+END IF
+'--- set result ---
+PolygonInPolygon% = INT((100 / aPix&) * iPix&)
+END FUNCTION
+
+'--- docs\doc_PolygonSupport.bm\FillPolygon.html
+'---------------------------------------------------------------------
+SUB FillPolygon (srcPolyX%(), srcPolyY%(), fc&&, sc&&)
+'--- check arrays ---
+sLow% = LBOUND(srcPolyX%): sUpp% = UBOUND(srcPolyX%)
+IF LBOUND(srcPolyY%) <> sLow% OR UBOUND(srcPolyY%) <> sUpp% THEN ERROR 97 'mismatch of X and Y array (source polygon)
+'--- find bounding box of entire polygon ---
+minX% = 32767: maxX% = 0: minY% = 32767: maxY% = 0
+FOR cur% = sLow% TO sUpp%
+    IF srcPolyX%(cur%) < minX% THEN minX% = srcPolyX%(cur%)
+    IF srcPolyX%(cur%) > maxX% THEN maxX% = srcPolyX%(cur%)
+    IF srcPolyY%(cur%) < minY% THEN minY% = srcPolyY%(cur%)
+    IF srcPolyY%(cur%) > maxY% THEN maxY% = srcPolyY%(cur%)
+NEXT cur%
+'--- build a list of nodes ---
+FOR pixY% = minY% TO maxY%
+    REDIM nodeX%(0 TO sUpp% + 2)
+    nCnt% = 0: pre% = sUpp%
+    FOR cur% = sLow% TO sUpp%
+        IF (srcPolyY%(cur%) < pixY% AND srcPolyY%(pre%) >= pixY%) OR (srcPolyY%(pre%) < pixY% AND srcPolyY%(cur%) >= pixY%) THEN
+            nodeX%(nCnt%) = srcPolyX%(cur%) + ((pixY% - srcPolyY%(cur%)) / (srcPolyY%(pre%) - srcPolyY%(cur%)) * (srcPolyX%(pre%) - srcPolyX%(cur%)))
+            nCnt% = nCnt% + 1
+        END IF
+        pre% = cur%
+    NEXT cur%
+    '--- sort the nodes via a simple Bubble sort ---
+    cur% = 0
+    WHILE cur% < (nCnt% - 1)
+        IF nodeX%(cur%) > nodeX%(cur% + 1) THEN
+            SWAP nodeX%(cur%), nodeX%(cur% + 1)
+            IF cur% THEN cur% = cur% - 1
+        ELSE
+            cur% = cur% + 1
+        END IF
+    WEND
+    '--- fill the pixels between node pairs ---
+    IF fc&& >= 0 THEN
+        FOR cur% = 0 TO nCnt% STEP 2
+            IF nodeX%(cur%) >= maxX% THEN EXIT FOR
+            IF nodeX%(cur% + 1) > minX% THEN
+                IF nodeX%(cur%) < minX% THEN nodeX%(cur%) = minX%
+                IF nodeX%(cur% + 1) > maxX% THEN nodeX%(cur% + 1) = maxX%
+                IF nodeX%(cur%) = nodeX%(cur% + 1) THEN
+                    PSET (nodeX%(cur%), pixY%), fc&&
+                ELSE
+                    LINE (nodeX%(cur%) + 1, pixY%)-(nodeX%(cur% + 1), pixY%), fc&&
+                END IF
+            END IF
+        NEXT cur%
+    END IF
+NEXT pixY%
+'--- draw surrounding border, if requested ---
+IF sc&& >= 0 THEN
+    pre% = sUpp%
+    FOR cur% = sLow% TO sUpp%
+        LINE (srcPolyX%(pre%), srcPolyY%(pre%))-(srcPolyX%(cur%), srcPolyY%(cur%)), sc&&
+        pre% = cur%
+    NEXT cur%
+END IF
+END SUB
+
+'--- docs\doc_PolygonSupport.bm\OffsetPolygon.html
+'---------------------------------------------------------------------
+FUNCTION OffsetPolygon% (srcPolyX%(), srcPolyY%(), offPolyX%(), offPolyY%(), displace#)
+'--- so far, return failure ---
+OffsetPolygon% = 0
+'--- check arrays ---
+sLow% = LBOUND(srcPolyX%): sUpp% = UBOUND(srcPolyX%)
+IF LBOUND(srcPolyY%) <> sLow% OR UBOUND(srcPolyY%) <> sUpp% THEN ERROR 97 'mismatch of X and Y array (source polygon)
+IF (sUpp% - sLow% + 1) < 3 THEN EXIT FUNCTION 'polygon must have at least three corners
+REDIM offPolyX%(sLow% TO sUpp%), offPolyY%(sLow% TO sUpp%) 'adjust offset polygon arrays
+'--- offset calulation of all corners ---
+pre% = sUpp%
+FOR cur% = sLow% TO sUpp%
+    nex% = cur% + 1: IF nex% > sUpp% THEN nex% = sLow%
+    Ax# = srcPolyX%(pre%): Ay# = srcPolyY%(pre%)
+    Bx# = srcPolyX%(cur%): By# = srcPolyY%(cur%)
+    Cx# = srcPolyX%(nex%): Cy# = srcPolyY%(nex%)
+    GOSUB GetNewCorner
+    IF gncRes% THEN
+        offPolyX%(cur%) = RBx%: offPolyY%(cur%) = RBy%
+    ELSE
+        offPolyX%(cur%) = CINT(Bx#): offPolyY%(cur%) = CINT(By#)
+    END IF
+    pre% = cur%
+NEXT cur%
+'--- offset calculations done ---
+OffsetPolygon% = -1
+EXIT FUNCTION
+
+'--------------------
+'--- GetNewCorner ---
+'--------------------
+' Given the sequentially connected points A, B, and C, this routine
+' returns (in RB) a bevel replacement for point B. If vectors A-B and
+' B-C are exactly 180 degrees opposed, or if either line is zero-length,
+' then this routine will do nothing, ie. point RB will not be set.
+'----------
+' INPUTS:
+'   --- Ax#, Ay# ---
+'   --- Bx#, By# ---
+'   --- Cx#, Cy# ---
+'    The x/y coordinates of the connected points, ie. A is start of the
+'    first line, B is end of the first line and concurrently start of the
+'    second line, C is end of second line.
+'   --- displace# ---
+'    The line distance to offset (inset/outset) the new lines.
+'----------
+' RESULT:
+'   --- gncRes% ---
+'    Shows whether the offset calculations were successful.
+'   --- RBx%, RBy% ---
+'    If gncRes% is true (-1), then these are the x/y coordinates of the
+'    new (replaced) point B. If gncRes% is false (0), then point RB is
+'    undefined and should not be used.
+'---------------------------------------------------------------------
+GetNewCorner:
+'--- so far, no offset point found ---
+gncRes% = 0
+'--- calculate length of line segments ---
+ABdx# = Bx# - Ax#: ABdy# = By# - Ay#: lenAB# = SQR(ABdx# * ABdx# + ABdy# * ABdy#)
+BCdx# = Cx# - Bx#: BCdy# = Cy# - By#: lenBC# = SQR(BCdx# * BCdx# + BCdy# * BCdy#)
+'--- exit if either segment is zero-length ---
+IF lenAB# = 0 OR lenBC# = 0 THEN RETURN
+'--- displace each of the two line segments ---
+'--- use new result variables to avoid argument side effects ---
+B1x# = Bx#: B1y# = By#: B2x# = Bx#: B2y# = By# 'point B needed twice
+Rx# = ABdy# / lenAB# * displace#: Axx# = Ax# + Rx#: B1x# = B1x# + Rx#
+Ry# = -ABdx# / lenAB# * displace#: Ayy# = Ay# + Ry#: B1y# = B1y# + Ry#
+Rx# = BCdy# / lenBC# * displace#: Cxx# = Cx# + Rx#: B2x# = B2x# + Rx#
+Ry# = -BCdx# / lenBC# * displace#: Cyy# = Cy# + Ry#: B2y# = B2y# + Ry#
+'--- if offset segments connect perfectly, return the connection point, ---
+'--- else return the intersection point of the offset segments (if any) ---
+IF B1x# = B2x# AND B1y# = B2y# THEN
+    RBx% = CINT(B1x#): RBy% = CINT(B1y#): gncRes% = -1 'offset point valid
+ELSEIF LineIntersection%(Axx#, Ayy#, B1x#, B1y#, B2x#, B2y#, Cxx#, Cyy#, Rx#, Ry#) THEN
+    RBx% = CINT(Rx#): RBy% = CINT(Ry#): gncRes% = -1 'offset point valid
+END IF
+RETURN
+END FUNCTION
+
+'--- docs\doc_PolygonSupport.bm\LineIntersection.html
+'---------------------------------------------------------------------
+FUNCTION LineIntersection% (Ax#, Ay#, Bx#, By#, Cx#, Cy#, Dx#, Dy#, Ix#, Iy#)
+'--- so far, no intersection found ---
+LineIntersection% = 0
+'--- fail if either line is undefined ---
+IF (Ax# = Bx# AND Ay# = By#) OR (Cx# = Dx# AND Cy# = Dy#) THEN EXIT FUNCTION
+'--- translate the system so that point A is on the origin, ---
+'--- use new result variables to avoid argument side effects ---
+Bxx# = Bx# - Ax#: Byy# = By# - Ay#
+Cxx# = Cx# - Ax#: Cyy# = Cy# - Ay#
+Dxx# = Dx# - Ax#: Dyy# = Dy# - Ay#
+'--- discover the length of line A-B ---
+lenAB# = SQR(Bxx# * Bxx# + Byy# * Byy#)
+'--- rotate the system so that point B is on the positive X axis ---
+rotCos# = Bxx# / lenAB#: rotSin# = Byy# / lenAB#
+tmpX# = Cxx# * rotCos# + Cyy# * rotSin#
+Cyy# = Cyy# * rotCos# - Cxx# * rotSin#: Cxx# = tmpX#
+tmpX# = Dxx# * rotCos# + Dyy# * rotSin#
+Dyy# = Dyy# * rotCos# - Dxx# * rotSin#: Dxx# = tmpX#
+'--- fail if the lines are parallel ---
+IF Cyy# = Dyy# THEN EXIT FUNCTION
+'--- discover the position of the intersection point along line A-B ---
+posAB# = Dxx# + (Cxx# - Dxx#) * Dyy# / (Dyy# - Cyy#)
+'--- apply the found point to line A-B in the original coordinate system ---
+Ix# = Ax# + posAB# * rotCos#
+Iy# = Ay# + posAB# * rotSin#
+'--- success, found intersection, point I is valid ---
+LineIntersection% = -1
+END FUNCTION
+

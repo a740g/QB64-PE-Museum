@@ -1,0 +1,575 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === SliderClass.bm ===                                            |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'| == For a complete documentation see docs\GuiToolsFramework.pdf.   |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Slider Class ====================================================
+'=====================================================================
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the docs\KnownTags.txt file.
+'---------------------------------------------------------------------
+FUNCTION SliderC$ (method$, tagString$)
+SliderRes$ = ""
+classID$ = "SliderC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,WIDTH,HEIGHT,MINIMUM,MAXIMUM,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,IMAGEOBJECT,SYMBOLOBJECT," +_
+                   "LABEL,LABELHIGH,LABELPLACE,LABELMOVEX,LABELMOVEY," +_
+                   "LEVEL,ALTMIN,ALTMAX,TEXTMOVEX,TEXTMOVEY,NOSHOW," +_
+                   "IMAGEFILE,IMAGEHANDLE,AREA,TOOLTIP,DISABLED," '+ user tags
+        'NOTE: If given, LEVEL will be clipped to either MINIMUM or MAXIMUM
+        '      when out of valid range. Default LEVEL = MINIMUM.
+        '      TEXTMOVEX/Y can be used to adjust the level output within
+        '      the slider's knob (unless NOSHOW is set true).
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "IMAGEOBJECT,SYMBOLOBJECT,MINIMUM,MAXIMUM," +_
+                   "LEVEL,TEXTMOVEX,TEXTMOVEY,NOSHOW,DISABLED," '+ user tags
+        'NOTE: If given, LEVEL will be clipped to either MINIMUM or MAXIMUM
+        '      when out of valid range.
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or SELECTED,RELEASED,SHORTCUT (may be empty)
+    CASE ELSE
+        SetTag SliderRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+SliderC$ = SliderRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag SliderRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    ApplyPrefs classID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, SliderRes$, classID$, tagsID$) THEN
+        '--- object specific init ---
+        mini& = VAL(GetTagData$(tagsID$, "MINIMUM", "0")): maxi& = VAL(GetTagData$(tagsID$, "MAXIMUM", "0"))
+        leve& = VAL(GetTagData$(tagsID$, "LEVEL", "-2147483648"))
+        IF leve& < mini& THEN leve& = mini&
+        IF leve& > maxi& THEN leve& = maxi&
+        SetTag tagsID$, "LEVEL", LTRIM$(STR$(leve&))
+        widt% = VAL(GetTagData$(tagsID$, "WIDTH", "0")): heig% = VAL(GetTagData$(tagsID$, "HEIGHT", "0"))
+        IF heig% < widt% THEN
+            knob% = heig% - 8 'horizontal is default (no Tag)
+        ELSE
+            knob% = widt% - 8
+            SetTag guiObjects$(objData%, this&), "ALIGN", "vertical"
+        END IF
+        '--- check for assigned Image/Symbol ---
+        InitAssignedImgSym "IMAGEOBJECT", SliderRes$, classID$, tagsID$
+        InitAssignedImgSym "SYMBOLOBJECT", SliderRes$, classID$, tagsID$
+        '--- frame/symbol init ---
+        BeginChildInit
+        InitObjectBGImg this&, SliderRes$, classID$, tagsID$
+        fram$ = FrameC$("INIT", GetTags$(tagsID$, "LEFT,TOP,WIDTH,HEIGHT") + NewTag$("FORM", "simple"))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("FRM0", fram$)
+        symb$ = SymbolC$("INIT", NewTag$("WHICH", "TapeRecord") + NewTag$("LEFT", "4") + NewTag$("TOP", "4") + NewTag$("WIDTH", LTRIM$(STR$(knob%))) + NewTag$("HEIGHT", LTRIM$(STR$(knob%))))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("SYM0", symb$)
+        EndChildInit
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        ObjectsUnselect this&
+        '--- set result and schedule gui refresh ---
+        SetTag SliderRes$, "OBJECT", LTRIM$(STR$(this&))
+        SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, SliderRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = 0
+    IF SetAssignedImgSym%(this&, "IMAGEOBJECT", SliderRes$, classID$, tagsID$) THEN flag% = -1
+    IF SetAssignedImgSym%(this&, "SYMBOLOBJECT", SliderRes$, classID$, tagsID$) THEN flag% = -1
+    IF UpdateTags%(guiObjects$(objData%, this&), "MINIMUM,MAXIMUM,TEXTMOVEX,TEXTMOVEY,NOSHOW", tagsID$) THEN flag% = -1
+    temp$ = GetTagData$(tagsID$, "LEVEL", "n/a")
+    IF temp$ <> "n/a" THEN
+        otag$ = GetTagData$(guiObjects$(objData%, this&), "LEVEL", "n/a")
+        '--- range check ---
+        mini& = VAL(GetTagData$(guiObjects$(objData%, this&), "MINIMUM", "0"))
+        maxi& = VAL(GetTagData$(guiObjects$(objData%, this&), "MAXIMUM", "0"))
+        leve& = VAL(temp$)
+        IF leve& < mini& THEN leve& = mini&
+        IF leve& > maxi& THEN leve& = maxi&
+        temp$ = LTRIM$(STR$(leve&))
+        IF temp$ <> otag$ THEN
+            SetTag guiObjects$(objData%, this&), "LEVEL", temp$
+            flag% = -1
+        END IF
+    END IF
+    temp$ = GetTagData$(tagsID$, "DISABLED", "n/a")
+    IF temp$ <> "n/a" THEN
+        IF BoolTagTrue%(tagsID$, "DISABLED") THEN
+            RemTags guiObjects$(objData%, this&), "FOCUS,SELECTED"
+            SetTag guiObjects$(objData%, this&), "DISABLED", "true"
+        ELSE
+            RemTag guiObjects$(objData%, this&), "DISABLED"
+        END IF
+        flag% = -1
+    END IF
+    '--- check any remaining user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- redraw and update object (if required) ---
+    IF flag% THEN resu$ = ObjectRefresh$(this&, "du", "")
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, SliderRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN SliderRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, SliderRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete child objects ---
+    resu$ = SymbolC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "SYM0"))
+    resu$ = FrameC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BBGIMG"))
+    '--- check for assigned Symbol/Image ---
+    KillAssignedImgSym this&, "SYMBOLOBJECT"
+    KillAssignedImgSym this&, "IMAGEOBJECT"
+    '--- check pager conditions ---
+    KillAssignedPager this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, SliderRes$, classID$, methodID$, tagsID$) THEN
+    '--- select drawing colors ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") AND BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+        back% = guiFillPen% 'back pen
+        focu% = guiFillTextPen%: disa% = guiFillPen% 'state pens
+        rebo$ = "true" 'recess border frame?
+    ELSE
+        back% = guiBackPen% 'back pen
+        focu% = guiHighPen%: disa% = guiFillPen% 'state pens
+        rebo$ = "false" 'recess border frame?
+    END IF
+    '--- get object's properties ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    alig$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "ALIGN", "horizontal"))
+    mini& = VAL(GetTagData$(guiObjects$(objData%, this&), "MINIMUM", "0"))
+    maxi& = VAL(GetTagData$(guiObjects$(objData%, this&), "MAXIMUM", "0"))
+    leve& = VAL(GetTagData$(guiObjects$(objData%, this&), "LEVEL", "0"))
+    nosh% = BoolTagTrue%(guiObjects$(objData%, this&), "NOSHOW")
+    sobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "SYM0", "0"))
+    '--- draw object ----
+    FillRectColor left%, topp%, widt%, heig%, back%
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    IF alig$ = "horizontal" THEN
+        knob% = heig% - 8: midl% = INT(heig% / 2) + topp%: dist% = INT(knob% / 2) + 4
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") THEN
+            LINE (left% + dist%, midl%)-(left% + widt% - dist%, midl%), focu%
+            LINE (left% + dist%, midl% - INT(knob% / 4))-(left% + dist%, midl% + INT(knob% / 4)), focu%
+            LINE (left% + (widt% / 4) + (dist% / 2), midl% - INT(knob% / 8))-(left% + (widt% / 4) + (dist% / 2), midl% + INT(knob% / 8)), focu%
+            LINE (left% + (widt% / 2), midl% - INT(knob% / 4))-(left% + (widt% / 2), midl% + INT(knob% / 4)), focu%
+            LINE (left% + widt% - (widt% / 4) - (dist% / 2), midl% - INT(knob% / 8))-(left% + widt% - (widt% / 4) - (dist% / 2), midl% + INT(knob% / 8)), focu%
+            LINE (left% + widt% - dist%, midl% - INT(knob% / 4))-(left% + widt% - dist%, midl% + INT(knob% / 4)), focu%
+            BrightenObjectBG this&, left%, topp%, widt%, heig%
+            LINE (left% + dist%, midl%)-(left% + widt% - dist%, midl%), focu%
+            LINE (left% + dist%, midl% - INT(knob% / 4))-(left% + dist%, midl% + INT(knob% / 4)), focu%
+            LINE (left% + (widt% / 4) + (dist% / 2), midl% - INT(knob% / 8))-(left% + (widt% / 4) + (dist% / 2), midl% + INT(knob% / 8)), focu%
+            LINE (left% + (widt% / 2), midl% - INT(knob% / 4))-(left% + (widt% / 2), midl% + INT(knob% / 4)), focu%
+            LINE (left% + widt% - (widt% / 4) - (dist% / 2), midl% - INT(knob% / 8))-(left% + widt% - (widt% / 4) - (dist% / 2), midl% + INT(knob% / 8)), focu%
+            LINE (left% + widt% - dist%, midl% - INT(knob% / 4))-(left% + widt% - dist%, midl% + INT(knob% / 4)), focu%
+        END IF
+        IF NOT ValidateTags%(guiObjects$(objData%, this&), "GRABDISP", 0) THEN
+            full% = widt% - (2 * dist%): rang&& = maxi& - mini&
+            offx% = (full% / rang&& * (leve& - mini&)) + 4
+            SetTag guiObjects$(objData%, sobj&), "LEFT", LTRIM$(STR$(offx%))
+        END IF
+    ELSE
+        knob% = widt% - 8: midl% = INT(widt% / 2) + left%: dist% = INT(knob% / 2) + 4
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") THEN
+            LINE (midl%, topp% + dist%)-(midl%, topp% + heig% - dist%), focu%
+            LINE (midl% - INT(knob% / 4), topp% + dist%)-(midl% + INT(knob% / 4), topp% + dist%), focu%
+            LINE (midl% - INT(knob% / 8), topp% + (heig% / 4) + (dist% / 2))-(midl% + INT(knob% / 8), topp% + (heig% / 4) + (dist% / 2)), focu%
+            LINE (midl% - INT(knob% / 4), topp% + (heig% / 2))-(midl% + INT(knob% / 4), topp% + (heig% / 2)), focu%
+            LINE (midl% - INT(knob% / 8), topp% + heig% - (heig% / 4) - (dist% / 2))-(midl% + INT(knob% / 8), topp% + heig% - (heig% / 4) - (dist% / 2)), focu%
+            LINE (midl% - INT(knob% / 4), topp% + heig% - dist%)-(midl% + INT(knob% / 4), topp% + heig% - dist%), focu%
+            BrightenObjectBG this&, left%, topp%, widt%, heig%
+            LINE (midl%, topp% + dist%)-(midl%, topp% + heig% - dist%), focu%
+            LINE (midl% - INT(knob% / 4), topp% + dist%)-(midl% + INT(knob% / 4), topp% + dist%), focu%
+            LINE (midl% - INT(knob% / 8), topp% + (heig% / 4) + (dist% / 2))-(midl% + INT(knob% / 8), topp% + (heig% / 4) + (dist% / 2)), focu%
+            LINE (midl% - INT(knob% / 4), topp% + (heig% / 2))-(midl% + INT(knob% / 4), topp% + (heig% / 2)), focu%
+            LINE (midl% - INT(knob% / 8), topp% + heig% - (heig% / 4) - (dist% / 2))-(midl% + INT(knob% / 8), topp% + heig% - (heig% / 4) - (dist% / 2)), focu%
+            LINE (midl% - INT(knob% / 4), topp% + heig% - dist%)-(midl% + INT(knob% / 4), topp% + heig% - dist%), focu%
+        END IF
+        IF NOT ValidateTags%(guiObjects$(objData%, this&), "GRABDISP", 0) THEN
+            full% = heig% - (2 * dist%): rang&& = maxi& - mini&
+            offy% = full% - (full% / rang&& * (leve& - mini&)) + 4
+            SetTag guiObjects$(objData%, sobj&), "TOP", LTRIM$(STR$(offy%))
+        END IF
+    END IF
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "IMAGEOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYMBOLOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYM0") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = FrameC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "FRM0") + NewTag$("RECESSED", rebo$))
+    '--- level output ---
+    IF NOT nosh% THEN
+        leve$ = LTRIM$(STR$(leve&))
+        amin$ = GetTagData$(guiObjects$(objData%, this&), "ALTMIN", "n/a")
+        amax$ = GetTagData$(guiObjects$(objData%, this&), "ALTMAX", "n/a")
+        IF amin$ <> "n/a" AND leve& = mini& THEN leve$ = amin$
+        IF amax$ <> "n/a" AND leve& = maxi& THEN leve$ = amax$
+        offx% = VAL(GetTagData$(guiObjects$(objData%, sobj&), "LEFT", "0")) + dist% - INT(_PRINTWIDTH(leve$) / 2)
+        offy% = VAL(GetTagData$(guiObjects$(objData%, sobj&), "TOP", "0")) + dist% - INT(_FONTHEIGHT / 2)
+        xmov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEX", "0"))
+        ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEY", "0"))
+        prim% = _PRINTMODE
+        SetPrintMode pmKEEP%
+        COLOR guiTextPen%
+        _PRINTSTRING (left% + offx% - 3 + xmov%, topp% + offy% - 2 + ymov%), leve$
+        SetPrintMode prim%
+    END IF
+    '--- label output ---
+    PrintObjectLabel this&, left%, topp%, widt%, heig%
+    '--- check on/off state ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN
+        FillRectRaster left%, topp%, widt%, heig%, disa%
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, SliderRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't update, if currently disabled ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN RETURN
+    '--- save old drawing relevant states ---
+    osta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED")
+    '--- get mouse position and object properties ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    scrv% = VAL(GetTagData$(tagsID$, "SCRVAL", "0"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    alig$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "ALIGN", "horizontal"))
+    mini& = VAL(GetTagData$(guiObjects$(objData%, this&), "MINIMUM", "0"))
+    maxi& = VAL(GetTagData$(guiObjects$(objData%, this&), "MAXIMUM", "0"))
+    leve& = VAL(GetTagData$(guiObjects$(objData%, this&), "LEVEL", "0"))
+    sobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "SYM0", "0"))
+    '--- check for mouse trigger in different container sections ---
+    IF alig$ = "horizontal" THEN
+        offt$ = "LEFT": offs% = VAL(GetTagData$(guiObjects$(objData%, sobj&), offt$, "0"))
+        slid% = widt%: knob% = heig% - 8: dist% = INT(knob% / 2) + 4
+        full% = widt% - (2 * dist%): rang&& = maxi& - mini&
+        e1st% = left% + offs%: s2nd% = e1st% + knob%
+        IF moux% >= left% AND moux% < e1st% AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+            SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+            IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                IF leve& > mini& THEN SetTag guiObjects$(objData%, this&), "LEVEL", LTRIM$(STR$(leve& - 1))
+                SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                GOSUB meMousemoveKnob
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "M" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "K" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+                GOSUB meMousescroll
+            END IF
+        ELSEIF moux% >= e1st% AND moux% < s2nd% AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+            SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+            IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                SetTag guiObjects$(objData%, this&), "OLDLEVEL", LTRIM$(STR$(leve&))
+                SetTag guiObjects$(objData%, this&), "GRABDISP", LTRIM$(STR$(moux% - offs%))
+                SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                GOSUB meMousemoveKnob
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "M" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "K" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+                GOSUB meMousescroll
+            END IF
+        ELSEIF moux% >= s2nd% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+            SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+            IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                IF leve& < maxi& THEN SetTag guiObjects$(objData%, this&), "LEVEL", LTRIM$(STR$(leve& + 1))
+                SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                GOSUB meMousemoveKnob
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "M" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "K" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+                GOSUB meMousescroll
+            END IF
+        ELSE
+            RemTag guiObjects$(objData%, this&), "FOCUS"
+            IF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+                IF BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                    IF GetTagData$(guiObjects$(objData%, this&), "GRABDISP", "n/a") <> "n/a" AND _
+                       moux% >= (left% - 50) AND moux% < (left% + widt% + 50) AND mouy% >= (topp% - 50) AND mouy% < (topp% + heig% + 50) THEN
+                        SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+                    ELSE
+                        ObjectReset this&
+                        SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+                    END IF
+                    RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                ELSEIF BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                    GOSUB meMousemoveKnob
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 AND BoolTagTrue%(tagsID$, "FOCUS") THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "M" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "K" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") AND BoolTagTrue%(tagsID$, "FOCUS") THEN
+                GOSUB meMousescroll
+            END IF
+        END IF
+    ELSE
+        offt$ = "TOP": offs% = VAL(GetTagData$(guiObjects$(objData%, sobj&), offt$, "0"))
+        slid% = heig%: knob% = widt% - 8: dist% = INT(knob% / 2) + 4
+        full% = heig% - (2 * dist%): rang&& = maxi& - mini&
+        e1st% = topp% + offs%: s2nd% = e1st% + knob%
+        IF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < e1st% THEN
+            SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+            IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                IF leve& < maxi& THEN SetTag guiObjects$(objData%, this&), "LEVEL", LTRIM$(STR$(leve& + 1))
+                SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                GOSUB meMousemoveKnob
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+                GOSUB meMousescroll
+            END IF
+        ELSEIF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= e1st% AND mouy% < s2nd% THEN
+            SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+            IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                SetTag guiObjects$(objData%, this&), "OLDLEVEL", LTRIM$(STR$(leve&))
+                SetTag guiObjects$(objData%, this&), "GRABDISP", LTRIM$(STR$(mouy% - offs%))
+                SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                GOSUB meMousemoveKnob
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+                GOSUB meMousescroll
+            END IF
+        ELSEIF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= s2nd% AND mouy% < (topp% + heig%) THEN
+            SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+            IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+                SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+                SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                IF leve& > mini& THEN SetTag guiObjects$(objData%, this&), "LEVEL", LTRIM$(STR$(leve& - 1))
+                SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                GOSUB meMousemoveKnob
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+                GOSUB meMousescroll
+            END IF
+        ELSE
+            RemTag guiObjects$(objData%, this&), "FOCUS"
+            IF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+                IF BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                    IF GetTagData$(guiObjects$(objData%, this&), "GRABDISP", "n/a") <> "n/a" AND _
+                       moux% >= (left% - 50) AND moux% < (left% + widt% + 50) AND mouy% >= (topp% - 50) AND mouy% < (topp% + heig% + 50) THEN
+                        SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+                    ELSE
+                        ObjectReset this&
+                        SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+                    END IF
+                    RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+                ELSEIF BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                    GOSUB meMousemoveKnob
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "KEYPRESS") AND guiASCObject& = 0 AND BoolTagTrue%(tagsID$, "FOCUS") THEN
+                RemTags tagsID$, "CTRL,ALT"
+                IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
+                    scrv% = 1: GOSUB meMousescroll
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "H" THEN
+                    scrv% = -1: GOSUB meMousescroll
+                END IF
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") AND BoolTagTrue%(tagsID$, "FOCUS") THEN
+                GOSUB meMousescroll
+            END IF
+        END IF
+    END IF
+    '--- redraw object, if state has changed ---
+    nsta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED")
+    IF nsta$ <> osta$ THEN
+        resu$ = SliderC$("DRAW", thisTag$)
+    END IF
+END IF
+RETURN
+'----------------------------------
+meMousemoveKnob:
+disp$ = GetTagData$(guiObjects$(objData%, this&), "GRABDISP", "n/a")
+IF disp$ <> "n/a" THEN
+    IF alig$ = "horizontal" THEN mous% = moux%: ELSE mous% = mouy%
+    offn% = mous% - VAL(disp$)
+    IF offn% < 4 THEN
+        offn% = 4
+    ELSEIF offn% > slid% - knob% - 4 THEN
+        offn% = slid% - knob% - 4
+    END IF
+    SetTag guiObjects$(objData%, sobj&), offt$, LTRIM$(STR$(offn%))
+    olev& = leve&
+    IF alig$ = "horizontal" THEN
+        leve& = rang&& / full% * (offn% - 4) + mini&
+    ELSE
+        leve& = INT(rang&& / full% * (full% - (offn% - 4))) + mini&
+    END IF
+    IF leve& <> olev& THEN
+        SetTag guiObjects$(objData%, this&), "LEVEL", LTRIM$(STR$(leve&))
+        SetTag SliderRes$, "SELECTED", LTRIM$(STR$(this&))
+    END IF
+    resu$ = SliderC$("DRAW", thisTag$)
+    SetTag SliderRes$, "MOUSEMOVE", "true"
+END IF
+RETURN
+'----------------------------------
+meMousescroll:
+IF NOT BoolTagTrue%(tagsID$, "ALT") AND NOT BoolTagTrue%(tagsID$, "CTRL") THEN
+    RemTags guiObjects$(objData%, this&), "SELECTED,GRABDISP,OLDLEVEL"
+    IF BoolTagTrue%(tagsID$, "SHIFT") THEN scrv% = scrv% * 10
+    leve& = leve& - scrv%
+    IF leve& < mini& THEN leve& = mini&: ELSE IF leve& > maxi& THEN leve& = maxi&
+    SetTag guiObjects$(objData%, this&), "LEVEL", LTRIM$(STR$(leve&))
+    resu$ = SliderC$("DRAW", thisTag$)
+    SetTag SliderRes$, "RELEASED", LTRIM$(STR$(this&))
+    SetTag SliderRes$, "SHORTCUT", "true"
+    SetTag SliderRes$, "MOUSESCROLL", "true"
+END IF
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

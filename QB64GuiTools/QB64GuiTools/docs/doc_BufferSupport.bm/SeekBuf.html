@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SeekBuf</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>SeekBuf <em>(function)</em></h2>
+<p>This function will set the current buffer position in the specified buffer
+using the given placement details. That position is important, as it is
+used as starting point for most buffer operations, which in any way read,
+write, copy or search data. The result of this function is the old position
+in the buffer, or negative if an error occurs. You specify the relative
+start position (origin) and a displacement, which may be positive or negative
+and which will be added to the origin. Eg. 20 from current is a position
+20 bytes forward from current, -20 is 20 bytes back from current. You'll
+get an error, if you try to seek beyond the lower or upper bounds of the
+buffer data range.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>oldPos&amp; = SeekBuf&amp; (handle%, displace&amp;, mode%)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, for which you wanna set the
+new position.</li>
+</ul>
+<h4>displace&amp; <em>(LONG)</em></h4>
+<ul>
+<li>This is any value which is added to the start position (origin) designated
+by the given seek mode, it may be negative, zero or positive.</li>
+</ul>
+<h4>mode% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the desired seek mode, which designates the origin for the new
+position, it may be a regular seek mode as defined in the <strong>simplebuffer.bi</strong>
+file (see also below) or the ID number of any set bookmark, which its
+position shall be used as origin.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>oldPos&amp; <em>(LONG)</em></h4>
+<ul>
+<li>On success (positive value) this is the old position in the buffer.</li>
+<li>On failure (negative value) it is any of the error numbers defined in
+the <strong>simplebuffer.bi</strong> file (see <a href="BufferSupport-Common.html">Common-Info</a>),
+the old position remains unchanged in this case.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SEEK MODES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>SBM_PosRestore</h4>
+<ul>
+<li>If you know the exact position, then this is the easiest mode, it will set
+any absolute position given in the displacement argument (valid values range
+from 1 to <a href="GetBufLen.html">GetBufLen()</a> + 1).</li>
+</ul>
+<h4>SBM_BufStart</h4>
+<ul>
+<li>Set a position relative to the buffer start (ie. 1 + displacement).</li>
+</ul>
+<h4>SBM_BufCurrent</h4>
+<ul>
+<li>Set a position relative to the current position (ie. <a href="GetBufPos.html">GetBufPos()</a> +
+displacement).</li>
+</ul>
+<h4>SBM_BufEnd</h4>
+<ul>
+<li>Set a position relative to the buffer end (ie. (<a href="GetBufLen.html">GetBufLen()</a> + 1) +
+displacement).</li>
+</ul>
+<h4>SBM_LineStart</h4>
+<ul>
+<li>
+Set a position relative to the start of the current line, ie. the line
+where the current buffer position is right now.
+<ul>
+<li>Start of line = first char of the line.</li>
+<li>Ie. the set position is 1st char of line + displacement.</li>
+</ul>
+</li>
+</ul>
+<h4>SBM_LineEnd</h4>
+<ul>
+<li>
+Set a position relative to the end of the current line, ie. the line
+where the current buffer position is right now.
+<ul>
+<li>End of line = last char of the line + 1 (ie. the 1st line break char,
+which is CHR$(13) for Windows or CHR$(10) for Linux/MacOSX).</li>
+<li>Ie. the set position is current line's 1st line break char  + displacement.</li>
+</ul>
+</li>
+</ul>
+<h4>any Bookmark ID</h4>
+<ul>
+<li>
+Set a position relative to the bookmark position (ie. <a href="GetBufMark.html">GetBufMark()</a> +
+displacement).
+<ul>
+<li>If the displacement is zero, then this is equal to <a href="GotoBufMark.html">GotoBufMark()</a>.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

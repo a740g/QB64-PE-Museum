@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BufferSupport-Common</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>Informations &amp; Critical Conditions</h2>
+<p>The Simplebuffer system identifies its distinct buffers by using unique
+handles. You already know this from images, sounds and fonts. The handles
+are returned by all functions which create a new buffer, but as failure
+is possible at any time, make sure to check the returned values. Valid
+handles are in general positive (ie. &gt;= 0), while errors are negative.</p>
+<p>You must pass handles to most buffer functions to designate the desired
+buffer for operation. Be aware here, that also positive handle values may
+be invalid, if they point to an previously disposed buffer. Passing invalid
+handles is considered critical and the buffer system will break the program
+execution with an &quot;Invalid handle&quot; error (#258). You cannot continue the
+program from this point, as an invalid handle indicates a generic bug in
+your program flow logic, which must be solved through bug fixing.</p>
+<p>The Simplebuffer system can issue a maximum of 32768 handles, so that
+would also be the amount of buffers, which can be active at the same time.
+Disposing unused buffers will save memory and make its handles available
+for reuse.</p>
+<p>Each single buffer can hold a maximum data size of 2GiB. If this size is
+exceeded during operation, then the buffer system will break the program
+execution with an &quot;Out of memory&quot; error (#7). However, you may continue
+the program from here, but note that the load, insert or write operation
+responsible for the error was not finished then. Hence the buffer does not
+have the expected contents when continuing.</p>
+<h2>Caught &amp; Uncaught Errors</h2>
+<p>Beside the two critical conditions mentioned above there may be other,
+less severe errors. At best the affected functions will simply do nothing
+in such cases, but return common error codes. You may check and use these
+values to control the further program flow. The error codes shown below
+are defined as CONSTs in the <strong>simplebuffer.bi</strong> file.</p>
+<p>Note also, that any buffer functions working with files, will not catch the
+possible filesystem errors. Only the errors related to the buffer system
+itself will be caught and returned by the various buffer functions. Hence,
+make sure the files and folders you work with do exist to avoid those
+filesystem errors.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>WARNINGS &amp; ERRORS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>SBE_NoMoreBuffers</h4>
+<ul>
+<li>Is returned by the functions <a href="CreateBuf.html">CreateBuf()</a>, <a href="FileToBuf.html">FileToBuf()</a> and <a href="CloneBuf.html">CloneBuf()</a>,
+it means there are no more buffers available (max. 32768). You should always
+dispose no longer needed buffers to make its handles available for reuse
+(see <a href="DisposeBuf.html">DisposeBuf()</a>).</li>
+</ul>
+<h4>SBE_NoMoreIDs</h4>
+<ul>
+<li>Is returned by <a href="SetBufMark.html">SetBufMark()</a> and <a href="SetBufFind.html">SetBufFind()</a>, it means there are no more
+bookmark or find IDs available (max. 100). You should always remove no
+longer needed bookmarks and search criteria to make its IDs available for
+reuse (see <a href="RemoveBufMark.html">RemoveBufMark()</a> and <a href="RemoveBufFind.html">RemoveBufFind()</a>).</li>
+</ul>
+<h4>SBE_EmptyFind</h4>
+<ul>
+<li>This error is returned by <a href="SetBufFind.html">SetBufFind()</a> only. It happens when you pass an
+empty search criteria string to the function. Looking for &quot;nothing&quot; makes
+not much sense, obviously.</li>
+</ul>
+<h4>SBE_UnknownMode</h4>
+<ul>
+<li>Is returned by function <a href="SeekBuf.html">SeekBuf()</a> only, it means the given mode argument
+was not recognized by the function. This may be because of an typo in the mode
+name, look up the correct spelling in file <strong>simplebuffer.bi</strong>, if in doubt.</li>
+</ul>
+<h4>SBE_OutOfBounds</h4>
+<ul>
+<li>This error may be returned by several functions, it means a given or by a
+displacement calculated position is out of the valid buffer data range, which
+is usually 1 to <a href="GetBufLen.html">GetBufLen()</a> + 1.</li>
+</ul>
+<h4>SBE_BadIDNumber</h4>
+<ul>
+<li>Is mainly returned by the various marker and find functions, but also by
+<a href="SeekBuf.html">SeekBuf()</a>, if you make a bookmark seek. It means, that the given bookmark
+or find ID was out of the valid range 1 to 100. This may indicate the use
+of a wrong or misspelled variable for the ID number, as <a href="SetBufMark.html">SetBufMark()</a> and
+<a href="SetBufFind.html">SetBufFind()</a> usually return valid IDs on successful calls.</li>
+</ul>
+<h4>SBE_UnusedID</h4>
+<ul>
+<li>Also returned by the various marker and find functions, it means you tried
+to get, goto or seek to an unset bookmark, or search for yet undefined criteria.
+This can be seen as warning only, as the respective functions will simply
+ignore those calls. However, this may also indicate the use of a wrong or
+misspelled variable for the ID number.</li>
+</ul>
+<h4>SBE_ClearedID</h4>
+<ul>
+<li>Similar to the above, but only returned by the marker related functions and
+<a href="SeekBuf.html">SeekBuf()</a>. It means the accessed bookmark became invalid, because the data at
+the marked position were deleted. It's also just a warning, you may remove
+the bookmark to make its ID available for reuse.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

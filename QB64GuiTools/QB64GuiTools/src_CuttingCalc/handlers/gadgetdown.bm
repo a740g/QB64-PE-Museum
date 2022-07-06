@@ -1,0 +1,101 @@
+    IF ValidateTags%(mess$, "GADGETDOWN", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'Any clickable GUI object went into selected state, ie. the left
+        'mousebutton was pressed while the object had focus (MOUSEOVER).
+        'While the object in question remains selected, this event will
+        'also be repeated whenever any vital properties of the object do
+        'change due to user interaction (eg. typing into input fields or
+        'moving a slider/scroller etc.). As of this behavior, this event
+        'is perfectly usable, if you need to do some kind of immediate
+        'reaction for such an object. Nevertheless you should also provide
+        'a GADGETUP handler block for those immediate changing objects in
+        'order to not miss the finalized values. The function ThisObject%()
+        'does match the GADGETDOWN object with a given object to easily
+        'build handling blocks for your objects:
+        ' eg. IF ThisObject%(myObj$, message$, "GADGETDOWN") THEN ...
+
+        '--- immediately recalculate values upon any inputs ---
+        '--- tool diameter ---
+        IF ThisObject%(StringDiameter$, mess$, "GADGETDOWN") THEN
+            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fn# = VAL(GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            vc# = VAL(GetTagData$(GenC$("GET", StringCutSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            IF d# <> 0 THEN
+                n& = ((vc# * extFac%) / d#) / 3.141592653589793: vf& = fn# * n&
+                r$ = GenC$("SET", StringSpeed$ + NewTag$("TEXT", LTRIM$(STR$(n&))))
+                r$ = GenC$("SET", StringFeed$ + NewTag$("TEXT", LTRIM$(STR$(vf&))))
+            END IF
+        END IF
+        '--- number of teeth ---
+        IF ThisObject%(StringTeeth$, mess$, "GADGETDOWN") THEN
+            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fz# = VAL(GetTagData$(GenC$("GET", StringPerTooth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fn# = z% * fz#: vf& = fn# * n&
+            fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))
+            r$ = GenC$("SET", StringPerRev$ + NewTag$("TEXT", fn$))
+            r$ = GenC$("SET", StringFeed$ + NewTag$("TEXT", LTRIM$(STR$(vf&))))
+        END IF
+        '--- feed per tooth ---
+        IF ThisObject%(StringPerTooth$, mess$, "GADGETDOWN") THEN
+            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fz# = VAL(GetTagData$(GenC$("GET", StringPerTooth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fn# = z% * fz#: vf& = fn# * n&
+            fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))
+            r$ = GenC$("SET", StringPerRev$ + NewTag$("TEXT", fn$))
+            r$ = GenC$("SET", StringFeed$ + NewTag$("TEXT", LTRIM$(STR$(vf&))))
+        END IF
+        '--- feed per revolution ---
+        IF ThisObject%(StringPerRev$, mess$, "GADGETDOWN") THEN
+            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fn# = VAL(GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            IF z% <> 0 THEN
+                fz# = fn# / z%: vf& = fn# * n&
+                fz$ = LTRIM$(IndexFormat$(numFmt$, STR$(fz#), "|"))
+                r$ = GenC$("SET", StringPerTooth$ + NewTag$("TEXT", fz$))
+                r$ = GenC$("SET", StringFeed$ + NewTag$("TEXT", LTRIM$(STR$(vf&))))
+            END IF
+        END IF
+        '--- cutting speed ---
+        IF ThisObject%(StringCutSpeed$, mess$, "GADGETDOWN") THEN
+            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fn# = VAL(GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            vc# = VAL(GetTagData$(GenC$("GET", StringCutSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            IF d# <> 0 THEN
+                n& = ((vc# * extFac%) / d#) / 3.141592653589793: vf& = fn# * n&
+                r$ = GenC$("SET", StringSpeed$ + NewTag$("TEXT", LTRIM$(STR$(n&))))
+                r$ = GenC$("SET", StringFeed$ + NewTag$("TEXT", LTRIM$(STR$(vf&))))
+            END IF
+        END IF
+        '--- spindle speed ---
+        IF ThisObject%(StringSpeed$, mess$, "GADGETDOWN") THEN
+            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            vf& = VAL(GetTagData$(GenC$("GET", StringFeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            IF n& <> 0 AND z% <> 0 THEN
+                vc# = (3.141592653589793 * d# * n&) / extFac%: fn# = vf& / n&: fz# = fn# / z%
+                vc$ = LTRIM$(IndexFormat$(numFmt$, STR$(vc#), "|"))
+                fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))
+                fz$ = LTRIM$(IndexFormat$(numFmt$, STR$(fz#), "|"))
+                r$ = GenC$("SET", StringCutSpeed$ + NewTag$("TEXT", vc$))
+                r$ = GenC$("SET", StringPerRev$ + NewTag$("TEXT", fn$))
+                r$ = GenC$("SET", StringPerTooth$ + NewTag$("TEXT", fz$))
+            END IF
+        END IF
+        '--- feed rate ---
+        IF ThisObject%(StringFeed$, mess$, "GADGETDOWN") THEN
+            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            vf& = VAL(GetTagData$(GenC$("GET", StringFeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            IF n& <> 0 AND z% <> 0 THEN
+                fn# = vf& / n&: fz# = fn# / z%
+                fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))
+                fz$ = LTRIM$(IndexFormat$(numFmt$, STR$(fz#), "|"))
+                r$ = GenC$("SET", StringPerRev$ + NewTag$("TEXT", fn$))
+                r$ = GenC$("SET", StringPerTooth$ + NewTag$("TEXT", fz$))
+            END IF
+        END IF
+    END IF
+

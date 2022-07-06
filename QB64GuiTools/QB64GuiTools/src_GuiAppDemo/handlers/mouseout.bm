@@ -1,0 +1,9 @@
+    IF ValidateTags%(mess$, "MOUSEOUT", 0) THEN 'use ValidateTags%() to check for non-BOOL tags
+        'Any clickable GUI object did lose its focus state. This event
+        'is triggered once right in the moment when the mousepointer does
+        'leave an clickable object. The function ThisObject%() does match
+        'the MOUSEOUT object with a given object to easily build handling
+        'blocks for your objects:
+        ' eg. IF ThisObject%(myObj$, message$, "MOUSEOUT") THEN ...
+    END IF
+

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SearchFile</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>SearchFile$ <em>(function)</em></h2>
+<p>This function will recursively search the given drive or folder for the
+specified file, ie. it will start in the given place and walk through that
+place and all its subfolders to locate the file. If the file was found, then
+it is returned inclusive its full qualified absolute path.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>filespec$ = SearchFile$ (startDir$, mustHave$, file$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>startDir$ <em>(STRING)</em></h4>
+<ul>
+<li>This is the place where to start the search, it can be any valid drive
+or folder specification. If this is empty, then the search starts in the
+current working folder.</li>
+<li>Note that searching a whole drive or a folder with many files may take very
+long and will freeze your program for that time. For best performance there
+should be not more than appox. 1000 files in that place (counted recursively).</li>
+</ul>
+<h4>mustHave$ <em>(STRING)</em></h4>
+<ul>
+<li>This may be either empty or any (even partial) path specification, which
+must appear in the final path. It's useful to target the right file, if you
+have several files of the same name scattered over different subfolders.</li>
+</ul>
+<h4>file$ <em>(STRING)</em></h4>
+<ul>
+<li>The name of the file to search, any given path is ignored.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>filespec$ <em>(STRING)</em></h4>
+<ul>
+<li>On success this is the full specification of the found file, ie. inclusive
+its full qualified path (starting with drive letter).</li>
+<li>
+If the result is empty, then either of the following happened:
+<ul>
+<li>The given startDir$ was invalid or not found.</li>
+<li>The file was not found in that place inclusive its subfolders.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

@@ -1,0 +1,315 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === TagSupport.bm ===                                             |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides the SUBs and FUNCTIONs of the Tag Strings API.     |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'-------------------------------
+'--- Tag String API routines ---
+'-------------------------------
+'--- Always use these routines to create and manipulate any tags and/or
+'--- tag strings, never write any tags or tag strings as literals, even
+'--- if you know the used introducer/separator and terminator tokens.
+'--- Follow this rule even if it's hard, seems to be overkill in some
+'--- situations and does require a lot more writing, it will ensure the
+'--- integrity of the tag API and will make future changes less painful.
+'-----
+'--- Note that many of the following SUBs and FUNCTIONs will have a side
+'--- effect on the given tagString$ argument. It's done so by intention.
+'--- Note also, that the tagName$ is mandatory where used, otherwise the
+'--- whole thing wouldn't make any sense at all. In fact, be prepared for
+'--- any kind of misbehavior you can imagine, if you fail to provide a
+'--- proper tagName$. All upper/lower case mess and/or whitespace crap is
+'--- handled internally as good as possible.
+
+'---------------------------------------------------------------------
+'Add a new tag to the tag string. Note this routine is internal, you
+'should always use SetTag instead to avoid multiple tags of the same
+'name get added to the tag string.
+SUB AddTag (tagString$, tagName$, tagData$)
+tagString$ = tagString$ + tagIntr$ + UCASE$(LTRIM$(RTRIM$(FilterChars$(tagName$, "")))) + tagSepa$ + FilterChars$(tagData$, " ") + tagTerm$
+END SUB
+
+'---------------------------------------------------------------------
+'Search given tag and remove it from the tag string. Will do nothing,
+'if the tag does not exist in the tag string.
+SUB RemTag (tagString$, tagName$)
+bra% = INSTR(tagString$, tagIntr$ + UCASE$(LTRIM$(RTRIM$(FilterChars$(tagName$, "")))) + tagSepa$)
+IF bra% > 0 THEN
+    ket% = INSTR(bra% + 1, tagString$, tagTerm$)
+    IF ket% > 0 THEN
+        tagString$ = LEFT$(tagString$, bra% - 1) + MID$(tagString$, ket% + 1)
+    END IF
+END IF
+END SUB
+
+'---------------------------------------------------------------------
+'Same as RemTag, but used to remove many tags according to the given
+'(comma separated) list of tag names. Can remove a single tag too,
+'although RemTag would be more efficient in that case.
+SUB RemTags (tagString$, remNames$)
+tmpRemNames$ = LTRIM$(RTRIM$(remNames$))
+IF LEFT$(tmpRemNames$, 1) = "," THEN tmpRemNames$ = MID$(tmpRemNames$, 2)
+IF RIGHT$(tmpRemNames$, 1) <> "," THEN tmpRemNames$ = tmpRemNames$ + ","
+ket% = 0
+DO
+    bra% = ket% + 1
+    ket% = INSTR(bra%, tmpRemNames$, ",")
+    IF ket% > bra% THEN
+        remName$ = LTRIM$(RTRIM$(MID$(tmpRemNames$, bra%, ket% - bra%)))
+        IF remName$ <> "" THEN RemTag tagString$, remName$
+    END IF
+LOOP WHILE ket% > 0
+END SUB
+
+'---------------------------------------------------------------------
+'Set data of the given tag in the tag string. Will add a new tag, if
+'the named tag does not exist yet in the tag string.
+SUB SetTag (tagString$, tagName$, newData$)
+RemTag tagString$, tagName$
+AddTag tagString$, tagName$, newData$
+END SUB
+
+'---------------------------------------------------------------------
+'Will return a boolean value according to the check whether all given
+'tags (comma separated list of tag names) exist in the tag string and
+'also have valid (non-empty) data. May also remove any invalid tags
+'upon request (remInvalid% = true (non-zero)). Will always return true,
+'if no tag names to check are specified.
+FUNCTION ValidateTags% (tagString$, chkNames$, remInvalid%)
+ValidateTags% = -1
+tmpChkNames$ = LTRIM$(RTRIM$(chkNames$))
+IF LEFT$(tmpChkNames$, 1) = "," THEN tmpChkNames$ = MID$(tmpChkNames$, 2)
+IF RIGHT$(tmpChkNames$, 1) <> "," THEN tmpChkNames$ = tmpChkNames$ + ","
+ket% = 0
+DO
+    bra% = ket% + 1
+    ket% = INSTR(bra%, tmpChkNames$, ",")
+    IF ket% > bra% THEN
+        chkName$ = LTRIM$(RTRIM$(MID$(tmpChkNames$, bra%, ket% - bra%)))
+        IF chkName$ <> "" THEN
+            IF GetTagData$(tagString$, chkName$, "n/a") = "n/a" THEN
+                ValidateTags% = 0
+                IF remInvalid% <> 0 THEN
+                    RemTag tagString$, chkName$
+                ELSE
+                    EXIT FUNCTION
+                END IF
+            END IF
+        END IF
+    END IF
+LOOP WHILE ket% > 0
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Create a new tag. Similar to AddTag, but this will just return the new
+'tag instead of adding it to any tag string.
+FUNCTION NewTag$ (tagName$, tagData$)
+NewTag$ = tagIntr$ + UCASE$(LTRIM$(RTRIM$(FilterChars$(tagName$, "")))) + tagSepa$ + FilterChars$(tagData$, " ") + tagTerm$
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Search given tag in the tag string and return it. Will return empty,
+'if the tag does not exist in the tag string. Note that a found tag is
+'not checked for validity, it's returned as it is in the tag string.
+FUNCTION GetTag$ (tagString$, tagName$)
+GetTag$ = ""
+bra% = INSTR(tagString$, tagIntr$ + UCASE$(LTRIM$(RTRIM$(FilterChars$(tagName$, "")))) + tagSepa$)
+IF bra% > 0 THEN
+    ket% = INSTR(bra% + 1, tagString$, tagTerm$)
+    IF ket% > 0 THEN
+        GetTag$ = MID$(tagString$, bra%, ket% - bra% + 1)
+    END IF
+END IF
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Same as GetTag$, but used to get many tags according to the given
+'(comma separated) list of tag names. Can return a single tag too,
+'although GetTag$ would be more efficient in that case.
+FUNCTION GetTags$ (tagString$, getNames$)
+tags$ = ""
+tmpGetNames$ = LTRIM$(RTRIM$(getNames$))
+IF LEFT$(tmpGetNames$, 1) = "," THEN tmpGetNames$ = MID$(tmpGetNames$, 2)
+IF RIGHT$(tmpGetNames$, 1) <> "," THEN tmpGetNames$ = tmpGetNames$ + ","
+ket% = 0
+DO
+    bra% = ket% + 1
+    ket% = INSTR(bra%, tmpGetNames$, ",")
+    IF ket% > bra% THEN
+        getName$ = LTRIM$(RTRIM$(MID$(tmpGetNames$, bra%, ket% - bra%)))
+        IF getName$ <> "" THEN tags$ = tags$ + GetTag$(tagString$, getName$)
+    END IF
+LOOP WHILE ket% > 0
+GetTags$ = tags$
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Search given tag in the tag string, return it and also remove it from
+'the tag string. Will return empty and remove nothing, if the tag does
+'not exist in the tag string. Note that a found tag is not checked for
+'validity, it's returned as it was in the tag string before removal.
+'Used in conjunction with GetTagName$ to process (unknown) user tags.
+FUNCTION ExtractTag$ (tagString$, tagName$)
+ExtractTag$ = GetTag$(tagString$, tagName$)
+RemTag tagString$, tagName$
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Look for the first tag in the tag string and return its name. Will
+'return empty, if no tags exist in the tag string. Used in conjunction
+'with ExtractTag$ to process (unknown) user tags.
+FUNCTION GetTagName$ (tagString$)
+GetTagName$ = ""
+bra% = INSTR(tagString$, tagIntr$)
+IF bra% > 0 THEN
+    ket% = INSTR(bra% + 1, tagString$, tagSepa$)
+    IF ket% > 0 THEN
+        IF ket% > (bra% + 1) THEN 'ket% must be after tag name start
+            GetTagName$ = MID$(tagString$, bra% + 1, ket% - bra% - 1)
+        END IF
+    END IF
+END IF
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Search given tag in the tag string and return its associated data.
+'If the tag does not exist or appears to be invalid, then return the
+'provided default data instead.
+FUNCTION GetTagData$ (tagString$, tagName$, defData$)
+dat$ = defData$
+tmpTagName$ = UCASE$(LTRIM$(RTRIM$(FilterChars$(tagName$, ""))))
+bra% = INSTR(tagString$, tagIntr$ + tmpTagName$ + tagSepa$)
+IF bra% > 0 THEN
+    ket% = INSTR(bra% + 1, tagString$, tagTerm$)
+    bra% = bra% + LEN(tmpTagName$) + 2
+    IF ket% > 0 THEN
+        IF ket% > bra% THEN 'ket% must be after tagIntr$+tagName$+tagSepa$
+            dat$ = MID$(tagString$, bra%, ket% - bra%)
+            FOR i% = 1 TO LEN(dat$)
+                IF MID$(dat$, i%, 1) = tagRepl$ THEN MID$(dat$, i%, 1) = CHR$(0)
+            NEXT i%
+        END IF
+    END IF
+END IF
+GetTagData$ = dat$
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Search given tag in both, new and old tag strings and update its data
+'from new to old string, if the data is different or the named tag does
+'not even exist yet in the old string. Will return true, if the old
+'string had to be updated, or false, if the tag its data were either
+'equal in both (old/new) tag strings or the given tag did not even exist
+'in the new tag string.
+FUNCTION UpdateTag% (oldTagString$, tagName$, newTagString$)
+UpdateTag% = 0
+ndat$ = GetTagData$(newTagString$, tagName$, "n/a")
+IF ndat$ <> "n/a" THEN
+    odat$ = GetTagData$(oldTagString$, tagName$, "n/a")
+    IF ndat$ <> odat$ THEN
+        SetTag oldTagString$, tagName$, ndat$
+        UpdateTag% = -1
+    END IF
+END IF
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Same as UpdateTag%, but used to update many tags according to the given
+'(comma separated) list of tag names. This function will return true, if
+'at least one of the given tags had to be updated, otherwise it's false.
+'Can update a single tag too, although UpdateTag% would be more efficient
+'in that case.
+FUNCTION UpdateTags% (oldTagString$, updNames$, newTagString$)
+UpdateTags% = 0
+tmpUpdNames$ = LTRIM$(RTRIM$(updNames$))
+IF LEFT$(tmpUpdNames$, 1) = "," THEN tmpUpdNames$ = MID$(tmpUpdNames$, 2)
+IF RIGHT$(tmpUpdNames$, 1) <> "," THEN tmpUpdNames$ = tmpUpdNames$ + ","
+ket% = 0
+DO
+    bra% = ket% + 1
+    ket% = INSTR(bra%, tmpUpdNames$, ",")
+    IF ket% > bra% THEN
+        updName$ = LTRIM$(RTRIM$(MID$(tmpUpdNames$, bra%, ket% - bra%)))
+        IF updName$ <> "" THEN
+            IF UpdateTag%(oldTagString$, updName$, newTagString$) THEN UpdateTags% = -1
+        END IF
+    END IF
+LOOP WHILE ket% > 0
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Will return a boolean value according to the check whether the given
+'boolean tag in the tag string is true (tag found and data is numeric
+'non-zero or string "true"/"yes"/"on") or false (tag not found or data
+'is numeric zero or not string "true"/"yes"/"on").
+FUNCTION BoolTagTrue% (tagString$, tagName$)
+tmpData$ = LCASE$(LTRIM$(RTRIM$(GetTagData$(tagString$, tagName$, "0"))))
+IF VAL(tmpData$) <> 0 OR tmpData$ = "true" OR tmpData$ = "yes" OR tmpData$ = "on" THEN
+    BoolTagTrue% = -1
+ELSE
+    BoolTagTrue% = 0
+END IF
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Toggle the state of the given boolean tag in the tag string and return
+'a boolean value according to the tag its new state.
+FUNCTION ToggleBoolTag% (tagString$, tagName$)
+tmpData$ = LCASE$(LTRIM$(RTRIM$(GetTagData$(tagString$, tagName$, "0"))))
+IF VAL(tmpData$) <> 0 OR tmpData$ = "true" OR tmpData$ = "yes" OR tmpData$ = "on" THEN
+    RemTag tagString$, tagName$
+    ToggleBoolTag% = 0
+ELSE
+    SetTag tagString$, tagName$, "true"
+    ToggleBoolTag% = -1
+END IF
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+'This function will filter any tag introducer/separator and terminator
+'tokens (as defined in TagSupport.bi) from any given tag names and data.
+'It's used to ensure the uniqueness of these chars, hence the integrity
+'of the entire Tag Strings API.
+FUNCTION FilterChars$ (tnod$, exg$)
+$CHECKING:OFF
+temp$ = tnod$
+char$ = tagIntr$: GOSUB fcFilter
+char$ = tagSepa$: GOSUB fcFilter
+char$ = tagTerm$: GOSUB fcFilter
+char$ = CHR$(0): exg2$ = tagRepl$: SWAP exg$, exg2$: GOSUB fcFilter: SWAP exg$, exg2$
+FilterChars$ = temp$
+IF exg$ <> "" THEN EXIT FUNCTION
+'do the following for tag names only (checked by exg$ contents, which is
+'empty for tag names)
+char$ = ",": GOSUB fcFilter
+char$ = CHR$(9): GOSUB fcFilter
+char$ = CHR$(32): GOSUB fcFilter
+FilterChars$ = temp$
+EXIT FUNCTION
+'----------------
+fcFilter:
+bra% = 1
+DO
+    bra% = INSTR(bra%, temp$, char$)
+    IF bra% > 0 THEN temp$ = LEFT$(temp$, bra% - 1) + exg$ + MID$(temp$, bra% + 1)
+LOOP WHILE bra% > 0
+RETURN
+$CHECKING:ON
+END FUNCTION
+

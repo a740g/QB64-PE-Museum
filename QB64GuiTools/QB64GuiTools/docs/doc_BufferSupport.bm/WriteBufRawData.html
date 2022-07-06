@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WriteBufRawData</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>WriteBufRawData <em>(sub)</em></h2>
+<p>This subroutine will write the given raw data as is into the specified buffer
+starting at the current buffer position. All control chars contained in the
+raw data are also written as is. The operation is in that very similar to
+PUT when writing to files.</p>
+<p>The call will also recalculate all bookmarks to maintain its respective
+positions. The current buffer position is updated accordingly and is on the
+first byte behind the just written data after the call. Hence, sequential
+writing is easily possible with subsequent calls.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>WriteBufRawData handle%, rawData$
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, to which you wanna write to.</li>
+</ul>
+<h4>rawData$ <em>(STRING)</em></h4>
+<ul>
+<li>The raw data to write into the buffer. You may add numbers either in its
+binary form using the various _MK$ functions or as text using STR$, HEX$
+or OCT$, just as you need in your program.</li>
+<li>When using this function to raw write text, then make sure to use the
+proper line endings for the buffer. Easiest way is to use the result of
+<a href="BufEolSeq.html">BufEolSeq$()</a> to ensure this.</li>
+<li>If writing exceeds the 2GiB buffer limit, an error occurs (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>
+If required, the following functions may be used to set the current buffer
+position in advance:
+<ul>
+<li><a href="SeekBuf.html">SeekBuf()</a> with an appropriate displacement and seek mode.</li>
+<li><a href="GotoBufMark.html">GotoBufMark()</a> to restore to an earlier marked position.</li>
+<li><a href="FindBufFR.html">FindBufFwd()</a> or <a href="FindBufFR.html">FindBufRev()</a> to move to the next or previous occurrence
+of any criteria.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

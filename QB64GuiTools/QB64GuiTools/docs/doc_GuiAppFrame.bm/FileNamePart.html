@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FileNamePart</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>FileNamePart$ <em>(function)</em></h2>
+<p>This simple function will return the name part of the given file or folder
+name. That is the part left of the rightmost found dot (if any). The dot
+itself is not included in the result, as it belongs to the name extension,
+which you can get using the function <a href="FileExtension.html">FileExtension$()</a> instead.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>name$ = FileNamePart$ (file$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>file$ <em>(STRING)</em></h4>
+<ul>
+<li>The file or folder name to get the name part from. Empty input is allowed
+here and will result into an empty name part.</li>
+<li>May also have a path, then only the file part (<a href="FilePart.html">FilePart$()</a>) is checked and
+the result will contain the same path, as far as a valid name part was found.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>name$ <em>(STRING)</em></h4>
+<ul>
+<li>
+Depending on the given file or folder name:
+<ul>
+<li>
+The found name part (regular operation).
+<ul>
+<li>May be identical to file$, if it was a name without extension (no
+dot found).</li>
+<li>Will also contain the original path (if given).</li>
+</ul>
+</li>
+<li>
+Empty, if input was empty or a extension only (leading dot found).
+<ul>
+<li>Is also empty, if a path was given, but without an actual name (file
+part empty)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h6>While the first case (identical or not) is ok, you should explicitly check for the second case (empty) if required, as it may cause errors when trying to OPEN, MKDIR, CHDIR etc. with an empty name.</h6>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

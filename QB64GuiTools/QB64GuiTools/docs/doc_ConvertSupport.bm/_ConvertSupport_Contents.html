@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>_ConvertSupport_Contents</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<pre><code>'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources &amp; Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === ConvertSupport.bm ===                                         |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides some useful SUBs/FUNCTIONs to convert point coor-  |
+'| == dinates and some to convert colors between colorspace models.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+</code></pre>
+
+<h1>Convert point coordinates</h1>
+<hr />
+<blockquote>
+<p><em>Following are some functions to convert the coordinates of a given
+point between the carthesian and polar system. Also available are
+functions to move or rotate a point to a new position.
+Note that the x/y coordinates precision is limited to integers,
+as the intended use is for converting pixel positions on screen,
+not for theoretical exact math.</em></p>
+</blockquote>
+<hr />
+<h3><u>Table of Contents</u></h3>
+<blockquote>
+<p><strong><em>SYSTEM CONVERSION</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="PolToCartXY.html">PolToCartX &amp; PolToCartY</a>
+<ul>
+<li>convert given polar coordinates to carthesian coordinates</li>
+</ul>
+</li>
+<li>
+<a href="CartToPolAR.html">CartToPolA &amp; CartToPolR</a>
+<ul>
+<li>convert given carthesian coordinates to polar coordinates</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>POINT CONVERSION</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="MovePointXY.html">MovePointX &amp; MovePointY</a>
+<ul>
+<li>move a point by given distance and direction</li>
+</ul>
+</li>
+<li>
+<a href="RotPointXY.html">RotPointX &amp; RotPointY</a>
+<ul>
+<li>rotate a point by given angle around any given center</li>
+</ul>
+</li>
+</ul>
+<h4>&nbsp;</h4>
+<h2></h2>
+<h2></h2>
+<h4>&nbsp;</h4>
+<h1>Colorspace functions</h1>
+<hr />
+<blockquote>
+<p><em>Following are functions to convert color values between the RGB and HSB/HSV
+colorspace and some convenience functions for the HSB/HSV colorspace, which
+mimic the respective RGB colorspace functions provided by QB64 itself.</em></p>
+</blockquote>
+<hr />
+<h3><u>Table of Contents</u></h3>
+<blockquote>
+<p><strong><em>HSB/HSV CONVENIENCE FUNCTIONS</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="HSBA32.html">HSB32 &amp; HSBA32</a>
+<ul>
+<li>mimics _RGB32/_RGBA32, but is using HSB/HSV colorspace values to
+designate the color</li>
+</ul>
+</li>
+<li>
+<a href="HUE32-SAT32-BRI32.html">HUE32 &amp; SAT32 &amp; BRI32</a>
+<ul>
+<li>mimics _RED32/_GREEN32/_BLUE32, but returns the HSB/HSV colorspace
+values of the given color</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong><em>RAW COLOR CONVERSION</em></strong></p>
+</blockquote>
+<ul>
+<li>
+<a href="RGBtoHSB.html">RGBtoHSB</a>
+<ul>
+<li>convert a given color from RGB to HSB/HSV values</li>
+</ul>
+</li>
+<li>
+<a href="HSBtoRGB.html">HSBtoRGB</a>
+<ul>
+<li>convert a given color from HSB/HSV to RGB values</li>
+</ul>
+</li>
+</ul>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

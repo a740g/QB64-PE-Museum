@@ -1,0 +1,378 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === ColorwheelClass.bm ===                                        |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'| == For a complete documentation see docs\GuiToolsFramework.pdf.   |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Colorwheel Class ================================================
+'=====================================================================
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the docs\KnownTags.txt file.
+'---------------------------------------------------------------------
+FUNCTION ColorwheelC$ (method$, tagString$)
+ColorwheelRes$ = ""
+classID$ = "ColorwheelC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d-u"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,WIDTH,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,IMAGEOBJECT,SYMBOLOBJECT,HUE,SATURATION," +_
+                   "IMAGEFILE,IMAGEHANDLE,AREA,TOOLTIP,DISABLED," '+ user tags
+        'NOTE: Default HUE and SATURATION is zero, if not given. Also HUE
+        '      is clipped to a range of 0-360 (degrees), SATURATION will
+        '      be in range 0-100 (percent). HEIGHT is always = WIDTH.
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "IMAGEOBJECT,SYMBOLOBJECT,HUE,SATURATION," +_
+                   "DISABLED," '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,MOUSEX,MOUSEY,"
+        tagsOpt$ = "" '+ any other MOUSE..., KEY... and/or modifiers tags
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or SELECTED,RELEASED,SHORTCUT (may be empty)
+    CASE ELSE
+        SetTag ColorwheelRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+ColorwheelC$ = ColorwheelRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag ColorwheelRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    ApplyPrefs classID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, ColorwheelRes$, classID$, tagsID$) THEN
+        '--- object specific init ---
+        SetTag tagsID$, "HEIGHT", GetTagData$(tagsID$, "WIDTH", "0")
+        huee% = VAL(GetTagData$(tagsID$, "HUE", "0"))
+        IF huee% < 0 THEN huee% = 0
+        IF huee% > 360 THEN huee% = 360
+        SetTag tagsID$, "HUE", LTRIM$(STR$(huee%))
+        satu% = VAL(GetTagData$(tagsID$, "SATURATION", "0"))
+        IF satu% < 0 THEN satu% = 0
+        IF satu% > 100 THEN satu% = 100
+        SetTag tagsID$, "SATURATION", LTRIM$(STR$(satu%))
+        '--- check for assigned Image/Symbol ---
+        InitAssignedImgSym "IMAGEOBJECT", ColorwheelRes$, classID$, tagsID$
+        InitAssignedImgSym "SYMBOLOBJECT", ColorwheelRes$, classID$, tagsID$
+        '--- frame/image/symbol init ---
+        widt% = VAL(GetTagData$(tagsID$, "WIDTH", "0"))
+        BeginChildInit
+        InitObjectBGImg this&, ColorwheelRes$, classID$, tagsID$
+        fram$ = FrameC$("INIT", GetTags$(tagsID$, "LEFT,TOP,WIDTH,HEIGHT") + NewTag$("FORM", "simple"))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("FRM0", fram$)
+        cwim& = _NEWIMAGE(widt% - 4, widt% - 4, 32)
+        d& = _DEST: _DEST cwim&
+        r! = (widt% / 2) - 13: cent% = (widt% - 4) / 2
+        m! = 3 + (r! * (1.75 / 100))
+        s! = 0.75: IF widt% > 140 THEN s! = 0.5
+        IF widt% > 260 THEN s! = 0.25
+        IF widt% > 500 THEN s! = 0.125
+        FOR hu! = 0 TO 360 STEP s!
+            FOR sa! = r! + m! TO 0 STEP -s!
+                x% = CINT(sa! * COS(hu! * 0.017453292519943))
+                y% = CINT(sa! * SIN(hu! * 0.017453292519943))
+                IF sa! > r! THEN
+                    PSET (x% + cent%, cent% - y%), _RGB32(34, 34, 34)
+                ELSE
+                    HSBtoRGB CLNG(hu! * 182.041666666666666#), CLNG(sa! * (65535 / r!)), 65535, re&, gr&, bl&
+                    PSET (x% + cent%, cent% - y%), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+                END IF
+            NEXT sa!
+        NEXT hu!
+        _DEST d&
+        imag$ = ImageC$("INIT", NewTag$("IMAGEHANDLE", LTRIM$(STR$(cwim&))) + NewTag$("LEFT", "2") + NewTag$("TOP", "2") + NewTag$("WIDTH", LTRIM$(STR$(widt% - 4))) + NewTag$("HEIGHT", LTRIM$(STR$(widt% - 4))) + NewTag$("CLEARCOLOR", "39"))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("IMG0", imag$)
+        symb$ = SymbolC$("INIT", NewTag$("WHICH", "tapeRecord") + NewTag$("LEFT", LTRIM$(STR$((widt% / 2) - 5))) + NewTag$("TOP", LTRIM$(STR$((widt% / 2) - 5))) + NewTag$("WIDTH", "10") + NewTag$("HEIGHT", "10"))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("SYM0", symb$)
+        EndChildInit
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + "HEIGHT," + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        ObjectsUnselect this&
+        '--- set result and schedule gui refresh ---
+        SetTag ColorwheelRes$, "OBJECT", LTRIM$(STR$(this&))
+        SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, ColorwheelRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = 0
+    IF SetAssignedImgSym%(this&, "IMAGEOBJECT", ColorwheelRes$, classID$, tagsID$) THEN flag% = -1
+    IF SetAssignedImgSym%(this&, "SYMBOLOBJECT", ColorwheelRes$, classID$, tagsID$) THEN flag% = -1
+    temp$ = GetTagData$(tagsID$, "HUE", "n/a")
+    IF temp$ <> "n/a" THEN
+        otag$ = GetTagData$(guiObjects$(objData%, this&), "HUE", "n/a")
+        '--- range check ---
+        huee% = VAL(temp$)
+        IF huee% < 0 THEN huee% = 0
+        IF huee% > 360 THEN huee% = 360
+        temp$ = LTRIM$(STR$(huee%))
+        IF temp$ <> otag$ THEN
+            SetTag guiObjects$(objData%, this&), "HUE", temp$
+            flag% = -1
+        END IF
+    END IF
+    temp$ = GetTagData$(tagsID$, "SATURATION", "n/a")
+    IF temp$ <> "n/a" THEN
+        otag$ = GetTagData$(guiObjects$(objData%, this&), "SATURATION", "n/a")
+        '--- range check ---
+        satu% = VAL(temp$)
+        IF satu% < 0 THEN satu% = 0
+        IF satu% > 100 THEN satu% = 100
+        temp$ = LTRIM$(STR$(satu%))
+        IF temp$ <> otag$ THEN
+            SetTag guiObjects$(objData%, this&), "SATURATION", temp$
+            flag% = -1
+        END IF
+    END IF
+    temp$ = GetTagData$(tagsID$, "DISABLED", "n/a")
+    IF temp$ <> "n/a" THEN
+        IF BoolTagTrue%(tagsID$, "DISABLED") THEN
+            RemTags guiObjects$(objData%, this&), "FOCUS,SELECTED"
+            SetTag guiObjects$(objData%, this&), "DISABLED", "true"
+        ELSE
+            RemTag guiObjects$(objData%, this&), "DISABLED"
+        END IF
+        flag% = -1
+    END IF
+    '--- check any remaining user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- redraw and update object (if required) ---
+    IF flag% THEN resu$ = ObjectRefresh$(this&, "du", "")
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, ColorwheelRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN ColorwheelRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, ColorwheelRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete child objects ---
+    resu$ = SymbolC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "SYM0"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "IMG0"))
+    resu$ = FrameC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "FRM0"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    resu$ = ImageC$("KILL", ObjectTag$(guiObjects$(objData%, this&), "BBGIMG"))
+    '--- check for assigned Symbol/Image ---
+    KillAssignedImgSym this&, "SYMBOLOBJECT"
+    KillAssignedImgSym this&, "IMAGEOBJECT"
+    '--- check pager conditions ---
+    KillAssignedPager this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, ColorwheelRes$, classID$, methodID$, tagsID$) THEN
+    '--- select drawing colors ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") AND BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+        back% = guiFillPen%: text% = guiFillTextPen% 'text pens
+        focu% = guiFillTextPen%: disa% = guiFillPen% 'state pens
+        rebo$ = "true" 'recess border frame?
+    ELSE
+        back% = guiBackPen%: text% = guiTextPen% 'text pens
+        focu% = guiHighPen%: disa% = guiFillPen% 'state pens
+        rebo$ = "false" 'recess border frame?
+    END IF
+    '--- get object's dimensions ---
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    huee% = VAL(GetTagData$(guiObjects$(objData%, this&), "HUE", "0"))
+    satu% = VAL(GetTagData$(guiObjects$(objData%, this&), "SATURATION", "0"))
+    sobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "SYM0", "0"))
+    '--- draw object ----
+    FillRectColor left%, topp%, widt%, heig%, back%
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
+    '--- image/symbol/frame object ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "FOCUS") THEN
+        LINE (left% + 4, topp% + 4)-(left% + widt% - 5, topp% + heig% - 5), focu%, B
+        BrightenObjectBG this&, left%, topp%, widt%, heig%
+        LINE (left% + 4, topp% + 4)-(left% + widt% - 5, topp% + heig% - 5), focu%, B
+    END IF
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "IMAGEOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYMBOLOBJECT") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "IMG0") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    radi% = CINT(FIX((widt% / 2) - 13) / 100 * satu%)
+    SetTag guiObjects$(objData%, sobj&), "LEFT", LTRIM$(STR$(PolToCartX%(huee%, radi%) + CINT(widt% / 2) - 5))
+    SetTag guiObjects$(objData%, sobj&), "TOP", LTRIM$(STR$(CINT(widt% / 2) - PolToCartY%(huee%, radi%) - 5))
+    resu$ = SymbolC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "SYM0") + GetTags$(guiObjects$(objData%, this&), "LEFT,TOP"))
+    resu$ = FrameC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "FRM0") + NewTag$("RECESSED", rebo$))
+    '--- check on/off state ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN
+        FillRectRaster left%, topp%, widt%, heig%, disa%
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, ColorwheelRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't update, if currently disabled ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN RETURN
+    '--- save old drawing relevant states ---
+    osta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED")
+    '--- get mouse position and object properties ---
+    moux% = VAL(GetTagData$(tagsID$, "MOUSEX", "-1"))
+    mouy% = VAL(GetTagData$(tagsID$, "MOUSEY", "-1"))
+    scrv% = VAL(GetTagData$(tagsID$, "SCRVAL", "0"))
+    left% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    huee% = VAL(GetTagData$(guiObjects$(objData%, this&), "HUE", "0"))
+    satu% = VAL(GetTagData$(guiObjects$(objData%, this&), "SATURATION", "0"))
+    sobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "SYM0", "0"))
+    cenx% = left% + (widt% / 2): ceny% = topp% + (heig% / 2)
+    mrad% = FIX((widt% / 2) - 13)
+    '--- check for mouse trigger ---
+    IF moux% >= left% AND moux% < (left% + widt%) AND mouy% >= topp% AND mouy% < (topp% + heig%) THEN
+        SetTag guiObjects$(objData%, this&), "FOCUS", "true"
+        IF BoolTagTrue%(tagsID$, "MOUSELBDOWN") THEN
+            SetTag guiObjects$(objData%, this&), "SELECTED", "true"
+            SetTag guiObjects$(objData%, this&), "OLDHUE", LTRIM$(STR$(huee%))
+            SetTag guiObjects$(objData%, this&), "OLDSAT", LTRIM$(STR$(satu%))
+            GOSUB meMousemoveKnob
+        ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+            RemTags guiObjects$(objData%, this&), "SELECTED,OLDHUE,OLDSAT"
+            SetTag ColorwheelRes$, "RELEASED", LTRIM$(STR$(this&))
+        ELSEIF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") AND BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+            GOSUB meMousemoveKnob
+        ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") THEN
+            GOSUB meMousescroll
+        END IF
+    ELSE
+        RemTag guiObjects$(objData%, this&), "FOCUS"
+        IF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
+            IF BoolTagTrue%(tagsID$, "MOUSELBUP") THEN
+                ObjectReset this&
+                RemTag guiObjects$(objData%, this&), "SELECTED"
+                SetTag ColorwheelRes$, "SELECTED", LTRIM$(STR$(this&))
+            ELSEIF BoolTagTrue%(tagsID$, "MOUSEMOVE") THEN
+                GOSUB meMousemoveKnob
+            END IF
+        ELSEIF BoolTagTrue%(tagsID$, "MOUSESCROLL") AND BoolTagTrue%(tagsID$, "FOCUS") THEN
+            GOSUB meMousescroll
+        END IF
+    END IF
+    '--- redraw object, if state has changed ---
+    nsta$ = GetTags$(guiObjects$(objData%, this&), "FOCUS,SELECTED")
+    IF nsta$ <> osta$ THEN
+        resu$ = ColorwheelC$("DRAW", thisTag$)
+    END IF
+END IF
+RETURN
+'----------------------------------
+meMousemoveKnob:
+difx% = moux% - cenx%: dify% = ceny% - mouy%
+nang% = CartToPolA!(difx%, dify%): nrad% = CartToPolR!(difx%, dify%)
+IF nrad% > mrad% THEN nrad% = mrad%
+nsat% = CINT(100 / mrad% * nrad%)
+SetTag guiObjects$(objData%, sobj&), "LEFT", LTRIM$(STR$(PolToCartX%(nang%, nrad%) + cenx% - 5))
+SetTag guiObjects$(objData%, sobj&), "TOP", LTRIM$(STR$(ceny% - PolToCartY%(nang%, nrad%) - 5))
+IF nang% <> huee% OR nsat% <> satu% THEN
+    SetTag guiObjects$(objData%, this&), "HUE", LTRIM$(STR$(nang%))
+    SetTag guiObjects$(objData%, this&), "SATURATION", LTRIM$(STR$(nsat%))
+    SetTag ColorwheelRes$, "SELECTED", LTRIM$(STR$(this&))
+END IF
+resu$ = ColorwheelC$("DRAW", thisTag$)
+SetTag ColorwheelRes$, "MOUSEMOVE", "true"
+RETURN
+'----------------------------------
+meMousescroll:
+IF NOT BoolTagTrue%(tagsID$, "ALT") THEN
+    RemTags guiObjects$(objData%, this&), "SELECTED,OLDHUE,OLDSAT"
+    IF BoolTagTrue%(tagsID$, "SHIFT") THEN scrv% = scrv% * 10
+    IF BoolTagTrue%(tagsID$, "CTRL") THEN
+        huee% = huee% - scrv%
+        IF huee% < 0 THEN huee% = 359: ELSE IF huee% > 359 THEN huee% = 0
+    ELSE
+        satu% = satu% - scrv%
+        IF satu% < 0 THEN satu% = 0: ELSE IF satu% > 100 THEN satu% = 100
+    END IF
+    SetTag guiObjects$(objData%, this&), "HUE", LTRIM$(STR$(huee%))
+    SetTag guiObjects$(objData%, this&), "SATURATION", LTRIM$(STR$(satu%))
+    resu$ = ColorwheelC$("DRAW", thisTag$)
+    SetTag ColorwheelRes$, "RELEASED", LTRIM$(STR$(this&))
+    SetTag ColorwheelRes$, "SHORTCUT", "true"
+    SetTag ColorwheelRes$, "MOUSESCROLL", "true"
+END IF
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

@@ -1,0 +1,261 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === FrameClass.bm ===                                             |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Frame Class =====================================================
+'=====================================================================
+'FUNCTION:
+'   Class does provide some different types of frame objects for easy
+'   optical grouping of other objects. The frame objects may also have
+'   a text label.
+'
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION FrameC$ (method$, tagString$)
+FrameRes$ = ""
+classID$ = "FrameC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "d--"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "LEFT,TOP,WIDTH,HEIGHT,"
+        tagsOpt$ = "GUIVIEW,PAGEROBJECT,FORM,RECESSED," +_
+                   "TEXT,TEXTPLACE,TEXTMOVEY," +_
+                   "LABEL,LABELHIGH,LABELPLACE,LABELMOVEX,LABELMOVEY," '+ user tags
+        'NOTE: The LABEL... tags are used for alternative text placement,
+        '      if you rather like a closed frame with regular object style
+        '      labeling, than the TEXT overwriting the frame.
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "" '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Draw"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "LEFT,TOP,RECESSED," 'properties of parent object
+        GOSUB meDraw
+        'Result Tags: ERROR/WARNING or empty
+    CASE ELSE
+        SetTag FrameRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+FrameC$ = FrameRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag FrameRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- general init ---
+    this& = NewObject&
+    InitGeneralProperties this&, classID$, flagsID$, tagsID$
+    '--- check pager conditions ---
+    IF InitAssignedPager%(this&, FrameRes$, classID$, tagsID$) THEN
+        '--- add required/optional tags ---
+        opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+        '--- add any remaining user tags ---
+        RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+        '--- set result and schedule gui refresh ---
+        SetTag FrameRes$, "OBJECT", LTRIM$(STR$(this&))
+        SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, FrameRes$, classID$, methodID$, tagsID$) THEN
+    '--- check any user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, FrameRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN FrameRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, FrameRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove interconnections to this object ---
+    KillInterconnections this&
+    '--- check pager conditions ---
+    KillAssignedPager this&
+    '--- delete object and schedule gui refresh ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+    SetTag guiObjects$(0, 0), "GUIREFRESH", "true"
+END IF
+RETURN
+'---------------------------------------------------------------------
+meDraw:
+IF ValidObject%(this&, thisTag$, FrameRes$, classID$, methodID$, tagsID$) THEN
+    '--- select drawing colors ---
+    tole% = guiShinePen%: bori% = guiShadowPen%: soli% = guiSolidPen% 'top/left & bottom/right & solid pens
+    text% = guiShadowPen%: high% = guiHighPen% 'text pens
+    IF BoolTagTrue%(tagsID$ + guiObjects$(objData%, this&), "RECESSED") THEN SWAP tole%, bori%
+    '--- get parent's position ---
+    plft% = VAL(GetTagData$(tagsID$, "LEFT", "0"))
+    ptop% = VAL(GetTagData$(tagsID$, "TOP", "0"))
+    '--- get object's properties ---
+    left% = plft% + VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+    topp% = ptop% + VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+    widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+    heig% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+    form$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "FORM", "simple"))
+    text$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "n/a")
+    '--- do flip adjustments for image frames ---
+    IF widt% < 0 THEN widt% = -widt%: left% = left% - widt%
+    IF heig% < 0 THEN heig% = -heig%: topp% = topp% - heig%
+    '--- do text adjustments ---
+    IF text$ <> "n/a" THEN
+        text$ = " " + LTRIM$(RTRIM$(text$)) + " "
+        priw% = _PRINTWIDTH(text$)
+        plac$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "TEXTPLACE", "topcenter"))
+        ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEY", "0"))
+        disp% = 0: IF form$ = "ridge" THEN disp% = 2
+        IF form$ = "solid" THEN disp% = 4
+        SELECT CASE LEFT$(plac$, 3)
+            CASE "top"
+                txto% = topp% - INT(_FONTHEIGHT / 2) + INT(disp% / 2) + 2 + ymov%
+            CASE "bot"
+                txto% = (topp% + heig%) - INT(_FONTHEIGHT / 2) - INT(disp% / 2) + ymov%
+        END SELECT
+        SELECT CASE RIGHT$(plac$, 4)
+            CASE "left"
+                txle% = left% + 12
+            CASE "nter"
+                txle% = (left% + INT(widt% / 2)) - INT(priw% / 2)
+            CASE "ight"
+                txle% = (left% + widt% - 1) - priw% - 12
+        END SELECT
+        REDIM clip~%%((_FONTHEIGHT * priw%) + 4)
+        GET (txle%, txto%)-(txle% + priw% - 1, txto% + _FONTHEIGHT - 1), clip~%%()
+    END IF
+    '--- label output ---
+    PrintObjectLabel this&, left%, topp%, widt%, heig%
+    '--- draw object ----
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "HSFLAG") AND guiALBIndex& > 1 AND this& >= guiALBIndex& THEN
+        GOSUB meHoverShadow
+        IF text$ <> "n/a" THEN
+            text$ = "n/a"
+            ERASE clip~%%
+        END IF
+    END IF
+    xs% = left%: xe% = left% + widt% - 1
+    ys% = topp%: ye% = topp% + heig% - 1
+    GOSUB meDrawFrame
+    disp% = 0
+    IF form$ = "ridge" OR form$ = "solid" THEN
+        disp% = 2
+        IF form$ = "solid" THEN disp% = 4
+        xs% = left% + disp%: xe% = left% + widt% - 1 - disp%
+        ys% = topp% + disp%: ye% = topp% + heig% - 1 - disp%
+        SWAP tole%, bori%
+        GOSUB meDrawFrame
+        IF form$ = "solid" THEN
+            xs% = left% + 2: xe% = left% + widt% - 3
+            ys% = topp% + 2: ye% = topp% + heig% - 3
+            tole% = soli%: bori% = soli%
+            GOSUB meDrawFrame
+        END IF
+    END IF
+    '--- text label ---
+    IF text$ <> "n/a" THEN
+        PUT (txle%, txto%), clip~%%(), PSET
+        prim% = _PRINTMODE
+        SetPrintMode pmKEEP%
+        COLOR text%
+        _PRINTSTRING (txle% + 1, txto%), text$
+        COLOR high%
+        _PRINTSTRING (txle%, txto% - 1), text$
+        SetPrintMode prim%
+        ERASE clip~%%
+    END IF
+END IF
+RETURN
+'----------------------------------
+meDrawFrame:
+LINE (xs%, ye%)-(xs%, ys%), tole%
+LINE (xs%, ys%)-(xe% - 1, ys%), tole%
+LINE (xs% + 1, ye% - 1)-(xs% + 1, ys% + 1), tole%
+LINE (xs% + 1, ys% + 1)-(xe% - 2, ys% + 1), tole%
+LINE (xe%, ys%)-(xe%, ye%), bori%
+LINE (xe%, ye%)-(xs% + 1, ye%), bori%
+LINE (xe% - 1, ys% + 1)-(xe% - 1, ye% - 1), bori%
+LINE (xe% - 1, ye% - 1)-(xs% + 2, ye% - 1), bori%
+RETURN
+'----------------------------------
+meHoverShadow:
+area& = _NEWIMAGE(widt% + 15, heig% + 15, 32)
+_PUTIMAGE (0, 0), _SOURCE, area&, (left%, topp%)-(left% + widt% + 14, topp% + heig% + 14)
+drk1& = ModifyBrightness&(area&, -0.16, 10, 10, widt% + 9, heig% + 9, -1): _FREEIMAGE area&
+drk2& = ModifyBrightness&(drk1&, -0.16, 10, 10, widt% + 7, heig% + 7, -1): _FREEIMAGE drk1&
+drk3& = ModifyBrightness&(drk2&, -0.16, 10, 10, widt% + 4, heig% + 4, -1): _FREEIMAGE drk2&
+rem1& = ModifyBrightness&(drk3&, -0.16, 0, 0, widt% - 1, 9, -1): _FREEIMAGE drk3&
+rem2& = ModifyBrightness&(rem1&, -0.16, 0, 10, 9, heig% - 1, -1): _FREEIMAGE rem1&
+rem3& = ModifyBrightness&(rem2&, -0.16, 0, 0, widt% - 1, 9, -1): _FREEIMAGE rem2&
+rem4& = ModifyBrightness&(rem3&, -0.16, 0, 10, 9, heig% - 1, -1): _FREEIMAGE rem3&
+rem5& = ModifyBrightness&(rem4&, -0.16, 0, 0, widt% - 1, 9, -1): _FREEIMAGE rem4&
+rem6& = ModifyBrightness&(rem5&, -0.16, 0, 10, 9, heig% - 1, -1): _FREEIMAGE rem5&
+grad& = ModifyContrast&(rem6&, -0.5, 0, 0, widt% - 1, heig% - 1, -1): _FREEIMAGE rem6&
+gray& = MakeGrayscale&(grad&, 0, 0, widt% - 1, heig% - 1, -1): _FREEIMAGE grad&
+filt& = ApplyFilter&(gray&, "gauss8", 0, 0, 0, 0, widt% + 10, heig% + 10, -1): _FREEIMAGE gray&
+shad& = RemapImageFS&(filt&, _DEST): _FREEIMAGE filt&
+_PUTIMAGE (left%, topp%), shad&, _DEST: _FREEIMAGE shad&
+RETURN
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

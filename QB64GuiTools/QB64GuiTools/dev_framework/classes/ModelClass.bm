@@ -1,0 +1,534 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === ModelClass.bm ===                                             |
+'|                                                                   |
+'| == This is a GUI object class of the GuiTools Framework Project.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'=====================================================================
+'=== Model Class =====================================================
+'=====================================================================
+'METHODS:
+' Each method supports a number of tags to specify the object's properties
+' and behavior. These are passed in through the tagString$ argument of the
+' class. There may be required and/or optional tags. Find the supported
+' tags for each method right below within the method dispatcher
+' (the "SELECT CASE methodID$" block):   tagsReq$ = required tags,
+'                                        tagsOpt$ = optional tags
+'
+' For a description of the tags refer to the KnownTags.txt file, for a
+' general documentation about the Framework see GuiToolsFramework.pdf.
+'---------------------------------------------------------------------
+FUNCTION ModelC$ (method$, tagString$)
+ModelRes$ = ""
+classID$ = "ModelC"
+methodID$ = UCASE$(LEFT$(method$, 1)) + LCASE$(MID$(method$, 2))
+tagsID$ = tagString$ 'avoid side effects on passed argument
+flagsID$ = "-iu"
+SELECT CASE methodID$
+    CASE "Init"
+        tagsReq$ = "WHICH," '+ model specific tags below
+        tagsIncDec$ = "VALOBJECT,VALTAG,INCDECVAL,TRIGOBJECT,"
+        tagsForward$ = "PRIOBJECT,PRITAG,SECOBJECT,SECTAG,"
+        tagsRatio$ = "MULOBJECT,MULTAG,RATIO,DIVOBJECT,DIVTAG,"
+        tagsHsbRgb$ = "HUEOBJECT,HUETAG,SATOBJECT,SATTAG,BRIOBJECT,BRITAG," +_
+                      "REDOBJECT,REDTAG,GREOBJECT,GRETAG,BLUOBJECT,BLUTAG,"
+        tagsOpt$ = "MULFORMAT,DIVFORMAT,INTONLY,DISABLED," '+ user tags
+        GOSUB meInit
+        'Result Tags: ERROR/WARNING or OBJECT
+    CASE "Set"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "INCDECVAL,RATIO,MULFORMAT,DIVFORMAT,DISABLED," '+ user tags
+        GOSUB meSet
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Get"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = "TAGNAMES," 'list may include internal + user tags
+        GOSUB meGet
+        'Result Tags: ERROR/WARNING or requested tags (may be empty)
+    CASE "Kill"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meKill
+        'Result Tags: ERROR/WARNING or empty
+    CASE "Update"
+        tagsReq$ = "OBJECT,"
+        tagsOpt$ = ""
+        GOSUB meUpdate
+        'Result Tags: ERROR/WARNING or empty
+    CASE ELSE
+        SetTag ModelRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown method"
+END SELECT
+ModelC$ = ModelRes$
+EXIT FUNCTION
+'---------------------------------------------------------------------
+meInit:
+IF NOT ValidateTags%(tagsID$, tagsReq$, 0) THEN
+    SetTag ModelRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+ELSE
+    '--- check model specific tags ---
+    SELECT CASE LCASE$(GetTagData$(tagsID$, "WHICH", "n/a"))
+        CASE "incdec"
+            vali% = ValidateTags%(tagsID$, tagsIncDec$, 0)
+            tagsReq$ = tagsReq$ + tagsIncDec$
+        CASE "forward"
+            vali% = ValidateTags%(tagsID$, tagsForward$, 0)
+            tagsReq$ = tagsReq$ + tagsForward$
+        CASE "ratio"
+            vali% = ValidateTags%(tagsID$, tagsRatio$, 0)
+            tagsReq$ = tagsReq$ + tagsRatio$
+        CASE "hsbrgb"
+            vali% = ValidateTags%(tagsID$, tagsHsbRgb$, 0)
+            tagsReq$ = tagsReq$ + tagsHsbRgb$
+        CASE ELSE
+            SetTag ModelRes$, "ERROR", classID$ + "::" + methodID$ + " -> unknown model"
+            RETURN
+    END SELECT
+    IF NOT vali% THEN
+        SetTag ModelRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+    ELSE
+        '--- general init ---
+        this& = NewObject&
+        guiObjects$(objData%, this&) = ""
+        guiObjects$(objType%, this&) = classID$
+        guiObjects$(objFlags%, this&) = flagsID$
+        guiObjects$(objConn%, this&) = ""
+        '--- ModelC to connected objects (for autokill) ---
+        flag% = 0
+        SELECT CASE LCASE$(GetTagData$(tagsID$, "WHICH", "n/a"))
+            CASE "incdec"
+                vobj& = VAL(GetTagData$(tagsID$, "VALOBJECT", "0"))
+                tobj& = VAL(GetTagData$(tagsID$, "TRIGOBJECT", "0"))
+                IF vobj& < 1 OR vobj& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF tobj& < 1 OR tobj& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF NOT flag% THEN
+                    guiObjects$(objConn%, vobj&) = guiObjects$(objConn%, vobj&) + STR$(this&) 'no LTRIM$ here !!
+                    guiObjects$(objConn%, tobj&) = guiObjects$(objConn%, tobj&) + STR$(this&)
+                END IF
+            CASE "forward"
+                pobj& = VAL(GetTagData$(tagsID$, "PRIOBJECT", "0"))
+                sobj& = VAL(GetTagData$(tagsID$, "SECOBJECT", "0"))
+                IF pobj& < 1 OR pobj& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF sobj& < 1 OR sobj& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF NOT flag% THEN
+                    guiObjects$(objConn%, pobj&) = guiObjects$(objConn%, pobj&) + STR$(this&) 'no LTRIM$ here !!
+                    guiObjects$(objConn%, sobj&) = guiObjects$(objConn%, sobj&) + STR$(this&)
+                END IF
+            CASE "ratio"
+                mobj& = VAL(GetTagData$(tagsID$, "MULOBJECT", "0"))
+                dobj& = VAL(GetTagData$(tagsID$, "DIVOBJECT", "0"))
+                IF mobj& < 1 OR mobj& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF dobj& < 1 OR dobj& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF NOT flag% THEN
+                    guiObjects$(objConn%, mobj&) = guiObjects$(objConn%, mobj&) + STR$(this&) 'no LTRIM$ here !!
+                    guiObjects$(objConn%, dobj&) = guiObjects$(objConn%, dobj&) + STR$(this&)
+                END IF
+            CASE "hsbrgb"
+                hueo& = VAL(GetTagData$(tagsID$, "HUEOBJECT", "0"))
+                sato& = VAL(GetTagData$(tagsID$, "SATOBJECT", "0"))
+                brio& = VAL(GetTagData$(tagsID$, "BRIOBJECT", "0"))
+                redo& = VAL(GetTagData$(tagsID$, "REDOBJECT", "0"))
+                greo& = VAL(GetTagData$(tagsID$, "GREOBJECT", "0"))
+                bluo& = VAL(GetTagData$(tagsID$, "BLUOBJECT", "0"))
+                IF hueo& < 1 OR hueo& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF sato& < 1 OR sato& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF brio& < 1 OR brio& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF redo& < 1 OR redo& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF greo& < 1 OR greo& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF bluo& < 1 OR bluo& > UBOUND(guiObjects$, 2) THEN flag% = -1
+                IF NOT flag% THEN
+                    guiObjects$(objConn%, hueo&) = guiObjects$(objConn%, hueo&) + STR$(this&) 'no LTRIM$ here !!
+                    guiObjects$(objConn%, sato&) = guiObjects$(objConn%, sato&) + STR$(this&)
+                    guiObjects$(objConn%, brio&) = guiObjects$(objConn%, brio&) + STR$(this&)
+                    guiObjects$(objConn%, redo&) = guiObjects$(objConn%, redo&) + STR$(this&)
+                    guiObjects$(objConn%, greo&) = guiObjects$(objConn%, greo&) + STR$(this&)
+                    guiObjects$(objConn%, bluo&) = guiObjects$(objConn%, bluo&) + STR$(this&)
+                END IF
+        END SELECT
+        IF flag% THEN
+            guiObjects$(objData%, this&) = ""
+            guiObjects$(objType%, this&) = ""
+            guiObjects$(objFlags%, this&) = ""
+            guiObjects$(objConn%, this&) = ""
+            SetTag ModelRes$, "ERROR", classID$ + "::" + methodID$ + " -> at least one given object is undefined"
+        ELSE
+            '--- add required/optional tags ---
+            opti% = ValidateTags%(tagsID$, tagsOpt$, -1)
+            guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + GetTags$(tagsID$, tagsReq$ + tagsOpt$)
+            '--- add any remaining user tags ---
+            RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+            guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + tagsID$
+            '--- set result ---
+            SetTag ModelRes$, "OBJECT", LTRIM$(STR$(this&))
+            disa$ = ExtractTag$(guiObjects$(objData%, this&), "DISABLED")
+            resu$ = ObjectRefresh$(this&, "u", "") 'init with current values
+            guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + disa$
+        END IF
+    END IF
+END IF
+RETURN
+'---------------------------------------------------------------------
+meSet:
+IF ValidObject%(this&, thisTag$, ModelRes$, classID$, methodID$, tagsID$) THEN
+    '--- check required/optional tag changes ---
+    flag% = 0
+    IF LCASE$(GetTagData$(guiObjects$(objData%, this&), "WHICH", "n/a")) = "incdec" THEN
+        IF UpdateTag%(guiObjects$(objData%, this&), "INCDECVAL", tagsID$) THEN flag% = -1
+    END IF
+    IF LCASE$(GetTagData$(guiObjects$(objData%, this&), "WHICH", "n/a")) = "ratio" THEN
+        IF UpdateTags%(guiObjects$(objData%, this&), "RATIO,MULFORMAT,DIVFORMAT", tagsID$) THEN
+            RemTags guiObjects$(objData%, this&), "MULLAST,DIVLAST"
+            flag% = -1
+        END IF
+    END IF
+    temp$ = GetTagData$(tagsID$, "DISABLED", "n/a")
+    IF temp$ <> "n/a" THEN
+        IF BoolTagTrue%(tagsID$, "DISABLED") THEN
+            SetTag guiObjects$(objData%, this&), "DISABLED", "true"
+        ELSE
+            RemTag guiObjects$(objData%, this&), "DISABLED"
+        END IF
+        flag% = -1
+    END IF
+    '--- check any user tag changes ---
+    RemTags tagsID$, guiInitTags$ + guiCallTags$ + guiEvntTags$ + guiPrivTags$
+    DO
+        utag$ = GetTagName$(tagsID$)
+        IF utag$ <> "" THEN
+            temp$ = GetTagData$(ExtractTag$(tagsID$, utag$), utag$, "n/a")
+            IF temp$ <> "n/a" THEN SetTag guiObjects$(objData%, this&), utag$, temp$
+        END IF
+    LOOP WHILE utag$ <> ""
+    '--- update object (if required) ---
+    IF flag% THEN resu$ = ObjectRefresh$(this&, "u", "")
+END IF
+RETURN
+'---------------------------------------------------------------------
+meGet:
+IF ValidObject%(this&, thisTag$, ModelRes$, classID$, methodID$, tagsID$) THEN
+    '--- get the requested tags ---
+    temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
+    IF temp$ <> "n/a" THEN ModelRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+END IF
+RETURN
+'---------------------------------------------------------------------
+meKill:
+IF ValidObject%(this&, thisTag$, ModelRes$, classID$, methodID$, tagsID$) THEN
+    '--- 1st remove this interconnection from all affected objects ---
+    SELECT CASE LCASE$(GetTagData$(guiObjects$(objData%, this&), "WHICH", "n/a"))
+        CASE "incdec"
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "VALOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "TRIGOBJECT", "0")): GOSUB meRemIC
+        CASE "forward"
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "PRIOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "SECOBJECT", "0")): GOSUB meRemIC
+        CASE "ratio"
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "MULOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "DIVOBJECT", "0")): GOSUB meRemIC
+        CASE "hsbrgb"
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "HUEOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "SATOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "BRIOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "REDOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "GREOBJECT", "0")): GOSUB meRemIC
+            obje& = VAL(GetTagData$(guiObjects$(objData%, this&), "BLUOBJECT", "0")): GOSUB meRemIC
+    END SELECT
+    '--- 2nd remove interconnections to this object ---
+    KillInterconnections this&
+    '--- delete object ---
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+END IF
+RETURN
+'----------------------------------
+meRemIC:
+REDIM oarr$(5)
+oaub% = ParseLine&(guiObjects$(objConn%, obje&), " ", "", oarr$(), 0)
+IF oaub% >= 0 THEN
+    guiObjects$(objConn%, obje&) = ""
+    FOR i% = 0 TO oaub%
+        IF VAL(oarr$(i%)) <> this& THEN
+            guiObjects$(objConn%, obje&) = guiObjects$(objConn%, obje&) + STR$(VAL(oarr$(i%))) 'no LTRIM$ here !!
+        END IF
+    NEXT i%
+END IF
+ERASE oarr$
+RETURN
+'---------------------------------------------------------------------
+meUpdate:
+IF ValidObject%(this&, thisTag$, ModelRes$, classID$, methodID$, tagsID$) THEN
+    '--- don't update, if currently disabled ---
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN RETURN
+    '--- get global properties ---
+    into% = BoolTagTrue%(guiObjects$(objData%, this&), "INTONLY")
+    '--- find model and call respective handler ---
+    SELECT CASE LCASE$(GetTagData$(guiObjects$(objData%, this&), "WHICH", "n/a"))
+        CASE "incdec": GOSUB meUpdIncDec
+        CASE "forward": GOSUB meUpdForward
+        CASE "ratio": GOSUB meUpdRatio
+        CASE "hsbrgb": GOSUB meUpdHsbRgb
+    END SELECT
+END IF
+RETURN
+'----------------------------------
+meUpdIncDec:
+'--- get object properties ---
+vobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "VALOBJECT", "0"))
+vtag$ = GetTagData$(guiObjects$(objData%, this&), "VALTAG", "n/a")
+idva# = VAL(GetTagData$(guiObjects$(objData%, this&), "INCDECVAL", "0"))
+'--- find actual value & check trigger ---
+vval$ = GetTagData$(guiObjects$(objData%, vobj&), vtag$, "0")
+IF ThisObject%(ObjectTag$(guiObjects$(objData%, this&), "TRIGOBJECT"), tagsID$, "GADGETUP") THEN
+    IF vobj& <> guiASCObject& THEN
+        IF into% THEN vval$ = STR$(CLNG(VAL(vval$) + idva#)): ELSE vval$ = STR$(VAL(vval$) + idva#)
+        vval$ = LTRIM$(vval$)
+        resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(vobj&))) + NewTag$(vtag$, vval$))
+    END IF
+END IF
+'----------------------------------
+meUpdForward:
+'--- get object properties ---
+pobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "PRIOBJECT", "0"))
+ptag$ = GetTagData$(guiObjects$(objData%, this&), "PRITAG", "n/a")
+sobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "SECOBJECT", "0"))
+stag$ = GetTagData$(guiObjects$(objData%, this&), "SECTAG", "n/a")
+'--- find info flow direction ---
+last$ = GetTagData$(guiObjects$(objData%, this&), "PSLAST", "n/a")
+pval$ = GetTagData$(guiObjects$(objData%, pobj&), ptag$, "n/a")
+sval$ = GetTagData$(guiObjects$(objData%, sobj&), stag$, "n/a")
+'--- check SliderC alternative output conditions ---
+IF guiObjects$(objType%, pobj&) = "SliderC" THEN
+    mini& = VAL(GetTagData$(guiObjects$(objData%, pobj&), "MINIMUM", "0"))
+    maxi& = VAL(GetTagData$(guiObjects$(objData%, pobj&), "MAXIMUM", "0"))
+    amin$ = GetTagData$(guiObjects$(objData%, pobj&), "ALTMIN", "n/a")
+    amax$ = GetTagData$(guiObjects$(objData%, pobj&), "ALTMAX", "n/a")
+    IF amin$ <> "n/a" AND VAL(pval$) = mini& THEN pval$ = amin$
+    IF amax$ <> "n/a" AND VAL(pval$) = maxi& THEN pval$ = amax$
+END IF
+'--- forward tag information ---
+IF (last$ = "n/a" AND pval$ <> "n/a") THEN
+    GOSUB meFromPRItoSEC
+ELSEIF (last$ = "n/a" AND sval$ <> "n/a") THEN
+    GOSUB meFromSECtoPRI
+ELSEIF (last$ <> "n/a" AND pval$ <> last$) THEN
+    GOSUB meFromPRItoSEC
+ELSEIF (last$ <> "n/a" AND sval$ <> last$) THEN
+    GOSUB meFromSECtoPRI
+END IF
+RETURN
+'----------------------------------
+meFromPRItoSEC:
+IF sobj& <> guiASCObject& THEN
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(sobj&))) + NewTag$(stag$, pval$))
+    SetTag guiObjects$(objData%, this&), "PSLAST", pval$
+END IF
+RETURN
+'----------------------------------
+meFromSECtoPRI:
+IF pobj& <> guiASCObject& THEN
+    SetTag guiObjects$(objData%, this&), "PSLAST", sval$
+    IF guiObjects$(objType%, pobj&) = "SliderC" THEN
+        mini& = VAL(GetTagData$(guiObjects$(objData%, pobj&), "MINIMUM", "0"))
+        maxi& = VAL(GetTagData$(guiObjects$(objData%, pobj&), "MAXIMUM", "0"))
+        amin$ = GetTagData$(guiObjects$(objData%, pobj&), "ALTMIN", "n/a")
+        amax$ = GetTagData$(guiObjects$(objData%, pobj&), "ALTMAX", "n/a")
+        IF amin$ <> "n/a" AND UCASE$(sval$) = UCASE$(amin$) THEN sval$ = LTRIM$(STR$(mini&))
+        IF amax$ <> "n/a" AND UCASE$(sval$) = UCASE$(amax$) THEN sval$ = LTRIM$(STR$(maxi&))
+    END IF
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(pobj&))) + NewTag$(ptag$, sval$))
+END IF
+RETURN
+'----------------------------------
+meUpdRatio:
+'--- get object properties ---
+mobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "MULOBJECT", "0"))
+mtag$ = GetTagData$(guiObjects$(objData%, this&), "MULTAG", "n/a")
+mfmt$ = GetTagData$(guiObjects$(objData%, this&), "MULFORMAT", "")
+rati# = VAL(GetTagData$(guiObjects$(objData%, this&), "RATIO", "0"))
+dobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "DIVOBJECT", "0"))
+dtag$ = GetTagData$(guiObjects$(objData%, this&), "DIVTAG", "n/a")
+dfmt$ = GetTagData$(guiObjects$(objData%, this&), "DIVFORMAT", "")
+'--- find info flow direction ---
+mlas$ = GetTagData$(guiObjects$(objData%, this&), "MULLAST", "n/a")
+dlas$ = GetTagData$(guiObjects$(objData%, this&), "DIVLAST", "n/a")
+mval$ = GetTagData$(guiObjects$(objData%, mobj&), mtag$, "n/a")
+dval$ = GetTagData$(guiObjects$(objData%, dobj&), dtag$, "n/a")
+'--- forward tag information ---
+IF (mlas$ = "n/a" AND mval$ <> "n/a") THEN
+    GOSUB meFromMULtoDIV
+ELSEIF (dlas$ = "n/a" AND dval$ <> "n/a") THEN
+    GOSUB meFromDIVtoMUL
+ELSEIF (mlas$ <> "n/a" AND mval$ <> mlas$) THEN
+    GOSUB meFromMULtoDIV
+ELSEIF (dlas$ <> "n/a" AND dval$ <> dlas$) THEN
+    GOSUB meFromDIVtoMUL
+END IF
+RETURN
+'----------------------------------
+meFromMULtoDIV:
+IF dobj& <> guiASCObject& THEN
+    IF into% THEN dval$ = STR$(CLNG(VAL(LStrip$(stmVALUE%, mval$)) / rati#)): ELSE dval$ = STR$(VAL(LStrip$(stmVALUE%, mval$)) / rati#)
+    IF dfmt$ <> "" THEN dval$ = LStrip$(stmVALUE%, IndexFormat$("0{" + dfmt$ + "}", dval$, "|")): ELSE dval$ = LTRIM$(dval$)
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(dobj&))) + NewTag$(dtag$, dval$))
+    SetTag guiObjects$(objData%, this&), "MULLAST", mval$
+    SetTag guiObjects$(objData%, this&), "DIVLAST", dval$
+END IF
+RETURN
+'----------------------------------
+meFromDIVtoMUL:
+IF mobj& <> guiASCObject& THEN
+    IF into% THEN mval$ = STR$(CLNG(VAL(LStrip$(stmVALUE%, dval$)) * rati#)): ELSE mval$ = STR$(VAL(LStrip$(stmVALUE%, dval$)) * rati#)
+    IF mfmt$ <> "" THEN mval$ = LStrip$(stmVALUE%, IndexFormat$("0{" + mfmt$ + "}", mval$, "|")): ELSE mval$ = LTRIM$(mval$)
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(mobj&))) + NewTag$(mtag$, mval$))
+    SetTag guiObjects$(objData%, this&), "MULLAST", mval$
+    SetTag guiObjects$(objData%, this&), "DIVLAST", dval$
+END IF
+RETURN
+'----------------------------------
+meUpdHsbRgb:
+'--- get object properties ---
+hueo& = VAL(GetTagData$(guiObjects$(objData%, this&), "HUEOBJECT", "0"))
+huet$ = GetTagData$(guiObjects$(objData%, this&), "HUETAG", "n/a")
+sato& = VAL(GetTagData$(guiObjects$(objData%, this&), "SATOBJECT", "0"))
+satt$ = GetTagData$(guiObjects$(objData%, this&), "SATTAG", "n/a")
+brio& = VAL(GetTagData$(guiObjects$(objData%, this&), "BRIOBJECT", "0"))
+brit$ = GetTagData$(guiObjects$(objData%, this&), "BRITAG", "n/a")
+redo& = VAL(GetTagData$(guiObjects$(objData%, this&), "REDOBJECT", "0"))
+redt$ = GetTagData$(guiObjects$(objData%, this&), "REDTAG", "n/a")
+greo& = VAL(GetTagData$(guiObjects$(objData%, this&), "GREOBJECT", "0"))
+gret$ = GetTagData$(guiObjects$(objData%, this&), "GRETAG", "n/a")
+bluo& = VAL(GetTagData$(guiObjects$(objData%, this&), "BLUOBJECT", "0"))
+blut$ = GetTagData$(guiObjects$(objData%, this&), "BLUTAG", "n/a")
+'--- find info flow direction ---
+hsbl$ = GetTagData$(guiObjects$(objData%, this&), "HSBLAST", "n/a")
+rgbl$ = GetTagData$(guiObjects$(objData%, this&), "RGBLAST", "n/a")
+hsbh$ = GetTagData$(guiObjects$(objData%, hueo&), huet$, "n/a")
+hsbs$ = GetTagData$(guiObjects$(objData%, sato&), satt$, "n/a")
+hsbb$ = GetTagData$(guiObjects$(objData%, brio&), brit$, "n/a")
+rgbr$ = GetTagData$(guiObjects$(objData%, redo&), redt$, "n/a")
+rgbg$ = GetTagData$(guiObjects$(objData%, greo&), gret$, "n/a")
+rgbb$ = GetTagData$(guiObjects$(objData%, bluo&), blut$, "n/a")
+hsbv$ = hsbh$ + "-" + hsbs$ + "-" + hsbb$
+rgbv$ = rgbr$ + "-" + rgbg$ + "-" + rgbb$
+'--- forward tag information ---
+IF (hsbl$ = "n/a" AND hsbv$ <> "n/a-n/a-n/a") THEN
+    GOSUB meFromHSBtoRGB
+ELSEIF (rgbl$ = "n/a" AND rgbv$ <> "n/a-n/a-n/a") THEN
+    GOSUB meFromRGBtoHSB
+ELSEIF (hsbl$ <> "n/a" AND hsbv$ <> hsbl$) THEN
+    GOSUB meFromHSBtoRGB
+ELSEIF (rgbl$ <> "n/a" AND rgbv$ <> rgbl$) THEN
+    GOSUB meFromRGBtoHSB
+END IF
+RETURN
+'----------------------------------
+meFromHSBtoRGB:
+HSBtoRGB CLNG(VAL(hsbh$) * 182.041666666666666#), CLNG(VAL(hsbs$) * 655.35#), CLNG(VAL(hsbb$) * 655.35#), nred&, ngre&, nblu&
+rgbr$ = LTRIM$(STR$(nred& \ 256)): rgbg$ = LTRIM$(STR$(ngre& \ 256)): rgbb$ = LTRIM$(STR$(nblu& \ 256))
+IF redo& <> guiASCObject& THEN
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(redo&))) + NewTag$(redt$, rgbr$))
+ELSE
+    rgbr$ = "n/a"
+END IF
+IF greo& <> guiASCObject& THEN
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(greo&))) + NewTag$(gret$, rgbg$))
+ELSE
+    rgbg$ = "n/a"
+END IF
+IF bluo& <> guiASCObject& THEN
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(bluo&))) + NewTag$(blut$, rgbb$))
+ELSE
+    rgbb$ = "n/a"
+END IF
+SetTag guiObjects$(objData%, this&), "HSBLAST", hsbh$ + "-" + hsbs$ + "-" + hsbb$
+SetTag guiObjects$(objData%, this&), "RGBLAST", rgbr$ + "-" + rgbg$ + "-" + rgbb$
+RETURN
+'----------------------------------
+meFromRGBtoHSB:
+RGBtoHSB VAL(rgbr$) * 256, VAL(rgbg$) * 256, VAL(rgbb$) * 256, nhue&, nsat&, nbri&
+hsbh$ = LTRIM$(STR$(CLNG(nhue& / 182.041666666666666#))): hsbs$ = LTRIM$(STR$(CLNG(nsat& / 655.35#))): hsbb$ = LTRIM$(STR$(CLNG(nbri& / 655.35#)))
+IF hueo& <> guiASCObject& THEN
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(hueo&))) + NewTag$(huet$, hsbh$))
+ELSE
+    hsbh$ = "n/a"
+END IF
+IF sato& <> guiASCObject& THEN
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(sato&))) + NewTag$(satt$, hsbs$))
+ELSE
+    hsbs$ = "n/a"
+END IF
+IF brio& <> guiASCObject& THEN
+    resu$ = GenC$("SET", NewTag$("OBJECT", LTRIM$(STR$(brio&))) + NewTag$(brit$, hsbb$))
+ELSE
+    hsbb$ = "n/a"
+END IF
+SetTag guiObjects$(objData%, this&), "HSBLAST", hsbh$ + "-" + hsbs$ + "-" + hsbb$
+SetTag guiObjects$(objData%, this&), "RGBLAST", rgbr$ + "-" + rgbg$ + "-" + rgbb$
+RETURN
+END FUNCTION
+'----------------------------------
+FUNCTION IncDecValTag$ (objectID$)
+IncDecValTag$ = NewTag$("VALOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION IncDecTrigTag$ (objectID$)
+IncDecTrigTag$ = NewTag$("TRIGOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION FwdPriTag$ (objectID$)
+FwdPriTag$ = NewTag$("PRIOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION FwdSecTag$ (objectID$)
+FwdSecTag$ = NewTag$("SECOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION RatioMulTag$ (objectID$)
+RatioMulTag$ = NewTag$("MULOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION RatioDivTag$ (objectID$)
+RatioDivTag$ = NewTag$("DIVOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION HsbHueTag$ (objectID$)
+HsbHueTag$ = NewTag$("HUEOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION HsbSatTag$ (objectID$)
+HsbSatTag$ = NewTag$("SATOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION HsbBriTag$ (objectID$)
+HsbBriTag$ = NewTag$("BRIOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION RgbRedTag$ (objectID$)
+RgbRedTag$ = NewTag$("REDOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION RgbGreTag$ (objectID$)
+RgbGreTag$ = NewTag$("GREOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'----------------------------------
+FUNCTION RgbBluTag$ (objectID$)
+RgbBluTag$ = NewTag$("BLUOBJECT", GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+'=====================================================================
+'=====================================================================
+

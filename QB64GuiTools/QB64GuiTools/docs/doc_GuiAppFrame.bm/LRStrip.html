@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LRStrip</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>LStrip$ &amp; RStrip$ <em>(function)</em></h2>
+<p>These functions will remove a range of defined chars from the left or right
+side of a string. The behavior is in that very similar to LTRIM$ and RTRIM$,
+but these functions here are not limited to remove spaces and do also provide
+some special modes for typical all day uses.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>stripped$ = LStrip$ (mode%, arg$)
+stripped$ = RStrip$ (mode%, arg$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>mode% <em>(INTEGER)</em></h4>
+<ul>
+<li>Any of the operation mode constants defined in the global CONSTs
+section in the <strong>dev_framework\GuiAppFrame.bi</strong> file (see also below).</li>
+</ul>
+<h4>arg$ <em>(STRING)</em></h4>
+<ul>
+<li>This is the string, from which you wanna strip all the chars defined by
+the given mode.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>stripped$ <em>(STRING)</em></h4>
+<ul>
+<li>The given string with all defined chars before or after it removed,
+depending on the used function.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>MODE CONSTANTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>stmZERO%</h4>
+<ul>
+<li>remove zeros (ASCII: 0)</li>
+</ul>
+<h4>stmCTRL%</h4>
+<ul>
+<li>remove control chars (ASCII: 0-31, 127 according to <a href="http://www.cplusplus.com/reference/cctype/">iscntrl()</a> function)</li>
+</ul>
+<h4>stmBLANK%</h4>
+<ul>
+<li>remove blank chars (ASCII: 9, 32 according to <a href="http://www.cplusplus.com/reference/cctype/">isblank()</a> function)</li>
+</ul>
+<h4>stmWHITE%</h4>
+<ul>
+<li>remove white space chars (ASCII: 9-13, 32 according to <a href="http://www.cplusplus.com/reference/cctype/">isspace()</a> function)</li>
+</ul>
+<h4>stmQUOTE%</h4>
+<ul>
+<li>remove quotation marks (ASCII: 34)</li>
+</ul>
+<h1></h1>
+<blockquote>
+<p><strong><em>SPECIAL MODES:</em></strong></p>
+<h4>stmFIXED%</h4>
+<ul>
+<li>
+Trim partially uninitialized fixed length strings (combines <em>stmZERO%</em> and <em>stmBLANK%</em>).
+<ul>
+<li>May be required if fresh fixed length strings are filled without using the
+regular assignment method (str = &quot;data&quot;), but eg. with MID$(str, x, y) = &quot;data&quot;
+instead.</li>
+</ul>
+</li>
+</ul>
+<h4>stmTEXT%</h4>
+<ul>
+<li>
+Find the start &amp; end of the real text content in a string (combines <em>stmCTRL%</em>,
+<em>stmBLANK%</em> and <em>stmQUOTE%</em>), hence even blank chars inside quotes get removed:
+<ul>
+<li>eg. <code>&quot; &quot; &quot; ABC &quot; &quot; &quot;</code> becomes just <code>ABC</code> after using <font color="#3232e0">LStrip$()</font> and <font color="#3232e0">RStrip$()</font>
+on it.</li>
+</ul>
+</li>
+</ul>
+<h4>stmVALUE%</h4>
+<ul>
+<li>
+Prepare a number string as argument for the VAL(...) function, ie. <font color="#3232e0">LStrip$()</font>
+is used to find the first minus (-), +, dot (.), &amp; or digit (0-9) from the
+left side, while <font color="#3232e0">RStrip$()</font> is used to find the first digit (0-9) from the
+right side:
+<ul>
+<li>eg. <code>My account is $-123.45, need next paycheck.</code> becomes just <code>-123.45</code>
+after both functions are used on it.</li>
+</ul>
+</li>
+<li>
+The <font color="#3232e0">LStrip$()</font> function also performs some simple checks:
+<ul>
+<li>1.) &amp; is accepted only if followed by B, H or O (any case)</li>
+<li>2.) +, - is accepted only if followed by a dot (.) or digit</li>
+<li>3.) the dot (.) is accepted only if followed by a digit</li>
+</ul>
+</li>
+<li>However, there is still the chance of misformatted numbers, especially if you
+don't know the source of the numbers (external input etc.).</li>
+</ul>
+</blockquote>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

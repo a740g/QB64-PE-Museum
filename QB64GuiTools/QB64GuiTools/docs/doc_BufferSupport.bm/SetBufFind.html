@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SetBufFind</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>SetBufFind <em>(function)</em></h2>
+<p>This function will define new search criteria. The given criteria will
+be copied for internal use and a unique ID number for later use with the
+functions <a href="FindBufFR.html">FindBufFwd()</a> and <a href="FindBufFR.html">FindBufRev()</a> is returned. You may define up
+to 100 different criteria in each buffer.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>findID% = SetBufFind% (handle%, find$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>handle% <em>(INTEGER)</em></h4>
+<ul>
+<li>This is the handle of any valid buffer, for which you wanna define the
+new search criteria.</li>
+</ul>
+<h4>find$ <em>(STRING)</em></h4>
+<ul>
+<li>
+The search criteria to look for, when calling the actual search
+functions with the returned ID:
+<ul>
+<li>This can be a regular text string to look for, but can also contain
+control chars and converted numbers (_MK$ or STR$), just as you need.</li>
+<li>For a delimiter search this string should simply list all chars, which
+shall be recognized as delimiters (eg. &quot;,.{[()]}&quot;).</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>findID% <em>(INTEGER)</em></h4>
+<ul>
+<li>On success (positive value) this is the ID number of the new defined
+criteria, on failure (negative value) it is any of the error numbers defined
+in the <strong>simplebuffer.bi</strong> file (see <a href="BufferSupport-Common.html">Common-Info</a>).</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>NOTES:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>You should always remove no longer needed search criteria to make its
+IDs available for reuse.</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

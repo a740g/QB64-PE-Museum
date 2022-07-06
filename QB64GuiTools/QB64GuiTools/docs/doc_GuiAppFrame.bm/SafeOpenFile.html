@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SafeOpenFile</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>SafeOpenFile <em>(function)</em></h2>
+<p>Will try to OPEN the given file using the next free number and the desired
+mode. On success it will also properly lock the file according to the mode.
+The opening is safe in that way, as it traps any errors and so avoids the
+abortion of the running program. In case of an error, the function does
+return a zero result, while the error code is saved into the globally SHARED
+variable appLastErr% for later reference.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>fid% = SafeOpenFile% (mode$, file$)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>mode$ <em>(STRING)</em></h4>
+<ul>
+<li>The desired file mode (INPUT, OUTPUT etc.), may be a shortcut, only the
+first char is mandatory. You may use upper, lower or mixed case chars.</li>
+</ul>
+<h4>file$ <em>(STRING)</em></h4>
+<ul>
+<li>The name of the file to open. May have a full or relative path, if required.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>fid% <em>(INTEGER)</em></h4>
+<ul>
+<li>
+The number of the opened file on success or zero on failure.
+<ul>
+<li>On failure you may check the error code in the appLastErr% variable and
+use it to control the further program flow.</li>
+<li>If required, you may also forward the error to the global user error
+handler using the statement ERROR appLastErr%.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_GuiAppFrame_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ApplyFilter</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* This file is deliberately empty. */
+</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+<hr />
+<h2>ApplyFilter <em>(function)</em></h2>
+<p>Filters are a bit tricky subject.  The theory is a bit complicated to
+get into here, but basically you can do low- and high-pass filtering,
+gradient calculation, sharpen or blurring, edge detect and lots of
+other cool stuff with this.  You can probably find a great deal of
+information from any good book or website that discusses image processing
+in detail.  Aw hell, simply try the provided filters and soon you'll
+be able to add your own filter matrices.
+The alpha channel of the source image is retained and copied 1:1.</p>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>SYNTAX:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre><code>newImg&amp; = ApplyFilter&amp; (shan&amp;, filter$, addovr%, divovr%, minX%, minY%, maxX%, maxY%, mask&amp;)
+</code></pre>
+
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>INPUTS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>filter$ <em>(STRING)</em></h4>
+<ul>
+<li>The name of the filter to apply, written case doesn't matter,
+scroll down for a list of all available filters.</li>
+</ul>
+<h4>addovr%, divovr% <em>(INTEGERs)</em></h4>
+<ul>
+<li>Override values for the filter defined &quot;add&quot; and/or &quot;div&quot; values
+respectively, these are used only if given &lt;&gt; 0.</li>
+</ul>
+<h4>shan&amp;, mask&amp; <em>(LONGs)</em></h4>
+<h4>minX%, minY%, maxX%, maxY% <em>(INTEGERs)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>RESULT:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>newImg&amp; <em>(LONG)</em></h4>
+<ul>
+<li>See page <a href="ImageSupport-Common.html">Common Info</a>.</li>
+</ul>
+</blockquote>
+<hr />
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p><strong><em>FILTERS:</em></strong></p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h4>=== artistic ===</h4>
+<ul>
+<li>Deep</li>
+<li>Rushhour</li>
+<li>Texture</li>
+<li>Wooden</li>
+</ul>
+<h4>=== blurring ===</h4>
+<ul>
+<li>Average3</li>
+<li>Average5</li>
+<li>Average7</li>
+<li>Gauss4</li>
+<li>Gauss8</li>
+<li>NeedGlasses</li>
+<li>UnsharpCam</li>
+</ul>
+<h4>=== sharpen ===</h4>
+<ul>
+<li>LowSharpen</li>
+<li>MediumSharpen</li>
+<li>HighSharpen</li>
+<li>MexicanHat</li>
+</ul>
+<h4>=== edge detect ===</h4>
+<ul>
+<li>KirschN</li>
+<li>KirschNW</li>
+<li>KirschW</li>
+<li>KirschSW</li>
+<li>KirschS</li>
+<li>KirschSE</li>
+<li>KirschE</li>
+<li>KirschNE</li>
+<li>Laplace4</li>
+<li>Laplace8</li>
+<li>Roberts1</li>
+<li>Roberts2</li>
+</ul>
+<h4>=== line detect ===</h4>
+<ul>
+<li>Prewitt1</li>
+<li>Prewitt2</li>
+<li>Sobel1</li>
+<li>Sobel2</li>
+</ul>
+</blockquote>
+<hr />
+<p><em><a href="_ImageSupport_Contents.html">back to Table of Contents</a></em></p>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

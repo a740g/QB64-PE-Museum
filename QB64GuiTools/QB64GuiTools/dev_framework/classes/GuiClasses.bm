@@ -1,0 +1,2211 @@
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === GuiClasses.bm ===                                             |
+'|                                                                   |
+'| == This include file is part of the GuiTools Framework Project.   |
+'| == It provides the essential SUBs/FUNCTIONs for the internal GUI  |
+'| == operations, which are needed by all GUI object classes.        |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
+
+'---------------------------------------------------------------------
+'This FUNC is the heart of GuiTools, placed ONCE in your main loop it
+'will collect mouse and keyboard inputs, translate it into respective
+'events and then pass these thru the entire GUI object hirarchie. The
+'objects will react/update according to the events and do modify some
+'of the events, if required. Finally the whole event message string is
+'retured, which is in fact nothing else than a tag string as you already
+'know it from the object classes (event tags are described in the text
+'file KnownTags.txt). You may control the framerate of this process
+'simply by _LIMITing your main loop (50 should be enough for smooth
+'operation of the GUI). You should store the GetGUIMsg$() result into
+'a string variable and then immediatly enter an event handler as seen
+'in GuiAppDemo.bas, which handles the received events according to your
+'needs. After that handler your main loop should be closed, hence your
+'main loop could be as simple as:
+'   done% = 0
+'   WHILE NOT done%
+'     _LIMIT 50
+'     msg$ = GetGUIMsg$
+'     'begin handling events here (see also FUNCTION ThisObject%() below)
+'     'set done% = -1, if exit condition is reached
+'     'end of handling events
+'   WEND
+'---------------------------------------------------------------------
+FUNCTION GetGUIMsg$
+IF _EXIT THEN SetTag guiObjects$(0, 0), "USERBREAK", "true"
+'--- handle pending exit requests and GUI refreshes immediately ---
+mess$ = ExtractTag$(guiObjects$(0, 0), "USERBREAK")
+IF mess$ <> "" GOTO ggmSetResultAndExit
+mess$ = ExtractTag$(guiObjects$(0, 0), "GUIREFRESH")
+IF mess$ <> "" GOTO ggmSetResultAndExit
+'--- init message with historic data & collect input ---
+SHARED appSMObj%&: STATIC gloMx%, gloMy%
+mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-InpSMAccess-" + appProgID$ + CHR$(0))
+mess$ = GetSMString$(appSMObj%&)
+UnlockMutex mtx%&
+mi% = _MOUSEINPUT: mwl% = _MOUSEWHEEL
+WHILE _MOUSEINPUT: mwl% = mwl% + _MOUSEWHEEL: WEND
+IF mess$ = "" THEN
+    mess$ = GetTags$(guiObjects$(0, 0), "MOUSEX,MOUSEY,MOUSELB,MOUSERB,MOUSEMB,GUIVIEW")
+    IF appKBLIdent% = 0 THEN ik$ = INKEY$: ELSE ik$ = InkeyHit$(appKBLIdent%)
+    IF appGLVComp% AND mi% <> 0 THEN
+        IF _MOUSEX = gloMx% AND _MOUSEY = gloMy% THEN mi% = 0
+    END IF
+    IF mi% <> 0 OR ik$ <> "" THEN RemTag mess$, "GUIVIEW"
+    vix& = VAL(GetTagData$(mess$, "GUIVIEW", "0"))
+    IF vix& <> 0 THEN SetTag guiObjects$(0, 0), "SMINP", "true"
+ELSE
+    IF appGLVComp% AND mi% <> 0 THEN
+        gloMx% = _MOUSEX: gloMy% = _MOUSEY
+    END IF
+    vix& = VAL(GetTagData$(mess$, "GUIVIEW", "0"))
+    IF BoolTagTrue%(mess$, "USERBREAK") THEN
+        RemoveMutex VAL(GetTagData$(guiViews$(vix&), "ISOPEN", "0"))
+        _DELAY 0.1: RemTag guiViews$(vix&), "ISOPEN"
+        mess$ = "": GOTO ggmSetResultAndExit
+    END IF
+    mi% = BoolTagTrue%(mess$, "SMINP"): RemTag mess$, "SMINP"
+    ik$ = GetTagData$(mess$, "KEY", "")
+    mwl% = VAL(GetTagData$(mess$, "SCRVAL", "0"))
+    SetTag guiObjects$(0, 0), "SMINP", "true"
+END IF
+'--- check new input ---
+IF mi% <> 0 OR ik$ <> "" OR mwl% <> 0 THEN PrintObjectTooltip 0
+IF mi% <> 0 OR ik$ <> "" OR BoolTagTrue%(guiObjects$(0, 0), "EGRFLAG") _
+                         OR BoolTagTrue%(guiObjects$(0, 0), "IMMFLAG") THEN
+    IF BoolTagTrue%(guiObjects$(0, 0), "SMINP") GOTO update
+    '--- set key press & check modifiers keys ---
+    IF ik$ <> "" THEN
+        SetTag mess$, "KEYPRESS", "true"
+        SetTag mess$, "KEY", ik$ 'may be CHR$(0) + "..." for special keys
+    END IF
+    mk$ = ""
+    IF _KEYDOWN(100304) THEN SetTag mess$, "SHIFT", "true": mk$ = mk$ + "lshift,"
+    IF _KEYDOWN(100303) THEN SetTag mess$, "SHIFT", "true": mk$ = mk$ + "rshift,"
+    IF _KEYDOWN(100306) THEN SetTag mess$, "CTRL", "true": mk$ = mk$ + "lctrl,"
+    IF _KEYDOWN(100305) THEN SetTag mess$, "CTRL", "true": mk$ = mk$ + "rctrl,"
+    IF _KEYDOWN(100308) THEN SetTag mess$, "ALT", "true": mk$ = mk$ + "lalt,"
+    IF _KEYDOWN(100307) THEN SetTag mess$, "ALT", "true": mk$ = mk$ + "ralt,"
+    IF mk$ <> "" THEN SetTag mess$, "MODKEYS", mk$
+    '--- check for Alt-F4 exit requests ---
+    IF BoolTagTrue%(mess$, "ALT") THEN
+        IF NOT BoolTagTrue%(mess$, "CTRL") AND NOT BoolTagTrue%(mess$, "SHIFT") THEN
+            IF GetTagData$(mess$, "KEY", "n/a") = CHR$(0) + "k" THEN
+                mess$ = "" 'clear all events
+                SetTag mess$, "USERBREAK", "true"
+                GOTO ggmSetResultAndExit
+            END IF
+        END IF
+    END IF
+    '--- check for mousebutton state changes ---
+    lmb% = _MOUSEBUTTON(1)
+    rmb% = _MOUSEBUTTON(2)
+    mmb% = _MOUSEBUTTON(3)
+    IF lmb% <> VAL(GetTagData$(mess$, "MOUSELB", "0")) THEN
+        SetTag mess$, "MOUSELB", LTRIM$(STR$(lmb%))
+        IF lmb% THEN
+            SetTag mess$, "MOUSELBDOWN", "true"
+        ELSE
+            SetTag mess$, "MOUSELBUP", "true"
+        END IF
+    END IF
+    IF rmb% <> VAL(GetTagData$(mess$, "MOUSERB", "0")) THEN
+        SetTag mess$, "MOUSERB", LTRIM$(STR$(rmb%))
+        IF rmb% THEN
+            SetTag mess$, "MOUSERBDOWN", "true"
+        ELSE
+            SetTag mess$, "MOUSERBUP", "true"
+        END IF
+    END IF
+    IF mmb% <> VAL(GetTagData$(mess$, "MOUSEMB", "0")) THEN
+        SetTag mess$, "MOUSEMB", LTRIM$(STR$(mmb%))
+        IF mmb% THEN
+            SetTag mess$, "MOUSEMBDOWN", "true"
+        ELSE
+            SetTag mess$, "MOUSEMBUP", "true"
+        END IF
+    END IF
+    '--- check for scroll wheel movement ---
+    IF mwl% <> 0 THEN
+        SetTag mess$, "MOUSESCROLL", "true"
+        SetTag mess$, "SCRVAL", LTRIM$(STR$(SGN(mwl%)))
+    END IF
+    '--- check for mouse movement ---
+    mx% = _MOUSEX: gloMx% = -1
+    my% = _MOUSEY: gloMy% = -1
+    IF mx% <> VAL(GetTagData$(mess$, "MOUSEX", "0")) OR my% <> VAL(GetTagData$(mess$, "MOUSEY", "0")) THEN
+        SetTag mess$, "MOUSEMOVE", "true"
+        SetTag mess$, "MOUSEX", LTRIM$(STR$(mx%))
+        SetTag mess$, "MOUSEY", LTRIM$(STR$(my%))
+    END IF
+    '--- update objects, check for selection/release ---
+    update:
+    UpdateGuiViews: _DISPLAY
+    STATIC lastFocus&
+    IF lastFocus& > UBOUND(guiObjects$, 2) THEN lastFocus& = 0
+    IF (guiASCObject& <> 0 AND VAL(GetTagData$(guiObjects$(objData%, guiASCObject&), "GUIVIEW", "0")) <> vix&) OR _
+       (mwl% <> 0 AND guiASCObject& <> 0 AND _
+       (guiObjects$(objType%, lastFocus&) = "CycleC" OR _
+        guiObjects$(objType%, lastFocus&) = "RadioC" OR _
+        guiObjects$(objType%, lastFocus&) = "ListviewC" OR _
+        guiObjects$(objType%, lastFocus&) = "SliderC" OR _
+        guiObjects$(objType%, lastFocus&) = "ScrollerC" OR _
+        guiObjects$(objType%, lastFocus&) = "ColorwheelC")) THEN
+        IF BoolTagTrue%(guiObjects$(objData%, guiASCObject&), "CHANGED") THEN _
+           SetTag mess$, "GADGETUP", LTRIM$(STR$(guiASCObject&))
+        RemTags guiObjects$(objData%, guiASCObject&), "SELECTED,UNDO,CHANGED"
+        res$ = ObjectRefresh$(guiASCObject&, "d", "")
+        guiASCObject& = 0
+    ELSE
+        stim# = TIMER(0.001)
+        FOR oix& = guiALBIndex& TO UBOUND(guiObjects$, 2)
+            IF RIGHT$(guiObjects$(objFlags%, oix&), 2) = "-u" THEN
+                IF VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = vix& THEN
+                    tag$ = NewTag$("OBJECT", LTRIM$(STR$(oix&)))
+                    res$ = GenC$("UPDATE", tag$ + mess$)
+                    IF ValidateTags%(res$, "SELECTED", 0) THEN
+                        obj$ = GetTagData$(res$, "SELECTED", "0")
+                        RemTag guiObjects$(objData%, VAL(obj$)), "MITIM"
+                        RemTag mess$, "MOUSELBDOWN"
+                        SetTag mess$, "GADGETDOWN", obj$
+                    END IF
+                    IF ValidateTags%(res$, "RELEASED", 0) THEN
+                        obj$ = GetTagData$(res$, "RELEASED", "0")
+                        RemTag guiObjects$(objData%, VAL(obj$)), "MITIM"
+                        RemTag mess$, "MOUSELBUP"
+                        SetTag mess$, "GADGETUP", obj$
+                    END IF
+                    'if object was triggered by keyboard shortcut or did regularly
+                    'eat the inputs, then filter the respective KEYPRESS/KEY tags
+                    IF BoolTagTrue%(res$, "SHORTCUT") THEN RemTags mess$, "KEYPRESS,KEY,SHIFT,CTRL,ALT,MODKEYS"
+                    'same for eaten mouse wheel events
+                    IF BoolTagTrue%(res$, "MOUSESCROLL") THEN RemTags mess$, "MOUSESCROLL,SCRVAL"
+                    'and for eaten mouse move events
+                    IF BoolTagTrue%(res$, "MOUSEMOVE") THEN RemTag mess$, "MOUSEMOVE"
+                    'if object does request immediate recheck, then note that for
+                    'later transfer into historic data
+                    IF BoolTagTrue%(res$, "IMMFLAG") THEN SetTag mess$, "IMMFLAG", "true"
+                END IF
+            END IF
+            etim# = TIMER(0.001) - stim#
+            IF etim# < 0 THEN etim# = etim# + 86400 'midnight fix
+            IF etim# >= 0.04 THEN UpdateGuiViews: _DISPLAY: stim# = TIMER(0.001)
+        NEXT oix&
+        '--- route remaining key/wheel events to last focused object ---
+        IF VAL(GetTagData$(guiObjects$(objData%, lastFocus&), "GUIVIEW", "0")) = vix& THEN
+            IF NOT BoolTagTrue%(mess$, "GADGETUP") AND _
+                  (BoolTagTrue%(mess$, "KEYPRESS") OR _
+                   BoolTagTrue%(mess$, "MOUSESCROLL")) THEN
+                res$ = ObjectRefresh$(lastFocus&, "u", mess$ + NewTag$("FOCUS", "true"))
+                IF ValidateTags%(res$, "RELEASED", 0) THEN
+                    RemTag mess$, "MOUSELBUP"
+                    SetTag mess$, "GADGETUP", GetTagData$(res$, "RELEASED", "0")
+                END IF
+                IF BoolTagTrue%(res$, "SHORTCUT") THEN RemTags mess$, "KEYPRESS,KEY,SHIFT,CTRL,ALT,MODKEYS"
+                IF BoolTagTrue%(res$, "MOUSESCROLL") THEN RemTags mess$, "MOUSESCROLL,SCRVAL"
+            END IF
+        END IF
+    END IF
+    UpdateGuiViews: _DISPLAY
+    '--- find focus object (if any) ---
+    STATIC lastIn&: nff% = 0
+    IF lastIn& > UBOUND(guiObjects$, 2) THEN lastIn& = 0
+    FOR oix& = guiALBIndex& TO UBOUND(guiObjects$, 2)
+        IF RIGHT$(guiObjects$(objFlags%, oix&), 1) = "u" THEN
+            IF MID$(guiObjects$(objFlags%, oix&), 2, 1) = "-" OR MID$(guiObjects$(objFlags%, oix&), 2, 1) = "p" THEN
+                IF BoolTagTrue%(guiObjects$(objData%, oix&), "FOCUS") THEN
+                    SetTag mess$, "MOUSEOVER", LTRIM$(STR$(oix&))
+                    lastFocus& = oix&: nff% = -1
+                    EXIT FOR
+                END IF
+            END IF
+        END IF
+    NEXT oix&
+    IF nff% AND lastFocus& <> lastIn& THEN
+        IF lastIn& > 0 THEN
+            SetTag mess$, "MOUSEOUT", LTRIM$(STR$(lastIn&))
+            RemTag guiObjects$(objData%, lastIn&), "MITIM"
+        END IF
+        lastIn& = lastFocus&: SetTag mess$, "MOUSEIN", LTRIM$(STR$(lastIn&))
+        SetTag guiObjects$(objData%, lastIn&), "MITIM", LTRIM$(STR$(TIMER(0.001)))
+        _DELAY 0.025 'give TIMER a chance to change before we proceed
+    ELSEIF NOT nff% AND lastIn& > 0 THEN
+        RemTag guiObjects$(objData%, lastIn&), "MITIM"
+        SetTag mess$, "MOUSEOUT", LTRIM$(STR$(lastIn&)): lastIn& = 0
+    END IF
+END IF
+IF lastFocus& = lastIn& AND guiATTProps$ = "" THEN
+    mitim# = TIMER(0.001) - VAL(GetTagData$(guiObjects$(objData%, lastIn&), "MITIM", "500000"))
+    IF mitim# < 0 THEN mitim# = mitim# + 86400 'midnight fix
+    IF mitim# >= 1.0 AND mitim# < 1.25 THEN
+        IF mi% <> 0 OR ik$ <> "" OR mwl% <> 0 THEN RemTag guiObjects$(objData%, lastIn&), "MITIM"
+    ELSEIF mitim# >= 1.25 THEN
+        PrintObjectTooltip lastIn&
+        RemTag guiObjects$(objData%, lastIn&), "MITIM"
+    END IF
+END IF
+'--- process interconnections (if any) ---
+FOR oix& = guiALBIndex& TO UBOUND(guiObjects$, 2)
+    IF RIGHT$(guiObjects$(objFlags%, oix&), 2) = "iu" THEN
+        tag$ = NewTag$("OBJECT", LTRIM$(STR$(oix&)))
+        res$ = GenC$("UPDATE", tag$ + mess$)
+    END IF
+NEXT oix&
+UpdateGuiViews: _AUTODISPLAY
+'--- save (new) historic data ---
+guiObjects$(0, 0) = GetTags$(mess$, "MOUSEX,MOUSEY,MOUSELB,MOUSERB,MOUSEMB,GUIVIEW,IMMFLAG")
+RemTags mess$, "GUIVIEW,IMMFLAG"
+IF _SCREENX <> -32000 AND _SCREENY <> -32000 THEN 'minimized?
+    guiWinX% = _SCREENX: guiWinY% = _SCREENY
+END IF
+ggmSetResultAndExit:
+GetGUIMsg$ = mess$
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Support function to check, if a received event does match a particular
+'GUI object. Will return true, if the given event was triggered by the
+'given object. You may use this function in your event handlers to build
+'IF...THEN blocks for each of your objects.
+'
+' Eg.  IF ThisObject%(myObjHandle$, message$, "MOUSEIN") THEN
+'          PRINT "Object got focus, :)"
+'      ELSEIF ThisObject%(myObjHandle$, message$, "MOUSEOUT") THEN
+'          PRINT "Object did lose focus :("
+'      END IF
+'      IF ThisObject%(myObjHandle$, message$, "GADGETUP") THEN
+'          PRINT "Object was clicked, yeah!"
+'      END IF
+'---------------------------------------------------------------------
+'objectID$ = your object's handle as returned by its INIT method call
+'message$  = the message string as received from the GetGUIMsg$() call
+'eventID$  = name of the event to check (MOUSEIN, MOUSEOUT, MOUSEOVER,
+'            GADGETDOWN or GADGETUP. All other events are not object
+'            specific and can be checked via FUNCTION BoolTagTrue%().
+'            See also the descriptions in the respective handler files.)
+'---------------------------------------------------------------------
+FUNCTION ThisObject% (objectID$, message$, eventID$)
+ThisObject% = 0
+IF INSTR("MOUSEIN,MOUSEOUT,MOUSEOVER,GADGETDOWN,GADGETUP", UCASE$(eventID$)) THEN
+    this& = VAL(GetTagData$(objectID$, "OBJECT", "0"))
+    that& = VAL(GetTagData$(message$, eventID$, "0"))
+    IF (this& AND that&) THEN
+        IF this& = that& THEN ThisObject% = -1
+    END IF
+END IF
+END FUNCTION
+
+'---------------------------------------------------------------------
+'This SUB does init the GUI redrawing process by stopping _AUTODISPLAY,
+'then CLS the program and any active GuiView windows and finally put the
+'BACKFILL image (if any) for each window in place. It will also check for
+'any remaining objects on the hovering layer (if active) and will switch
+'back to the regular GUI layer as soon as no more objects are detected on
+'the hovering layer.
+'This SUB must be called 1st, when handling a received GUIREFRESH event.
+'After it you can render additional things, which needs to be placed in
+'the windows, but before any object imagery is drawn. Use the routine
+'SourceDestGuiView() to activate the desired GuiView for rendering.
+'Finally a call to the SUB EndGUIRefresh() must be made.
+'---------------------------------------------------------------------
+SUB BeginGUIRefresh
+UpdateGuiViews: _DISPLAY
+iuf% = 0
+WHILE NOT iuf% AND guiALBIndex& > 1
+    FOR oix& = guiALBIndex& + 1 TO UBOUND(guiObjects$, 2)
+        IF guiObjects$(objType%, oix&) <> "" THEN
+            iuf% = -1
+            EXIT FOR
+        END IF
+    NEXT oix&
+    IF NOT iuf% THEN
+        dummy$ = GenC$("KILL", NewTag$("OBJECT", LTRIM$(STR$(guiALBIndex&))))
+        REDIM _PRESERVE guiObjects$(3, guiALBIndex& - 1)
+        guiALBIndex& = VAL(guiObjects$(2, 0))
+        guiObjects$(2, 0) = MID$(guiObjects$(2, 0), INSTR(guiObjects$(2, 0), "|") + 1)
+    END IF
+WEND
+FOR vix& = 0 TO UBOUND(guiViews$)
+    IF vix& = 0 OR guiViews$(vix&) <> "" THEN
+        SourceDestGuiView vix&
+        COLOR guiTextPen%, guiBackPen%: CLS
+        iuf% = 0
+        bgrAgain:
+        IF BoolTagTrue%(guiViews$(vix&), "BGIMG") THEN
+            dummy$ = GenC$("DRAW", ObjectTag$(guiViews$(vix&), "BGIMG"))
+            iuf% = -1
+        END IF 'do not merge with next IF block by using ELSE instead !!!
+        '--- here happens prefs magic, keep this as is, do not try to optimize this !!!
+        IF NOT iuf% THEN 'do not optimize to use guiViews$ instead of iuf% !!!
+            dummy$ = ImageC$("INIT", NewTag$("IMAGEHANDLE", "0") + NewTag$("BACKFILL", "true") +_
+                     NewTag$("LEFT", "0") + NewTag$("TOP", "0") + ViewTag$(vix&) +_
+                     NewTag$("WIDTH", LTRIM$(STR$(_WIDTH))) + NewTag$("HEIGHT", LTRIM$(STR$(_HEIGHT))))
+            RemTag guiObjects$(0, 0), "GUIREFRESH"
+            iuf% = -1
+            GOTO bgrAgain
+        END IF
+    END IF
+NEXT vix&
+END SUB
+
+'---------------------------------------------------------------------
+'This SUB does complete the GUI redrawing process by drawing all visible
+'GUI objects and then switch to _AUTODISPLAY again. You must call this
+'SUB after a call to SUB BeginGUIRefresh() and maybe additional rendering
+'stuff you did following that call. If required you can still render
+'additional things after this SUB, which must be drawn after all object
+'imagery is done. Once again use SourceDestGuiView() to designate the
+'desired GuiView to render to.
+'---------------------------------------------------------------------
+SUB EndGUIRefresh
+SetTag guiObjects$(0, 0), "EGRFLAG", "true"
+FOR oix& = 1 TO UBOUND(guiObjects$, 2)
+    objTag$ = NewTag$("OBJECT", LTRIM$(STR$(oix&)))
+    IF LEFT$(guiObjects$(objFlags%, oix&), 2) = "d-" THEN
+        dummy$ = GenC$("DRAW", objTag$)
+    END IF
+    IF oix& >= guiALBIndex& THEN
+        IF RIGHT$(guiObjects$(objFlags%, oix&), 2) = "-u" THEN
+            dummy$ = GenC$("UPDATE", objTag$ + guiObjects$(0, 0))
+        END IF
+    END IF
+NEXT oix&
+UpdateGuiViews: _AUTODISPLAY
+END SUB
+
+'---------------------------------------------------------------------
+'Use this FUNC to create a keyboard shortcut string, which you can assign
+'to any object using the SHORTCUT tag. The given key/modifier combination
+'is encoded into the GuiTools internal notation. You should always check
+'your shortcuts, as some combos may not work as expected due to conflicts
+'with Windows or international keyboard layouts. Especially avoid the
+'following: - Alt-F4    (program exit shortcut)
+'           - Alt-Enter (fullscreen toggle shortcut)
+'           - any Alt-Ctrl combos, if used with non-number/non-letter chars
+'             (such as braces, slash, dollar, percent etc.), as these will
+'             most likely have conflicts with AltGr chars on intl. keyboards
+'           - Ctrl-Number, most of them doesn't work (no idea why)
+'If you intend to spread your programs internationally, then you should
+'restrict yourself to only use A-Z, a-z, 0-9 and function keys F1-F10.
+'---------------------------------------------------------------------
+'char$  = any regular ASCII char in the range 33-126 or any function key
+'         name as listed below within the DATAs, other chars are ignored
+'         and will result in not assigning a shortcut (result empty)
+'shift% = non-zero, if the shift modifier shall be required, only allowed
+'         for function keys, when using regular chars, then simply use the
+'         char you'd get with the shift key pressed for char$, instead of
+'         setting the shift% parameter
+'ctrl%  = non-zero, if the ctrl modifier shall be required
+'alt%   = non-zero, if the alt modifier shall be required
+'---------------------------------------------------------------------
+FUNCTION MakeShortcut$ (char$, shift%, ctrl%, alt%)
+shor$ = ""
+IF LEN(char$) = 1 THEN
+    IF ASC(char$) > 32 AND ASC(char$) < 127 THEN
+        shor$ = LTRIM$(STR$(CVI(char$ + CHR$(0))))
+        shift% = 0
+    END IF
+ELSE
+    RESTORE MakeShortcut_FKeys
+    FOR i% = 1 TO 25
+        READ fu$, id&
+        IF UCASE$(char$) = UCASE$(fu$) THEN
+            shor$ = LTRIM$(STR$(id&))
+            EXIT FOR
+        END IF
+    NEXT i%
+END IF
+IF shor$ <> "" THEN
+    IF shift% <> 0 THEN shor$ = shor$ + "S"
+    IF ctrl% <> 0 THEN shor$ = shor$ + "C"
+    IF alt% <> 0 THEN shor$ = shor$ + "A"
+END IF
+MakeShortcut$ = shor$
+EXIT FUNCTION
+'----------------
+MakeShortcut_FKeys:
+DATA "F1",15104,"F2",15360,"F3",15616,"F4",15872,"F5",16128,"F6",16384
+DATA "F7",16640,"F8",16896,"F9",17152,"F10",17408,"F11",34048,"F12",34304
+DATA "Ins",20992,"Home",18176,"PgUp",18688
+DATA "Del",21248,"End",20224,"PgDn",20736
+DATA "CsrUp",18432,"CsrDn",20480,"CsrLft",19200,"CsrRgt",19712
+DATA "Enter",13,"Return",13,"Space",32
+END FUNCTION
+
+'---------------------------------------------------------------------
+'This SUB will init the hovering layer. Objects created within this layer
+'(ie. objects INIT'ed after a call to this SUB) are hovering over all other
+'GUI objects, hence they are always in front of all other objects. This
+'layer is intended for popup menus (not yet implemented) or similar things.
+'Note that the hover layer remains active, until all objects created on it
+'are KILL'ed again. Objects in the hover layer will operate as usual, while
+'objects in the regular GUI layer will not respond as long as the hovering
+'layer is active, this also includes the regular GUI layers of any other
+'GuiViews (if any). The return to the regular GUI layer will happen auto-
+'matically while handling GUIREFRESH events as soon as no remaining objects
+'are detected on the hovering layer anymore.
+'---------------------------------------------------------------------
+'Inputs: vix& = the GuiView index returned by FUNCTION CreateGuiView(),
+'               0 = for the main program window
+'        left%, topp%, widt%, heig% = designate the hover area, may be
+'               the entire window too.
+'---------------------------------------------------------------------
+SUB InitHoverLayer (vix&, left%, topp%, widt%, heig%)
+guiObjects$(2, 0) = STR$(guiALBIndex&) + "|" + guiObjects$(2, 0) 'save old index
+guiALBIndex& = UBOUND(guiObjects$, 2) + 1: vtag$ = ViewTag$(vix&)
+IF vtag$ <> "" THEN
+    IF NOT GuiViewIsOpen%(vix&) THEN OpenGuiView "", "", vix&
+END IF
+hsfr$ = FrameC$("INIT", vtag$ +_
+        NewTag$("FORM", "ridge") +_
+        NewTag$("LEFT", LTRIM$(STR$(left%))) +_
+        NewTag$("TOP", LTRIM$(STR$(topp%))) +_
+        NewTag$("WIDTH", LTRIM$(STR$(widt%))) +_
+        NewTag$("HEIGHT", LTRIM$(STR$(heig%))) +_
+        NewTag$("HSFLAG", "true"))
+END SUB
+
+'---------------------------------------------------------------------
+'This SUB is for debugging purposes, it will dump the guiObjects$ array
+'into a text file. Every object is listed with its index, type, flags
+'and properties (tag string). If any object has interconnections, then
+'these are printed below that object with indices to the respective
+'ModelC class objects, over which the interconnection is established.
+'All lines are marked as BASIC comments, so you can load the dump into
+'the QB64 IDE without causing it to panic with any syntax errors.
+'---------------------------------------------------------------------
+'file$ = the text file name to write (with path, if required)
+'---------------------------------------------------------------------
+SUB DumpObjectArray (file$)
+ff% = SafeOpenFile%("O", file$)
+PRINT #ff%, "'Views: [00] - index of view, 0 = no view (implies main program window)"
+PRINT #ff%, "'       [ih] - child objects do inherit the view from its parent object"
+PRINT #ff%, "'       [--] - non-visible & empty objects don't have a view assignment"
+PRINT #ff%, "'"
+PRINT #ff%, "'Object -- View -- Type/Flags --  --  -- Properties"
+PRINT #ff%, "'"; STRING$(75, "-")
+FOR oix& = 1 TO UBOUND(guiObjects$, 2)
+    IF oix& > 1 THEN PRINT #ff%, "": IF nlf% THEN PRINT #ff%, "'"
+    PRINT #ff%, "'["; RIGHT$("00000" + LTRIM$(STR$(oix&)), 5); "] - ";
+    typ$ = guiObjects$(objType%, oix&)
+    IF typ$ = "" THEN
+        PRINT #ff%, "[--] - [ empty/undefined ]";: nlf% = -1
+    ELSE
+        dat$ = guiObjects$(objData%, oix&): flg$ = guiObjects$(objFlags%, oix&)
+        gvi$ = GetTagData$(ExtractTag$(dat$, "GUIVIEW"), "GUIVIEW", "0")
+        IF MID$(flg$, 2, 1) = "c" THEN gvi$ = "ih"
+        IF LEFT$(typ$, 5) = "ListC" OR typ$ = "ModelC" THEN gvi$ = "--"
+        PRINT #ff%, "["; RIGHT$("00" + gvi$, 2); "] - ";
+        PRINT #ff%, "["; RIGHT$(SPACE$(13) + typ$, 13); "/"; flg$; "] - ";: nlf% = 0
+        FOR i% = 1 TO LEN(dat$)
+            mi$ = MID$(dat$, i%, 1)
+            SELECT CASE mi$
+                CASE tagIntr$: IF i% > 1 THEN PRINT #ff%, SPACE$(18);
+                CASE tagSepa$: PRINT #ff%, "{";
+                CASE tagTerm$: PRINT #ff%, "}": PRINT #ff%, "'"; SPACE$(21);
+                CASE tagRepl$: PRINT #ff%, CHR$(0);
+                CASE ELSE: PRINT #ff%, mi$;
+            END SELECT
+        NEXT i%
+        con$ = guiObjects$(objConn%, oix&)
+        IF con$ <> "" THEN
+            PRINT #ff%, "Interconnections: <"; MID$(con$, 2); "> (ModelC objects)";: nlf% = -1
+        END IF
+    END IF
+NEXT oix&
+CLOSE ff%
+END SUB
+
+'---------------------------------------------------------------------
+' This function will setup a new GuiView (form/window). After that you
+' can use the function ViewTag$() below, given the return value of this
+' function, to add the GUIVIEW tag to the init calls for all gui objects
+' which shall belong to this new GuiView. However, the new GuiView will
+' not open automatically, but you do this later in your program by using
+' the SUBs OpenGuiView and CloseGuiView as required.
+' NOTE: Use only after SetupScreen() and before CloseScreen(), hence in
+'       UserMain:, called GOSUB routines and in the "handlers\" files.
+'       This is, as the GuiViews need to inherit from the main screen.
+'---------------------------------------------------------------------
+' viewTitle$  = a default title for the GuiView window (if empty, then
+'               appExeName$.x is used, where .x is the GuiView index)
+' viewWidth%  = pixel width of the new GuiView window
+' viewHeight% = pixel height of the new GuiView window
+' Return:     = the new GuiView its index number, zero on failure
+'---------------------------------------------------------------------
+FUNCTION CreateGuiView& (viewTitle$, viewWidth%, viewHeight%)
+vix& = 0
+'--- create view ---
+imag& = _NEWIMAGE(viewWidth%, viewHeight%, 256)
+IF imag& >= -1 GOTO cgvSetResultAndExit
+_COPYPALETTE appScreen&, imag&
+viewID$ = GetUniqueID$
+smo%& = CreateSMObject%&("RhoSigma-GuiApp-ViewImgSM-" + viewID$ + CHR$(0), viewWidth% * viewHeight% + 1024)
+IF smo%& = 0 THEN _FREEIMAGE imag&: GOTO cgvSetResultAndExit
+'--- get new view index ---
+lb& = LBOUND(guiViews$)
+ub& = UBOUND(guiViews$)
+IF lb& <> 0 OR lb& = ub& THEN
+    REDIM _PRESERVE guiViews$(10)
+    lb& = 0: ub& = 10
+END IF
+FOR i& = 1 TO ub& 'keep zero index free (main view is default)
+    IF guiViews$(i&) = "" THEN
+        vix& = i&
+        EXIT FOR
+    END IF
+NEXT i&
+IF vix& = 0 THEN
+    REDIM _PRESERVE guiViews$(ub& + 10)
+    vix& = ub& + 1
+END IF
+'--- init view tags ---
+titl$ = appExeName$ + "." + LTRIM$(STR$(vix&))
+IF viewTitle$ <> "" THEN titl$ = viewTitle$
+guiViews$(vix&) =_
+        NewTag$("TITLE", titl$) +_
+        NewTag$("WIDTH", LTRIM$(STR$(viewWidth%))) +_
+        NewTag$("HEIGHT", LTRIM$(STR$(viewHeight%))) +_
+        NewTag$("VIEWID", viewID$) +_
+        NewTag$("IHANDLE", LTRIM$(STR$(imag&))) +_
+        NewTag$("SMOBJ", LTRIM$(STR$(smo%&)))
+cgvSetResultAndExit:
+CreateGuiView& = vix&
+END FUNCTION
+
+'---------------------------------------------------------------------
+'This routine is the counterpart to CreateGuiView(). It will first close
+'the given GuiView (if open), then deleting all objects designated to it
+'and finally freeing the resources of the view itself.
+'Routine will do nothing, if the given GuiView index does not exist.
+'---------------------------------------------------------------------
+'vix& = the GuiView index returned by FUNCTION CreateGuiView() above
+'---------------------------------------------------------------------
+SUB DeleteGuiView (vix&)
+IF vix& <= LBOUND(guiViews$) OR vix& > UBOUND(guiViews$) THEN EXIT SUB
+IF guiViews$(vix&) = "" THEN EXIT SUB
+RemoveMutex VAL(GetTagData$(guiViews$(vix&), "ISOPEN", "0"))
+FOR oix& = 1 TO UBOUND(guiObjects$, 2)
+    IF MID$(guiObjects$(objFlags%, oix&), 2, 1) = "-" THEN
+        IF VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0")) = vix& THEN
+            resu$ = GenC$("KILL", NewTag$("OBJECT", LTRIM$(STR$(oix&))))
+        END IF
+    END IF
+NEXT oix&
+imag& = VAL(GetTagData$(guiViews$(vix&), "IHANDLE", "-1"))
+IF imag& < -1 THEN _FREEIMAGE imag&
+RemoveSMObject VAL(GetTagData$(guiViews$(vix&), "SMOBJ", "0"))
+guiViews$(vix&) = ""
+END SUB
+
+'---------------------------------------------------------------------
+'This routine will open the given GuiView window. Note that the user may
+'close any GuiView windows at any time, you may use SUB GuiViewIsOpen%()
+'to find out whether a specific GuiView window is currently open or not.
+'Routine will do nothing, if the given GuiView index does not exist or
+'the specified GuiView is already open.
+'---------------------------------------------------------------------
+'winIcon$ = image file name for the window header icon (empty for default
+'           icon as set in SetupScreen())
+'winTitle$ = title for the new GuiView window, (empty for default title
+'            as set in CreateGuiView())
+'vix& = the GuiView index returned by FUNCTION CreateGuiView() above
+'---------------------------------------------------------------------
+SUB OpenGuiView (winIcon$, winTitle$, vix&)
+IF winTitle$ <> "*** RhoSigma-OpenGuiView-HandlerCall ***" THEN
+    '--- OpenGuiView Setup Block ---
+    IF vix& <= LBOUND(guiViews$) OR vix& > UBOUND(guiViews$) THEN EXIT SUB
+    IF guiViews$(vix&) = "" THEN EXIT SUB
+    IF BoolTagTrue%(guiViews$(vix&), "ISOPEN") THEN EXIT SUB
+
+    file$ = GetUniqueID$
+    TempLog file$, "MODULE: OpenGuiView CONTENTS: Handshake and parameter exchange file."
+    rff% = SafeOpenFile%("O", appTempDir$ + file$)
+    tags$ = guiViews$(vix&): viewID$ = GetTagData$(tags$, "VIEWID", "")
+    IF winTitle$ <> "" THEN SetTag tags$, "TITLE", winTitle$
+    PRINT #rff%, tags$: CLOSE rff%
+
+    putMtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-" + file$ + CHR$(0))
+    SHELL _HIDE _DONTWAIT CHR$(34) + appFullExe$ + CHR$(34) + " IUGNEPO '" + winIcon$ + "' " + LTRIM$(STR$(vix&)) + " " + file$ + " " + appProgID$ + " " + viewID$
+    WHILE NOT CheckMutex%("Global\RhoSigma-GuiApp-OpenGuiViewHandler-" + viewID$ + CHR$(0))
+        _LIMIT 20
+    WEND
+    UnlockMutex putMtx%&
+    SetTag guiViews$(vix&), "ISOPEN", LTRIM$(STR$(PlantMutex%&("Global\RhoSigma-GuiApp-GuiViewIsOpen-" + viewID$ + CHR$(0))))
+ELSE
+    '--- OpenGuiView Handler Block ---
+    SHARED cmdArgs$(): file$ = cmdArgs$(3): progID$ = cmdArgs$(4)
+    viewID$ = cmdArgs$(5): appExeName$ = appExeName$ + "." + LTRIM$(STR$(vix&))
+    runMtx%& = PlantMutex%&("Global\RhoSigma-GuiApp-OpenGuiViewHandler-" + viewID$ + CHR$(0))
+    getMtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-" + file$ + CHR$(0))
+    '--- get handshake tags ---
+    rff% = SafeOpenFile%("I", appTempDir$ + file$)
+    LINE INPUT #rff%, tags$: CLOSE rff%
+    '--- init window ---
+    wid% = VAL(GetTagData$(tags$, "WIDTH", "0")): hei% = VAL(GetTagData$(tags$, "HEIGHT", "0"))
+    SetupScreen wid%, hei%, 0
+    winImg$ = ImageC$("INIT", NewTag$("IMAGEFILE", winIcon$) + NewTag$("LEFT", "0") + NewTag$("TOP", "0"))
+    winIco& = VAL(GetTagData$(ImageC$("GET", winImg$ + NewTag$("TAGNAMES", "IHANDLE")), "IHANDLE", "0"))
+    IF winIco& < -1 THEN _ICON winIco&
+    resu$ = ImageC$("KILL", winImg$)
+    _TITLE GetTagData$(tags$, "TITLE", "")
+    '--- operate view ---
+    msm%& = OpenSMObject%&("RhoSigma-GuiApp-MainInpSM-" + progID$ + CHR$(0), 8192)
+    vsm%& = OpenSMObject%&("RhoSigma-GuiApp-ViewImgSM-" + viewID$ + CHR$(0), wid% * hei% + 1024)
+    done% = 0: stim# = TIMER(0.001)
+    DO
+        _LIMIT 150
+        IF NOT CheckMutex%("Global\RhoSigma-GuiApp-GuiViewIsOpen-" + viewID$ + CHR$(0)) THEN
+            ERROR 1000 'parent (main view) is gone, or programmed close request
+        END IF
+        mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-ImgSMAccess-" + viewID$ + CHR$(0))
+        SMToImage vsm%&, appScreen&
+        UnlockMutex mtx%&
+        etim# = TIMER(0.001) - stim#
+        IF etim# < 0 THEN etim# = etim# + 86400 'midnight fix
+        IF etim# >= 0.04 THEN
+            GOSUB getInputs
+            IF BoolTagTrue%(ggMsg$, "USERBREAK") THEN done% = -1 'window X button / Alt-F4
+            IF ggMsg$ <> oldMsg$ OR BoolTagTrue%(ggMsg$, "KEYPRESS") OR BoolTagTrue%(ggMsg$, "MOUSESCROLL") THEN
+                mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-InpSMAccess-" + progID$ + CHR$(0))
+                PutSMString msm%&, NewTag$("GUIVIEW", LTRIM$(STR$(vix&))) + ggMsg$ + CHR$(0)
+                UnlockMutex mtx%&
+                IF ggSpc% THEN
+                    _DELAY 0.01
+                    mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-InpSMAccess-" + progID$ + CHR$(0))
+                    PutSMString msm%&, NewTag$("GUIVIEW", LTRIM$(STR$(vix&))) + ggMsg$ + CHR$(0)
+                    UnlockMutex mtx%&
+                END IF
+                oldMsg$ = ggMsg$
+            END IF
+            stim# = TIMER(0.001)
+        END IF
+    LOOP UNTIL done%
+    CloseSMObject vsm%&
+    CloseSMObject msm%&
+    '--- close view & cleanup ---
+    CloseScreen
+    UnlockMutex getMtx%&
+    RemoveMutex runMtx%&
+END IF
+EXIT SUB
+'-----------------------------
+getInputs:
+IF _EXIT THEN SetTag guiObjects$(0, 0), "USERBREAK", "true"
+'--- handle pending exit requests immediately ---
+ggMsg$ = ExtractTag$(guiObjects$(0, 0), "USERBREAK")
+IF ggMsg$ <> "" THEN RETURN
+'--- init message with historic data ---
+ggMsg$ = GetTags$(guiObjects$(0, 0), "MOUSEX,MOUSEY,MOUSELB,MOUSERB,MOUSEMB")
+ggSpc% = 0
+'--- collect next key press (if any) ---
+IF appKBLIdent% = 0 THEN ik$ = INKEY$: ELSE ik$ = InkeyHit$(appKBLIdent%)
+'--- check for mouse input ---
+mi% = _MOUSEINPUT: mwl% = _MOUSEWHEEL
+WHILE _MOUSEINPUT: mwl% = mwl% + _MOUSEWHEEL: WEND
+IF appGLVComp% AND mi% <> 0 THEN
+    IF _MOUSEBUTTON(1) = lmb% AND _MOUSEBUTTON(2) = rmb% AND _MOUSEBUTTON(3) = mmb% AND mwl% = 0 THEN
+        IF _MOUSEX = mx% AND _MOUSEY = my% THEN mi% = 0
+    END IF
+END IF
+IF mi% <> 0 OR ik$ <> "" THEN
+    '--- set general mouse input flag for master ---
+    IF mi% <> 0 THEN SetTag ggMsg$, "SMINP", "true"
+    '--- set key press & check modifiers keys ---
+    IF ik$ <> "" THEN
+        SetTag ggMsg$, "KEYPRESS", "true"
+        SetTag ggMsg$, "KEY", ik$ 'may be CHR$(0) + "..." for special keys
+    END IF
+    mk$ = ""
+    IF _KEYDOWN(100304) THEN SetTag ggMsg$, "SHIFT", "true": mk$ = mk$ + "lshift,"
+    IF _KEYDOWN(100303) THEN SetTag ggMsg$, "SHIFT", "true": mk$ = mk$ + "rshift,"
+    IF _KEYDOWN(100306) THEN SetTag ggMsg$, "CTRL", "true": mk$ = mk$ + "lctrl,"
+    IF _KEYDOWN(100305) THEN SetTag ggMsg$, "CTRL", "true": mk$ = mk$ + "rctrl,"
+    IF _KEYDOWN(100308) THEN SetTag ggMsg$, "ALT", "true": mk$ = mk$ + "lalt,"
+    IF _KEYDOWN(100307) THEN SetTag ggMsg$, "ALT", "true": mk$ = mk$ + "ralt,"
+    IF mk$ <> "" THEN SetTag ggMsg$, "MODKEYS", mk$
+    '--- check shortcut relevant keydown states ---
+    FOR i% = 33 TO 126
+        kdc& = CVI(CHR$(i%) + CHR$(0)): tag$ = "KD" + LTRIM$(STR$(kdc&))
+        IF _KEYDOWN(kdc&) THEN SetTag ggMsg$, tag$, "true"
+    NEXT i%
+    RESTORE MakeShortcut_FKeys
+    FOR i% = 1 TO 25
+        READ fu$, id&: tag$ = "KD" + LTRIM$(STR$(id&))
+        IF _KEYDOWN(id&) THEN SetTag ggMsg$, tag$, "true"
+    NEXT i%
+    '--- check for Alt-F4 exit requests ---
+    IF BoolTagTrue%(ggMsg$, "ALT") THEN
+        IF NOT BoolTagTrue%(ggMsg$, "CTRL") AND NOT BoolTagTrue%(ggMsg$, "SHIFT") THEN
+            IF GetTagData$(ggMsg$, "KEY", "n/a") = CHR$(0) + "k" THEN
+                ggMsg$ = "" 'clear all events
+                SetTag ggMsg$, "USERBREAK", "true"
+                RETURN
+            END IF
+        END IF
+    END IF
+    '--- check for mousebutton state changes ---
+    lmb% = _MOUSEBUTTON(1)
+    rmb% = _MOUSEBUTTON(2)
+    mmb% = _MOUSEBUTTON(3)
+    IF lmb% <> VAL(GetTagData$(ggMsg$, "MOUSELB", "0")) THEN
+        SetTag ggMsg$, "MOUSELB", LTRIM$(STR$(lmb%))
+        IF lmb% THEN
+            SetTag ggMsg$, "MOUSELBDOWN", "true"
+        ELSE
+            SetTag ggMsg$, "MOUSELBUP", "true": ggSpc% = -1
+        END IF
+    END IF
+    IF rmb% <> VAL(GetTagData$(ggMsg$, "MOUSERB", "0")) THEN
+        SetTag ggMsg$, "MOUSERB", LTRIM$(STR$(rmb%))
+        IF rmb% THEN
+            SetTag ggMsg$, "MOUSERBDOWN", "true"
+        ELSE
+            SetTag ggMsg$, "MOUSERBUP", "true": ggSpc% = -1
+        END IF
+    END IF
+    IF mmb% <> VAL(GetTagData$(ggMsg$, "MOUSEMB", "0")) THEN
+        SetTag ggMsg$, "MOUSEMB", LTRIM$(STR$(mmb%))
+        IF mmb% THEN
+            SetTag ggMsg$, "MOUSEMBDOWN", "true"
+        ELSE
+            SetTag ggMsg$, "MOUSEMBUP", "true": ggSpc% = -1
+        END IF
+    END IF
+    '--- check for scroll wheel movement ---
+    IF mwl% <> 0 THEN
+        SetTag ggMsg$, "MOUSESCROLL", "true"
+        SetTag ggMsg$, "SCRVAL", LTRIM$(STR$(SGN(mwl%)))
+    END IF
+    '--- check for mouse movement ---
+    mx% = _MOUSEX
+    my% = _MOUSEY
+    IF mx% <> VAL(GetTagData$(ggMsg$, "MOUSEX", "0")) OR my% <> VAL(GetTagData$(ggMsg$, "MOUSEY", "0")) THEN
+        SetTag ggMsg$, "MOUSEMOVE", "true"
+        SetTag ggMsg$, "MOUSEX", LTRIM$(STR$(mx%))
+        SetTag ggMsg$, "MOUSEY", LTRIM$(STR$(my%))
+    END IF
+END IF
+'--- save (new) historic data ---
+guiObjects$(0, 0) = GetTags$(ggMsg$, "MOUSEX,MOUSEY,MOUSELB,MOUSERB,MOUSEMB")
+IF _SCREENX <> -32000 AND _SCREENY <> -32000 THEN 'minimized?
+    guiWinX% = _SCREENX: guiWinY% = _SCREENY
+END IF
+RETURN
+END SUB
+
+'---------------------------------------------------------------------
+'This routine will close the given GuiView window progamaticly. Note that
+'the user may also close any GuiView windows at any time, you may use the
+'SUB GuiViewIsOpen%() to find out whether a specific GuiView window is
+'currently open or not.
+'---------------------------------------------------------------------
+'vix& = the GuiView index returned by FUNCTION CreateGuiView() above
+'---------------------------------------------------------------------
+SUB CloseGuiView (vix&)
+IF vix& <= LBOUND(guiViews$) OR vix& > UBOUND(guiViews$) THEN EXIT SUB
+IF guiViews$(vix&) = "" THEN EXIT SUB
+RemoveMutex VAL(GetTagData$(guiViews$(vix&), "ISOPEN", "0"))
+_DELAY 0.1: RemTag guiViews$(vix&), "ISOPEN"
+END SUB
+
+'---------------------------------------------------------------------
+'Will return a boolean flag, whether the given GuiView window is currently
+'open or not. As the user may close any GuiView windows at any time, you
+'may use this function to decide, if you have to call SUB OpenGuiView().
+'If the given view is zero (ie. the main program screen), then the result
+'is always true. Non-existing views return false, just as existing but
+'closed views. Ie. this function assumes, that you at least know which
+'views you've created and not calling it with invalid indices.
+'---------------------------------------------------------------------
+'vix& = the GuiView index returned by FUNCTION CreateGuiView() above
+'---------------------------------------------------------------------
+FUNCTION GuiViewIsOpen% (vix&)
+GuiViewIsOpen% = -1: IF vix& = 0 THEN EXIT FUNCTION
+GuiViewIsOpen% = 0
+IF vix& <= LBOUND(guiViews$) OR vix& > UBOUND(guiViews$) THEN EXIT FUNCTION
+IF guiViews$(vix&) = "" THEN EXIT FUNCTION
+GuiViewIsOpen% = BoolTagTrue%(guiViews$(vix&), "ISOPEN")
+END FUNCTION
+
+'---------------------------------------------------------------------
+'Will return the GUIVIEW tag for the given GuiView index, as needed for
+'gui object init method calls. If the view does not exist, then an empty
+'tag will be returned (ie. the initialized object goes to main screen).
+'---------------------------------------------------------------------
+'vix&    = the GuiView index returned by FUNCTION CreateGuiView() above
+'Return: = the ready GUIVIEW tag, empty for GuiView 0 (main program window)
+'---------------------------------------------------------------------
+FUNCTION ViewTag$ (vix&)
+ViewTag$ = ""
+IF vix& <= LBOUND(guiViews$) OR vix& > UBOUND(guiViews$) THEN EXIT FUNCTION
+IF guiViews$(vix&) = "" THEN EXIT FUNCTION
+ViewTag$ = NewTag$("GUIVIEW", LTRIM$(STR$(vix&)))
+END FUNCTION
+
+'---------------------------------------------------------------------
+'This routine will set the _SOURCE and _DEST handles to point to the image
+'of the given GuiView index. Use it before rendering into a specific view
+'as needed. If the given view is zero or does not exist, then the main
+'program window (ie. appScreen&) will become the source and destination.
+'---------------------------------------------------------------------
+'vix&    = the GuiView index returned by FUNCTION CreateGuiView() above
+'---------------------------------------------------------------------
+SUB SourceDestGuiView (vix&)
+IF vix& < LBOUND(guiViews$) OR vix& > UBOUND(guiViews$) THEN
+    vhan& = appScreen&: guiAGVIndex& = 0
+ELSE
+    vhan& = VAL(GetTagData$(guiViews$(vix&), "IHANDLE", LTRIM$(STR$(appScreen&))))
+    IF vhan& = appScreen& THEN guiAGVIndex& = 0: ELSE guiAGVIndex& = vix&
+END IF
+_SOURCE vhan&: _DEST vhan&
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+'This function will update all active GuiViews. It's comparable with
+'_DISPLAY for the main program screen/window.
+'---------------------------------------------------------------------
+SUB UpdateGuiViews
+FOR vix& = 1 TO UBOUND(guiViews$)
+    IF guiViews$(vix&) <> "" THEN
+        imag& = VAL(GetTagData$(guiViews$(vix&), "IHANDLE", "0"))
+        smo%& = VAL(GetTagData$(guiViews$(vix&), "SMOBJ", "0"))
+        viewID$ = GetTagData$(guiViews$(vix&), "VIEWID", "")
+        mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-ImgSMAccess-" + viewID$ + CHR$(0))
+        ImageToSM smo%&, imag&
+        UnlockMutex mtx%&
+    END IF
+NEXT vix&
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+'Returns the next free object index for object creation and does resize
+'the object array if required. Is aware of the hovering layer.
+'---------------------------------------------------------------------
+FUNCTION NewObject&
+lb& = LBOUND(guiObjects$, 2)
+ub& = UBOUND(guiObjects$, 2)
+IF lb& <> 0 OR lb& = ub& THEN
+    REDIM _PRESERVE guiObjects$(3, 100)
+    lb& = 0: ub& = 100
+END IF
+oix& = 0
+FOR i& = guiALBIndex& TO ub& 'keep zero index free (temporary storage)
+    IF guiObjects$(objType%, i&) = "" THEN
+        oix& = i&
+        EXIT FOR
+    END IF
+NEXT i&
+IF oix& = 0 THEN
+    REDIM _PRESERVE guiObjects$(3, ub& + 100)
+    oix& = ub& + 1
+END IF
+NewObject& = oix&
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+' Function is intended as initial call for all class methods (except for
+' the "Init" method) to verify the method got called with a valid object
+' of the respective class. For convenience it will also init the object's
+' "this&" and "thisTag$" variables and will change _SOURCE/_DEST handles
+' to the objects designated GuiView (if any). Any ERROR/WARNING tags are
+' directly written into the class's function result string.
+'---------------------------------------------------------------------
+' Inputs: this&      = should be "this&" in function call too
+'         thisTag$   = should be "thisTag$" in function call too
+'         classRes$  = the function result variable of the calling class
+'         classID$   = same named variable of the calling class
+'         methodID$  = same named variable of the calling class
+'         tagsID$    = same named variable of the calling class
+'
+' Primary Result.....: true/false for IF..THEN block usage
+' Secondary Result(s): Intended side effects on passed args...
+'                      this&     = array index of given object
+'                      thisTag$  = OBJECT tag of given object
+'                      classRes$ = ERROR/WARNING tag or empty
+'                      _SOURCE/_DEST point to object's GuiView
+'---------------------------------------------------------------------
+FUNCTION ValidObject% (this&, thisTag$, classRes$, classID$, methodID$, tagsID$)
+ValidObject% = 0
+this& = VAL(GetTagData$(tagsID$, "OBJECT", "0"))
+IF this& < 1 OR this& > UBOUND(guiObjects$, 2) THEN
+    IF this& = 0 THEN
+        SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> missing required tags"
+    ELSE
+        SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> undefined object"
+    END IF
+ELSE
+    objectID$ = guiObjects$(objType%, this&)
+    IF classID$ <> "GenC" AND objectID$ = "ListC" AND MID$(guiObjects$(objFlags%, this&), 2, 1) = "c" AND _
+       GetTag$(guiObjects$(objData%, this&), "REFOBJ") <> GetTag$(tagsID$, "REFOBJ") THEN
+        SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> not allowed on multiple choice list"
+    ELSE
+        IF objectID$ <> classID$ AND classID$ <> "GenC" THEN
+            IF objectID$ = "" THEN
+                SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> undefined object"
+            ELSE
+                SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> wrong object type"
+            END IF
+        ELSE
+            IF MID$(guiObjects$(objFlags%, this&), 2, 1) <> "c" THEN
+                SourceDestGuiView VAL(GetTagData$(guiObjects$(objData%, this&), "GUIVIEW", "0"))
+            END IF
+            thisTag$ = GetTag$(tagsID$, "OBJECT")
+            ValidObject% = -1
+        END IF
+    END IF
+END IF
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+' This function will return true, if the given shortcut is detected.
+'---------------------------------------------------------------------
+' Inputs: shor$   = same named variable of the calling class
+'         tagsID$ = same named variable of the calling class
+'---------------------------------------------------------------------
+FUNCTION ObjectShortcut% (shor$, tagsID$)
+modi$ = "": sval& = VAL(shor$): tag$ = "KD" + LTRIM$(STR$(sval&))
+IF _KEYDOWN(sval&) OR BoolTagTrue%(tagsID$, tag$) THEN modi$ = modi$ + LTRIM$(STR$(sval&))
+IF sval& < 33 OR sval& > 126 THEN
+    IF BoolTagTrue%(tagsID$, "SHIFT") THEN modi$ = modi$ + "S"
+END IF
+IF BoolTagTrue%(tagsID$, "CTRL") THEN modi$ = modi$ + "C"
+IF BoolTagTrue%(tagsID$, "ALT") THEN modi$ = modi$ + "A"
+ObjectShortcut% = (modi$ = shor$)
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+'This SUB is used to unselect all updateable GUI objects except the
+'currently updated object, which will issue the call to this SUB. Used
+'if new objects are created during runtime or the current object was
+'triggered via keyboard shortcut while another object is already in
+'selected state with the mousepointer.
+'---------------------------------------------------------------------
+'oix& = the index of the currently updated object (which is calling this)
+'---------------------------------------------------------------------
+SUB ObjectsUnselect (oix&)
+FOR obje& = 1 TO UBOUND(guiObjects$, 2)
+    IF RIGHT$(guiObjects$(objFlags%, obje&), 1) = "u" THEN
+        IF obje& <> oix& THEN
+            IF BoolTagTrue%(guiObjects$(objData%, obje&), "SELECTED") THEN
+                ObjectReset obje&
+                RemTag guiObjects$(objData%, obje&), "SELECTED"
+                IF NOT BoolTagTrue%(guiObjects$(objData%, obje&), "SCCFLAG") THEN
+                    '--- regular objects ---
+                    resu$ = ObjectRefresh$(obje&, "d", "")
+                ELSE
+                    '--- special condition for child objects ---
+                    resu$ = GenC$("DRAW", NewTag$("OBJECT", LTRIM$(STR$(obje&))))
+                END IF
+            END IF
+        END IF
+    END IF
+NEXT obje&
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+'This SUB will reset some internally used (temporary) tags of the given
+'object, if it loses its selected state while out of focus.
+'---------------------------------------------------------------------
+'oix& = the index of the object to reset
+'---------------------------------------------------------------------
+SUB ObjectReset (oix&)
+SELECT CASE guiObjects$(objType%, oix&)
+    CASE "SliderC"
+        otag$ = GetTagData$(guiObjects$(objData%, oix&), "OLDLEVEL", "n/a")
+        IF otag$ <> "n/a" THEN SetTag guiObjects$(objData%, oix&), "LEVEL", otag$
+        RemTags guiObjects$(objData%, oix&), "GRABDISP,OLDLEVEL"
+    CASE "ScrollerC"
+        otag$ = GetTagData$(guiObjects$(objData%, oix&), "OLDTOPNUM", "n/a")
+        IF otag$ <> "n/a" THEN SetTag guiObjects$(objData%, oix&), "TOPNUM", otag$
+        RemTags guiObjects$(objData%, oix&), "GRABDISP,OLDTOPNUM"
+    CASE "ColorwheelC"
+        otag$ = GetTagData$(guiObjects$(objData%, oix&), "OLDHUE", "n/a")
+        IF otag$ <> "n/a" THEN SetTag guiObjects$(objData%, oix&), "HUE", otag$
+        otag$ = GetTagData$(guiObjects$(objData%, oix&), "OLDSAT", "n/a")
+        IF otag$ <> "n/a" THEN SetTag guiObjects$(objData%, oix&), "SATURATION", otag$
+        RemTags guiObjects$(objData%, oix&), "OLDHUE,OLDSAT"
+END SELECT
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+'This FUNC will call the DRAW and/or UPDATE methods of the given object.
+'Used if the object was changed by another object/process as by itself,
+'the function will verify that the object in question is not a child
+'object and is really visible before doing the redraw/update calls.
+'---------------------------------------------------------------------
+'oix&       = the index of the object to redraw and/or update
+'what$      = what to do ("d", "u" for draw/update respectivly or "du" for both)
+'tagString$ = the current UPDATE method tags or empty to use historic data
+'---------------------------------------------------------------------
+FUNCTION ObjectRefresh$ (oix&, what$, tagString$)
+ObjectRefresh$ = ""
+tagsID$ = tagString$ 'avoid side effects on passed argument
+RemTag tagsID$, "OBJECT" 'remove possible pass through from parent object
+IF tagsID$ = "" THEN tagsID$ = guiObjects$(0, 0) 'use historic data if none given
+doWhat$ = UCASE$(what$) 'ucase w/o side effect on passed argument
+ivix& = VAL(GetTagData$(tagsID$, "GUIVIEW", "0"))
+ovix& = VAL(GetTagData$(guiObjects$(objData%, oix&), "GUIVIEW", "0"))
+objTag$ = NewTag$("OBJECT", LTRIM$(STR$(oix&)))
+IF (MID$(guiObjects$(objFlags%, oix&), 2, 1) = "-" OR _
+    MID$(guiObjects$(objFlags%, oix&), 2, 1) = "i") AND oix& >= guiALBIndex& THEN
+    IF LEFT$(guiObjects$(objFlags%, oix&), 1) = "d" AND INSTR(doWhat$, "D") THEN ObjectRefresh$ = GenC$("DRAW", objTag$)
+    IF ivix& = ovix& AND RIGHT$(guiObjects$(objFlags%, oix&), 1) = "u" AND INSTR(doWhat$, "U") THEN ObjectRefresh$ = GenC$("UPDATE", objTag$ + tagsID$)
+ELSEIF MID$(guiObjects$(objFlags%, oix&), 2, 1) = "p" AND (BoolTagTrue%(guiObjects$(0, 0), "EGRFLAG") OR oix& >= guiALBIndex&) THEN
+    page& = oix&: flag% = -1
+    DO
+        page& = VAL(GetTagData$(guiObjects$(objData%, page&), "PAGEROBJECT", "0"))
+        IF page& > 0 AND NOT BoolTagTrue%(guiObjects$(objData%, page&), "ACTIVE") OR (INSTR(doWhat$, "I") = 0 AND BoolTagTrue%(guiObjects$(objData%, page&), "DISABLED")) THEN
+            flag% = 0
+            EXIT DO
+        END IF
+    LOOP UNTIL page& = 0
+    IF flag% THEN
+        IF LEFT$(guiObjects$(objFlags%, oix&), 1) = "d" AND INSTR(doWhat$, "D") THEN ObjectRefresh$ = GenC$("DRAW", objTag$)
+        IF ivix& = ovix& AND RIGHT$(guiObjects$(objFlags%, oix&), 1) = "u" AND INSTR(doWhat$, "U") THEN ObjectRefresh$ = GenC$("UPDATE", objTag$ + tagsID$)
+    END IF
+END IF
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+'Does increment the child object init nesting counter.
+'---------------------------------------------------------------------
+SUB BeginChildInit
+guiCOINestCnt% = guiCOINestCnt% + 1
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+'Returns true, if the child init scope is activ (> 0).
+'---------------------------------------------------------------------
+FUNCTION ChildInit%
+ChildInit% = (guiCOINestCnt% > 0)
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+'Does decrement the child object init nesting counter until zero.
+'---------------------------------------------------------------------
+SUB EndChildInit
+IF guiCOINestCnt% > 0 THEN guiCOINestCnt% = guiCOINestCnt% - 1
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+'Remap a created child object handle into the given internal notation.
+'---------------------------------------------------------------------
+FUNCTION ChildTag$ (tagName$, objectID$)
+ChildTag$ = NewTag$(tagName$, GetTagData$(objectID$, "OBJECT", "0"))
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+'Remap internal child object handle back into a regular object handle.
+'---------------------------------------------------------------------
+FUNCTION ObjectTag$ (tagString$, tagName$)
+ObjectTag$ = NewTag$("OBJECT", GetTagData$(tagString$, tagName$, "0"))
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+'--- InkeyHit ---
+'----------------
+' This alternative INKEY$ function is made for use with western european
+' languages (Cp1252 based) and any QB64-GL versions (>= 1.000). It will
+' directly map the inputs to the chars available in Cp437, hence you don't
+' need to setup a custom unicode font and _MAPUNICODE table, you can stay
+' with QB64's built-in fonts and standard codepage 437.
+' By this means it solves the INKEY$ issues introduced with the transition
+' from using SDL to using OpenGL regarding special/international chars.
+' However, it does not fix the regular INPUT, LINE INPUT and INPUT$ when
+' used for keyboard input, here you should create your own functions,
+' which use this function to get its inputs.
+' This function is based on my old function made for Germany/Austria only,
+' but now also implements support for other languages (keyboard layouts)
+' based on the research work done by forum member moises1953.
+'----------
+' SYNTAX:
+'   keypress$ = InkeyHit$ (kbl%)
+'----------
+' INPUTS:
+'   --- kbl% ---
+'    The keyboard layout/language ID (eg. 1031 for de-DE), which is in
+'    effect on your system. Make sure your language is listed in the CONSTs
+'    at the beginning of the function. If you use this function with any
+'    unsupported language, then some keys might not work as expected
+'    (eg. accents, umlauts or AltGr key triggered chars).
+'----------
+' RESULT:
+'   --- keypress$ ---
+'    Equivalent to the INKEY$ result (see Wiki).
+'----------
+' ACCENTS:
+'   Note that the accents keys on most keyboards are so called
+'   preselection keys, different from modifier keys (Shift/Ctrl/Alt)
+'   you don't need to hold them while typing accented chars. You just
+'   press it once followed by pressing the letter key once to get the
+'   respective accented char (eg. ` + e = Š). To get the accent char
+'   itself you either press the space bar after the accent preselection
+'   or you press the accent preselection key twice.
+'----------
+' LIMITS:
+'   Note that the following keys and key combos are not supported
+'   for various reasons:
+'
+'    Two Byte Characters        Key                 CHR$(0) + "?"
+'   -------------------------------------------------------------
+'   CHR$(0) + CHR$(16-50)      [Alt] + letter
+'    rarely used, not in alphabetical order, KB layout dependent,
+'    => returns the regular char instead (Alt modifier ignored)
+'   CHR$(0) + CHR$(76)         [5 NumberPad]        "L" (NumLock off in QB64)
+'    rarely used, almost useless for most applications,
+'    => returns nothing
+'   CHR$(0) + CHR$(120-129)    [Alt] + number
+'    ignored in favor for alternative Alt + ASCII code input method,
+'    => returns nothing, but collects numbers to built an ASCII code,
+'       the respective char is returned when releasing the Alt-Key
+'   CHR$(0) + CHR$(130 or 131) [Alt] + _/- or +/=   "‚" or "ƒ"
+'    rarely used, KB layout dependent,
+'    => returns the regular char instead (Alt modifier ignored)
+'---------------------------------------------------------------------
+FUNCTION InkeyHit$ (kbl%)
+'--- keyboard layouts supported by this routine ---
+CONST kbDaDk% = 1030, kbDeDe% = 1031, kbEsEs% = 1034, kbFrFr% = 1036
+CONST kbNlNl% = 1043, kbNbNo% = 1044, kbSvSe% = 1053
+CONST kbDeCh% = 2055, kbEsMx% = 2058, kbFrBe% = 2060, kbPtPt% = 2070
+'--- accent preselection key types ---
+CONST pkAcute% = 1, pkGrave% = 2, pkUmlau% = 3, pkCircu% = 4
+
+'--- variables init ---
+STATIC lastKey&, preKey&, ascNum$
+InkeyHit$ = "": charCode& = 0
+
+'--- flush regular input buffer & get next key hit ---
+DO: LOOP UNTIL INKEY$ = ""
+hitVal& = _KEYHIT
+IF hitVal& <> 0 THEN
+    '--- get modifiers ---
+    modShift% = _KEYDOWN(100303) OR _KEYDOWN(100304)
+    modCtrl% = _KEYDOWN(100305) OR _KEYDOWN(100306)
+    modAltGr% = _KEYDOWN(100307) AND _KEYDOWN(100306)
+    modAlt% = (_KEYDOWN(100307) OR _KEYDOWN(100308)) AND NOT modAltGr%
+    '--- special conditions ---
+    modNone% = NOT modShift% AND NOT modCtrl% AND NOT modAlt% AND NOT modAltGr%
+    modShiftOnly% = modShift% AND NOT modCtrl% AND NOT modAlt% AND NOT modAltGr%
+    modCtrlOnly% = modCtrl% AND NOT modShift% AND NOT modAlt% AND NOT modAltGr%
+    modAltOnly% = modAlt% AND NOT modShift% AND NOT modCtrl% 'not AltGr implied in Alt
+    modCtrlNoAlt% = modCtrl% AND NOT modAlt% AND NOT modAltGr% 'shift allowed
+
+    '--- start evaluation ---
+    IF hitVal& > 0 THEN
+        IF hitVal& <= 255 THEN lastKey& = hitVal& 'for later release detection
+        '--- lookup preselected accent (if any) ---
+        IF hitVal& >= 32 AND hitVal& <= 127 THEN
+            SELECT CASE preKey&
+                CASE pkAcute%
+                    RESTORE InkeyHit_Acute
+                    DO: READ inChar%, outChar%: LOOP UNTIL inChar% = hitVal& OR inChar% = 0
+                    charCode& = outChar%
+                CASE pkGrave%
+                    RESTORE InkeyHit_Grave
+                    DO: READ inChar%, outChar%: LOOP UNTIL inChar% = hitVal& OR inChar% = 0
+                    charCode& = outChar%
+                CASE pkUmlau%
+                    RESTORE InkeyHit_Umlau
+                    DO: READ inChar%, outChar%: LOOP UNTIL inChar% = hitVal& OR inChar% = 0
+                    charCode& = outChar%
+                CASE pkCircu%
+                    RESTORE InkeyHit_Circu
+                    DO: READ inChar%, outChar%: LOOP UNTIL inChar% = hitVal& OR inChar% = 0
+                    charCode& = outChar%
+            END SELECT
+        END IF
+        'Regardless of the lookup result, any non-modifier key press
+        'has to properly cancel any pending preselection.
+        IF hitVal& <= 65535 THEN preKey& = 0
+
+        '--- if no accent was found or preselected, then move on ---
+        IF charCode& = 0 THEN
+            'take the regular key code as default
+            charCode& = hitVal&
+            'check shift/ctrl/alt conditions and special behavior
+            SELECT CASE hitVal&
+                CASE 9 'tab & reverse tab
+                    IF modShiftOnly% THEN charCode& = 15 * 256
+                CASE 48 TO 57 'numeric keys 0-9
+                    IF NOT modNone% THEN charCode& = 0
+                CASE 65 TO 90 'CTRL CAPS A-Z: 1-26
+                    IF modCtrlNoAlt% THEN charCode& = hitVal& - 64
+                CASE 97 TO 122 'CTRL a-z: 1-26
+                    IF modCtrlNoAlt% THEN charCode& = hitVal& - 96
+                CASE 128 TO 255 'Ext. ASCII (Cp1252 to Cp437 mapping, if available)
+                    RESTORE InkeyHit_Regul
+                    DO: READ inChar%, outChar%: LOOP UNTIL inChar% = hitVal& OR inChar% = 0
+                    charCode& = outChar%
+                CASE 256 TO 65535 'double char chr$(0) +
+                    IF (hitVal& AND 255) = 0 THEN
+                        hitVal& = hitVal& \ 256
+                        SELECT CASE hitVal& 'Alt overrides Ctrl overrides Shift
+                            CASE 59 TO 68 'F1-F10
+                                IF modShift% THEN charCode& = (hitVal& + 25) * 256
+                                IF modCtrl% THEN charCode& = (hitVal& + 35) * 256
+                                IF modAlt% THEN charCode& = (hitVal& + 45) * 256
+                            CASE 133, 134 'F11-F12
+                                IF modShift% THEN charCode& = (hitVal& + 2) * 256
+                                IF modCtrl% THEN charCode& = (hitVal& + 4) * 256
+                                IF modAlt% THEN charCode& = (hitVal& + 6) * 256
+                            CASE 71 'Home
+                                IF modCtrl% THEN charCode& = 119 * 256
+                                IF modAlt% THEN charCode& = 151 * 256
+                            CASE 72 'ArrowUp
+                                IF modCtrl% THEN charCode& = 141 * 256
+                                IF modAlt% THEN charCode& = 152 * 256
+                            CASE 73 'PageUp
+                                IF modCtrl% THEN charCode& = 132 * 256
+                                IF modAlt% THEN charCode& = 153 * 256
+                            CASE 75 'ArrowLeft
+                                IF modCtrl% THEN charCode& = 115 * 256
+                                IF modAlt% THEN charCode& = 155 * 256
+                            CASE 77 'ArrowRight
+                                IF modCtrl% THEN charCode& = 116 * 256
+                                IF modAlt% THEN charCode& = 157 * 256
+                            CASE 79 'End
+                                IF modCtrl% THEN charCode& = 117 * 256
+                                IF modAlt% THEN charCode& = 159 * 256
+                            CASE 80 'ArrowDown
+                                IF modCtrl% THEN charCode& = 145 * 256
+                                IF modAlt% THEN charCode& = 160 * 256
+                            CASE 81 'PageDown
+                                IF modCtrl% THEN charCode& = 118 * 256
+                                IF modAlt% THEN charCode& = 161 * 256
+                            CASE 82 'Insert
+                                IF modCtrl% THEN charCode& = 146 * 256
+                                IF modAlt% THEN charCode& = 162 * 256
+                            CASE 83 'Delete
+                                IF modCtrl% THEN charCode& = 147 * 256
+                                IF modAlt% THEN charCode& = 163 * 256
+                        END SELECT
+                    END IF
+            END SELECT
+        END IF
+    ELSE
+        oPreKey& = preKey& 'save current preselection state
+        SELECT CASE hitVal&
+            CASE -57 TO -48 'collect numbers (Alt + char code input)
+                IF modAltOnly% THEN ascNum$ = ascNum$ + CHR$(-hitVal&): _
+                ELSE IF hitVal& = -50 AND modAltGr% AND kbl% = kbFrFr% THEN charCode& = 126 '~
+            CASE -100308 'Alt released: build char from last 3 digits
+                IF ascNum$ <> "" THEN
+                    charCode& = VAL(RIGHT$(ascNum$, 3))
+                    IF charCode& < 32 OR charCode& > 255 THEN charCode& = 0
+                    lastKey& = 0: preKey& = 0: ascNum$ = "" 'cancel all
+                END IF
+            CASE -lastKey& 'cancel the last key
+                lastKey& = 0
+                'This case is just here to trap the releases of regular keys.
+                'It is required to avoid the generation of false positives
+                'for the following accent preselection cases, if the regular
+                'key release would generate the same value as any accent key.
+            CASE -186
+                SELECT CASE kbl%
+                    CASE kbPtPt% 'acute & grave
+                        IF modNone% THEN preKey& = pkAcute%
+                        IF modShiftOnly% THEN preKey& = pkGrave%
+                    CASE kbEsEs% 'grave & circumflex
+                        IF modNone% THEN preKey& = pkGrave%
+                        IF modShiftOnly% THEN preKey& = pkCircu%
+                    CASE kbDaDk%, kbSvSe%, kbNbNo% 'umlaut & circumflex
+                        IF modNone% THEN preKey& = pkUmlau%
+                        IF modShiftOnly% THEN preKey& = pkCircu%
+                    CASE kbEsMx% 'acute & umlaut
+                        IF modNone% THEN preKey& = pkAcute%
+                        IF modShiftOnly% THEN preKey& = pkUmlau%
+                END SELECT
+            CASE -187
+                SELECT CASE kbl%
+                    CASE kbPtPt% 'umlaut
+                        IF modNone% THEN preKey& = pkUmlau%
+                END SELECT
+            CASE -191
+                SELECT CASE kbl%
+                    CASE kbPtPt% 'circumflex
+                        IF modNone% THEN preKey& = pkCircu%
+                    CASE kbEsMx% 'grave
+                        IF modNone% THEN preKey& = pkGrave%
+                END SELECT
+            CASE -192
+                SELECT CASE kbl%
+                    CASE kbNlNl% 'acute & grave
+                        IF modNone% THEN preKey& = pkAcute%
+                        IF modShiftOnly% THEN preKey& = pkGrave%
+                    CASE kbDeCh% 'umlaut
+                        IF modNone% THEN preKey& = pkUmlau%
+                    CASE kbFrFr%, kbFrBe% 'acute
+                        IF modNone% THEN preKey& = pkAcute%
+                END SELECT
+            CASE -219
+                SELECT CASE kbl%
+                    CASE kbDeCh% 'acute
+                        IF modNone% THEN preKey& = pkAcute%
+                    CASE kbDaDk%, kbSvSe%, kbNbNo% 'acute & grave
+                        IF modNone% THEN preKey& = pkAcute%
+                        IF modShiftOnly% THEN preKey& = pkGrave%
+                END SELECT
+            CASE -220
+                SELECT CASE kbl%
+                    CASE kbFrBe% 'grave
+                        IF modNone% THEN preKey& = pkGrave%
+                    CASE kbDeDe% 'circumflex
+                        IF modNone% THEN preKey& = pkCircu%
+                END SELECT
+            CASE -221
+                SELECT CASE kbl%
+                    CASE kbFrFr%, kbFrBe% 'circumflex & umlaut
+                        IF modNone% THEN preKey& = pkCircu%
+                        IF modShiftOnly% THEN preKey& = pkUmlau%
+                    CASE kbNlNl% 'umlaut & circumflex
+                        IF modNone% THEN preKey& = pkUmlau%
+                        IF modShiftOnly% THEN preKey& = pkCircu%
+                    CASE kbDeCh% 'circumflex & grave
+                        IF modNone% THEN preKey& = pkCircu%
+                        IF modShiftOnly% THEN preKey& = pkGrave%
+                    CASE kbDeDe% 'acute & grave
+                        IF modNone% THEN preKey& = pkAcute%
+                        IF modShiftOnly% THEN preKey& = pkGrave%
+                END SELECT
+            CASE -222
+                SELECT CASE kbl%
+                    CASE kbEsEs% 'acute & umlaut
+                        IF modNone% THEN preKey& = pkAcute%
+                        IF modShiftOnly% THEN preKey& = pkUmlau%
+                    CASE kbEsMx% 'circumflex
+                        IF modNone% THEN preKey& = pkCircu%
+                END SELECT
+            CASE -226
+                SELECT CASE kbl%
+                    CASE kbPtPt% '\
+                        IF modNone% THEN charCode& = 92
+                END SELECT
+            CASE ELSE
+                oPreKey& = 0 'no case did match, cancel saved state
+        END SELECT
+        '--- check double-preselection key press (if any) ---
+        IF oPreKey& > 0 AND oPreKey& = preKey& THEN
+            SELECT CASE preKey&
+                CASE pkAcute%: charCode& = 39
+                CASE pkGrave%: charCode& = 96
+                CASE pkUmlau%: charCode& = 34
+                CASE pkCircu%: charCode& = 94
+            END SELECT
+        END IF
+    END IF
+END IF
+'--- finally encode the usual INKEY$ result ---
+IF charCode& > 0 AND charCode& <= 65535 THEN
+    IF charCode& <= 255 THEN InkeyHit$ = CHR$(charCode&)
+    IF charCode& >= 256 AND charCode& <= 65535 AND (charCode& AND 255) = 0 THEN InkeyHit$ = CHR$(0) + CHR$(charCode& \ 256)
+    lastKey& = 0: preKey& = 0
+END IF
+EXIT FUNCTION
+'-----------------------------
+'Char lookup tables:
+'=> pairs of Input ASC (Cp1252), Output ASC (Cp437)
+'=> lists must be double 0-terminated
+InkeyHit_Regul:
+DATA 128,238,161,173,162,155,163,156,164,15,165,157,166,124,167,21,170,166,171,174
+DATA 172,170,176,248,177,241,178,253,179,252,181,230,182,20,183,250,186,167,187,175
+DATA 188,172,189,171,191,168,196,142,197,143,198,146,199,128,201,144,209,165,214,153
+DATA 220,154,223,225,224,133,225,160,226,131,228,132,229,134,230,145,231,135,232,138
+DATA 233,130,234,136,235,137,236,141,237,161,238,140,239,139,241,164,242,149,243,162
+DATA 244,147,246,148,247,246,248,232,249,151,250,163,251,150,252,129,255,152,0,0
+InkeyHit_Acute:
+DATA 32,39,97,160,101,130,105,161,111,162,117,163,69,144,0,0
+InkeyHit_Grave:
+DATA 32,96,97,133,101,138,105,141,111,149,117,151,0,0
+InkeyHit_Umlau:
+DATA 97,132,101,137,105,139,111,148,117,129,65,142,79,153,85,154,121,152,0,0
+InkeyHit_Circu:
+DATA 32,94,97,131,101,136,105,140,111,147,117,150,65,143,0,0
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will apply the current preferences settings (if any) to the
+' given tag string. Called from within the class's Init methods.
+'---------------------------------------------------------------------
+' Inputs: classID$  = same named variable of the calling class
+'         tagsID$   = same named variable of the calling class
+'
+' Result: adjusted tagsID$ (intended side effect)
+'---------------------------------------------------------------------
+SUB ApplyPrefs (classID$, tagsID$)
+REDIM cset(0) AS ChunkCSET
+'--- exclusivly search prefs ---
+mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-gtprefs.bin" + CHR$(0))
+iff% = SafeOpenFile%("B", appLocalDir$ + "gtprefs.bin")
+found% = 0
+IF SeekChunk&(iff%, 1, CHcsetID$) > 0 THEN
+    WHILE NOT EOF(iff%)
+        GET iff%, , cset(0)
+        IF RStrip$(stmFIXED%, cset(0).csetCLASS) = classID$ THEN
+            found% = -1
+            EXIT WHILE
+        END IF
+    WEND
+END IF
+CLOSE iff%
+UnlockMutex mtx%&
+'--- adjust tags ---
+IF found% THEN
+    IF classID$ = "Global.Colors" THEN
+        prefs$ = cset(0).csetIMAGE
+        FOR i% = 0 TO 23
+            _PALETTECOLOR i%, _RGB32(ASC(prefs$, (i% * 3) + 1), ASC(prefs$, (i% * 3) + 2), ASC(prefs$, (i% * 3) + 3))
+        NEXT i%
+        guiBackPen% = ASC(prefs$, 264): guiTextPen% = ASC(prefs$, 263): guiHighPen% = ASC(prefs$, 262)
+        guiFillPen% = ASC(prefs$, 261): guiFillTextPen% = ASC(prefs$, 260)
+        guiShinePen% = ASC(prefs$, 259): guiShadowPen% = ASC(prefs$, 258): guiSolidPen% = ASC(prefs$, 257)
+        guiGreenPen% = ASC(prefs$, 256): guiRedPen% = ASC(prefs$, 255)
+        guiLoadBack% = ASC(prefs$, 254): guiSaveBack% = ASC(prefs$, 253)
+        guiMediaDisk% = ASC(prefs$, 252): guiMediaDrawer% = ASC(prefs$, 251): guiMediaFile% = ASC(prefs$, 250)
+    ELSEIF classID$ = "PagerC.WallPen" THEN
+        otag$ = GetTags$(tagsID$, "WALLPEN")
+        IF NOT cset(0).csetFOVR THEN
+            RemTag tagsID$, "WALLPEN"
+        ELSE
+            IF ValidateTags%(tagsID$, "INIWP", 0) THEN SetTag tagsID$, "WALLPEN", GetTagData$(tagsID$, "INIWP", "")
+        END IF
+        wpen$ = LTRIM$(STR$(cset(0).csetHOVR))
+        IF wpen$ <> "-1" THEN
+            IF NOT ValidateTags%(tagsID$, "WALLPEN", 0) THEN SetTag tagsID$, "WALLPEN", wpen$
+        ELSE
+            IF BoolTagTrue%(tagsID$, "PREVIEW") AND _
+               NOT ValidateTags%(tagsID$, "WALLPEN", 0) THEN tagsID$ = tagsID$ + otag$
+        END IF
+        IF NOT cset(0).csetPMOD AND otag$ = "" THEN RemTags tagsID$, "WALLPEN"
+        IF BoolTagTrue%(tagsID$, "BLANK") THEN
+            IF NOT BoolTagTrue%(tagsID$, "PREVIEW") OR _
+               NOT cset(0).csetPMOD THEN RemTag tagsID$, "WALLPEN"
+        END IF
+    ELSE
+        IF classID$ = "PagerC.WallImg" THEN
+            htag$ = "WALLHANDLE": ftag$ = "WALLIMAGE": atag$ = "WALLAREA"
+        ELSE
+            htag$ = "IMAGEHANDLE": ftag$ = "IMAGEFILE": atag$ = "AREA"
+        END IF
+        otag$ = GetTags$(tagsID$, htag$ + "," + ftag$)
+        IF NOT cset(0).csetHOVR THEN RemTag tagsID$, htag$
+        IF NOT cset(0).csetFOVR THEN RemTag tagsID$, ftag$
+        image$ = RStrip$(stmFIXED%, cset(0).csetIMAGE)
+        IF image$ = "" THEN
+            IF NOT ValidateTags%(tagsID$, ftag$, 0) THEN RemTag tagsID$, atag$
+        ELSE
+            IF NOT ValidateTags%(tagsID$, ftag$, 0) THEN
+                SetTag tagsID$, ftag$, image$
+                SetTag tagsID$, atag$, LTRIM$(STR$(cset(0).csetTILE))
+            END IF
+        END IF
+        IF NOT cset(0).csetPMOD AND otag$ = "" THEN RemTags tagsID$, ftag$ + "," + atag$
+    END IF
+END IF
+'--- cleanup ---
+ERASE cset
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+'This routine will lookup the last known window position of the calling
+'application (appExeName$) and move the program window to that position.
+'It's also used to save the current position at program termination.
+'---------------------------------------------------------------------
+'sm% = save mode? (0 = load mode / -1 = save mode)
+'---------------------------------------------------------------------
+SUB LastPosUpdate (sm%)
+REDIM winp(0) AS ChunkWPOS
+'--- exclusivly search winpos brain ---
+mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-wpbrain.bin" + CHR$(0))
+iff% = SafeOpenFile%("B", appLocalDir$ + "wpbrain.bin")
+found% = 0
+IF SeekChunk&(iff%, 1, CHwposID$) > 0 THEN
+    WHILE NOT EOF(iff%)
+        ptr& = SEEK(iff%)
+        GET iff%, , winp(0)
+        IF RStrip$(stmFIXED%, winp(0).wposNAME) = LEFT$(appExeName$, 30) THEN
+            found% = -1
+            EXIT WHILE
+        END IF
+    WEND
+END IF
+'--- found = ok, missed = init defaults ---
+IF found% THEN
+    IF NOT sm% THEN
+        guiWinX% = winp(0).wposXPOS: guiWinY% = winp(0).wposYPOS
+        _SCREENMOVE guiWinX%, guiWinY%
+    ELSE
+        winp(0).wposXPOS = guiWinX%: winp(0).wposYPOS = guiWinY%
+        PUT iff%, ptr&, winp(0)
+    END IF
+ELSE
+    IF NOT sm% THEN
+        disp% = 0: ext$ = LCASE$(FileExtension$(appExeName$))
+        IF ext$ <> ".exe" THEN
+            disp% = VAL(MID$(ext$, 2))
+            WHILE disp% > 10: disp% = disp% - 10: WEND
+        END IF
+        guiWinX% = 25 + (disp% * 25): guiWinY% = 25 + (disp% * 25)
+        _SCREENMOVE guiWinX%, guiWinY%
+    ELSE
+        winp(0).wposSTDC.chunkID = CHwposID$
+        winp(0).wposSTDC.chunkLEN = CHwposLEN%
+        winp(0).wposNAME = LEFT$(appExeName$, 30)
+        winp(0).wposXPOS = guiWinX%: winp(0).wposYPOS = guiWinY%
+        PUT iff%, LOF(iff%) + 1, winp(0)
+        SizeUpdate iff%, wposSIZEOF%
+    END IF
+END IF
+'--- cleanup ---
+CLOSE iff%
+UnlockMutex mtx%&
+ERASE winp
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will init the general properties of the actually initialized
+' object. Called from within Init methods for viewable objects only.
+' Non-viewable objects must implement their own init procedure as needed.
+'---------------------------------------------------------------------
+' Inputs: this&     = actual object, should be "this&" in function call too
+'         classID$  = same named variable of the calling class
+'         flagsID$  = same named variable of the calling class
+'         tagsID$   = same named variable of the calling class
+'---------------------------------------------------------------------
+SUB InitGeneralProperties (this&, classID$, flagsID$, tagsID$)
+guiObjects$(objData%, this&) = ""
+guiObjects$(objType%, this&) = classID$
+guiObjects$(objFlags%, this&) = flagsID$
+guiObjects$(objConn%, this&) = ""
+IF ChildInit% THEN
+    MID$(guiObjects$(objFlags%, this&), 2, 1) = "c"
+ELSE
+    IF (NOT BoolTagTrue%(tagsID$, "BACKFILL")) AND guiALBIndex& > 1 AND this& > guiALBIndex& THEN
+        'inherit GuiView of active hover layer (if any)
+        view$ = GetTagData$(guiObjects$(objData%, guiALBIndex&), "GUIVIEW", "0")
+        IF view$ = "0" THEN RemTag tagsID$, "GUIVIEW": ELSE SetTag tagsID$, "GUIVIEW", view$
+    END IF
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This FUNC will try to (re)assign the given List object to the actually
+' initialized or updated multiple choice object. Called from within Init
+' and Set methods. If the given LISTOBJECT is invalid, empty or already
+' in use, then an initializing object is discarded. An updated object
+' remains unchanged in such an error case, ie. it keeps its old assigned
+' list. The appropriate ERROR/WARNING tag is written directly into the
+' class's function result string.
+' NOTE: Must be called before InitAssignedPager%() if both are used !!
+'---------------------------------------------------------------------
+' Inputs: this&     = actual object, should be "this&" in function call too
+'         classRes$ = the function result variable of the calling class
+'         classID$  = same named variable of the calling class
+'         methodID$ = same named variable of the calling class
+'         tagsID$   = same named variable of the calling class
+'
+' Result: True, if the assignment was successful, false otherwise.
+'---------------------------------------------------------------------
+FUNCTION InitSetAssignedList% (this&, classRes$, classID$, methodID$, tagsID$)
+flag% = 0
+lobj& = VAL(GetTagData$(tagsID$, "LISTOBJECT", "0"))
+IF lobj& = 0 AND methodID$ = "Set" THEN
+    InitSetAssignedList% = 0
+    EXIT FUNCTION
+END IF
+IF lobj& < 1 OR lobj& > UBOUND(guiObjects$, 2) THEN
+    SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> given LISTOBJECT = undefined object"
+    flag% = -1
+ELSE
+    IF guiObjects$(objType%, lobj&) <> "ListC" THEN
+        SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> given LISTOBJECT = wrong object type"
+        flag% = -1
+    ELSE
+        IF MID$(guiObjects$(objFlags%, lobj&), 2, 1) = "c" THEN
+            SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> given LISTOBJECT = list already in use"
+            flag% = -1
+        ELSE
+            reco& = VAL(GetTagData$(guiObjects$(objData%, lobj&), "RECORDS", "0"))
+            IF reco& = 0 THEN
+                SetTag classRes$, "ERROR", classID$ + "::" + methodID$ + " -> given LISTOBJECT = list is empty"
+                flag% = -1
+            ELSE
+                actu& = VAL(GetTagData$(tagsID$ + guiObjects$(objData%, this&), "ACTUAL", "1"))
+                IF actu& < 1 OR actu& > reco& THEN
+                    SetTag tagsID$, "ACTUAL", "1"
+                    IF actu& = 0 AND classID$ <> "CycleC" THEN SetTag tagsID$, "ACTUAL", "0"
+                    actu& = 1
+                END IF
+                resu$ = ListC$("SET", NewTag$("OBJECT", LTRIM$(STR$(lobj&))) + NewTag$("ACTUAL", LTRIM$(STR$(actu&))))
+                MID$(guiObjects$(objFlags%, lobj&), 2, 1) = "c"
+                SetTag guiObjects$(objData%, lobj&), "REFOBJ", LTRIM$(STR$(this&))
+                IF methodID$ = "Set" THEN
+                    KillAssignedList this& '1st release old list
+                    SetTag guiObjects$(objData%, this&), "LISTOBJECT", LTRIM$(STR$(lobj&)) 'then set new
+                END IF
+            END IF
+        END IF
+    END IF
+END IF
+IF flag% = -1 AND methodID$ = "Init" THEN
+    guiObjects$(objData%, this&) = ""
+    guiObjects$(objType%, this&) = ""
+    guiObjects$(objFlags%, this&) = ""
+    guiObjects$(objConn%, this&) = ""
+END IF
+InitSetAssignedList% = (NOT flag%)
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will unassign the List object from the actually killed
+' mutiple choice object. Called from within Kill methods.
+'---------------------------------------------------------------------
+' Inputs: this& = actual object, should be "this&" in function call too
+'---------------------------------------------------------------------
+SUB KillAssignedList (this&)
+lobj& = VAL(GetTagData$(guiObjects$(objData%, this&), "LISTOBJECT", "0"))
+IF lobj& > 0 THEN
+    RemTag guiObjects$(objData%, lobj&), "REFOBJ"
+    MID$(guiObjects$(objFlags%, lobj&), 2, 1) = "-"
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This FUNC will try to assign the actually initialized object to the
+' specified pager/tab. Called from within Init methods. If the given
+' PAGEROBJECT is invalid, then the initializing object is discarded and
+' an appropriate ERROR/WARNING is written directly into the class's
+' function result string.
+' NOTE: Must be called after InitSetAssignedList%() if both are used !!
+'---------------------------------------------------------------------
+' Inputs: this&     = actual object, should be "this&" in function call too
+'         classRes$ = the function result variable of the calling class
+'         classID$  = same named variable of the calling class
+'         tagsID$   = same named variable of the calling class
+'
+' Result: True, if the assignment was successful, false otherwise. As
+'         a secondary result the _SOURCE/_DEST handles are set to the
+'         object's designated GuiView (if any).
+'---------------------------------------------------------------------
+FUNCTION InitAssignedPager% (this&, classRes$, classID$, tagsID$)
+flag% = 0
+temp$ = GetTagData$(tagsID$, "PAGEROBJECT", "n/a")
+IF temp$ <> "n/a" THEN
+    page& = VAL(temp$)
+    IF page& < 1 OR page& > UBOUND(guiObjects$, 2) THEN
+        SetTag classRes$, "ERROR", classID$ + "::Init -> given PAGEROBJECT = undefined object"
+        flag% = -1
+    ELSE
+        IF guiObjects$(objType%, page&) <> "PagerC" THEN
+            SetTag classRes$, "ERROR", classID$ + "::Init -> given PAGEROBJECT = wrong object type"
+            flag% = -1
+        ELSE
+            clis$ = ObjectTag$(guiObjects$(objData%, page&), "LST0")
+            resu$ = ListC$("STORE", clis$ + NewTag$("DATA", LTRIM$(STR$(this&))))
+            MID$(guiObjects$(objFlags%, this&), 2, 1) = "p"
+            IF (NOT ChildInit%) AND page& >= guiALBIndex& THEN 'inherit GuiView, if pager is on current layer
+                view$ = GetTagData$(guiObjects$(objData%, page&), "GUIVIEW", "0")
+                IF view$ = "0" THEN RemTag tagsID$, "GUIVIEW": ELSE SetTag tagsID$, "GUIVIEW", view$
+            END IF
+        END IF
+    END IF
+    IF flag% THEN
+        guiObjects$(objData%, this&) = GetTag$(tagsID$, "LISTOBJECT")
+        KillAssignedList this&
+        guiObjects$(objData%, this&) = ""
+        guiObjects$(objType%, this&) = ""
+        guiObjects$(objFlags%, this&) = ""
+        guiObjects$(objConn%, this&) = ""
+    END IF
+END IF
+IF NOT ChildInit% THEN SourceDestGuiView VAL(GetTagData$(tagsID$, "GUIVIEW", "0"))
+InitAssignedPager% = (NOT flag%)
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will unassign the actually killed object from any pager/tab
+' it was assigned to. Called from within Kill methods.
+'---------------------------------------------------------------------
+' Inputs: this& = actual object, should be "this&" in function call too
+'---------------------------------------------------------------------
+SUB KillAssignedPager (this&)
+page& = VAL(GetTagData$(guiObjects$(objData%, this&), "PAGEROBJECT", "0"))
+IF page& > 0 THEN
+    clis$ = ObjectTag$(guiObjects$(objData%, page&), "LST0")
+    resu$ = ListC$("SEARCH", clis$ + NewTag$("DATA", LTRIM$(STR$(this&))) + NewTag$("HOLD", "true"))
+    IF resu$ <> "" THEN resu$ = ListC$("DELETE", clis$)
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will try to assign any given Image or Symbol object to the
+' actually initialized object. Called from within Init methods. If the
+' image/symbol cannot be assigned, then the respective tag is cleared
+' out, for convenience it will also write the ERROR/WARNING tags directly
+' to the class's function result string.
+'---------------------------------------------------------------------
+' Inputs: typeTag$  = either IMAGEOBJECT or SYMBOLOBJECT
+'         classRes$ = the function result variable of the calling class
+'         classID$  = same named variable of the calling class
+'         tagsID$   = same named variable of the calling class
+'---------------------------------------------------------------------
+SUB InitAssignedImgSym (typeTag$, classRes$, classID$, tagsID$)
+temp$ = GetTagData$(tagsID$, typeTag$, "n/a")
+IF temp$ <> "n/a" THEN
+    IF classID$ = "ListC" THEN methodID$ = "Store": ELSE methodID$ = "Init"
+    obje& = VAL(temp$): flag% = 0
+    IF obje& < 1 OR obje& > UBOUND(guiObjects$, 2) THEN
+        SetTag classRes$, "WARNING", classID$ + "::" + methodID$ + " -> given " + UCASE$(typeTag$) + " = undefined object"
+        flag% = -1
+    ELSE
+        object$ = LCASE$(LEFT$(typeTag$, LEN(typeTag$) - 6))
+        objectID$ = UCASE$(LEFT$(object$, 1)) + LCASE$(MID$(object$, 2)) + "C"
+        IF guiObjects$(objType%, obje&) <> objectID$ THEN
+            SetTag classRes$, "WARNING", classID$ + "::" + methodID$ + " -> given " + UCASE$(typeTag$) + " = wrong object type"
+            flag% = -1
+        ELSE
+            IF BoolTagTrue%(guiObjects$(objData%, obje&), "STANDALONE") THEN
+                SetTag classRes$, "WARNING", classID$ + "::" + methodID$ + " -> cannot assign STANDALONE " + object$
+                flag% = -1
+            ELSE
+                MID$(guiObjects$(objFlags%, obje&), 2, 1) = "c"
+                SetTag guiObjects$(objData%, obje&), "RECORDS", LTRIM$(STR$(VAL(GetTagData$(guiObjects$(objData%, obje&), "RECORDS", "0")) + 1))
+            END IF
+        END IF
+    END IF
+    IF flag% THEN RemTag tagsID$, typeTag$
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will unassign any Image or Symbol objects from the actually
+' killed object. Called from within Kill methods.
+'---------------------------------------------------------------------
+' Inputs: this&    = actual object, should be "this&" in function call too
+'         typeTag$ = either IMAGEOBJECT or SYMBOLOBJECT
+'---------------------------------------------------------------------
+SUB KillAssignedImgSym (this&, typeTag$)
+obje& = VAL(GetTagData$(guiObjects$(objData%, this&), typeTag$, "0"))
+IF obje& > 0 THEN
+    reco& = VAL(GetTagData$(guiObjects$(objData%, obje&), "RECORDS", "0")) - 1
+    IF reco& > 0 THEN
+        SetTag guiObjects$(objData%, obje&), "RECORDS", LTRIM$(STR$(reco&))
+    ELSE
+        RemTag guiObjects$(objData%, obje&), "RECORDS"
+        MID$(guiObjects$(objFlags%, obje&), 2, 1) = "-"
+    END IF
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This FUNC will try to reassign a new given Image or Symbol object to
+' the actually updated object. Called from within Set methods. If the new
+' image/symbol cannot be assigned, then the old one is kept instead.
+' For convenience it will also write the ERROR/WARNING tags directly to
+' the class's function result string.
+'---------------------------------------------------------------------
+' Inputs: this&     = actual object, should be "this&" in function call too
+'         typeTag$  = either IMAGEOBJECT or SYMBOLOBJECT
+'         classRes$ = the function result variable of the calling class
+'         classID$  = same named variable of the calling class
+'         tagsID$   = same named variable of the calling class
+'
+' Result: True, if the update was successful, false otherwise.
+'---------------------------------------------------------------------
+FUNCTION SetAssignedImgSym% (this&, typeTag$, classRes$, classID$, tagsID$)
+SetAssignedImgSym% = 0
+temp$ = GetTagData$(tagsID$, typeTag$, "n/a")
+IF temp$ <> "n/a" THEN
+    obje& = VAL(temp$) 'maybe negative for remove only operation
+    IF obje& >= 0 THEN
+        IF obje& < 1 OR obje& > UBOUND(guiObjects$, 2) THEN
+            SetTag classRes$, "WARNING", classID$ + "::Set -> given " + UCASE$(typeTag$) + " = undefined object"
+            EXIT FUNCTION
+        ELSE
+            object$ = LCASE$(LEFT$(typeTag$, LEN(typeTag$) - 6))
+            objectID$ = UCASE$(LEFT$(object$, 1)) + LCASE$(MID$(object$, 2)) + "C"
+            IF guiObjects$(objType%, obje&) <> objectID$ THEN
+                SetTag classRes$, "WARNING", classID$ + "::Set -> given " + UCASE$(typeTag$) + " = wrong object type"
+                EXIT FUNCTION
+            ELSE
+                IF BoolTagTrue%(guiObjects$(objData%, obje&), "STANDALONE") THEN
+                    SetTag classRes$, "WARNING", classID$ + "::Set -> cannot assign STANDALONE " + object$
+                    EXIT FUNCTION
+                END IF
+            END IF
+        END IF
+    END IF
+    oobj& = VAL(GetTagData$(guiObjects$(objData%, this&), typeTag$, "0"))
+    IF oobj& > 0 THEN
+        reco& = VAL(GetTagData$(guiObjects$(objData%, oobj&), "RECORDS", "0")) - 1
+        IF reco& > 0 THEN
+            SetTag guiObjects$(objData%, oobj&), "RECORDS", LTRIM$(STR$(reco&))
+        ELSE
+            RemTag guiObjects$(objData%, oobj&), "RECORDS"
+            MID$(guiObjects$(objFlags%, oobj&), 2, 1) = "-"
+        END IF
+    END IF
+    IF obje& > 0 THEN
+        MID$(guiObjects$(objFlags%, obje&), 2, 1) = "c"
+        SetTag guiObjects$(objData%, obje&), "RECORDS", LTRIM$(STR$(VAL(GetTagData$(guiObjects$(objData%, obje&), "RECORDS", "0")) + 1))
+        SetTag guiObjects$(objData%, this&), typeTag$, LTRIM$(STR$(obje&))
+    ELSE
+        RemTag guiObjects$(objData%, this&), typeTag$
+    END IF
+    SetAssignedImgSym% = -1
+END IF
+END FUNCTION
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will set the given IMAGEFILE/HANDLE (if any) as the currently
+' initializing object's background. Called from within Init methods.
+' If the image init fails, then an appropriate WARNING is written directly
+' into the class's function result string.
+'---------------------------------------------------------------------
+' Inputs: this&     = actual object, should be "this&" in function call too
+'         classRes$ = the function result variable of the calling class
+'         classID$  = same named variable of the calling class
+'         tagsID$   = same named variable of the calling class
+'---------------------------------------------------------------------
+SUB InitObjectBGImg (this&, classRes$, classID$, tagsID$)
+IF ValidateTags%(tagsID$, "IMAGEFILE", -1) OR ValidateTags%(tagsID$, "IMAGEHANDLE", -1) THEN
+    imag$ = ImageC$("INIT", GetTags$(tagsID$, "IMAGEFILE,IMAGEHANDLE,AREA,LEFT,TOP,WIDTH,HEIGHT"))
+    guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("BGIMG", imag$)
+    IF ValidateTags%(imag$, "ERROR", 0) THEN SetTag classRes$, "WARNING", classID$ + "::Init -> background image failure"
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will brighten the given object's background. It's called
+' from within Draw methods when the object has focus. Once processed
+' images are cached for quicker access on further calls.
+'---------------------------------------------------------------------
+' Inputs: this& = actual object, should be "this&" in function call too
+'         left%, topp%, widt%, heig% designate the object's bounding box
+'---------------------------------------------------------------------
+SUB BrightenObjectBG (this&, left%, topp%, widt%, heig%)
+IF NOT ValidateTags%(guiObjects$(objData%, this&), "BBGIMG", -1) THEN
+    area& = _NEWIMAGE(widt%, heig%, 32)
+    IF area& >= -1 THEN EXIT SUB
+    _PUTIMAGE (0, 0), _SOURCE, area&, (left%, topp%)-(left% + widt% - 1, topp% + heig% - 1)
+    mask& = VAL(GetTagData$(guiObjects$(objData%, this&), "BBGMASK", "-1"))
+    brig& = ModifyBrightness&(area&, 0.111, -1, -1, -1, -1, mask&): _FREEIMAGE area&
+    IF brig& >= -1 THEN EXIT SUB
+    IF BoolTagTrue%(guiObjects$(objData%, this&), "BGIMG") AND _
+                    guiObjects$(objType%, this&) <> "RadioC" AND _
+                    guiObjects$(objType%, this&) <> "ListviewC" THEN
+        BeginChildInit
+        imag$ = ImageC$("INIT", NewTag$("IMAGEHANDLE", LTRIM$(STR$(brig&))) + NewTag$("AREA", "true") +_
+                NewTag$("LEFT", LTRIM$(STR$(left%))) + NewTag$("TOP", LTRIM$(STR$(topp%))) +_
+                NewTag$("WIDTH", LTRIM$(STR$(widt%))) + NewTag$("HEIGHT", LTRIM$(STR$(heig%))))
+        guiObjects$(objData%, this&) = guiObjects$(objData%, this&) + ChildTag$("BBGIMG", imag$)
+        EndChildInit
+    ELSE
+        fimg& = RemapImageFS&(brig&, _DEST): _FREEIMAGE brig&
+        IF fimg& < -1 THEN _PUTIMAGE (left%, topp%), fimg&, _DEST: _FREEIMAGE fimg&
+        EXIT SUB
+    END IF
+END IF
+resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BBGIMG"))
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will print the help/tooltip (if any) of the given object or
+' will remove the currently displayed tooltip on the next call.
+'---------------------------------------------------------------------
+' Inputs: this& = the object, which its help/tooltip shall be printed
+'---------------------------------------------------------------------
+SUB PrintObjectTooltip (this&)
+IF guiATTProps$ <> "" THEN
+    '--- redraw or remove currently shown tooltip ---
+    SourceDestGuiView VAL(GetTagData$(guiATTProps$, "GUIVIEW", "0"))
+    left% = VAL(GetTagData$(guiATTProps$, "LEFT", "0"))
+    topp% = VAL(GetTagData$(guiATTProps$, "TOP", "0"))
+    bubb& = VAL(GetTagData$(guiATTProps$, "IHANDLE", "-1"))
+    area& = VAL(GetTagData$(guiATTProps$, "RHANDLE", "-1"))
+    IF this& THEN
+        _PUTIMAGE (left%, topp%), bubb&, _DEST
+    ELSE
+        _PUTIMAGE (left%, topp%), area&, _DEST
+        _FREEIMAGE area&
+        _FREEIMAGE bubb&
+        guiATTProps$ = ""
+    END IF
+ELSE
+    IF this& < 0 THEN EXIT SUB
+    '--- set view ---
+    SourceDestGuiView VAL(GetTagData$(guiObjects$(objData%, this&), "GUIVIEW", "0"))
+    '--- only do, if tooltip or shortcut is available ---
+    text$ = LTRIM$(RTRIM$(GetTagData$(guiObjects$(objData%, this&), "TOOLTIP", "")))
+    shor$ = GetTagData$(guiObjects$(objData%, this&), "SHORTCUT", "")
+    IF text$ <> "" OR shor$ <> "" THEN
+        '--- assemble the text ---
+        IF text$ <> "" THEN
+            IF RIGHT$(text$, 1) <> "|" THEN text$ = text$ + "|"
+        END IF
+        IF shor$ <> "" THEN
+            IF text$ <> "" THEN text$ = text$ + "----------|"
+            key$ = MKI$(VAL(shor$))
+            IF RIGHT$(key$, 1) = CHR$(0) AND ASC(LEFT$(key$, 1)) > 32 THEN
+                key$ = LEFT$(key$, 1)
+            ELSE
+                RESTORE MakeShortcut_FKeys
+                FOR i% = 1 TO 25
+                    READ fu$, id&
+                    IF VAL(shor$) = id& THEN key$ = fu$: EXIT FOR
+                NEXT i%
+            END IF
+            IF LEN(key$) = 1 AND key$ >= "A" AND key$ <= "Z" THEN key$ = key$ + " (SHIFT " + CHR$(ASC(key$) + 32) + ")"
+            IF INSTR(shor$, "A") THEN key$ = "ALT " + key$
+            IF INSTR(shor$, "C") THEN key$ = "CTRL " + key$
+            IF INSTR(shor$, "S") THEN key$ = "SHIFT " + key$
+            text$ = text$ + "Shortcut: " + key$ + "|"
+        END IF
+        '--- calculate required bounding box for print ---
+        sp% = 1: nl% = 0: pw% = 0
+        FOR i% = 1 TO LEN(text$)
+            IF MID$(text$, i%, 1) = "|" THEN
+                nl% = nl% + 1
+                temp$ = MID$(text$, sp%, i% - sp%)
+                IF _PRINTWIDTH(temp$) > pw% THEN pw% = _PRINTWIDTH(temp$)
+                sp% = i% + 1
+            END IF
+        NEXT i%
+        ph% = ((_FONTHEIGHT + 2) * nl%)
+        '--- get object dimensions & precalc pin point ---
+        x% = VAL(GetTagData$(guiObjects$(objData%, this&), "LEFT", "0"))
+        y% = VAL(GetTagData$(guiObjects$(objData%, this&), "TOP", "0"))
+        w% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+        h% = VAL(GetTagData$(guiObjects$(objData%, this&), "HEIGHT", "0"))
+        IF guiObjects$(objType%, this&) = "RadioC" THEN
+            x% = x% - INT(w% / 2): h% = w%: y% = y% - INT(h% / 2)
+        END IF
+        '- flip adjustments for images
+        IF w% < 0 THEN w% = -w%: x% = x% - w%
+        IF h% < 0 THEN h% = -h%: y% = y% - h%
+        '- adjust tooltip pin position
+        down% = y% - 22 - ph%: IF down% < 0 THEN down% = 0
+        IF (down% + ph% + 32) > (y% + h% - 6) THEN
+            y% = y% + h% - 11: down% = -1
+        ELSE
+            y% = y% + 10: down% = 0
+        END IF
+        ox% = x%: x% = x% + INT(w% * 0.33)
+        '--- calculate polygon arrays for drawing ---
+        REDIM cpx%(3), cpy%(3), pax%(18), pay%(18), npax%(2), npay%(2)
+        $CHECKING:OFF
+        cpx%(0) = x% - 16 - INT(pw% * 0.25)
+        IF down% THEN cpy%(0) = y% + 24: ELSE cpy%(0) = y% - 24 - ph%
+        cpx%(1) = cpx%(0) + pw%: cpy%(1) = cpy%(0)
+        cpx%(2) = cpx%(1): cpy%(2) = cpy%(1) + ph%
+        cpx%(3) = cpx%(0): cpy%(3) = cpy%(2)
+        i% = 0
+        FOR a% = 180 TO 90 STEP -30: pax%(i%) = cpx%(0) + PolToCartX%(a%, 8): pay%(i%) = cpy%(0) + PolToCartY%(a%, -8): i% = i% + 1: NEXT a%
+        IF down% THEN
+            pax%(4) = x% - 16: pay%(4) = pay%(3)
+            pax%(5) = x%: pay%(5) = y%
+            pax%(6) = x% - 6: pay%(6) = pay%(3)
+            i% = 7
+        END IF
+        FOR a% = 90 TO 0 STEP -30: pax%(i%) = cpx%(1) + PolToCartX%(a%, 8): pay%(i%) = cpy%(1) + PolToCartY%(a%, -8): i% = i% + 1: NEXT a%
+        FOR a% = 360 TO 270 STEP -30: pax%(i%) = cpx%(2) + PolToCartX%(a%, 8): pay%(i%) = cpy%(2) + PolToCartY%(a%, -8): i% = i% + 1: NEXT a%
+        IF NOT down% THEN
+            pax%(12) = x% - 6: pay%(12) = pay%(11)
+            pax%(13) = x%: pay%(13) = y%
+            pax%(14) = x% - 16: pay%(14) = pay%(11)
+            i% = 15
+        END IF
+        FOR a% = 270 TO 180 STEP -30: pax%(i%) = cpx%(3) + PolToCartX%(a%, 8): pay%(i%) = cpy%(3) + PolToCartY%(a%, -8): i% = i% + 1: NEXT a%
+        '- fit polygon to screen bounds
+        IF pax%(0) < 0 THEN offx% = -pax%(0): ELSE offx% = 0
+        IF pay%(3) < 0 THEN offy% = -pay%(3): ELSE offy% = 0
+        IF down% THEN i% = 10: ELSE i% = 7
+        IF offx% = 0 AND pax%(i%) > _WIDTH - 1 THEN offx% = _WIDTH - 1 - pax%(i%)
+        FOR i% = 0 TO 18
+            pax%(i%) = pax%(i%) + offx%
+            pay%(i%) = pay%(i%) + offy%
+        NEXT i%
+        IF down% THEN i% = 8: ELSE i% = 0
+        npax%(0) = pax%(12 - i%): npay%(0) = pay%(12 - i%)
+        npax%(1) = pax%(13 - i%): npay%(1) = pay%(13 - i%)
+        npax%(2) = pax%(14 - i%): npay%(2) = pay%(14 - i%)
+        '- recalc pin position according to screen
+        '- fitted polygon and the object bounds
+        IF npax%(1) < ox% THEN
+            move% = (ox% + 10) - npax%(1)
+            IF down% AND (npax%(1) + move%) > (pax%(14) - 14) THEN
+                move% = (pax%(14) - 14) - npax%(1)
+            ELSEIF NOT down% AND (npax%(1) + move%) > (pax%(11) - 14) THEN
+                move% = (pax%(11) - 14) - npax%(1)
+            END IF
+            npax%(0) = npax%(0) + move%: npax%(1) = npax%(1) + move%: npax%(2) = npax%(2) + move%
+        ELSEIF npax%(1) > ox% + w% - 1 THEN
+            move% = npax%(1) - (ox% + w% - 11)
+            IF (npax%(1) - move%) < (pax%(15) + 28) THEN
+                move% = npax%(1) - (pax%(15) + 28)
+            END IF
+            npax%(0) = npax%(0) - move%: npax%(1) = npax%(1) - move%: npax%(2) = npax%(2) - move%
+        END IF
+        pax%(12 - i%) = npax%(0): pax%(13 - i%) = npax%(1): pax%(14 - i%) = npax%(2)
+        $CHECKING:ON
+        '--- save data for later display restauration ---
+        IF down% THEN i% = 10: ELSE i% = 7
+        left% = pax%(0): topp% = pay%(3)
+        widt% = pax%(i%) - pax%(0) + 1: heig% = pay%(15) - pay%(3) + 1
+        IF down% THEN topp% = topp% - 16: heig% = heig% + 16
+        area& = _NEWIMAGE(widt% + 15, heig% + 16, 256)
+        _PUTIMAGE (0, 0), _SOURCE, area&, (left%, topp%)-(left% + widt% + 14, topp% + heig% + 15)
+        l% = left%: t% = topp%: w% = widt%: h% = heig%
+        guiATTProps$ = NewTag$("GUIVIEW", LTRIM$(STR$(guiAGVIndex&))) +_
+                       NewTag$("LEFT", LTRIM$(STR$(left%))) +_
+                       NewTag$("TOP", LTRIM$(STR$(topp%))) +_
+                       NewTag$("RHANDLE", LTRIM$(STR$(area&)))
+        '--- process display area (gray out, make shadow etc.) ---
+        IF down% THEN topp% = topp% + 16: heig% = heig% - 16
+        area& = _NEWIMAGE(widt% + 15, heig% + 15, 32)
+        _PUTIMAGE (0, 0), _SOURCE, area&, (left%, topp%)-(left% + widt% + 14, topp% + heig% + 14)
+        drk1& = ModifyBrightness&(area&, -0.16, 10, 10, widt% + 9, heig% + 9, -1): _FREEIMAGE area&
+        drk2& = ModifyBrightness&(drk1&, -0.16, 10, 10, widt% + 7, heig% + 7, -1): _FREEIMAGE drk1&
+        drk3& = ModifyBrightness&(drk2&, -0.16, 10, 10, widt% + 4, heig% + 4, -1): _FREEIMAGE drk2&
+        rem1& = ModifyBrightness&(drk3&, -0.16, 0, 0, widt% - 1, 9, -1): _FREEIMAGE drk3&
+        rem2& = ModifyBrightness&(rem1&, -0.16, 0, 10, 9, heig% - 1, -1): _FREEIMAGE rem1&
+        rem3& = ModifyBrightness&(rem2&, -0.16, 0, 0, widt% - 1, 9, -1): _FREEIMAGE rem2&
+        rem4& = ModifyBrightness&(rem3&, -0.16, 0, 10, 9, heig% - 1, -1): _FREEIMAGE rem3&
+        rem5& = ModifyBrightness&(rem4&, -0.16, 0, 0, widt% - 1, 9, -1): _FREEIMAGE rem4&
+        rem6& = ModifyBrightness&(rem5&, -0.16, 0, 10, 9, heig% - 1, -1): _FREEIMAGE rem5&
+        grad& = ModifyContrast&(rem6&, -0.5, 0, 0, widt% - 1, heig% - 1, -1): _FREEIMAGE rem6&
+        gray& = MakeGrayscale&(grad&, 0, 0, widt% - 1, heig% - 1, -1): _FREEIMAGE grad&
+        filt& = ApplyFilter&(gray&, "gauss8", 0, 0, 0, 0, widt% + 10, heig% + 10, -1): _FREEIMAGE gray&
+        shad& = RemapImageFS&(filt&, _DEST): _FREEIMAGE filt&
+        '--- do corner corrections, because I insisted on rounded corners ---
+        sx% = left%: sy% = topp%: dx% = 0: dy% = 0
+        _PUTIMAGE (dx%, dy%), _SOURCE, shad&, (sx%, sy%)-(sx% + 7, sy%)
+        _PUTIMAGE (dx%, dy%), _SOURCE, shad&, (sx%, sy%)-(sx% + 3, sy% + 3)
+        _PUTIMAGE (dx%, dy%), _SOURCE, shad&, (sx%, sy%)-(sx%, sy% + 7)
+        sx% = left%: sy% = topp% + heig% - 1: dx% = 0: dy% = heig% - 1
+        _PUTIMAGE (dx%, dy%), _SOURCE, shad&, (sx%, sy%)-(sx% + 7, sy% + 1)
+        _PUTIMAGE (dx%, dy% - 3), _SOURCE, shad&, (sx%, sy% - 3)-(sx% + 3, sy%)
+        _PUTIMAGE (dx%, dy% - 7), _SOURCE, shad&, (sx%, sy% - 7)-(sx%, sy%)
+        sx% = sx% + 9: sy% = sy% + 10: dx% = dx% + 9: dy% = dy% + 10
+        _PUTIMAGE (dx%, dy%), _SOURCE, shad&, (sx%, sy%)-(sx% + 7, sy%)
+        _PUTIMAGE (dx%, dy% - 3), _SOURCE, shad&, (sx%, sy% - 3)-(sx% + 3, sy%)
+        _PUTIMAGE (dx%, dy% - 7), _SOURCE, shad&, (sx%, sy% - 7)-(sx%, sy%)
+        sx% = left% + widt% - 1: sy% = topp%: dx% = widt% - 1: dy% = 0
+        _PUTIMAGE (dx% - 7, dy%), _SOURCE, shad&, (sx% - 7, sy%)-(sx%, sy%)
+        _PUTIMAGE (dx% - 3, dy%), _SOURCE, shad&, (sx% - 3, sy%)-(sx%, sy% + 3)
+        _PUTIMAGE (dx%, dy%), _SOURCE, shad&, (sx%, sy%)-(sx% + 1, sy% + 7)
+        sx% = sx% + 11: sy% = sy% + 9: dx% = dx% + 11: dy% = dy% + 9
+        _PUTIMAGE (dx% - 7, dy%), _SOURCE, shad&, (sx% - 7, sy%)-(sx%, sy%)
+        _PUTIMAGE (dx% - 3, dy%), _SOURCE, shad&, (sx% - 3, sy%)-(sx%, sy% + 3)
+        _PUTIMAGE (dx%, dy%), _SOURCE, shad&, (sx%, sy%)-(sx%, sy% + 7)
+        sx% = left% + widt% + 9: sy% = topp% + heig% + 9: dx% = widt% + 9: dy% = heig% + 9
+        _PUTIMAGE (dx% - 7, dy%), _SOURCE, shad&, (sx% - 7, sy%)-(sx%, sy%)
+        _PUTIMAGE (dx% - 3, dy% - 3), _SOURCE, shad&, (sx% - 3, sy% - 3)-(sx%, sy%)
+        _PUTIMAGE (dx%, dy% - 7), _SOURCE, shad&, (sx%, sy% - 7)-(sx%, sy%)
+        '--- draw tooltip (comic like speaking bubble) ---
+        _PUTIMAGE (left%, topp%), shad&, _DEST: _FREEIMAGE shad&
+        FillPolygon npax%(), npay%(), POINT(npax%(0) - 5, npay%(0)), POINT(npax%(0) - 5, npay%(0))
+        FillPolygon pax%(), pay%(), -1, guiHighPen%
+        REDIM opax%(0), opay%(0)
+        IF OffsetPolygon%(pax%(), pay%(), opax%(), opay%(), -0.66) THEN
+            FillPolygon opax%(), opay%(), -1, guiHighPen%
+        END IF
+        ERASE opax%, opay%
+        '--- print the text into the bubble ---
+        sp% = 1: nl% = 0
+        FOR i% = 1 TO LEN(text$)
+            IF MID$(text$, i%, 1) = "|" THEN
+                temp$ = MID$(text$, sp%, i% - sp%)
+                prim% = _PRINTMODE
+                SetPrintMode pmKEEP%
+                COLOR guiShadowPen%
+                _PRINTSTRING (pax%(3) + 2 + INT((pw% - _PRINTWIDTH(temp$)) / 2), pay%(0) + 3 + (nl% * (_FONTHEIGHT + 2))), temp$
+                COLOR guiShinePen%
+                _PRINTSTRING (pax%(3) + 1 + INT((pw% - _PRINTWIDTH(temp$)) / 2), pay%(0) + 2 + (nl% * (_FONTHEIGHT + 2))), temp$
+                SetPrintMode prim%
+                nl% = nl% + 1
+                sp% = i% + 1
+            END IF
+        NEXT i%
+        '--- snapshot bubble, for redraw on StringC cursor blink ---
+        area& = _NEWIMAGE(w% + 15, h% + 16, 256)
+        _PUTIMAGE (0, 0), _SOURCE, area&, (l%, t%)-(l% + w% + 14, t% + h% + 15)
+        SetTag guiATTProps$, "IHANDLE", LTRIM$(STR$(area&))
+        '--- cleanup arrays ---
+        ERASE cpx%, cpy%, pax%, pay%, npax%, npay%
+    END IF
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will print the given object label (if any) according to the
+' specified LABELxxx properties. Called from within Draw methods.
+'---------------------------------------------------------------------
+' Inputs: this& = actual object, should be "this&" in function call too
+'         left%, topp%, widt%, heig% designate the object's bounding box
+'---------------------------------------------------------------------
+SUB PrintObjectLabel (this&, left%, topp%, widt%, heig%)
+'--- select drawing colors ---
+lash% = guiShadowPen%: latx% = guiShinePen% 'label pens
+IF BoolTagTrue%(guiObjects$(objData%, this&), "LABELHIGH") THEN latx% = guiHighPen%
+'--- label output ---
+text$ = GetTagData$(guiObjects$(objData%, this&), "LABEL", "n/a")
+IF text$ <> "n/a" THEN
+    text$ = LTRIM$(RTRIM$(text$))
+    plac$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "LABELPLACE", "above"))
+    xmov% = VAL(GetTagData$(guiObjects$(objData%, this&), "LABELMOVEX", "0"))
+    ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "LABELMOVEY", "0"))
+    SELECT CASE plac$
+        CASE "left"
+            txle% = left% - _PRINTWIDTH(text$) - 5
+            txto% = (topp% + INT(heig% / 2)) - INT(_FONTHEIGHT / 2)
+        CASE "above"
+            txle% = (left% + INT(widt% / 2)) - INT(_PRINTWIDTH(text$) / 2)
+            txto% = topp% - _FONTHEIGHT - 4
+        CASE "right"
+            txle% = (left% + widt%) + 5
+            txto% = (topp% + INT(heig% / 2)) - INT(_FONTHEIGHT / 2)
+        CASE "below"
+            txle% = (left% + INT(widt% / 2)) - INT(_PRINTWIDTH(text$) / 2)
+            txto% = (topp% + heig%) + 4
+    END SELECT
+    prim% = _PRINTMODE
+    SetPrintMode pmKEEP%
+    COLOR lash%
+    _PRINTSTRING (txle% + 1 + xmov%, txto% + 1 + ymov%), text$
+    COLOR latx%
+    _PRINTSTRING (txle% + xmov%, txto% + ymov%), text$
+    SetPrintMode prim%
+END IF
+END SUB
+
+'--- INTERNAL --------------------------------------------------------
+' This SUB will remove all interconnections made to the actually
+' killed object. Called from within Kill methods.
+'---------------------------------------------------------------------
+' Inputs: this& = actual object, should be "this&" in function call too
+'---------------------------------------------------------------------
+SUB KillInterconnections (this&)
+REDIM oarr$(5)
+oaub% = ParseLine&(guiObjects$(objConn%, this&), " ", "", oarr$(), 0)
+IF oaub% >= 0 THEN
+    FOR i% = 0 TO oaub%
+        resu$ = ModelC$("KILL", NewTag$("OBJECT", oarr$(i%)))
+    NEXT i%
+END IF
+ERASE oarr$
+END SUB
+
