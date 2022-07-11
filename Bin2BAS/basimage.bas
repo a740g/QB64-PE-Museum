@@ -1,23 +1,18 @@
 '==================
-' BASFILE.BAS v0.21
+'BASIMAGE.BAS v0.21
 '==================
 'Coded by Dav for QB64GL 1.4, MAY/2020
 
-'Fixed in v0.21: Replaced the @ symbol in encoded BAS output to a forum
-'                friendly character so code can be pasted in the QB64 forum
-'                without breaking it.
-
-'Added in v0.20: Now uses _DEFLATE/INFLATE to make smaler output
-
-'======
+'=-=-=-=
 'ABOUT :
-'======
+'=-=-=-=
 
-'BASFILE helps you include binary files INSIDE your QB64 compiled programs.
-'It does this by converting file to BAS code that you add to your program
-'that will recreate the file when you wish to use it.
+'BASIMAGE lets you easily put images INSIDE your QB64 compiled programs.
+'It does this by loading an image, then converting the screen memory to
+'BAS code that you can add to your programs.  When you run the code, it
+'recreates the data to an image handle you can use with _PUTIMAGE.
 
-'BASFILE will ask you for a file to convert, and will output the BAS code.
+'BASIMAGE will ask you for an image load, and the BAS file to create.
 
 '=========================================================================
 
@@ -25,29 +20,44 @@ DefInt A-Z
 DECLARE FUNCTION E$ (B$)
 
 Print
-Print "============="
-Print "BASFILE v0.21"
-Print "============="
+Print "=============="
+Print "BASIMAGE v0.21"
+Print "=============="
 Print
 
-Input "INPUT File --> ", IN$: If IN$ = "" Then End
-Input "OUTPUT File -> ", OUT$: If OUT$ = "" Then End
-Open IN$ For Binary As 1
-If LOF(1) = 0 Then
-    Close: Kill IN$
-    Print UCase$(IN$); " not found!": End
-End If
+Input "IMAGE File to load --> ", IN$
+Input "BAS File to make ----> ", OUT$: If OUT$ = "" Then End
 
-'Grab whole file as a string
-INDATA$ = (Input$(LOF(1), 1))
+'Load image file to screen mode
+Screen _LoadImage(IN$, 32): Sleep 1
+Dim m As _MEM: m = _MemImage(0)
 
+'Grab screen data
+INDATA$ = Space$(m.SIZE)
+_MemGet m, m.OFFSET, INDATA$
 'Compress it
 INDATA$ = _Deflate$(INDATA$)
+'get screen specs
+wid = _Width: hih = _Height
+
+Screen 0
 
 Open OUT$ For Output As 2
-Print: Print "Encoding file...";
+Print: Print "Converting image to BAS code...";
 
 Q$ = Chr$(34) 'quotation mark
+Screen _NewImage(600, 600, 32)
+pic& = BASIMAGE1&
+_PutImage (0, 0), pic&
+
+Print #2, "'EXAMPLE USAGE OF BASIMAGE1&"
+Print #2, "'==========================="
+Print #2, "'SCREEN _NEWIMAGE(600, 600, 32)"
+Print #2, "'pic& = BASIMAGE1&: _PUTIMAGE (0, 0), pic&"
+Print #2, ""
+Print #2, "FUNCTION BASIMAGE1& '"; IN$
+Print #2, "v&=_NEWIMAGE("; wid; ","; hih; ",32)"
+Print #2, "DIM m AS _MEM:m=_MEMIMAGE(v&)"
 Print #2, "A$ = "; Q$; Q$
 Print #2, "A$ = A$ + "; Q$;
 
@@ -87,13 +97,10 @@ Print #2, "B&=B&*64+ASC(MID$(B$,t%))-48"
 Print #2, "NEXT:X$="; Q$; Q$; ":FOR t%=1 TO LEN(B$)-1"
 Print #2, "X$=X$+CHR$(B& AND 255):B&=B&\256"
 Print #2, "NEXT:btemp$=btemp$+X$:NEXT"
-Print #2, "BASFILE$=_INFLATE$(btemp$):btemp$="; Q$; Q$
-Print #2, "'==================================="
-Print #2, "'EXAMPLE: SAVE BASFILE$ TO DISK"
-Print #2, "'==================================="
-Print #2, "'OPEN "; Q$; IN$; Q$; " FOR OUTPUT AS #1"
-Print #2, "'PRINT #1, BASFILE$;"
-Print #2, "'CLOSE #1"
+Print #2, "btemp$=_INFLATE$(btemp$)"
+Print #2, "_MEMPUT m, m.OFFSET, btemp$: _MEMFREE m"
+Print #2, "BASIMAGE1& = _COPYIMAGE(v&): _FREEIMAGE v&"
+Print #2, "END FUNCTION"
 
 Print "Done!"
 Print UCase$(OUT$); " saved."
@@ -108,13 +115,12 @@ Function E$ (B$)
     a$ = ""
     For T% = 1 To Len(B$) + 1
         g$ = Chr$(48 + (B& And 63)): B& = B& \ 64
-        'If @ is here, replace it with # to fix the
-        'problem posting code with @ in the QB64 forum.
-        'It wil be restored during the decoding process.
+        'If @ is here, replace it with #
+        'To fix problem posting code in the QB64 forum.
+        'It'll be restored during the decoding process.
         If g$ = "@" Then g$ = "#"
         a$ = a$ + g$
     Next: E$ = a$
 
 End Function
-
 
