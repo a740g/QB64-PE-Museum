@@ -63,6 +63,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Platform | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | QB-Bounce | Breakout clone by Future Software |
 | QB-WM | QB64 Window Manager by [Kit](https://github.com/aouwt) |
+| QB45BIN | QuickBASIC 4.5 Binary Source file to Text converter by qarnos |
 | QB64 Asteroids! | Asteroids game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | QB64 Button Library | Button routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | QB64 Space Invaders! | Space Invaders game by [Terry Ritchie](http://www.qb64sourcecode.com/) |

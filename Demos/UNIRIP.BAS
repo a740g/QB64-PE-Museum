@@ -8,7 +8,7 @@ Option Explicit
 Option ExplicitArray
 Option Base 1
 '$Static
-$Console
+$Console:Only
 $ScreenHide
 Dest Console
 

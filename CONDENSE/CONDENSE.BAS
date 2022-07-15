@@ -24,7 +24,7 @@ Option Base 1
 ' All arrays should be static by default. Allocate dynamic array using ReDim
 '$Static
 ' For text mode programs, uncomment the three lines below.
-$Console
+$Console:Only
 $ScreenHide
 Dest Console
 ConsoleTitle "Text File Condenser"
