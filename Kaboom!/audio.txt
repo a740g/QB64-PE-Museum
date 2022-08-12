@@ -1,0 +1,216 @@
+QB64 Audio Prototype 1.0
+ _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _ 
+/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \
+\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/
+
+Facts:
+-Plays .wav, .mp3, .mid and some other formats
+-Can play a sound using only one command
+-Can play sounds simultaneously
+-Can track, pause, loop, volume change, time limit and 3D position sounds
+-Uses handles to identify loaded sounds
+-Has strict specifications of what should happen in any given situation
+ (eg. what happens if you try to pause an already paused sound)
+-Doesn't create QB-type errors unless called/used incorrectly
+-Checks for required functional capabilities when a file is opened so
+ all error checking can be performed at this point
+-Ignores handles of value 0, so even if opening failed on a particular
+ computer and this wasn't checked the program simply continues with no sound
+ _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _ 
+/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \
+\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/
+
+Limitations:
+QB64 Audio uses third-party libraries which imposes some limitations. These
+third-party libraries may change in the future. For this reason when opening
+a sound the required capabilities MUST be specified. To make it possible for
+a QB64 program using QB64 Audio to be compatible with all future changes a
+list of minimum capabilities which can be relied upon for certain formats has
+been created for 3 file types:
+    WAVE "SYNC,VOL,LEN"
+    MP3 "VOL"
+    MIDI "VOL"
+However, the current library actually supports the following:
+    WAVE,OGG,AIFF,RIFF,VOC "SYNC,VOL,LEN,PAUSE"
+    MP3 "VOL,PAUSE,SETPOS"
+    MOD "VOL,PAUSE"
+    MIDI "VOL"
+ _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _ 
+/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \
+\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/
+
+Sub/Function Overview:
+_SNDPLAYFILE		Simple command to play a sound file (with limited options)
+_SNDOPEN		Returns a handle to a sound file
+_SNDCLOSE		Unloads a sound file (waits until after it has finished playing)
+_SNDPLAY		Plays a sound
+_SNDSTOP		Stops a playing (or paused) sound
+_SNDPLAYING		Returns whether a sound is being played
+_SNDLOOP		Like _SNDPLAY but sound is looped
+_SNDLIMIT		Stops playing a sound after it has been playing for a set number of seconds
+_SNDGETPOS		Returns to current playing position in seconds
+
+(Subs/Functions requiring the "SYNC" capability)
+_SNDCOPY		Copies a sound (so two or more of the same sound can be played at once)
+_SNDPLAYCOPY		Copies a sound, plays it and automatically closes the copy
+
+(Subs/Functions requiring the "PAUSE" capability)
+_SNDPAUSE		Pauses a sound
+_SNDPAUSED		Checks if a sound is paused
+
+(Subs/Functions requiring the "LEN" capability)
+_SNDLEN			Returns the length of a sound in seconds
+
+(Subs/Functions requiring the "VOL" capability)
+_SNDVOL			Sets the volume of a sound
+_SNDBAL			Sets the balance/3D position of a sound
+
+(Subs/Functions requiring the "SETPOS" capability)
+_SNDSETPOS		Changes the current/starting playing position of a sound in seconds
+ _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _ 
+/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \
+\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/\_/
+
+Sub/Function Details:
+
+SUB _SNDPLAYFILE (filename$,[sync%],[volume!])
+*If sync% is 0 or not used, the sound will be played on the main channel, so
+ playing multiple copies of this sound at the same time won't be possible.
+ (see the _SNDOPEN function for more information about the way QB64 manages
+ channels)
+*volume! is a value from 0(silence) to 1(full volume). If not used, the sound
+ will be played at full volume.
+*_SNDPLAYFILE never creates an error. If the sound cannot be played it takes
+ no further action.
+*Changing the usage of sync% and volume! can make a difference to whether a
+ sound can be played or not.
+*The sound is closed automatically after it finishes playing
+Example:
+_SNDPLAYFILE "dog.wav",1
+
+FUNCTION _SNDOPEN& (filename$,[capabilities$])
+*capabilities$ is a string of words separated by commas. It is case
+ insensitive. Each capability can only be specified once and must be valid.
+ The order in which they are specified is unimportant.
+ Capabilities include: SYNC, PAUSE, LEN, VOL and SETPOS
+ The required capabilities can make a difference to whether a sound file can
+ be opened or not.
+*The SYNC capability loads the sound onto a unique channel, so it can be
+ played simultaneously with other sounds. If SYNC is not specified, the sound
+ is loaded onto the primary channel. Only one sound can exist on the primary
+ channel, and it must be closed before another non-SYNC sound can be opened.
+*The value returned by _SNDOPEN is a handle to the sound or 0. 0 means the
+ sound couldn't be loaded. Handles can be closed with _SNDCLOSE.
+*If you receive an ILLEGAL FUNCTION CALL error message, the most likely cause
+ is the capabilities$ string was invalid.
+Example:
+h&=_SNDOPEN("dog.wav","sync,vol")
+
+SUB _SNDCLOSE (handle&)
+*Frees/unloads an open sound.
+*If the sound is still playing, it will be freed after it finishes
+ automatically.
+*When your program QB64 terminates, all sounds are automatically freed
+*Closing a looping/paused/etc. sound will mean it is never freed until
+ the QB64 program terminates.
+*Non-SYNC sounds must be closed before another Non-SYNC sound can be opened.
+Example:
+_SNDCLOSE h&
+
+SUB _SNDPLAY (handle&)
+Example:
+_SNDPLAY h&
+
+SUB _SNDSTOP (handle&)
+Example:
+_SNDSTOP h&
+
+FUNCTION _SNDPLAYING% (handle&)
+*Returns 0 if a sound is not playing or -1 if it is.
+*If a sound is paused, _SNDPLAYING will return 0.
+Example:
+PRINT _SNDPLAYING(h&)
+
+SUB _SNDLOOP (handle&)
+*Plays the sound, looping it.
+*SETPOS cannot be called while a looping sound is being played.
+Example:
+_SNDLOOP h&
+
+SUB _SNDLIMIT (handle&,limit!)
+*Sets how long a sound will be played for in seconds.
+*Set limit to 0 to remove the limit.
+*Cannot be set for playing looping sound.
+Example:
+_SNDLIMIT h&,5.5
+
+FUNCTION _SNDGETPOS! (handle&)
+*Returns the currently playing position in seconds.
+*If a sound isn't playing, it returns 0.
+*If a sound is paused, it returns the paused position.
+*For a looping sound, the value returned continues to increment and does
+ not restart at 0 when the sound loops.
+Example:
+PRINT _SNDGETPOS(h&)
+
+FUNCTION _SNDCOPY& (handle&)
+*Returns a new handle to the same sound data referred to by the source handle.
+*No changes to the source handle (such as a volume change) are inherited.
+*The sound data referred to by the handle and its copies is not freed until
+ all of them are closed.
+h2&=_SNDCOPY(h&)
+
+SUB _SNDPLAYCOPY (handle&,[volume!])
+*Performs the following actions:
+ 1. Copies/duplicates the source handle (see _SNDCOPY)
+ 2. Changes the volume of the copy if volume! passed (must have VOL capability)
+ 3. Plays the copy
+ 4. Closes the copy
+*Makes coding easier
+Example:
+_SNDPLAYCOPY h&,0.5
+'effectively... h2&=_SNDCOPY(h&):_SNDVOL h2&,0.5:_SNDPLAY h2&:_SNDCLOSE h2&
+
+SUB _SNDPAUSE (handle&)
+*Must be playing or will not do anything
+*Continue playing by calling _SNDPLAY
+*Calling _SNDPAUSE again will not continue playing!
+Example:
+_SNDPAUSE h&
+
+FUNCTION _SNDPAUSED% (handle&)
+*Returns -1 if the sound is paused
+Example:
+PRINT _SNDPAUSED(h&)
+
+FUNCTION _SNDLEN! (handle&)
+*Returns the length of a sound in seconds
+Example:
+PRINT _SNDLEN(h&)
+
+SUB _SNDVOL (handle&,volume!)
+*Volume is a value form 0(silence) to 1(full volume)
+Example:
+_SNDVOL h&,0.5
+
+SUB _SNDBAL	(handle&,[x!],[y!],[z!])
+*Attempts to position a sound in 3D space, or as close to it as the underlying
+ software libraries allow. In some cases, this will be true 3D positioning, in
+ others, a mere volume adjustment based on distance alone.
+*x values go from left(negative) to right(positive).
+*y values go from below(negative) to above(positive).
+*z values go from behind(negative) to in front(positive).
+*Sounds at a distance of 1 or less are played at full volume.
+*Sounds further than a distance of 1000 cannot be heard.
+*The volume decreases linearly (at a constant gradient) over distance.
+*Omitted x, y or z values are set to 0.
+*By setting the x value to -1 or 1 it plays the sound at full volume from the
+ appropriate speaker.
+Example:
+_SNDBAL h&,-1 'sound coming from the left
+
+SUB _SNDSETPOS (handle&,position!)
+*changes the current/starting playing position of a sound in seconds
+*if position! is past the length of the sound the sound will stop playing
+Example:
+_SNDSETPOS h&,5.5

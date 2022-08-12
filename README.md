@@ -35,6 +35,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Demos | QB64 Demos from various sources |
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
 | Donkey | DONKEY.BAS by [IBM](https://github.com/IBM) |
+| Drum Machine | A drum beat creation tool by [Dav](http://qbasicnews.com/dav) |
 | Fake CPU | A fictional CPU emulator by [magicaros](https://github.com/magicaros) |
 | Flappy Bird | Flappy Bird Clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Frogger | QB64 game by Matt Bross |
@@ -47,6 +48,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
 | Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | InForm Demos | Demos using the InForm library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| Kaboom! | A remake of the 1983 game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | KING-KONG vs MIGHTY JOE YOUNG | A turn-based artillery game by Bob Seguin |
 | Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | MADMIX | A Pacman clone by Enrique Huerta |
@@ -104,6 +106,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Stock Watcher | Stock Watcher by unknown |
 | Stunt Chopper | A Stunt Chopper clone by David Duvenaud and James Challis |
 | Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Tank Drum | A Playable/Recordable Tankdrum Virtual Instrument by [Dav](http://qbasicnews.com/dav) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Tic Tac Toe Ring | Tic tac toe clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Torus | Torus demo by [Microsoft](https://github.com/microsoft/) |

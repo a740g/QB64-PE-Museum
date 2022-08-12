@@ -31,7 +31,7 @@
 
 ' a740g: QB64 changes
 '   - Replaced Play(x) on/off with Timer(2) on/off (seems to work mostly). There are some sideeffects. :(
-'   - Added delays wherever animations are too fast
+'   - Added delays wherever animations were too fast
 '   - Using QB64 defined _pi
 
 $Resize:Smooth
