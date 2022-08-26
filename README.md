@@ -89,7 +89,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QShips | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | QSpace | Space station defense game by [Microsoft](https://github.com/microsoft/) |
 | QSynth | Audio synthesizer by [Microsoft](https://github.com/microsoft/) |
-| QTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
+| qTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
 | Rattler | Snake clone by Bob Seguin |
 | Ray Tracer Z | A ray tracing demo by Zom-B |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
