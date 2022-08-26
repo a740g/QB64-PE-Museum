@@ -1,0 +1,27 @@
+;-------------------------------------------
+;This is the options file for Super Mega-Bug
+;-------------------------------------------
+[DIFFICULTY]
+2
+;
+; Difficulty Values
+;
+;   1 - Easy
+;   2 - Normal
+;   3 - Hard
+;-------------------------------------------
+[BGMUSIC]
+25
+;
+; Background Music Values
+;
+;   0             - Off
+;   1 through 100 - Volume Percentage
+;-------------------------------------------
+[FULLSCREEN]
+1
+;
+; Fullscreen Values
+;
+;   1 - Yes
+;   0 - No
