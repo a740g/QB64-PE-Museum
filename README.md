@@ -29,6 +29,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Can't Contain Me | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | Chess | Chess game by rfrost |
+| ChessSubs | Chess game subroutines by Bob Seguin |
 | Cloned Shades | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Condense | Text file condenser by [Samuel Gomes](https://github.com/a740g) |
 | D1NGOS Maze | A maze game by [DingoLabs](https://github.com/DingoLabs) |
@@ -45,6 +46,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Ghost Wizard | A Roguelike game by Zack Johnson |
 | Gorillas | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | GUI Menu Bar | Lightweight Menu Bar library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
+| Hex | Hex editor by [Luke Ceddia](https://github.com/flukiluke) |
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
 | Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | InForm Demos | Demos using the InForm library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
@@ -52,6 +54,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | KING-KONG vs MIGHTY JOE YOUNG | A turn-based artillery game by Bob Seguin |
 | Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | MADMIX | A Pacman clone by Enrique Huerta |
+| MakeCARR | MakeCARR & MakeDATA file embedding utilities by [Roland Heyder](https://github.com/RhoSigma-QB64) |
 | Maze | Maze of Misery by Steve M. |
 | Mini Golf | A mini golf game by Bob Seguin |
 | Money | Simple money manager by [Microsoft](https://github.com/microsoft/) |
@@ -86,7 +89,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QShips | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | QSpace | Space station defense game by [Microsoft](https://github.com/microsoft/) |
 | QSynth | Audio synthesizer by [Microsoft](https://github.com/microsoft/) |
-| QTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
+| qTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
 | Rattler | Snake clone by Bob Seguin |
 | Ray Tracer Z | A ray tracing demo by Zom-B |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
@@ -105,6 +108,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Spaceship | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Stock Watcher | Stock Watcher by unknown |
 | Stunt Chopper | A Stunt Chopper clone by David Duvenaud and James Challis |
+| Super Mega-Bug | A Mega-Bug remake by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Tank Drum | A Playable/Recordable Tankdrum Virtual Instrument by [Dav](http://qbasicnews.com/dav) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
