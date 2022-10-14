@@ -13,23 +13,23 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | 3D Grapher | 3D Grapher in QB64 using OpenGL by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | 3DS Object Viewer | 3DS Object Viewer by David Llewellyn |
 | 4Pong | Four player Pong game by Matthew |
-| Abacus | Abacus app by Bob Seguin |
+| Abacus | Abacus app by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | aKFrameWork | GUI library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Amongst | Among Us clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Animax |  A Graphics/Animation utility by Bob Seguin |
+| Animax |  A Graphics/Animation utility by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | ArcDemo | A 2D platformer game by Tsiplacov Sergey |
 | Assault | A turn-based artillery game by Glenn Powell |
 | Bad Boxes | Bad Boxes by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Bad Boxes Revenge | Revenge of the Bad Boxes! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Bin2BAS | Binary to text converter by [Dav](http://qbasicnews.com/dav) |
 | Bin2Include | Binary to Include converter by [Zachary Spriggs](https://github.com/SpriggsySpriggs) |
-| Biorythm Chart | Biorythm Chart by Bob Seguin |
+| Biorythm Chart | Biorythm Chart by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Blockout | Breakout clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Calculator | GUI calculator by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Can't Contain Me | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | Chess | Chess game by rfrost |
-| ChessSubs | Chess game subroutines by Bob Seguin |
+| ChessSubs | Chess game subroutines by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Cloned Shades | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Condense | Text file condenser by [Samuel Gomes](https://github.com/a740g) |
 | D1NGOS Maze | A maze game by [DingoLabs](https://github.com/DingoLabs) |
@@ -51,12 +51,12 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | InForm Demos | Demos using the InForm library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Kaboom! | A remake of the 1983 game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| KING-KONG vs MIGHTY JOE YOUNG | A turn-based artillery game by Bob Seguin |
+| KING-KONG vs MIGHTY JOE YOUNG | A turn-based artillery game by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | MADMIX | A Pacman clone by Enrique Huerta |
 | MakeCARR | MakeCARR & MakeDATA file embedding utilities by [Roland Heyder](https://github.com/RhoSigma-QB64) |
 | Maze | Maze of Misery by Steve M. |
-| Mini Golf | A mini golf game by Bob Seguin |
+| Mini Golf | A mini golf game by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Money | Simple money manager by [Microsoft](https://github.com/microsoft/) |
 | Moon Lander | Moon Lander by rfrost |
 | Mooncrap | A Galaxian clone by Daniel Kupfer |
@@ -90,7 +90,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QSpace | Space station defense game by [Microsoft](https://github.com/microsoft/) |
 | QSynth | Audio synthesizer by [Microsoft](https://github.com/microsoft/) |
 | qTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
-| Rattler | Snake clone by Bob Seguin |
+| Rattler | Snake clone by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Ray Tracer Z | A ray tracing demo by Zom-B |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
 | RemLine | Line mumber removal utility by [Microsoft](https://github.com/microsoft/) |
