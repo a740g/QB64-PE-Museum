@@ -7,7 +7,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 3. Some of these are unmodified as they were written for QB64-PE and are here just as part of the collection
 4. If you want the original versions, then folllow the links below or search on the internet
 5. I will keep updating this repo with new stuff that I can find and fix to work with QB64-PE
-6. Help me by contibuting, fixing or just filling the `unknowns`. Pull requests welcome!
+6. Help me by contributing, fixing or just filling the `unknowns`. Pull requests welcome!
 
 | Name | Description |
 |------|-------------|
@@ -27,6 +27,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Bin2Include | Binary to Include converter by [Zachary Spriggs](https://github.com/SpriggsySpriggs) |
 | Biorythm Chart | Biorythm Chart by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Blockout | Breakout clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| Breakout 2002 | A platformer by [Sean Weeks](http://scybolt.com/ti/qbasic2.html) |
 | Calculator | GUI calculator by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Can't Contain Me | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
