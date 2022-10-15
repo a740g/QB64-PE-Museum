@@ -1,12 +1,13 @@
 # What are these?
 
-These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winworldpc.com/product/gw-basic/3x), [QBasic](https://winworldpc.com/product/qbasic/1x), [QuickBASIC](https://winworldpc.com/product/quickbasic/45), [Microsoft BASIC PDS](https://winworldpc.com/product/microsoft-basic/pds-71), [Microsoft Visual Basic 1.0 for DOS](https://winworldpc.com/product/microsoft-visual-bas/10-for-dos)) programs tested and fixed for [QB64](https://github.com/QB64-Phoenix-Edition/QB64pe).
+These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winworldpc.com/product/gw-basic/3x), [QBasic](https://winworldpc.com/product/qbasic/1x), [QuickBASIC](https://winworldpc.com/product/quickbasic/45), [Microsoft BASIC PDS](https://winworldpc.com/product/microsoft-basic/pds-71), [Microsoft Visual Basic 1.0 for DOS](https://winworldpc.com/product/microsoft-visual-bas/10-for-dos)) programs tested and fixed for [QB64-PE](https://github.com/QB64-Phoenix-Edition/QB64pe).
 
-1. Some of the "unknown" are placeholders and I will update with the correct information once I find them
-2. Some of these are mildly or significantly modified to work with QB64 v2+ and may no longer work with anything else
-3. Some of these are unmodified as they were written for QB64 and are here just as part of the collection
+1. Some of the `unknowns` are placeholders and I will update with the correct information once I find them
+2. Some of these are mildly or significantly modified to work with QB64-PE and may no longer work with anything else
+3. Some of these are unmodified as they were written for QB64-PE and are here just as part of the collection
 4. If you want the original versions, then folllow the links below or search on the internet
-5. I will keep updating this repo with new stuff that I can find and fix to work with QB64
+5. I will keep updating this repo with new stuff that I can find and fix to work with QB64-PE
+6. Help me by contibuting, fixing or just filling the `unknowns`. Pull requests welcome!
 
 | Name | Description |
 |------|-------------|
@@ -18,6 +19,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Amongst | Among Us clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Animax |  A Graphics/Animation utility by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | ArcDemo | A 2D platformer game by Tsiplacov Sergey |
+| ASCIIMAN | ASCII-based platforming game/engine by [musicman3569](https://github.com/musicman3569) |
 | Assault | A turn-based artillery game by Glenn Powell |
 | Bad Boxes | Bad Boxes by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | Bad Boxes Revenge | Revenge of the Bad Boxes! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
