@@ -24,3 +24,8 @@ The new added FrameworkManager is a Web Application which will help you to get
 * Have any suggestion/bugs for this libary then inform me at http://www.qb64.net/forum
 
 <hr>
+
+![screenshot](screenshot-animation.png)
+![screenshot](screenshot-colorpicker.png)
+![screenshot](screenshot-form.png)
+![screenshot](screenshot-progressbar.gif)
