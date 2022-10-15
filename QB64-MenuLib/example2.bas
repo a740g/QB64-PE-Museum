@@ -1,22 +1,22 @@
 '$INCLUDE:'menutop.bi'
 
-Const FALSE = 0, TRUE = Not FALSE
-Dim Menu%
-Dim Menushowing%
-Screen _NewImage(640, 480, 32)
-Cls , _RGB32(50, 100, 200)
-_ScreenMove _Middle
-_MouseShow
+CONST FALSE = 0, TRUE = NOT FALSE
+DIM Menu%
+DIM Menushowing%
+SCREEN _NEWIMAGE(640, 480, 32)
+CLS , _RGB32(50, 100, 200)
+_SCREENMOVE _MIDDLE
+_MOUSESHOW
 MAKEMENU
-Do
-    While _MouseInput: Wend
-    If (_MouseY < 2) And (GETMENUSHOWING% = FALSE) Then SHOWMENU
-    If (_MouseY > GETMENUHEIGHT%) And (GETMENUACTIVE% = FALSE) And (GETMENUSHOWING% = TRUE) Then HIDEMENU
+DO
+    WHILE _MOUSEINPUT: WEND
+    IF (_MOUSEY < 2) AND (GETMENUSHOWING% = FALSE) THEN SHOWMENU
+    IF (_MOUSEY > GETMENUHEIGHT%) AND (GETMENUACTIVE% = FALSE) AND (GETMENUSHOWING% = TRUE) THEN HIDEMENU
     Menu% = CHECKMENU%(TRUE)
-Loop Until Menu% = 103
+LOOP UNTIL Menu% = 103
 HIDEMENU
-Data "&File","&Open...#CTRL+O","&Save#CTRL+S","-E&xit#CTRL+Q","*"
-Data "&Help","&About...","*"
-Data "!"
+DATA "&File","&Open...#CTRL+O","&Save#CTRL+S","-E&xit#CTRL+Q","*"
+DATA "&Help","&About...","*"
+DATA "!"
 
 '$INCLUDE:'menu.bi'
