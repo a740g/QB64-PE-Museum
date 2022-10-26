@@ -18,33 +18,6 @@
 'Set default data type to integer for faster operation
 DefInt A-Z
 
-'Sub and function declarations
-DECLARE SUB TransactionSummary (item%)
-DECLARE SUB LCenter (text$)
-DECLARE SUB ScrollUp ()
-DECLARE SUB ScrollDown ()
-DECLARE SUB Initialize ()
-DECLARE SUB Intro ()
-DECLARE SUB SparklePause ()
-DECLARE SUB Center (row%, text$)
-DECLARE SUB FancyCls (dots%, Background%)
-DECLARE SUB LoadState ()
-DECLARE SUB SaveState ()
-DECLARE SUB MenuSystem ()
-DECLARE SUB MakeBackup ()
-DECLARE SUB RestoreBackup ()
-DECLARE SUB Box (Row1%, Col1%, Row2%, Col2%)
-DECLARE SUB NetWorthReport ()
-DECLARE SUB EditAccounts ()
-DECLARE SUB PrintHelpLine (help$)
-DECLARE SUB EditTrans (item%)
-DECLARE FUNCTION Cvdt$ (X#)
-DECLARE FUNCTION Cvst$ (X!)
-DECLARE FUNCTION Cvit$ (X%)
-DECLARE FUNCTION Menu% (CurrChoiceX%, MaxChoice%, choice$(), ItemRow%(), ItemCol%(), help$(), BarMode%)
-DECLARE FUNCTION GetString$ (row%, col%, start$, end$, Vis%, Max%)
-DECLARE FUNCTION Trim$ (X$)
-
 'Constants
 Const FALSE = 0, TRUE = Not FALSE
 
@@ -780,7 +753,7 @@ Function GetString$ (row, col, start$, end$, Vis, Max)
                         curr$ = Left$(curr$, Len(curr$) - 1)
                     End If
 
-                Case " " TO "}"
+                Case " " To "}"
                     If Len(curr$) < Max Then
                         curr$ = curr$ + Kbd$
                     Else
@@ -1168,7 +1141,7 @@ Sub MenuSystem
     Select Case subchoice
         Case 1
             NetWorthReport
-        Case 2 TO 20
+        Case 2 To 20
             TransactionSummary (subchoice - 1)
         Case Else
     End Select
@@ -1193,7 +1166,7 @@ Sub MenuSystem
     subchoice = Menu(1, 4, choice$(), menuRow(), menuCol(), help$(), FALSE)
 
     Select Case subchoice
-        Case 1 TO 4
+        Case 1 To 4
             ColorPref = subchoice
             SaveState
         Case Else

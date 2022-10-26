@@ -11,6 +11,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 
 | Name | Description |
 |------|-------------|
+| 2D Robot Arm | Robot simulation by Bantis Asterios |
 | 3D Grapher | 3D Grapher in QB64 using OpenGL by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | 3DS Object Viewer | 3DS Object Viewer by David Llewellyn |
 | 4Pong | Four player Pong game by Matthew |
@@ -64,7 +65,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Moon Lander | Moon Lander by rfrost |
 | Mooncrap | A Galaxian clone by Daniel Kupfer |
 | Nibbles | Snake clone by [Microsoft](https://github.com/microsoft/) |
-| OpenGL Demos | OpenGL demos by [Galleon](https://github.com/Galleondragon) |
+| OpenGL Demos | OpenGL demos by [Galleon](https://github.com/Galleondragon) & [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Pendulum | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Phone | Simple phone directory by [Microsoft](https://github.com/microsoft/) |
 | PIXELplus 256 | Bitmap graphics library by Chris Chadwick |
@@ -99,6 +100,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | RemLine | Line mumber removal utility by [Microsoft](https://github.com/microsoft/) |
 | Reversi | Reversi game by [Microsoft](https://github.com/microsoft/) |
 | Robo Raider | Robo Raider by Kevin |
+| Sanctum | Sanctum 3D World by [STxAxTIC](https://qb64forum.alephc.xyz/index.php?topic=1615.0) |
 | SaveImage | Screen capture library by [Steve McNeill](https://github.com/SteveMcNeill) |
 | Schemat | Schematic Design Program by Leif J. Burrow |
 | ScreenBlankers | Simple screen blankers (savers) by [Roland Heyder](https://github.com/RhoSigma-QB64) |
