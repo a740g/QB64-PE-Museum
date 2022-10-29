@@ -1,4 +1,6 @@
 $NoPrefix
+$Unstable:Midi
+$MidiSoundFont:Default
 DefLng A-Z
 
 $Resize:Smooth
