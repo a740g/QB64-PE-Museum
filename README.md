@@ -87,6 +87,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QBlocks | Tertis clone by [Microsoft](https://github.com/microsoft/) |
 | QBPool | Pool game by [mechatronic3000](https://github.com/mechatronic3000) |
 | QBricks | Breakout clone by [Microsoft](https://github.com/microsoft/) |
+| QBzerk64 | A Berzerk clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
 | QCards | A simple database using a cardfile user interface by [Microsoft](https://github.com/microsoft/) |
 | QDigger | A DIGGER game clone by [RETROQB45](https://github.com/RETROQB45) |
 | QMaze | Maze puzzle game by [Microsoft](https://github.com/microsoft/) |
