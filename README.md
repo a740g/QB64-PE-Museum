@@ -22,14 +22,14 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | ArcDemo | A 2D platformer game by Tsiplacov Sergey |
 | ASCIIMAN | ASCII-based platforming game/engine by [musicman3569](https://github.com/musicman3569) |
 | Assault | A turn-based artillery game by Glenn Powell |
-| Bad Boxes | Bad Boxes by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| Bad Boxes Revenge | Revenge of the Bad Boxes! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Bad Boxes | Bad Boxes by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| Bad Boxes Revenge | Revenge of the Bad Boxes! by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | Bin2BAS | Binary to text converter by [Dav](http://qbasicnews.com/dav) |
 | Bin2Include | Binary to Include converter by [Zachary Spriggs](https://github.com/SpriggsySpriggs) |
 | Biorythm Chart | Biorythm Chart by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Blockout | Breakout clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Breakout 2002 | A platformer by [Sean Weeks](http://scybolt.com/ti/qbasic2.html) |
-| Calculator | GUI calculator by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Calculator | GUI calculator by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | Can't Contain Me | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
 | Chess | Chess game by rfrost |
@@ -42,7 +42,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Donkey | DONKEY.BAS by [IBM](https://github.com/IBM) |
 | Drum Machine | A drum beat creation tool by [Dav](http://qbasicnews.com/dav) |
 | Fake CPU | A fictional CPU emulator by [magicaros](https://github.com/magicaros) |
-| Flappy Bird | Flappy Bird Clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Flappy Bird | Flappy Bird Clone by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Future Blocks | Tertis clone by [Michael Fogleman](https://github.com/fogleman) |
@@ -54,7 +54,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
 | Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | InForm Demos | Demos using the InForm library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Kaboom! | A remake of the 1983 game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Kaboom! | A remake of the 1983 game by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | KING-KONG vs MIGHTY JOE YOUNG | A turn-based artillery game by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | MADMIX | A Pacman clone by Enrique Huerta |
@@ -73,12 +73,12 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QB-Bounce | Breakout clone by Future Software |
 | QB-WM | QB64 Window Manager by [Kit](https://github.com/aouwt) |
 | QB45BIN | QuickBASIC 4.5 Binary Source file to Text converter by qarnos |
-| QB64 Asteroids! | Asteroids game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| QB64 Button Library | Button routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| QB64 Space Invaders! | Space Invaders game by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| QB64 Menu Library | Menu routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| QB64 Graphics Line Input Library | Line Input routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| QB64 Sprite Library | Sprite routines by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| QB64 Asteroids! | Asteroids game by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| QB64 Button Library | Button routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| QB64 Space Invaders! | Space Invaders game by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| QB64 Menu Library | Menu routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| QB64 Graphics Line Input Library | Line Input routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| QB64 Sprite Library | Sprite routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | GuiTools GUI Library | A GUI library by [Roland Heyder](https://github.com/RhoSigma-QB64) |
 | QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
 | QBasic Beautifier | QB code beautifier by Kewbie_newbie |
@@ -87,7 +87,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QBlocks | Tertis clone by [Microsoft](https://github.com/microsoft/) |
 | QBPool | Pool game by [mechatronic3000](https://github.com/mechatronic3000) |
 | QBricks | Breakout clone by [Microsoft](https://github.com/microsoft/) |
-| QBzerk64 | A Berzerk clone by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| QBzerk64 | A Berzerk clone by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | QCards | A simple database using a cardfile user interface by [Microsoft](https://github.com/microsoft/) |
 | QDigger | A DIGGER game clone by [RETROQB45](https://github.com/RETROQB45) |
 | QMaze | Maze puzzle game by [Microsoft](https://github.com/microsoft/) |
@@ -111,11 +111,12 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Sokoban | Sokoban game by [David Joffe](https://github.com/davidjoffe) |
 | SortDemo | Sort demo by [Microsoft](https://github.com/microsoft/) |
 | Space64 | QB64 game by Cyperium |
+| Space Invaders | A Space Invaders clone by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | Spaceship | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Stock Watcher | Stock Watcher by unknown |
 | Stunt Chopper | A Stunt Chopper clone by David Duvenaud and James Challis |
-| Super Mega-Bug | A Mega-Bug remake by [Terry Ritchie](http://www.qb64sourcecode.com/) |
-| Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](http://www.qb64sourcecode.com/) |
+| Super Mega-Bug | A Mega-Bug remake by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| Super Mario Jump! | Super Mario Jump! by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | Tank Drum | A Playable/Recordable Tankdrum Virtual Instrument by [Dav](http://qbasicnews.com/dav) |
 | Tic Tac Toe | Tic tac toe game by Paul Meyer |
 | Tic Tac Toe Ring | Tic tac toe clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
