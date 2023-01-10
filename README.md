@@ -11,7 +11,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 
 | Name | Description |
 |------|-------------|
-| 2D Robot Arm | Robot simulation by Bantis Asterios |
+| 2D Robot Arm | Robot simulation by [Bantis Asterios](https://github.com/bandisast) |
 | 3D Grapher | 3D Grapher in QB64 using OpenGL by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | 3DS Object Viewer | 3DS Object Viewer by David Llewellyn |
 | 4Pong | Four player Pong game by Matthew |
