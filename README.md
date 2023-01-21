@@ -99,6 +99,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | QSpace | Space station defense game by [Microsoft](https://github.com/microsoft/) |
 | QSynth | Audio synthesizer by [Microsoft](https://github.com/microsoft/) |
 | qTrek | Startrek themed game by [Philipp Strathausen](https://github.com/strathausen) |
+| qXed | Hackable text editor utilizing linked list by [William F. Barnes](http://barnes.x10host.com/home/) |
 | Rattler | Snake clone by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
 | Ray Tracer Z | A ray tracing demo by Zom-B |
 | RayCaster | QB64 ray casting demo by Antoni Gual |
