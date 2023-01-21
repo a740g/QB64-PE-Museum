@@ -1,0 +1,4 @@
+The origial Four in a Row code by Philip Perry can be found here:
+
+http://www.petesqbsite.com/downloads/strategy.shtml
+http://www.petesqbsite.com/reviews/misc/four.html

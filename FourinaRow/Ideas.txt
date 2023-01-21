@@ -1,0 +1,17 @@
+The main inspiration for the MIN/MAX with Alpha/Beta pruning algorithm used
+in the game came from Keith Pomakis' Connect-4 Algorithm Version 3.11 found
+at:
+
+http://www.pomakis.com/c4/connect_generic/
+
+The reason I chose the game Four in a Row was becuase of a program and
+article I wrote in 1992 for a game called Link Four which can be viewed
+here:
+
+http://dl.dropbox.com/u/416997/Link%20Four.pdf
+
+My original Link Four used a very, very crude form of AI that in my opinion
+was about as good as a beginner to intermediate player. It was my hope that
+by utilizing the work done by Philip Perry (Qbasic version of Four in a
+Row) and Keith Pomakis (Connect-4 MIN/MAX algorithm) I could create a much
+smarter modern version of Four in a Row utilizing QB64's strengths.

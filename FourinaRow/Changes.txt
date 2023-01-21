@@ -1,0 +1,31 @@
+Opening sequence:
+
+Mr. Perry's opening sequence uses PC squeaker sound and primitive graphics.
+I wanted to retain his vision of having an opening sequence to the game. I
+updated the music to utilize MIDI and drew the number four using checkers
+in a much different way utilizing much improved graphics offered by QB64.
+
+Sprites vs Qbasic:
+
+For checkers I utilized sprite images versus Mr. Perry's original Qbasic
+graphics statements such as CIRCLE and PAINT. This allowed me to have
+premade enhanced 3D checkers utilized in the game.
+
+Gameplay:
+
+I stuck with Mr. Perry's version by allowing the player to choose which
+column to drop a checker in by moving an icon across the top of the
+playing board. I replaced Mr. Perry's down arrow icon however with a 3D
+rendered spinning checker.
+
+Sound:
+
+Realistic sounds were replaced for the checker drop utilizing WAV files,
+once again replacing Qbasic's PC squeaker SOUND command.
+
+AI:
+
+Mr. Perry's AI utilized an external file for mapping and AI decision
+making purposes. I decided to replace the AI with a MIN/MAX algorithm for
+computer decision making.
+

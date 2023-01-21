@@ -43,6 +43,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Drum Machine | A drum beat creation tool by [Dav](http://qbasicnews.com/dav) |
 | Fake CPU | A fictional CPU emulator by [magicaros](https://github.com/magicaros) |
 | Flappy Bird | Flappy Bird Clone by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| Four in a Row | Connect Four Game by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Future Blocks | Tertis clone by [Michael Fogleman](https://github.com/fogleman) |
