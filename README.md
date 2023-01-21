@@ -41,8 +41,10 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
 | Donkey | DONKEY.BAS by [IBM](https://github.com/IBM) |
 | Drum Machine | A drum beat creation tool by [Dav](http://qbasicnews.com/dav) |
+| Epicycles | Plotting curves using epicycles by [William F. Barnes](http://barnes.x10host.com/home/) |
 | Fake CPU | A fictional CPU emulator by [magicaros](https://github.com/magicaros) |
 | Flappy Bird | Flappy Bird Clone by [Terry Ritchie](https://www.qb64tutorial.com/) |
+| FluidCraft | A particle sandbox simulation by [William F. Barnes](http://barnes.x10host.com/home/) |
 | Four in a Row | Connect Four Game by [Terry Ritchie](https://www.qb64tutorial.com/) |
 | Frogger | QB64 game by Matt Bross |
 | Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |
@@ -50,6 +52,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Genius | Genius memory game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
 | Ghost Wizard | A Roguelike game by Zack Johnson |
 | Gorillas | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
+| GridLife | Grid based simulation by [William F. Barnes](http://barnes.x10host.com/home/) |
 | GUI Menu Bar | Lightweight Menu Bar library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
 | Hex | Hex editor by [Luke Ceddia](https://github.com/flukiluke) |
 | Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
@@ -102,7 +105,7 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | RemLine | Line mumber removal utility by [Microsoft](https://github.com/microsoft/) |
 | Reversi | Reversi game by [Microsoft](https://github.com/microsoft/) |
 | Robo Raider | Robo Raider by Kevin |
-| Sanctum | Sanctum 3D World by [STxAxTIC](https://qb64forum.alephc.xyz/index.php?topic=1615.0) |
+| Sanctum | Sanctum 3D World by [William F. Barnes](http://barnes.x10host.com/home/) |
 | SaveImage | Screen capture library by [Steve McNeill](https://github.com/SteveMcNeill) |
 | Schemat | Schematic Design Program by Leif J. Burrow |
 | ScreenBlankers | Simple screen blankers (savers) by [Roland Heyder](https://github.com/RhoSigma-QB64) |
