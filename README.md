@@ -128,4 +128,5 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 | Torus | Torus demo by [Microsoft](https://github.com/microsoft/) |
 | Tower | Tower of Hanoi solver by unknown |
 | TUI | Text Mode UI library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
+| Untitled-Rougelike | Untitled-Rougelike game by [mechatronic3000](https://github.com/mechatronic3000) |
 | XE Hex Editor | XE Hex Editor by [Dav](http://qbasicnews.com/dav) |
