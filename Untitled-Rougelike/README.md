@@ -1,7 +1,8 @@
 # Untitled-Rougelike
-Written in QB64. http://barnes.x10host.com/pages/BASIC-Resources/BASIC-Resources.php
 
-Used TILED as a level editor https://www.mapeditor.org/ 
+Written in QB64. <http://barnes.x10host.com/pages/BASIC-Resources/BASIC-Resources.php>
+
+Used TILED as a level editor <https://www.mapeditor.org/>
 
 Graphics are provided be Kenney at www.kenney.nl
 
