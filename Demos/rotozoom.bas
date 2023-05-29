@@ -11,15 +11,19 @@ $Resize:Smooth
 Screen 13
 FullScreen SquarePixels , Smooth
 
+
+Dim midX As Long: midX = Width \ 2
+Dim midY As Long: midY = Height \ 2
+
 Dim As Single Ang
 Dim As Long CS, SS, Y, X
 Do
-    Ang = Ang + .08
+    Ang = Ang + .005
     CS = Cos(Ang) * Abs(Sin(Ang)) * 128
     SS = Sin(Ang) * Abs(Sin(Ang)) * 128
-    For Y = -100 To 99
-        For X = -160 To 159
-            PSet (X + 160, Y + 100), (((X * CS - Y * SS) And (Y * CS + X * SS)) \ 128)
+    For Y = -midY To midY
+        For X = -midX To midX
+            PSet (X + midX, Y + midY), (((X * CS - Y * SS) And (Y * CS + X * SS)) \ 128)
         Next
     Next
 

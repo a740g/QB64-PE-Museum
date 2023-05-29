@@ -1,0 +1,635 @@
+Sub SETOBJHIDDEN (objid As Integer, n As Integer)
+    g_objects(objid).hidden = n
+End Sub
+Sub SETOBJX (objid As Integer, x As Float)
+    g_objects(objid).x = x
+End Sub
+Sub SETOBJY (objid As Integer, y As Float)
+    g_objects(objid).y = y
+End Sub
+Sub SETOBJZ (objid As Integer, z As Float)
+    g_objects(objid).z = z
+End Sub
+Sub SETOBJPOS (objid As Integer, x As Float, y As Float, z As Float)
+    g_objects(objid).x = x
+    g_objects(objid).y = y
+    g_objects(objid).z = z
+End Sub
+Sub SETOBJROT (objid As Integer, xr As Float, yr As Float, zr As Float)
+    g_objects(objid).rotx = xr
+    g_objects(objid).roty = yr
+    g_objects(objid).rotz = zr
+End Sub
+Sub ROTATEOBJX (objid As Integer, deg As Float)
+    g_objects(objid).rotx = (g_objects(objid).rotx + deg) Mod 360
+End Sub
+Sub ROTATEOBJY (objid As Integer, deg As Float)
+    g_objects(objid).roty = (g_objects(objid).roty + deg) Mod 360
+End Sub
+Sub ROTATEOBJZ (objid As Integer, deg As Float)
+    g_objects(objid).rotz = (g_objects(objid).rotz + deg) Mod 360
+End Sub
+Sub MOVEOBJX (objid As Integer, n As Float)
+    g_objects(objid).x = g_objects(objid).x + n
+End Sub
+Sub MOVEOBJY (objid As Integer, n As Float)
+    g_objects(objid).y = g_objects(objid).y + n
+End Sub
+Sub MOVEOBJZ (objid As Integer, n As Float)
+    g_objects(objid).z = g_objects(objid).z + n
+End Sub
+Sub SETOBJSCALE (objid As Integer, x As Float, y As Float, z As Float)
+    g_objects(objid).scalex = x
+    g_objects(objid).scaley = y
+    g_objects(objid).scalez = z
+End Sub
+Sub ROTATECAMX (deg As Float)
+    g_cam.rotx = (g_cam.rotx + deg) Mod 360
+End Sub
+Sub ROTATECAMY (deg As Float)
+    g_cam.roty = (g_cam.roty + deg) Mod 360
+End Sub
+Sub ROTATECAMZ (deg As Float)
+    g_cam.rotz = (g_cam.rotz + deg) Mod 360
+End Sub
+Sub MOVECAMX (n As Float)
+    g_cam.x = g_cam.x + n
+End Sub
+Sub MOVECAMY (n As Float)
+    g_cam.y = g_cam.y + n
+End Sub
+Sub MOVECAMZ (n As Float)
+    g_cam.z = g_cam.z + n
+End Sub
+
+Function boxCollision (a As CBOX, b As CBOX)
+    If a.y + a.height < b.y Or a.y > b.y + b.height Or a.x + a.width < b.x Or a.x > b.x + b.width Then
+        boxCollision = 0
+        Exit Function
+    End If
+    boxCollision = 1
+End Function
+
+
+Function chooseShadeTex (num As Integer)
+    chooseShadeTex = 0
+    If num <= 40 Then
+        chooseShadeTex = 8
+    ElseIf num <= 70 Then
+        chooseShadeTex = 7
+    ElseIf num <= 100 Then
+        chooseShadeTex = 6
+    ElseIf num <= 130 Then
+        chooseShadeTex = 5
+    ElseIf num <= 160 Then
+        chooseShadeTex = 4
+    ElseIf num <= 180 Then
+        chooseShadeTex = 3
+    ElseIf num <= 200 Then
+        chooseShadeTex = 2
+    ElseIf num <= 220 Then
+        chooseShadeTex = 1
+    End If
+End Function
+
+Sub createTexture (filename As String, image_array() As Long)
+    Dim imgw, imgh
+    Dim i
+    Dim tmp_image_array(8) As Long
+    ReDim Preserve image_array(8) As Long
+
+    tmp_image_array(0) = LoadImage(filename)
+    image_array(0) = CopyImage(tmp_image_array(0), 33)
+
+    imgw = Width(tmp_image_array(0))
+    imgh = Height(tmp_image_array(0))
+    tmp_image_array(1) = CopyImage(tmp_image_array(0), 32)
+    tmp_image_array(2) = CopyImage(tmp_image_array(0), 32)
+    tmp_image_array(3) = CopyImage(tmp_image_array(0), 32)
+    tmp_image_array(4) = CopyImage(tmp_image_array(0), 32)
+    tmp_image_array(5) = CopyImage(tmp_image_array(0), 32)
+    tmp_image_array(6) = CopyImage(tmp_image_array(0), 32)
+    tmp_image_array(7) = CopyImage(tmp_image_array(0), 32)
+    tmp_image_array(8) = CopyImage(tmp_image_array(0), 32)
+
+    Dest tmp_image_array(1): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 10), BF , 255 '0 - transparent
+    Dest tmp_image_array(2): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 50), BF , 255
+    Dest tmp_image_array(3): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 90), BF , 255
+    Dest tmp_image_array(4): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 130), BF , 255
+    Dest tmp_image_array(5): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 160), BF , 255
+    Dest tmp_image_array(6): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 190), BF , 255
+    Dest tmp_image_array(7): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 220), BF , 255
+    Dest tmp_image_array(8): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 250), BF , 255
+
+    image_array(1) = CopyImage(tmp_image_array(1), 33)
+    image_array(2) = CopyImage(tmp_image_array(2), 33)
+    image_array(3) = CopyImage(tmp_image_array(3), 33)
+    image_array(4) = CopyImage(tmp_image_array(4), 33)
+    image_array(5) = CopyImage(tmp_image_array(5), 33)
+    image_array(6) = CopyImage(tmp_image_array(6), 33)
+    image_array(7) = CopyImage(tmp_image_array(7), 33)
+    image_array(8) = CopyImage(tmp_image_array(8), 33)
+
+    For i = 0 To UBound(tmp_image_array)
+        FreeImage (tmp_image_array(i))
+    Next i
+    DEST G_MAINSCREEN
+END SUB
+
+
+FUNCTION MAX (n1, n2)
+    MAX = n1
+    IF n1 >= n2 THEN
+        MAX = n1
+    ELSEIF n1 <= n2 THEN
+        MAX = n2
+    END IF
+
+END FUNCTION
+
+FUNCTION MIN (n1, n2)
+    MIN = n1
+    IF n1 >= n2 THEN
+        MIN = n2
+    ELSEIF n1 <= n2 THEN
+        MIN = n1
+    END IF
+
+END FUNCTION
+
+SUB getSurfaceNorm (polygon_n AS INTEGER, x##(), y##(), z##(), rn() AS VEC3D)
+    DIM centerz AS FLOAT
+    DIM p AS VEC3D
+    DIM q AS VEC3D
+
+    IF polygon_n = 0 THEN
+        centerz = z##(0) + z##(1) + z##(2) / 3
+        p.x = x##(0) - x##(1)
+        p.y = y##(0) - y##(1)
+        p.z = z##(0) - z##(1)
+        q.x = x##(0) - x##(2)
+        q.y = y##(0) - y##(2)
+        q.z = z##(0) - z##(2)
+    ELSEIF polygon_n = 1 THEN
+        centerz = z##(2) + z##(3) + z##(0) / 3
+        p.x = x##(2) - x##(3)
+        p.y = y##(2) - y##(3)
+        p.z = z##(2) - z##(3)
+        q.x = x##(2) - x##(0)
+        q.y = y##(2) - y##(0)
+        q.z = z##(2) - z##(0)
+    END IF
+
+    rn(polygon_n).x = p.y * q.z - p.z * q.y
+    rn(polygon_n).y = p.z * q.x - p.x * q.z
+    rn(polygon_n).z = p.x * q.y - p.y * q.x
+
+    normalize rn(polygon_n)
+END SUB
+
+FUNCTION loadObj (filename AS STRING)
+    DIM lin AS STRING
+    DIM mtllib AS STRING
+    DIM tokens(0) AS STRING
+    DIM tokens2(0) AS STRING
+    DIM i AS INTEGER
+    DIM verts(1024) AS VEC3D
+    DIM vts(1024) AS VEC2D
+    DIM last_vt
+    DIM last_vert
+    last_vt = 0
+    last_vert = 0
+
+    OPEN filename FOR INPUT AS 1
+    'create new object
+    g_obj_count = g_obj_count + 1
+    REDIM PRESERVE g_objects(g_obj_count) AS OBJECT
+    g_objects(g_obj_count).id = g_obj_count
+    g_objects(g_obj_count).polygon_index_start = g_last_polygon
+
+    'first pass for vt's
+    DO UNTIL EOF(1)
+        LINE INPUT #1, lin
+        getTokens lin, " ", tokens()
+        IF tokens(0) = "vt" THEN
+            REDIM PRESERVE vts(last_vt) AS VEC2D
+            vts(last_vt).obj_id = g_objects(g_obj_count).id
+            vts(last_vt).x = VAL(tokens(1))
+            vts(last_vt).y = VAL(tokens(2))
+            last_vt = last_vt + 1
+        END IF
+    LOOP
+
+    CLOSE #1: OPEN filename FOR INPUT AS 1
+
+    'pass for verts
+    DO UNTIL EOF(1)
+        LINE INPUT #1, lin
+        getTokens lin, " ", tokens()
+
+        IF tokens(0) = "mtllib" THEN
+            mtllib = tokens(1)
+        ELSEIF tokens(0) = "v" THEN
+            REDIM PRESERVE verts(last_vert) AS VEC3D
+            verts(last_vert).obj_id = g_objects(g_obj_count).id
+            verts(last_vert).x = VAL(tokens(1))
+            verts(last_vert).y = VAL(tokens(2))
+            verts(last_vert).z = VAL(tokens(3))
+            last_vert = last_vert + 1
+        END IF
+    LOOP
+
+    CLOSE #1: OPEN filename FOR INPUT AS 1
+
+    'pass for polygons
+    DIM c AS INTEGER
+    DIM voffset AS INTEGER
+    DIM toffset AS INTEGER
+    c = 0
+    DIM test$
+    DO UNTIL EOF(1)
+        LINE INPUT #1, lin
+        getTokens lin, " ", tokens()
+
+        IF tokens(0) = "f" THEN
+            REDIM PRESERVE g_polygons(g_last_polygon) AS POLYGON
+            g_polygons(g_last_polygon).obj_id = g_objects(g_obj_count).id
+            IF UBOUND(tokens) <= 4 THEN
+                g_polygons(g_last_polygon).maxvert = UBOUND(tokens)
+                FOR i = 1 TO UBOUND(tokens)
+                    getTokens tokens(i), "/", tokens2()
+                    voffset = VAL(tokens2(0)) - 1
+                    toffset = VAL(tokens2(1)) - 1
+
+                    IF i = 1 THEN
+                        g_polygons(g_last_polygon).v0.x = verts(voffset).x
+                        g_polygons(g_last_polygon).v0.y = verts(voffset).y
+                        g_polygons(g_last_polygon).v0.z = verts(voffset).z
+                        g_polygons(g_last_polygon).t0.x = vts(toffset).x
+                        g_polygons(g_last_polygon).t0.y = vts(toffset).y
+                    ELSEIF i = 2 THEN
+                        g_polygons(g_last_polygon).v1.x = verts(voffset).x
+                        g_polygons(g_last_polygon).v1.y = verts(voffset).y
+                        g_polygons(g_last_polygon).v1.z = verts(voffset).z
+                        g_polygons(g_last_polygon).t1.x = vts(toffset).x
+                        g_polygons(g_last_polygon).t1.y = vts(toffset).y
+                    ELSEIF i = 3 THEN
+                        g_polygons(g_last_polygon).v2.x = verts(voffset).x
+                        g_polygons(g_last_polygon).v2.y = verts(voffset).y
+                        g_polygons(g_last_polygon).v2.z = verts(voffset).z
+                        g_polygons(g_last_polygon).t2.x = vts(toffset).x
+                        g_polygons(g_last_polygon).t2.y = vts(toffset).y
+                    ELSEIF i = 4 THEN
+                        g_polygons(g_last_polygon).v3.x = verts(voffset).x
+                        g_polygons(g_last_polygon).v3.y = verts(voffset).y
+                        g_polygons(g_last_polygon).v3.z = verts(voffset).z
+                        g_polygons(g_last_polygon).t3.x = vts(toffset).x
+                        g_polygons(g_last_polygon).t3.y = vts(toffset).y
+                    END IF
+                NEXT i
+                g_last_polygon = g_last_polygon + 1
+            ELSE
+                PRINT "too many vertices"
+                ERROR 97
+            END IF
+        END IF
+    LOOP
+    CLOSE #1
+
+    g_objects(g_obj_count).scalex = 1
+    g_objects(g_obj_count).scaley = 1
+    g_objects(g_obj_count).scalez = 1
+    g_objects(g_obj_count).polygon_index_end = g_last_polygon - 1
+    loadObj = g_objects(g_obj_count).id
+END FUNCTION
+
+SUB getTokens (lin AS STRING, delimiter AS STRING, tokens() AS STRING)
+    REDIM tokens(0) AS STRING
+    DIM i AS INTEGER, ti AS INTEGER
+    DIM c AS STRING, savec AS STRING
+    i = 0
+    c = ""
+    ti = 0
+    savec = ""
+    DO
+        i = i + 1
+        c = MID$(lin, i, 1)
+        IF c = "" THEN
+            IF savec <> "" THEN
+                REDIM PRESERVE tokens(ti) AS STRING
+                tokens(ti) = savec
+            END IF
+            EXIT DO
+        END IF
+
+        IF c = delimiter THEN
+            REDIM PRESERVE tokens(ti) AS STRING
+            tokens(ti) = savec
+            savec = ""
+            ti = ti + 1
+        ELSE
+            savec = savec + c
+        END IF
+    LOOP
+END SUB
+
+SUB normalize (t AS VEC3D)
+    DIM x AS FLOAT
+    DIM y AS FLOAT
+    DIM z AS FLOAT
+    DIM scale AS FLOAT
+    x = t.x
+    y = t.y
+    z = t.z
+    scale = 1 / SQR(x * x + y * y + z * z)
+    t.x = t.x * scale
+    t.y = t.y * scale
+    t.z = t.z * scale
+END SUB
+
+SUB MatrixApply (vr##(), mm##(), x##, y##, z##, w##)
+    vr##(1) = x## * mm##(1, 1) + y## * mm##(2, 1) + z## * mm##(3, 1) + w## * mm##(4, 1) 'x
+    vr##(2) = x## * mm##(1, 2) + y## * mm##(2, 2) + z## * mm##(3, 2) + w## * mm##(4, 2) 'y
+    vr##(3) = x## * mm##(1, 3) + y## * mm##(2, 3) + z## * mm##(3, 3) + w## * mm##(4, 3) 'z
+    vr##(4) = x## * mm##(1, 4) + y## * mm##(2, 4) + z## * mm##(3, 4) + w## * mm##(4, 4) 'w
+END SUB
+
+SUB MatrixInv (result##(), inm##())
+    DIM invOut##(16)
+    DIM m##(16), inv##(16), det##
+    DIM i
+    m##(1) = inm##(1, 1)
+    m##(2) = inm##(2, 1)
+    m##(3) = inm##(3, 1)
+    m##(4) = inm##(4, 1)
+    m##(5) = inm##(1, 2)
+    m##(6) = inm##(2, 2)
+    m##(7) = inm##(3, 2)
+    m##(8) = inm##(4, 2)
+    m##(9) = inm##(1, 3)
+    m##(10) = inm##(2, 3)
+    m##(11) = inm##(3, 3)
+    m##(12) = inm##(4, 3)
+    m##(13) = inm##(1, 4)
+    m##(14) = inm##(2, 4)
+    m##(15) = inm##(3, 4)
+    m##(16) = inm##(4, 4)
+    inv##(1) = m##(6) * m##(11) * m##(16) - m##(6) * m##(12) * m##(15) - m##(10) * m##(7) * m##(16) + m##(10) * m##(8) * m##(15) + m##(14) * m##(7) * m##(12) - m##(14) * m##(8) * m##(11)
+    inv##(5) = -m##(5) * m##(11) * m##(16) + m##(5) * m##(12) * m##(15) + m##(9) * m##(7) * m##(16) - m##(9) * m##(8) * m##(15) - m##(13) * m##(7) * m##(12) + m##(13) * m##(8) * m##(11)
+
+    inv##(9) = m##(5) * m##(10) * m##(16) - m##(5) * m##(12) * m##(14) - m##(9) * m##(6) * m##(16) + m##(9) * m##(8) * m##(14) + m##(13) * m##(6) * m##(12) - m##(13) * m##(8) * m##(10)
+
+    inv##(13) = -m##(5) * m##(10) * m##(15) + m##(5) * m##(11) * m##(14) + m##(9) * m##(6) * m##(15) - m##(9) * m##(7) * m##(14) - m##(13) * m##(6) * m##(11) + m##(13) * m##(7) * m##(10)
+
+    inv##(2) = -m##(2) * m##(11) * m##(16) + m##(2) * m##(12) * m##(15) + m##(10) * m##(3) * m##(16) - m##(10) * m##(4) * m##(15) - m##(14) * m##(3) * m##(12) + m##(14) * m##(4) * m##(11)
+
+    inv##(6) = m##(1) * m##(11) * m##(16) - m##(1) * m##(12) * m##(15) - m##(9) * m##(3) * m##(16) + m##(9) * m##(4) * m##(15) + m##(13) * m##(3) * m##(12) - m##(13) * m##(4) * m##(11)
+
+    inv##(10) = -m##(1) * m##(10) * m##(16) + m##(1) * m##(12) * m##(14) + m##(9) * m##(2) * m##(16) - m##(9) * m##(4) * m##(14) - m##(13) * m##(2) * m##(12) + m##(13) * m##(4) * m##(10)
+
+    inv##(14) = m##(1) * m##(10) * m##(15) - m##(1) * m##(11) * m##(14) - m##(9) * m##(2) * m##(15) + m##(9) * m##(3) * m##(14) + m##(13) * m##(2) * m##(11) - m##(13) * m##(3) * m##(10)
+
+    inv##(3) = m##(2) * m##(7) * m##(16) - m##(2) * m##(8) * m##(15) - m##(6) * m##(3) * m##(16) + m##(6) * m##(4) * m##(15) + m##(14) * m##(3) * m##(8) - m##(14) * m##(4) * m##(7)
+
+    inv##(7) = -m##(1) * m##(7) * m##(16) + m##(1) * m##(8) * m##(15) + m##(5) * m##(3) * m##(16) - m##(5) * m##(4) * m##(15) - m##(13) * m##(3) * m##(8) + m##(13) * m##(4) * m##(7)
+
+    inv##(11) = m##(1) * m##(6) * m##(16) - m##(1) * m##(8) * m##(14) - m##(5) * m##(2) * m##(16) + m##(5) * m##(4) * m##(14) + m##(13) * m##(2) * m##(8) - m##(13) * m##(4) * m##(6)
+
+    inv##(15) = -m##(1) * m##(6) * m##(15) + m##(1) * m##(7) * m##(14) + m##(5) * m##(2) * m##(15) - m##(5) * m##(3) * m##(14) - m##(13) * m##(2) * m##(7) + m##(13) * m##(3) * m##(6)
+
+    inv##(4) = -m##(2) * m##(7) * m##(12) + m##(2) * m##(8) * m##(11) + m##(6) * m##(3) * m##(12) - m##(6) * m##(4) * m##(11) - m##(10) * m##(3) * m##(8) + m##(10) * m##(4) * m##(7)
+
+    inv##(8) = m##(1) * m##(7) * m##(12) - m##(1) * m##(8) * m##(11) - m##(5) * m##(3) * m##(12) + m##(5) * m##(4) * m##(11) + m##(9) * m##(3) * m##(8) - m##(9) * m##(4) * m##(7)
+
+    inv##(12) = -m##(1) * m##(6) * m##(12) + m##(1) * m##(8) * m##(10) + m##(5) * m##(2) * m##(12) - m##(5) * m##(4) * m##(10) - m##(9) * m##(2) * m##(8) + m##(9) * m##(4) * m##(6)
+
+    inv##(16) = m##(1) * m##(6) * m##(11) - m##(1) * m##(7) * m##(10) - m##(5) * m##(2) * m##(11) + m##(5) * m##(3) * m##(10) + m##(9) * m##(2) * m##(7) - m##(9) * m##(3) * m##(6)
+
+    det## = m##(1) * inv##(1) + m##(2) * inv##(5) + m##(3) * inv##(9) + m##(4) * inv##(13)
+
+    DIM cx, cy
+    cx = 0: cy = 1
+    IF det## = 0 THEN
+        EXIT SUB
+    ELSE
+        det## = 1 / det##
+        FOR i = 1 TO 16
+            cx = cx + 1
+            IF cx > 4 THEN
+                cx = 1
+                cy = cy + 1
+            END IF
+            invOut##(i) = inv##(i) * det##
+            result##(cx, cy) = invOut##(i)
+        NEXT
+    END IF
+END SUB
+
+SUB MatrixMul (mf##(), m1##(), m2##())
+    REDIM mf##
+    mf##(1, 1) = m2##(1, 1) * m1##(1, 1) + m2##(1, 2) * m1##(2, 1) + m2##(1, 3) * m1##(3, 1) + m2##(1, 4) * m1##(4, 1)
+    mf##(2, 1) = m2##(2, 1) * m1##(1, 1) + m2##(2, 2) * m1##(2, 1) + m2##(2, 3) * m1##(3, 1) + m2##(2, 4) * m1##(4, 1)
+    mf##(3, 1) = m2##(3, 1) * m1##(1, 1) + m2##(3, 2) * m1##(2, 1) + m2##(3, 3) * m1##(3, 1) + m2##(3, 4) * m1##(4, 1)
+    mf##(4, 1) = m2##(4, 1) * m1##(1, 1) + m2##(4, 2) * m1##(2, 1) + m2##(4, 3) * m1##(3, 1) + m2##(4, 4) * m1##(4, 1)
+
+    mf##(1, 2) = m2##(1, 1) * m1##(1, 2) + m2##(1, 2) * m1##(2, 2) + m2##(1, 3) * m1##(3, 2) + m2##(1, 4) * m1##(4, 2)
+    mf##(2, 2) = m2##(2, 1) * m1##(1, 2) + m2##(2, 2) * m1##(2, 2) + m2##(2, 3) * m1##(3, 2) + m2##(2, 4) * m1##(4, 2)
+    mf##(3, 2) = m2##(3, 1) * m1##(1, 2) + m2##(3, 2) * m1##(2, 2) + m2##(3, 3) * m1##(3, 2) + m2##(3, 4) * m1##(4, 2)
+    mf##(4, 2) = m2##(4, 1) * m1##(1, 2) + m2##(4, 2) * m1##(2, 2) + m2##(4, 3) * m1##(3, 2) + m2##(4, 4) * m1##(4, 2)
+
+    mf##(1, 3) = m2##(1, 1) * m1##(1, 3) + m2##(1, 2) * m1##(2, 3) + m2##(1, 3) * m1##(3, 3) + m2##(1, 4) * m1##(4, 3)
+    mf##(2, 3) = m2##(2, 1) * m1##(1, 3) + m2##(2, 2) * m1##(2, 3) + m2##(2, 3) * m1##(3, 3) + m2##(2, 4) * m1##(4, 3)
+    mf##(3, 3) = m2##(3, 1) * m1##(1, 3) + m2##(3, 2) * m1##(2, 3) + m2##(3, 3) * m1##(3, 3) + m2##(3, 4) * m1##(4, 3)
+    mf##(4, 3) = m2##(4, 1) * m1##(1, 3) + m2##(4, 2) * m1##(2, 3) + m2##(4, 3) * m1##(3, 3) + m2##(4, 4) * m1##(4, 3)
+
+    mf##(1, 4) = m2##(1, 1) * m1##(1, 4) + m2##(1, 2) * m1##(2, 4) + m2##(1, 3) * m1##(3, 4) + m2##(1, 4) * m1##(4, 4)
+    mf##(2, 4) = m2##(2, 1) * m1##(1, 4) + m2##(2, 2) * m1##(2, 4) + m2##(2, 3) * m1##(3, 4) + m2##(2, 4) * m1##(4, 4)
+    mf##(3, 4) = m2##(3, 1) * m1##(1, 4) + m2##(3, 2) * m1##(2, 4) + m2##(3, 3) * m1##(3, 4) + m2##(3, 4) * m1##(4, 4)
+    mf##(4, 4) = m2##(4, 1) * m1##(1, 4) + m2##(4, 2) * m1##(2, 4) + m2##(4, 3) * m1##(3, 4) + m2##(4, 4) * m1##(4, 4)
+END SUB
+
+SUB MatrixRot (mf##(), RX##, RY##, RZ##)
+    mf##(1, 1) = COS(RZ##) * COS(RY##)
+    mf##(2, 1) = COS(RZ##) * SIN(RY##) * SIN(RX##) - SIN(RZ##) * COS(RX##)
+    mf##(3, 1) = COS(RZ##) * SIN(RY##) * COS(RX##) + SIN(RZ##) * SIN(RX##)
+    mf##(4, 1) = 0
+
+    mf##(1, 2) = SIN(RZ##) * COS(RY##)
+    mf##(2, 2) = SIN(RZ##) * SIN(RY##) * SIN(RX##) + COS(RZ##) * COS(RX##)
+    mf##(3, 2) = SIN(RZ##) * SIN(RY##) * COS(RX##) - COS(RZ##) * SIN(RX##)
+    mf##(4, 2) = 0
+
+    mf##(1, 3) = -SIN(RY##)
+    mf##(2, 3) = COS(RY##) * SIN(RX##)
+    mf##(3, 3) = COS(RY##) * COS(RX##)
+    mf##(4, 3) = 0
+
+    mf##(1, 4) = 0
+    mf##(2, 4) = 0
+    mf##(3, 4) = 0
+    mf##(4, 4) = 1
+END SUB
+
+SUB MatrixCam (mr##(), mc##(), mx##, my##, mz##, rotx##, roty##, rotz##, sx##, sy##, sz##, w##)
+    REM make the move matrix
+    DIM m##(4, 4)
+    m##(1, 1) = 1
+    m##(2, 2) = 1
+    m##(3, 3) = 1
+    m##(4, 4) = 1
+    REM move amount
+    m##(4, 1) = mx##
+    m##(4, 2) = my##
+    m##(4, 3) = mz##
+
+    REM make the rot matrix
+    DIM mrot##(4, 4)
+    CALL MatrixRot(mrot##(), rotx##, roty##, rotz##)
+
+    DIM mf##(4, 4)
+    DIM invm##(4, 4)
+    CALL MatrixMul(mf##(), m##(), mrot##()) 'move * rotation
+    CALL MatrixInv(invm##(), mf##()) 'get cam inverse matrix
+    CALL MatrixMul(mr##(), invm##(), mc##()) 'multiply previous matrix with inverse cam matrix
+END SUB
+
+SUB MatrixScaleRotMove (mr##(), mx##, my##, mz##, rotx##, roty##, rotz##, sx##, sy##, sz##, w##)
+    REDIM mr#
+    DIM ms##(4, 4)
+    REM make the scale matrix
+    ms##(1, 1) = sx##
+    ms##(2, 2) = sy##
+    ms##(3, 3) = sz##
+    ms##(4, 4) = 1
+
+    REM make the rotation matrix
+    DIM mrot##(4, 4)
+    CALL MatrixRot(mrot##(), rotx##, roty##, rotz##)
+
+    REM make the move matrix
+    DIM m##(4, 4)
+    m##(1, 1) = 1
+    m##(2, 2) = 1
+    m##(3, 3) = 1
+    m##(4, 4) = 1
+    REM move amount
+    m##(4, 1) = mx##
+    m##(4, 2) = my##
+    m##(4, 3) = mz##
+
+    DIM mf##(4, 4)
+
+    REM move * rot * scale
+    CALL MatrixMul(mf##(), m##(), mrot##())
+    CALL MatrixMul(mr##(), mf##(), ms##())
+END SUB
+
+SUB DISPOBJ (objid AS INTEGER, texture() AS LONG)
+    IF g_objects(objid).hidden <> 0 THEN
+        EXIT SUB
+    END IF
+
+    DIM mr##(4, 4)
+    DIM fmr##(4, 4)
+    DIM ox##, oy##, oz##, orx##, ory##, orz##, sx##, sy##, sz##, camx##, camy##, camz##, camrotx##, camroty##, camrotz##
+    ox## = g_objects(objid).x
+    oy## = g_objects(objid).y
+    oz## = g_objects(objid).z
+    orx## = Deg2Rad##(g_objects(objid).rotx)
+    ory## = Deg2Rad##(g_objects(objid).roty)
+    orz## = Deg2Rad##(g_objects(objid).rotz)
+    sx## = g_objects(objid).scalex
+    sy## = g_objects(objid).scaley
+    sz## = g_objects(objid).scalez
+    camx## = g_cam.x
+    camy## = g_cam.y
+    camz## = g_cam.z
+    camrotx## = Deg2Rad##(g_cam.rotx)
+    camroty## = Deg2Rad##(g_cam.roty)
+    camrotz## = Deg2Rad##(g_cam.rotz)
+    CALL MatrixScaleRotMove(mr##(), ox##, oy##, oz##, orx##, ory##, orz##, sx##, sy##, sz##, 1)
+    CALL MatrixCam(fmr##(), mr##(), camx##, camy##, camz##, camrotx##, camroty##, camrotz##, 1, 1, 1, 1)
+
+    IF g_objects(objid).billboard = 1 THEN
+        fmr##(1, 1) = 1
+        fmr##(2, 1) = 0
+        fmr##(3, 1) = 0
+        fmr##(1, 2) = 0
+        fmr##(2, 2) = 1
+        fmr##(3, 2) = 0
+        fmr##(1, 3) = 0
+        fmr##(2, 3) = 0
+        fmr##(3, 3) = 1
+    END IF
+
+    DIM i AS INTEGER
+    DIM j AS INTEGER
+    DIM theight
+    DIM twidth
+    DIM n(1) AS VEC3D
+    DIM b(1) AS FLOAT
+    DIM usetexture0 AS LONG
+    DIM usetexture1 AS LONG
+    theight = HEIGHT(texture(0))
+    twidth = WIDTH(texture(0))
+
+    FOR i = g_objects(objid).polygon_index_start TO g_objects(objid).polygon_index_end
+        REDIM x##(3), y##(3), z##(3)
+        REDIM tx##(3)
+        REDIM ty##(3)
+
+        x##(0) = g_polygons(i).v0.x
+        y##(0) = g_polygons(i).v0.y
+        z##(0) = g_polygons(i).v0.z
+        x##(1) = g_polygons(i).v1.x
+        y##(1) = g_polygons(i).v1.y
+        z##(1) = g_polygons(i).v1.z
+        x##(2) = g_polygons(i).v2.x
+        y##(2) = g_polygons(i).v2.y
+        z##(2) = g_polygons(i).v2.z
+        x##(3) = g_polygons(i).v3.x
+        y##(3) = g_polygons(i).v3.y
+        z##(3) = g_polygons(i).v3.z
+
+        tx##(0) = twidth + (twidth * (g_polygons(i).t0.x))
+        ty##(0) = theight - (theight * (g_polygons(i).t0.y))
+        tx##(1) = twidth + (twidth * (g_polygons(i).t1.x))
+        ty##(1) = theight - (theight * (g_polygons(i).t1.y))
+        tx##(2) = twidth + (twidth * (g_polygons(i).t2.x))
+        ty##(2) = theight - (theight * (g_polygons(i).t2.y))
+        tx##(3) = twidth + (twidth * (g_polygons(i).t3.x))
+        ty##(3) = theight - (theight * (g_polygons(i).t3.y))
+
+        'apply
+        FOR j = 0 TO g_polygons(i).maxvert - 1
+            REDIM r##(4)
+            CALL MatrixApply(r##(), fmr##(), x##(j), y##(j), z##(j), 1)
+            x##(j) = r##(1)
+            y##(j) = r##(2)
+            z##(j) = r##(3)
+        NEXT
+
+        'norm
+        getSurfaceNorm 0, x##(), y##(), z##(), n() 'surface norm stored in 0
+        b(0) = n(0).x * g_light.x + n(0).y * g_light.y + n(0).z * g_light.z
+        b(0) = MAX(0, MIN(255, INT(b(0) * 128) + 128))
+        usetexture0 = texture(chooseShadeTex(b(0)))
+        IF g_polygons(i).maxvert = 4 THEN
+            getSurfaceNorm 1, x##(), y##(), z##(), n() 'surface norm stored in 1
+            b(1) = n(1).x * g_light.x + n(1).y * g_light.y + n(1).z * g_light.z
+            b(1) = MAX(0, MIN(255, INT(b(1) * 128) + 128))
+            usetexture1 = texture(chooseShadeTex(b(1)))
+        END IF
+
+        MAPTRIANGLE SEAMLESS(tx##(0), ty##(0))-(tx##(1), ty##(1))-(tx##(2), ty##(2)), usetexture0 TO(x##(0), y##(0), z##(0))-(x##(1), y##(1), z##(1))-(x##(2), y##(2), z##(2)), , _SMOOTH
+        IF g_polygons(i).maxvert = 4 THEN
+            MAPTRIANGLE SEAMLESS(tx##(2), ty##(2))-(tx##(3), ty##(3))-(tx##(0), ty##(0)), usetexture1 TO(x##(2), y##(2), z##(2))-(x##(3), y##(3), z##(3))-(x##(0), y##(0), z##(0)), , _SMOOTH
+        END IF
+    NEXT
+
+END SUB
+
+FUNCTION Deg2Rad## (d##)
+    Deg2Rad = d## * _PI / 180
+END FUNCTION
+
