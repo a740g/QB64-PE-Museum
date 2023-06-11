@@ -1,0 +1,12 @@
+[submodule "rokcoder/morph"]
+	path = rokcoder/morph
+	url = https://github.com/rokcoder-qb64/morph
+[submodule "rokcoder/galaga"]
+	path = rokcoder/galaga
+	url = https://github.com/rokcoder-qb64/galaga
+[submodule "rokcoder/scramble"]
+	path = rokcoder/scramble
+	url = https://github.com/rokcoder-qb64/scramble
+[submodule "rokcoder/nonograms"]
+	path = rokcoder/nonograms
+	url = https://github.com/rokcoder-qb64/nonograms
