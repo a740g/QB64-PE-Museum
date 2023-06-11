@@ -10,3 +10,9 @@
 [submodule "rokcoder/nonograms"]
 	path = rokcoder/nonograms
 	url = https://github.com/rokcoder-qb64/nonograms
+[submodule "bandisast/2d-robot-arm-qb64"]
+	path = bandisast/2d-robot-arm-qb64
+	url = https://github.com/bandisast/2d-robot-arm-qb64
+[submodule "qb40/3d-experiment"]
+	path = qb40/3d-experiment
+	url = https://github.com/qb40/3d-experiment
