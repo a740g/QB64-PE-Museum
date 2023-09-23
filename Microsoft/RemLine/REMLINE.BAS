@@ -43,64 +43,59 @@
 
 ' QB64 friendly changes by a740g
 
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
-Option Base 1
-'$Static
-$Console:Only
-$ScreenHide
-Dest Console
-ConsoleTitle "RemLine"
+$NOPREFIX
+DEFLNG A-Z
+OPTION EXPLICIT
+$CONSOLE:ONLY
+CONSOLETITLE "RemLine"
 
 ' Global and constant data
-Const FALSE = 0, TRUE = Not FALSE
-Const MAXLINES = 65536
+CONST FALSE = 0, TRUE = NOT FALSE
+CONST MAXLINES = 65536
 
-Dim Shared LineTable(MAXLINES) As Long
-Dim Shared LineCount As Long
-Dim Shared As String Seps, InputFile, OutputFile
+DIM SHARED LineTable(1 TO MAXLINES) AS LONG
+DIM SHARED LineCount AS LONG
+DIM SHARED AS STRING Seps, InputFile, OutputFile
 
 ' Keyword search data
-Const KeyWordCount = 9
-Dim Shared KeyWordTable(KeyWordCount) As String
+CONST KeyWordCount = 9
+DIM SHARED KeyWordTable(1 TO KeyWordCount) AS STRING
 
 KeyData:
-Data THEN,ELSE,GOSUB,GOTO,RESUME,RETURN,RESTORE,RUN,ERL,""
+DATA THEN,ELSE,GOSUB,GOTO,RESUME,RETURN,RESTORE,RUN,ERL,""
 
 ' Check the command line and then collect relevant data
-If CommandCount < 1 Then
-    Print
-    Print "Microsoft RemLine: Line Number Removal Utility"
-    Print "Copyright (C) Microsoft Corporation 1985-1990"
-    Print
-    Print "Usage: REMLINE [InFile] [OutFile]"
-    Print "    InFile          is the input file"
-    Print "    OutFile         is the output file"
-    Print
-    Print "Note:"
-    Print "    - .BAS is assumed if extension is not present"
-    Print "    - OutFile defaults to InFile.TMP if not present"
-    System 0
-End If
+IF COMMANDCOUNT < 1 THEN
+    PRINT
+    PRINT "Microsoft RemLine: Line Number Removal Utility"
+    PRINT "Copyright (C) Microsoft Corporation 1985-1990"
+    PRINT
+    PRINT "Usage: REMLINE [InFile] [OutFile]"
+    PRINT "    InFile          is the input file"
+    PRINT "    OutFile         is the output file"
+    PRINT
+    PRINT "Note:"
+    PRINT "    - .BAS is assumed if extension is not present"
+    PRINT "    - OutFile defaults to InFile.TMP if not present"
+    SYSTEM 0
+END IF
 
 ' Start of module-level program code
-Seps = " ,:=<>()" + Chr$(9)
+Seps = " ,:=<>()" + CHR$(9)
 InitKeyTable
 GetFileNames
-Print "Working";
-Open InputFile For Input As 1
+PRINT "Working";
+OPEN InputFile FOR INPUT AS 1
 BuildTable
-Print " . . . ";
-Close #1
-Open InputFile For Input As 1
-Open OutputFile For Output As 2
+PRINT " . . . ";
+CLOSE #1
+OPEN InputFile FOR INPUT AS 1
+OPEN OutputFile FOR OUTPUT AS 2
 GenOutFile
-Print "done!"
-Close #1, #2
+PRINT "done!"
+CLOSE #1, #2
 
-System 0
+SYSTEM 0
 
 '
 ' BuildTable:
@@ -114,37 +109,37 @@ System 0
 ' Output:
 '   Modifies LineTable! and LineCount
 '
-Sub BuildTable Static
-    Dim As String InLin, ToKen
-    Dim As Long KeyIndex
+SUB BuildTable STATIC
+    DIM AS STRING InLin, ToKen
+    DIM AS LONG KeyIndex
 
-    Do While Not EOF(1)
+    DO WHILE NOT EOF(1)
         ' Get line and first token
-        Line Input #1, InLin
+        LINE INPUT #1, InLin
         ToKen = GetToken$(InLin, Seps)
-        Do While (ToKen <> "")
-            For KeyIndex = 1 To KeyWordCount
+        DO WHILE (ToKen <> "")
+            FOR KeyIndex = 1 TO KeyWordCount
                 ' See if token is keyword
-                If (KeyWordTable(KeyIndex) = UCase$(ToKen)) Then
+                IF (KeyWordTable(KeyIndex) = UCASE$(ToKen)) THEN
                     ' Get possible line number after keyword
                     ToKen = GetToken$("", Seps)
                     ' Check each token to see if it is a line number
                     ' (the LOOP is necessary for the multiple numbers
                     ' of ON GOSUB or ON GOTO). A non-numeric token will
                     ' terminate search.
-                    Do While (IsDigit(Left$(ToKen, 1)))
+                    DO WHILE (IsDigit(LEFT$(ToKen, 1)))
                         LineCount = LineCount + 1
-                        LineTable(LineCount) = Val(ToKen)
+                        LineTable(LineCount) = VAL(ToKen)
                         ToKen = GetToken$("", Seps)
-                        If ToKen <> "" Then KeyIndex = 0
-                    Loop
-                End If
-            Next KeyIndex
+                        IF ToKen <> "" THEN KeyIndex = 0
+                    LOOP
+                END IF
+            NEXT KeyIndex
             ' Get next token
             ToKen = GetToken$("", Seps)
-        Loop
-    Loop
-End Sub
+        LOOP
+    LOOP
+END SUB
 
 '
 ' GenOutFile:
@@ -154,31 +149,31 @@ End Sub
 ' Output:
 '  Processed file
 '
-Sub GenOutFile Static
-    Dim As String Sep, InLin, Token
-    Dim As Long LineNumber, FoundNumber, Index
+SUB GenOutFile STATIC
+    DIM AS STRING Sep, InLin, Token
+    DIM AS LONG LineNumber, FoundNumber, Index
 
     ' Speed up by eliminating comma and colon (can't separate first token)
-    Sep = " " + Chr$(9)
-    Do While Not EOF(1)
-        Line Input #1, InLin
-        If (InLin <> "") Then
+    Sep = " " + CHR$(9)
+    DO WHILE NOT EOF(1)
+        LINE INPUT #1, InLin
+        IF (InLin <> "") THEN
             ' Get first token and process if it is a line number
             Token = GetToken$(InLin, Sep)
-            If IsDigit(Left$(Token, 1)) Then
-                LineNumber = Val(Token)
+            IF IsDigit(LEFT$(Token, 1)) THEN
+                LineNumber = VAL(Token)
                 FoundNumber = FALSE
                 ' See if line number is in table of referenced line numbers
-                For Index = 1 To LineCount
-                    If (LineNumber = LineTable(Index)) Then
+                FOR Index = 1 TO LineCount
+                    IF (LineNumber = LineTable(Index)) THEN
                         FoundNumber = TRUE
-                    End If
-                Next Index
+                    END IF
+                NEXT Index
                 ' Modify line strings
-                If (Not FoundNumber) Then
-                    Token = Space$(Len(Token))
-                    Mid$(InLin, StrSpn(InLin, Sep), Len(Token)) = Token
-                End If
+                IF (NOT FoundNumber) THEN
+                    Token = SPACE$(LEN(Token))
+                    MID$(InLin, StrSpn(InLin, Sep), LEN(Token)) = Token
+                END IF
 
                 ' You can replace the previous lines with your own
                 ' code to reformat output. For example, try these lines:
@@ -192,16 +187,16 @@ Sub GenOutFile Static
                 '   InLin = CHR$(9) + MID$(InLin, TmpPos2)
                 'END IF
 
-            End If
-        End If
+            END IF
+        END IF
         ' Print line to file or console (PRINT is faster than console device)
-        If UCase$(OutputFile) = "CON" Then
-            Print InLin
-        Else
-            Print #2, InLin
-        End If
-    Loop
-End Sub
+        IF UCASE$(OutputFile) = "CON" THEN
+            PRINT InLin
+        ELSE
+            PRINT #2, InLin
+        END IF
+    LOOP
+END SUB
 
 '
 ' GetFileNames:
@@ -211,39 +206,39 @@ End Sub
 ' Output:
 '  Defines InputFiles$ and OutputFiles$
 '
-Sub GetFileNames
+SUB GetFileNames
     ' Change to the directory specified by the environment
-    ChDir StartDir$
+    CHDIR STARTDIR$
 
-    InputFile = Command$(1)
+    InputFile = COMMAND$(1)
 
     ' Add .bas extension if required
-    If InStr(InputFile, ".") = 0 Then
+    IF INSTR(InputFile, ".") = 0 THEN
         InputFile = InputFile + ".bas"
-    End If
+    END IF
 
     ' Check if input file is present
-    If Not FileExists(InputFile) Then
-        Print InputFile; " does not exist! Specify a valid name."
-        System 1
-    End If
+    IF NOT FILEEXISTS(InputFile) THEN
+        PRINT InputFile; " does not exist! Specify a valid name."
+        SYSTEM 1
+    END IF
 
-    OutputFile = Command$(2)
+    OutputFile = COMMAND$(2)
 
-    If (OutputFile = "") Then
+    IF (OutputFile = "") THEN
         OutputFile = InputFile + ".tmp"
-    End If
+    END IF
 
     ' Add .bas extension if required
-    If InStr(OutputFile, ".") = 0 And UCase$(OutputFile) <> "CON" Then
+    IF INSTR(OutputFile, ".") = 0 AND UCASE$(OutputFile) <> "CON" THEN
         OutputFile = OutputFile + ".bas"
-    End If
+    END IF
 
-    If FileExists(OutputFile) Then
-        Print OutputFile; " already exist! Specify a valid name."
-        System 1
-    End If
-End Sub
+    IF FILEEXISTS(OutputFile) THEN
+        PRINT OutputFile; " already exist! Specify a valid name."
+        SYSTEM 1
+    END IF
+END SUB
 
 '
 ' GetToken$:
@@ -259,43 +254,43 @@ End Sub
 ' Output:
 '  GetToken$ = next token
 '
-Function GetToken$ (Search As String, Delim As String) Static
-    Dim As Long BegPos, NewPos
-    Dim As String SaveStr
+FUNCTION GetToken$ (Search AS STRING, Delim AS STRING) STATIC
+    DIM AS LONG BegPos, NewPos
+    DIM AS STRING SaveStr
 
     ' Note that SaveStr$ and BegPos must be static from call to call
     ' (other variables are only static for efficiency).
     ' If first call, make a copy of the string
-    If (Search <> "") Then
+    IF (Search <> "") THEN
         BegPos = 1
         SaveStr = Search
-    End If
+    END IF
 
     ' Find the start of the next token
-    NewPos = StrSpn(Mid$(SaveStr, BegPos, Len(SaveStr)), Delim)
-    If NewPos Then
+    NewPos = StrSpn(MID$(SaveStr, BegPos, LEN(SaveStr)), Delim)
+    IF NewPos THEN
         ' Set position to start of token
         BegPos = NewPos + BegPos - 1
-    Else
+    ELSE
         ' If no new token, quit and return null
         GetToken = ""
-        Exit Function
-    End If
+        EXIT FUNCTION
+    END IF
 
     ' Find end of token
-    NewPos = StrBrk(Mid$(SaveStr, BegPos, Len(SaveStr)), Delim)
-    If NewPos Then
+    NewPos = StrBrk(MID$(SaveStr, BegPos, LEN(SaveStr)), Delim)
+    IF NewPos THEN
         ' Set position to end of token
         NewPos = BegPos + NewPos - 1
-    Else
+    ELSE
         ' If no end of token, return set to end a value
-        NewPos = Len(SaveStr) + 1
-    End If
+        NewPos = LEN(SaveStr) + 1
+    END IF
     ' Cut token out of search string
-    GetToken$ = Mid$(SaveStr, BegPos, NewPos - BegPos)
+    GetToken$ = MID$(SaveStr, BegPos, NewPos - BegPos)
     ' Set new starting position
     BegPos = NewPos
-End Function
+END FUNCTION
 
 '
 ' InitKeyTable:
@@ -306,16 +301,16 @@ End Function
 ' Output:
 '  Modifies global array KeyWordTable$
 '
-Sub InitKeyTable
-    Dim As Long Count
-    Dim As String KeyWord
+SUB InitKeyTable
+    DIM AS LONG Count
+    DIM AS STRING KeyWord
 
-    Restore KeyData
-    For Count = 1 To KeyWordCount
-        Read KeyWord
+    RESTORE KeyData
+    FOR Count = 1 TO KeyWordCount
+        READ KeyWord
         KeyWordTable(Count) = KeyWord
-    Next
-End Sub
+    NEXT
+END SUB
 
 '
 ' IsDigit:
@@ -328,16 +323,16 @@ End Sub
 ' Output:
 '  IsDigit - true if within 0 - 9
 '
-Function IsDigit (Char As String)
-    Dim As Long CharAsc
+FUNCTION IsDigit (Char AS STRING)
+    DIM AS LONG CharAsc
 
-    If (Char = "") Then
+    IF (Char = "") THEN
         IsDigit = FALSE
-    Else
-        CharAsc = Asc(Char)
-        IsDigit = (CharAsc >= Asc("0")) And (CharAsc <= Asc("9"))
-    End If
-End Function
+    ELSE
+        CharAsc = ASC(Char)
+        IsDigit = (CharAsc >= ASC("0")) AND (CharAsc <= ASC("9"))
+    END IF
+END FUNCTION
 
 '
 ' StrBrk:
@@ -350,22 +345,22 @@ End Function
 ' Output:
 '  StrBrk = index to first match in InString$ or 0 if none match
 '
-Function StrBrk (InString As String, Separator As String) Static
-    Dim As Long Ln, BegPos
+FUNCTION StrBrk (InString AS STRING, Separator AS STRING) STATIC
+    DIM AS LONG Ln, BegPos
 
-    Ln = Len(InString)
+    Ln = LEN(InString)
     BegPos = 1
     ' Look for end of token (first character that is a delimiter).
-    Do While InStr(Separator, Mid$(InString, BegPos, 1)) = 0
-        If BegPos > Ln Then
+    DO WHILE INSTR(Separator, MID$(InString, BegPos, 1)) = 0
+        IF BegPos > Ln THEN
             StrBrk = 0
-            Exit Function
-        Else
+            EXIT FUNCTION
+        ELSE
             BegPos = BegPos + 1
-        End If
-    Loop
+        END IF
+    LOOP
     StrBrk = BegPos
-End Function
+END FUNCTION
 
 '
 ' StrSpn:
@@ -378,20 +373,19 @@ End Function
 ' Output:
 '  StrSpn = index to first nonmatch in InString$ or 0 if all match
 '
-Function StrSpn% (InString As String, Separator As String) Static
-    Dim As Long Ln, BegPos
+FUNCTION StrSpn% (InString AS STRING, Separator AS STRING) STATIC
+    DIM AS LONG Ln, BegPos
 
-    Ln = Len(InString)
+    Ln = LEN(InString)
     BegPos = 1
     ' Look for start of a token (character that isn't a delimiter).
-    Do While InStr(Separator, Mid$(InString, BegPos, 1))
-        If BegPos > Ln Then
+    DO WHILE INSTR(Separator, MID$(InString, BegPos, 1))
+        IF BegPos > Ln THEN
             StrSpn = 0
-            Exit Function
-        Else
+            EXIT FUNCTION
+        ELSE
             BegPos = BegPos + 1
-        End If
-    Loop
+        END IF
+    LOOP
     StrSpn = BegPos
-End Function
-
+END FUNCTION

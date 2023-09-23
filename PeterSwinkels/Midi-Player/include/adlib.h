@@ -9,7 +9,7 @@
 
 static opl3_chip g_OPL3;
 
-inline void Adlib_Initialize(uint32_t sampleRate)
+inline void __Adlib_Initialize(uint32_t sampleRate)
 {
     OPL3_Reset(&g_OPL3, sampleRate);
 }
@@ -19,7 +19,7 @@ inline void Adlib_WriteRegister(uint16_t reg, uint8_t v)
     OPL3_WriteRegBuffered(&g_OPL3, reg, v);
 }
 
-inline void Adlib_GenerateSamples(int16_t *buf, uint32_t frames)
+inline void __Adlib_GenerateSamples(uintptr_t buf, uint32_t frames)
 {
-    OPL3_GenerateStream(&g_OPL3, buf, frames);
+    OPL3_GenerateStream(&g_OPL3, reinterpret_cast<int16_t *>(buf), frames);
 }
