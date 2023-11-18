@@ -2,7 +2,7 @@
 '
 ' Text file condenser
 '
-' Copyright (c) Samuel Gomes (a740g), 1998-2022.
+' Copyright (c) Samuel Gomes (a740g), 1998-2023.
 ' All rights reserved.
 '
 '-----------------------------------------------------------------------------------------------------
@@ -10,518 +10,434 @@
 '-----------------------------------------------------------------------------------------------------
 ' These are some metacommands and compiler options for QB64 to write modern type-strict code
 '-----------------------------------------------------------------------------------------------------
-' This will disable prefixing all modern QB64 calls using a underscore prefix.
-$NoPrefix
-' Whatever indentifiers are not defined, should default to signed longs (ex. constants and functions).
-DefLng A-Z
-' All variables must be defined.
-Option Explicit
-' All arrays must be defined.
-Option ExplicitArray
-' Array lower bounds should always start from 1 unless explicitly specified.
-' This allows a(4) as integer to have 4 members with index 1-4.
-Option Base 1
-' All arrays should be static by default. Allocate dynamic array using ReDim
-'$Static
-' For text mode programs, uncomment the three lines below.
-$Console:Only
-$ScreenHide
-Dest Console
-ConsoleTitle "Text File Condenser"
-' Icon and version info stuff.
-$VersionInfo:CompanyName=Samuel Gomes
-$VersionInfo:FileDescription=Condense executable
-$VersionInfo:InternalName=condense
-$VersionInfo:LegalCopyright=Copyright (c) 1998-2022, Samuel Gomes
-$VersionInfo:OriginalFilename=condense.exe
-$VersionInfo:ProductName=Text File Condenser
-$VersionInfo:Web=https://github.com/a740g
-$VersionInfo:Comments=https://github.com/a740g
-$VersionInfo:FILEVERSION#=5,0,0,1
-$VersionInfo:ProductVersion=5,0,0,1
+$NOPREFIX
+DEFLNG A-Z
+OPTION EXPLICIT
+OPTION EXPLICITARRAY
+OPTION BASE 1
+'$STATIC
+$CONSOLE:ONLY
+$VERSIONINFO:CompanyName='Samuel Gomes'
+$VERSIONINFO:FileDescription='Condense executable'
+$VERSIONINFO:InternalName='condense'
+$VERSIONINFO:LegalCopyright='Copyright (c) 1998-2022, Samuel Gomes'
+$VERSIONINFO:OriginalFilename='condense.exe'
+$VERSIONINFO:ProductName='Text File Condenser'
+$VERSIONINFO:Web='https://github.com/a740g'
+$VERSIONINFO:Comments='https://github.com/a740g'
+$VERSIONINFO:FILEVERSION#=5,0,0,2
+$VERSIONINFO:PRODUCTVERSION#=5,0,0,2
 '-----------------------------------------------------------------------------------------------------
 
-Const FALSE%% = 0
-Const TRUE%% = Not FALSE
+CONSOLETITLE "Text File Condenser"
+
+CONST FALSE = 0, TRUE = NOT FALSE
 
 ' PROGRAM ENTRY POINT
 
 ' Check the command line and then collect relevant data
-If CommandCount < 1 Or ArgVPresent("?") Then
-    Print
-    Print "Text file condenser. Version 5.0"
-    Print
-    Print "Copyright (c) Samuel Gomes, 1998-2022."
-    Print "All rights reserved."
-    Print
-    Print "https://github.com/a740g"
-    Print
-    Print "Usage: CONDENSE [InFile] [/B] [/C] [/X] [/S[4 | 8] [/T[4 | 8] [/K] [/?]"
-    Print "    InFile          is the input file"
-    Print "    /B              backups input text file"
-    Print "    /C              strips invalid characters"
-    Print "    /X              avoids extra text file checks"
-    Print "    /S              no tab to space expansion"
-    Print "    /S4             expands 1 tab to 4 spaces (default)"
-    Print "    /S8             expands 1 tab to 8 spaces"
-    Print "    /T              no space to tab compression"
-    Print "    /T4             compresses 4 spaces to 1 tab (default)"
-    Print "    /T8             compresses 8 spaces to 1 tab"
-    Print "    /K              performs a text file check only"
-    Print "    /?              shows this help message"
-    System 0
-End If
+IF COMMANDCOUNT < 1 OR IsArgVPresent("?") THEN
+    PRINT
+    PRINT "Text file condenser."
+    PRINT
+    PRINT "Copyright (c) Samuel Gomes, 1998-2023."
+    PRINT "All rights reserved."
+    PRINT
+    PRINT "https://github.com/a740g"
+    PRINT
+    PRINT "Usage: CONDENSE [InFile] [/B] [/C] [/X] [/S[4 | 8] [/T[4 | 8] [/K] [/?]"
+    PRINT "    InFile          is the input file"
+    PRINT "    /B              backups input text file"
+    PRINT "    /C              strips invalid characters"
+    PRINT "    /X              avoids extra text file checks"
+    PRINT "    /S              no tab to space expansion"
+    PRINT "    /S4             expands 1 tab to 4 spaces (default)"
+    PRINT "    /S8             expands 1 tab to 8 spaces"
+    PRINT "    /T              no space to tab compression"
+    PRINT "    /T4             compresses 4 spaces to 1 tab (default)"
+    PRINT "    /T8             compresses 8 spaces to 1 tab"
+    PRINT "    /K              performs a text file check only"
+    PRINT "    /O              overwrite backup if it exists"
+    PRINT "    /?              shows this help message"
+    SYSTEM
+END IF
 
-Dim sTextFile As String
-Dim lTextFileSizeOld As Integer64, lTextFileSizeNew As Integer64
+DIM sTextFile AS STRING
+DIM lTextFileSizeOld AS INTEGER64, lTextFileSizeNew AS INTEGER64
 
 ' Change to the directory specified by the environment
-ChDir StartDir$
+CHDIR STARTDIR$
 
 ' Resolve the input file name
-sTextFile = Command$(1)
+sTextFile = COMMAND$(1)
 
 ' Check if input file is present
-If Not FileExists(sTextFile) Then
-    Print sTextFile; " does not exist! Specify a valid name."
-    System 1
-End If
+IF NOT FILEEXISTS(sTextFile) THEN
+    PRINT sTextFile; " does not exist! Specify a valid name."
+    SYSTEM 1
+END IF
 
 ' Perform solitary text file check if specified
-If ArgVPresent("K") Then
-    If IsTextFile(sTextFile) Then
-        Print sTextFile; " is a text file."
-    End If
+IF IsArgVPresent("K") THEN
+    IF IsTextFile(sTextFile) THEN
+        PRINT sTextFile; " is a text file."
+    END IF
 
-    System 0
-End If
+    SYSTEM
+END IF
 
 ' Note original file size
-lTextFileSizeOld = FileLen(sTextFile)
+lTextFileSizeOld = GetFileSize(sTextFile)
 
 ' Backup input file if specified
-If ArgVPresent("B") Then
-    If Not FileCopy(sTextFile, sTextFile + ".bak") Then
-        Print "Backup failed to "; sTextFile + ".bak"
-        System 1
-    End If
-End If
+IF IsArgVPresent("B") THEN
+    IF NOT CopyFile(sTextFile, sTextFile + ".bak", IsArgVPresent("O")) THEN
+        PRINT "Backup failed to "; sTextFile + ".bak"
+        SYSTEM 1
+    END IF
+END IF
 
 ' Check text file
-If Not ArgVPresent("C") And Not ArgVPresent("X") Then
-    If Not IsTextFile(sTextFile) Then
-        Print sTextFile; " is not a text file!"
-        System 1
-    End If
-End If
+IF NOT IsArgVPresent("C") AND NOT IsArgVPresent("X") THEN
+    IF NOT IsTextFile(sTextFile) THEN SYSTEM 1
+END IF
 
 ' Strip invalid characters
-If ArgVPresent("C") Then
-    TextClean sTextFile
-End If
+IF IsArgVPresent("C") THEN
+    CleanText sTextFile
+END IF
 
 ' Expand tabs to spaces
-If ArgVPresent("S8") Then
-    TextTabExpand sTextFile, 8
-ElseIf ArgVPresent("S") Then
-    ' no expansion
-Else
-    TextTabExpand sTextFile, 4
-End If
+IF NOT IsArgVPresent("S") THEN
+    IF IsArgVPresent("S8") THEN
+        ExpandTextTab sTextFile, 8
+    ELSEIF IsArgVPresent("S4") THEN
+        ExpandTextTab sTextFile, 4
+    END IF
+END IF
 
 ' Condense it
-TextCondense sTextFile
+CondenseText sTextFile
 
 ' Compress spaces to tabs
-If ArgVPresent("T8") Then
-    TextSpaceCompress sTextFile, 8
-ElseIf ArgVPresent("T") Then
-    ' no compression
-Else
-    TextSpaceCompress sTextFile, 4
-End If
+IF NOT IsArgVPresent("T") THEN
+    IF IsArgVPresent("T8") THEN
+        CompressTextSpace sTextFile, 8
+    ELSEIF IsArgVPresent("T4") THEN
+        CompressTextSpace sTextFile, 4
+    END IF
+END IF
 
 ' Get new file size
-lTextFileSizeNew = FileLen(sTextFile)
+lTextFileSizeNew = GetFileSize(sTextFile)
 
 ' Print some statistics
-Print
-Print "Original size:"; lTextFileSizeOld; "bytes"
-Print "Current size:"; lTextFileSizeNew; "bytes"
-Print "Condensation: "; Trim$(Str$(100 - Int(100 * (lTextFileSizeNew / lTextFileSizeOld)))); "%"
+PRINT
+PRINT "Original size:"; lTextFileSizeOld; "bytes"
+PRINT "Current size:"; lTextFileSizeNew; "bytes"
+PRINT "Condensation: "; TRIM$(STR$(100 - INT(100 * (lTextFileSizeNew / lTextFileSizeOld)))); "%"
 
-System 0
+SYSTEM
 
-' Generates a temporary filename. Returns a unique name
-Function TempFile$ ()
-    Do
-        TempFile = Dir$("temp") + Str$(Fix(Timer)) + ".tmp"
-    Loop While FileExists(TempFile)
-End Function
-
-' Returns the length of a file in bytes
-Function FileLen&& (fileName As String)
-    Dim As Long ff
-
-    FileLen = -1
-
-    If FileExists(fileName) Then
-        ff = FreeFile
-        Open fileName For Binary As ff
-
-        FileLen = LOF(ff)
-
-        Close ff
-    End If
-End Function
-
-' Copies file src to dst. Src file must exist and dst file must not
-Function FileCopy%% (fileSrc As String, fileDst As String)
-    Dim As Long ffs, ffd
-    Dim ffbc As String
-
-    ' By default we assume failure
-    FileCopy = FALSE
-
-    ' Check if source file exists
-    If FileExists(fileSrc) Then
-        ' Check if dest file exists
-        If FileExists(fileDst) Then
-            Exit Function
-        End If
-
-        ffs = FreeFile
-        Open fileSrc For Binary Access Read As ffs
-        ffd = FreeFile
-        Open fileDst For Binary Access Write As ffd
-
-        ' Load the whole file into memory
-        ffbc = Input$(LOF(ffs), ffs)
-        ' Write the buffer to the new file
-        Put ffd, , ffbc
-
-        Close ffs
-        Close ffd
-
-        ' Success
-        FileCopy = TRUE
-    End If
-End Function
-
-' Check if an atgument is present in the command line
-Function ArgVPresent%% (argv As String)
-    Dim argc As Integer
-    Dim As String a, b
-
-    argc = 1
-    b = UCase$(argv)
-    Do
-        a = UCase$(Command$(argc))
-        If Len(a) = 0 Then Exit Do
-
-        If a = "/" + b Or a = "-" + b Then
-            ArgVPresent = TRUE
-            Exit Function
-        End If
-
-        argc = argc + 1
-    Loop
-
-    ArgVPresent = FALSE
-End Function
 
 ' Performs extra text check
-Function IsTextFile% (sFileName As String)
-    Dim sBuffer As String, sChar As Integer
-    Dim lLastPos As Integer64, i As Integer
-    Dim iTHandle As Long, iBytesRead As Integer
+FUNCTION IsTextFile% (sFileName AS STRING)
+    PRINT "Scanning "; sFileName; " ..."
 
-    iTHandle = FreeFile
+    DIM sBuffer AS STRING: sBuffer = LoadFile(sFileName)
 
-    If Not FileExists(sFileName) Then
-        IsTextFile = FALSE
-        Exit Function
-    End If
+    DIM i AS UNSIGNED LONG: FOR i = 1 TO LEN(sBuffer)
+        IF i MOD 4096 = 0 THEN
+            LOCATE , 1
+            PRINT USING "###% completed."; 100&& * i \ LEN(sBuffer);
+        END IF
 
-    Open sFileName For Binary Access Read As iTHandle
+        DIM sChar AS UNSIGNED BYTE: sChar = ASC(sBuffer, i)
+        IF sChar < 32 AND sChar <> 9 AND sChar <> 10 AND sChar <> 13 THEN
+            LOCATE , 1
+            PRINT sFileName; " is not a text file!"
+            EXIT FUNCTION
+        END IF
+    NEXT i
 
-    sBuffer = Space$(16384)
-
-    Print "Scanning "; sFileName; " ..."
-    While Not EOF(iTHandle)
-        ' Read from source, noting the number of bytes read
-        lLastPos = Loc(iTHandle)
-        Get #iTHandle, , sBuffer
-        iBytesRead = Loc(iTHandle) - lLastPos
-
-        Locate , 1
-        Print Using "###% completed."; 100&& * Loc(iTHandle) \ LOF(iTHandle);
-
-        ' Resize buffer to the number of bytes read from source
-        sBuffer = Left$(sBuffer, iBytesRead)
-
-        ' Test the content
-        For i = 1 To iBytesRead
-            sChar = Asc(Mid$(sBuffer, i, 1))
-            If sChar < 32 And sChar <> 9 And sChar <> 10 And sChar <> 13 Then
-                Locate , 1
-                Print sFileName; " is not a text file!"
-                IsTextFile = FALSE
-                Close iTHandle
-                Exit Function
-            End If
-        Next
-    Wend
-    Locate , 1
-    Print "Finished scanning."
+    LOCATE , 1
+    PRINT "Finished scanning."
 
     IsTextFile = TRUE
-    Close iTHandle
-End Function
+END FUNCTION
+
 
 ' Cleans text file
-Sub TextClean (sFileName As String)
-    Dim sBuffer1 As String, sBuffer2 As String
-    Dim lLastPos As Integer64, iHandleD As Integer
-    Dim sTempFile As String, iHandleS As Integer
-    Dim iBytesRead As Integer, i As Integer
-    Dim sChar As Integer
+SUB CleanText (sFileName AS STRING)
+    PRINT "Removing invalid characters from "; sFileName; " ..."
 
-    sTempFile = TempFile
+    DIM sBuffer AS STRING: sBuffer = LoadFile(sFileName)
 
-    ' Check if source file is present
-    ' If not then this causes a user trapable error
-    iHandleS = FreeFile
-    Open sFileName For Input As iHandleS
-    Close iHandleS
+    DIM i AS UNSIGNED LONG: FOR i = 1 TO LEN(sBuffer)
+        IF i MOD 4096 = 0 THEN
+            LOCATE , 1
+            PRINT USING "###% completed."; 100&& * i \ LEN(sBuffer);
+        END IF
 
-    ' Reopen it for the real job
-    Open sFileName For Binary As iHandleS
+        DIM c AS _UNSIGNED _BYTE: c = ASC(sBuffer, i)
 
-    ' Overwrite distination file
-    iHandleD = FreeFile
-    Open sTempFile For Output As iHandleD
-    Close iHandleD
+        IF c >= 32 OR c = 9 OR c = 10 OR c = 13 THEN
+            DIM j AS LONG: j = j + 1
+            ASC(sBuffer, j) = c
+        END IF
+    NEXT i
 
-    ' Reopen it for the real job
-    Open sTempFile For Binary As iHandleD
+    sBuffer = LEFT$(sBuffer, j)
 
-    ' Allocate buffer memory
-    sBuffer1 = Space$(16384)
+    LOCATE , 1
 
-    ' Start copying the file
-    Print "Removing invalid characters from "; sFileName; " ..."
-    While Not EOF(iHandleS)
-        ' Read from source, noting the number of bytes read
-        lLastPos = Loc(iHandleS)
-        Get #iHandleS, , sBuffer1
-        iBytesRead = Loc(iHandleS) - lLastPos
+    IF SaveFile(sBuffer, sFileName, TRUE) THEN
+        PRINT "Finished removing invalid characters."
+    ELSE
+        PRINT "Failed!"
+    END IF
+END SUB
 
-        Locate , 1
-        Print Using "###% completed."; 100&& * Loc(iHandleS) \ LOF(iHandleS);
-
-        ' Resize buffer to the number of bytes read from source
-        sBuffer1 = Left$(sBuffer1, iBytesRead)
-
-        ' Remove crap
-        sBuffer2 = ""
-        For i = 1 To iBytesRead
-            sChar = Asc(Mid$(sBuffer1, i, 1))
-            Select Case sChar
-                Case Is = 9, Is = 10, Is = 13
-                    sBuffer2 = sBuffer2 + Chr$(sChar)
-                Case Is < 32
-                    ' do nothing
-                Case Else
-                    sBuffer2 = sBuffer2 + Chr$(sChar)
-            End Select
-        Next
-
-        ' Write the buffer content to the destination file
-        Put #iHandleD, , sBuffer2
-    Wend
-    Locate , 1
-    Print "Finished removing invalid characters."
-
-    Close iHandleS, iHandleD
-
-    Kill sFileName
-    If Not FileCopy(sTempFile, sFileName) Then
-        Name sTempFile As sFileName
-    Else
-        Kill sTempFile
-    End If
-End Sub
 
 ' Condenses the source code to use minimum disk space
-Sub TextCondense (sFileName As String)
-    Dim sText As String, iOHandle As Integer
-    Dim lTotalLines As Integer64, lActualLines As Integer64
-    Dim sTempFile As String, iIHandle As Integer
+SUB CondenseText (sFileName AS STRING)
+    DIM sText AS STRING, iOHandle AS INTEGER
+    DIM lTotalLines AS INTEGER64, lActualLines AS INTEGER64
+    DIM sTempFile AS STRING, iIHandle AS INTEGER
 
-    iIHandle = FreeFile
+    iIHandle = FREEFILE
 
     ' Open file for counting the effective lines
-    Open sFileName For Input As iIHandle
+    OPEN sFileName FOR INPUT AS iIHandle
 
-    Print "Scanning "; sFileName; " ..."
-    Do While Not EOF(iIHandle)
-        Line Input #iIHandle, sText
+    PRINT "Scanning "; sFileName; " ..."
+    DO WHILE NOT EOF(iIHandle)
+        LINE INPUT #iIHandle, sText
         lTotalLines = lTotalLines + 1
-        If Trim$(sText) <> "" Then lActualLines = lTotalLines
-        Locate , 1
-        Print Using "###% completed."; 128&& * 100&& * Loc(iIHandle) \ LOF(iIHandle);
-    Loop
-    Locate , 1
-    Print "Finished scanning."
+        IF TRIM$(sText) <> "" THEN lActualLines = lTotalLines
+        LOCATE , 1
+        PRINT USING "###% completed."; 128&& * 100&& * LOC(iIHandle) \ LOF(iIHandle);
+    LOOP
+    LOCATE , 1
+    PRINT "Finished scanning."
 
-    Close iIHandle
+    CLOSE iIHandle
 
     ' Open file for the actual condensation
-    Open sFileName For Input As iIHandle
+    OPEN sFileName FOR INPUT AS iIHandle
 
-    iOHandle = FreeFile
-    sTempFile = TempFile
-    Open sTempFile For Output As iOHandle
+    iOHandle = FREEFILE
+    sTempFile = GetTempFileName
+    OPEN sTempFile FOR OUTPUT AS iOHandle
 
-    Print "Condensing "; sFileName; " ..."
-    For lTotalLines = 1 To lActualLines
-        Line Input #iIHandle, sText
-        Print #iOHandle, RTrim$(sText)
-        Locate , 1
-        Print Using "###% completed."; 100&& * lTotalLines \ lActualLines;
-    Next
-    Locate , 1
-    Print "Finished condensing."
+    PRINT "Condensing "; sFileName; " ..."
+    FOR lTotalLines = 1 TO lActualLines
+        LINE INPUT #iIHandle, sText
+        PRINT #iOHandle, RTRIM$(sText)
+        LOCATE , 1
+        PRINT USING "###% completed."; 100&& * lTotalLines \ lActualLines;
+    NEXT
+    LOCATE , 1
+    PRINT "Finished condensing."
 
-    Close iIHandle, iOHandle
+    CLOSE iIHandle, iOHandle
 
-    Kill sFileName
-    If Not FileCopy(sTempFile, sFileName) Then
-        Name sTempFile As sFileName
-    Else
-        Kill sTempFile
-    End If
-End Sub
+    IF NOT CopyFile(sTempFile, sFileName, TRUE) THEN
+        NAME sTempFile AS sFileName
+    ELSE
+        KILL sTempFile
+    END IF
+END SUB
+
 
 ' Tabifies a text file
-Sub TextSpaceCompress (sFileName As String, iLen As Integer)
-    Dim sIText As String, iOHandle As Integer
-    Dim sTempFile As String, iIHandle As Integer
-    Dim sOText As String, i As Integer, j As Integer, sStr As String
+SUB CompressTextSpace (sFileName AS STRING, iLen AS INTEGER)
+    DIM sIText AS STRING, iOHandle AS INTEGER
+    DIM sTempFile AS STRING, iIHandle AS INTEGER
+    DIM sOText AS STRING, i AS INTEGER, j AS INTEGER, sStr AS STRING
 
     ' Open file for compressing spaces
-    iIHandle = FreeFile
-    Open sFileName For Input As iIHandle
+    iIHandle = FREEFILE
+    OPEN sFileName FOR INPUT AS iIHandle
 
-    iOHandle = FreeFile
-    sTempFile = TempFile
-    Open sTempFile For Output As iOHandle
+    iOHandle = FREEFILE
+    sTempFile = GetTempFileName
+    OPEN sTempFile FOR OUTPUT AS iOHandle
 
-    Print "Compressing spaces to tabs ("; Trim$(Str$(iLen)); ":1) in "; sFileName; " ..."
-    Do While Not EOF(iIHandle)
-        Line Input #iIHandle, sIText
+    PRINT "Compressing spaces to tabs ("; TRIM$(STR$(iLen)); ":1) in "; sFileName; " ..."
+    DO WHILE NOT EOF(iIHandle)
+        LINE INPUT #iIHandle, sIText
 
         sOText = ""
-        j = Len(sIText)
-        For i = 1 To (j - iLen + 1) Step iLen
-            sStr = Mid$(sIText, i, iLen)
-            If sStr = Space$(iLen) Then
-                sOText = sOText + Chr$(9)
-            Else
+        j = LEN(sIText)
+        FOR i = 1 TO (j - iLen + 1) STEP iLen
+            sStr = MID$(sIText, i, iLen)
+            IF sStr = SPACE$(iLen) THEN
+                sOText = sOText + CHR$(9)
+            ELSE
                 sOText = sOText + sStr
-            End If
-        Next
+            END IF
+        NEXT
 
         ' Copy the remaining characters
-        sOText = sOText + Right$(sIText, j Mod iLen)
+        sOText = sOText + RIGHT$(sIText, j MOD iLen)
 
-        Print #iOHandle, sOText
+        PRINT #iOHandle, sOText
 
-        Locate , 1
-        Print Using "###% completed."; 128&& * 100&& * Loc(iIHandle) \ LOF(iIHandle);
-    Loop
-    Locate , 1
-    Print "Finished compressing spaces to tabs."
+        LOCATE , 1
+        PRINT USING "###% completed."; 128&& * 100&& * LOC(iIHandle) \ LOF(iIHandle);
+    LOOP
+    LOCATE , 1
+    PRINT "Finished compressing spaces to tabs."
 
-    Close iIHandle, iOHandle
+    CLOSE iIHandle, iOHandle
 
-    Kill sFileName
-    If Not FileCopy(sTempFile, sFileName) Then
-        Name sTempFile As sFileName
-    Else
-        Kill sTempFile
-    End If
-End Sub
+    IF NOT CopyFile(sTempFile, sFileName, TRUE) THEN
+        NAME sTempFile AS sFileName
+    ELSE
+        KILL sTempFile
+    END IF
+END SUB
+
 
 ' Expands tabs to spaces
-Sub TextTabExpand (sFileName As String, iLen As Integer)
-    Dim sBuffer1 As String, sBuffer2 As String
-    Dim lLastPos As Integer64, iHandleD As Integer
-    Dim sTempFile As String, iHandleS As Integer
-    Dim iBytesRead As Integer, i As Integer
-    Dim sChar As String * 1
+SUB ExpandTextTab (sFileName AS STRING, iLen AS INTEGER)
+    DIM sBuffer1 AS STRING, sBuffer2 AS STRING
+    DIM lLastPos AS INTEGER64, iHandleD AS INTEGER
+    DIM sTempFile AS STRING, iHandleS AS INTEGER
+    DIM iBytesRead AS INTEGER, i AS INTEGER
+    DIM sChar AS STRING * 1
 
-    sTempFile = TempFile
+    sTempFile = GetTempFileName
 
     ' Check if source file is present
     ' If not then this causes a user trapable error
-    iHandleS = FreeFile
-    Open sFileName For Input As iHandleS
-    Close iHandleS
+    iHandleS = FREEFILE
+    OPEN sFileName FOR INPUT AS iHandleS
+    CLOSE iHandleS
 
     ' Reopen it for the real job
-    Open sFileName For Binary As iHandleS
+    OPEN sFileName FOR BINARY AS iHandleS
 
     ' Overwrite distination file
-    iHandleD = FreeFile
-    Open sTempFile For Output As iHandleD
-    Close iHandleD
+    iHandleD = FREEFILE
+    OPEN sTempFile FOR OUTPUT AS iHandleD
+    CLOSE iHandleD
 
     ' Reopen it for the real job
-    Open sTempFile For Binary As iHandleD
+    OPEN sTempFile FOR BINARY AS iHandleD
 
     ' Allocate buffer memory
-    sBuffer1 = Space$(16384)
+    sBuffer1 = SPACE$(16384)
 
     ' Start copying the file
-    Print "Expanding tabs to spaces (1:"; Trim$(Str$(iLen)); ") in "; sFileName; " ..."
-    While Not EOF(iHandleS)
+    PRINT "Expanding tabs to spaces (1:"; TRIM$(STR$(iLen)); ") in "; sFileName; " ..."
+    WHILE NOT EOF(iHandleS)
         ' Read from source, noting the number of bytes read
-        lLastPos = Loc(iHandleS)
-        Get #iHandleS, , sBuffer1
-        iBytesRead = Loc(iHandleS) - lLastPos
+        lLastPos = LOC(iHandleS)
+        GET #iHandleS, , sBuffer1
+        iBytesRead = LOC(iHandleS) - lLastPos
 
-        Locate , 1
-        Print Using "###% completed."; 100&& * Loc(iHandleS) \ LOF(iHandleS);
+        LOCATE , 1
+        PRINT USING "###% completed."; 100&& * LOC(iHandleS) \ LOF(iHandleS);
 
         ' Resize buffer to the number of bytes read from source
-        sBuffer1 = Left$(sBuffer1, iBytesRead)
+        sBuffer1 = LEFT$(sBuffer1, iBytesRead)
 
         ' Expand
         sBuffer2 = ""
-        For i = 1 To iBytesRead
-            sChar = Mid$(sBuffer1, i, 1)
-            If sChar = Chr$(9) Then
-                sBuffer2 = sBuffer2 + Space$(iLen)
-            Else
+        FOR i = 1 TO iBytesRead
+            sChar = MID$(sBuffer1, i, 1)
+            IF sChar = CHR$(9) THEN
+                sBuffer2 = sBuffer2 + SPACE$(iLen)
+            ELSE
                 sBuffer2 = sBuffer2 + sChar
-            End If
-        Next
+            END IF
+        NEXT
 
         ' Write the buffer content to the destination file
-        Put #iHandleD, , sBuffer2
-    Wend
-    Locate , 1
-    Print "Finished expanding tabs to spaces."
+        PUT #iHandleD, , sBuffer2
+    WEND
+    LOCATE , 1
+    PRINT "Finished expanding tabs to spaces."
 
-    Close iHandleS, iHandleD
+    CLOSE iHandleS, iHandleD
 
-    Kill sFileName
-    If Not FileCopy(sTempFile, sFileName) Then
-        Name sTempFile As sFileName
-    Else
-        Kill sTempFile
-    End If
-End Sub
+    IF NOT CopyFile(sTempFile, sFileName, TRUE) THEN
+        NAME sTempFile AS sFileName
+    ELSE
+        KILL sTempFile
+    END IF
+END SUB
 
+
+' Generates a temporary filename. Returns a unique name
+FUNCTION GetTempFileName$
+    DO
+        DIM sName AS STRING: sName = DIR$("temp") + STR$(FIX(TIMER)) + ".tmp"
+    LOOP WHILE FILEEXISTS(sName)
+
+    GetTempFileName = sName
+END FUNCTION
+
+
+' Returns the length of a file in bytes
+FUNCTION GetFileSize&& (fileName AS STRING)
+    GetFileSize = -1
+
+    IF FILEEXISTS(fileName) THEN
+        DIM AS LONG ff: ff = FREEFILE
+        OPEN fileName FOR BINARY AS ff
+        GetFileSize = LOF(ff)
+        CLOSE ff
+    END IF
+END FUNCTION
+
+
+' Loads a whole file from disk into a string buffer
+FUNCTION LoadFile$ (path AS STRING)
+    IF _FILEEXISTS(path) THEN
+        DIM AS LONG fh: fh = FREEFILE
+        OPEN path FOR BINARY ACCESS READ AS fh
+        LoadFile = INPUT$(LOF(fh), fh)
+        CLOSE fh
+    END IF
+END FUNCTION
+
+
+' Saves a string buffer to a file
+FUNCTION SaveFile%% (buffer AS STRING, fileName AS STRING, overwrite AS _BYTE)
+    IF _FILEEXISTS(fileName) AND NOT overwrite THEN EXIT FUNCTION
+
+    DIM fh AS LONG: fh = FREEFILE
+    OPEN fileName FOR OUTPUT AS fh ' open file in text mode to wipe out the file if it exists
+    PRINT #fh, buffer; ' write the buffer to the file (works regardless of the file being opened in text mode)
+    CLOSE fh
+
+    SaveFile = TRUE
+END FUNCTION
+
+
+' Copies file src to dst. Src file must exist and dst file must not
+FUNCTION CopyFile%% (fileSrc AS STRING, fileDst AS STRING, overwrite AS _BYTE)
+    CopyFile = SaveFile(LoadFile(fileSrc), fileDst, overwrite)
+END FUNCTION
+
+
+' Returns true if a comamnd line argument is present
+FUNCTION IsArgVPresent%% (argv AS STRING)
+    DIM argc AS LONG: argc = 1
+    DIM b AS STRING: b = UCASE$(argv)
+
+    DO
+        DIM a AS STRING: a = UCASE$(COMMAND$(argc))
+        IF LEN(a) = 0 THEN EXIT DO
+
+        IF a = "/" + b OR a = "-" + b THEN
+            IsArgVPresent = TRUE
+            EXIT FUNCTION
+        END IF
+
+        argc = argc + 1
+    LOOP
+END FUNCTION
