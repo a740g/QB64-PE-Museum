@@ -80,10 +80,11 @@ CONST OPL_MAXIMUM_VOLUME = &H3F
 CONST AMIGA_SAMPLE_RATE# = 8363#
 CONST PC_SAMPLE_RATE# = 44100#
 CONST AMIGA_PC_SAMPLING_RATIO# = AMIGA_SAMPLE_RATE / PC_SAMPLE_RATE
+CONST SCREAM_TRACKER_3_NOTE_B# = 907#
 CONST PERCUSSION_ONLY = &H9
 CONST PERCUSSIVE_NOTES = &H6
-CONST SCREAM_TRACKER_3_NOTE_B# = 907#
 CONST SIGN_14BIT = &H2000
+CONST UPDATE_TIMER_SECONDS! = 1! / (255! / 60!) * (4! / 64!)
 
 TYPE ActiveNoteStr
     AdlibChannel AS INTEGER
@@ -166,6 +167,7 @@ REDIM SHARED Tracks(0 TO 0) AS TrackStr
 Initialize Status
 Main MIDI, Status
 Quit MIDI, Status
+
 END
 
 'The data words are:
@@ -648,7 +650,7 @@ SUB Initialize (Status AS StatusStr)
     Status.TextRow = 2
 
     Status.timerHandle = _FREETIMER
-    ON TIMER(Status.timerHandle, 705 / _SNDRATE) PlayerLoop
+    ON TIMER(Status.timerHandle, UPDATE_TIMER_SECONDS) PlayerLoop
 END SUB
 
 FUNCTION IsRunningStatus% (Byte AS INTEGER)
@@ -678,6 +680,8 @@ SUB Main (MIDI AS MIDIStr, Status AS StatusStr)
                 CASE "q", "Q"
                     EXIT DO
             END SELECT
+
+            _LIMIT 60
         LOOP
     END IF
 END SUB
@@ -1122,7 +1126,7 @@ END SUB
 SUB UpdateNoteVolume (ActiveChannel AS INTEGER, Channel AS INTEGER, Volume AS INTEGER)
     DIM UpdatedVolume AS DOUBLE
 
-    IF Volume = &H0 THEN
+    IF Volume = &H0 OR ChannelSettings(Channel).Volume = &H0 THEN
         OPLTouchReal ActiveChannel, &H0
     ELSE
         UpdatedVolume = Volume * ChannelSettings(Channel).Volume
