@@ -3,15 +3,23 @@
 ' Ported to VB-DOS by PeterSwinkels
 ' Ported to QB64-PE by a740g
 
-DEFLNG A-Z
+_DEFINE A-Z AS LONG
 OPTION _EXPLICIT
+OPTION BASE 1
+'$STATIC
 
 '$INCLUDE:'include/adlib.bi'
 
+CONST ADLIB_VOLUME_RANGE = &H3F
+CONST DEFAULT_PITCH_BEND# = .000244140625#
 CONST DEFAULT_TEMPO = 1000000
+CONST DOUBLE_LINEAR_AMPLITUDE = &H8
+CONST ET_SEMITONES_PER_OCTAVE# = 12#
+CONST EVENT_BUFFER_SIZE = 2
 CONST EVENT_TICK_FREQUENCY = 16320
 CONST GP_01 = 93
 CONST MAXIMUM_SIGNED_B_END = &H2000
+CONST MAXIMUM_VOLUME = &H3F01
 CONST MC_ALL_NOTES_OFF = &H7B
 CONST MC_BEND = &H6
 CONST MC_MODULATION = &H1
@@ -49,7 +57,6 @@ CONST MOP_PRESSURE = 4
 CONST MOP_VOLUME = 5
 CONST MTHD_BLOCK_DEFAULT_LENGTH = &H6
 CONST NO_CHANNEL = -1
-CONST NULL = 0
 CONST OPL_01_WAVE_ON = &H20
 CONST OPL_04_IRQ_RESET = &H80
 CONST OPL_04_MOD_E0 = &H0
@@ -70,8 +77,12 @@ CONST OPL_INDEX1 = OPL_BASE + &H0
 CONST OPL_INDEX2 = OPL_BASE + &H2
 CONST OPL_MAXIMUM_ATTENUATION = &H3F
 CONST OPL_MAXIMUM_VOLUME = &H3F
+CONST AMIGA_SAMPLE_RATE# = 8363#
+CONST PC_SAMPLE_RATE# = 44100#
+CONST AMIGA_PC_SAMPLING_RATIO# = AMIGA_SAMPLE_RATE / PC_SAMPLE_RATE
 CONST PERCUSSION_ONLY = &H9
 CONST PERCUSSIVE_NOTES = &H6
+CONST SCREAM_TRACKER_3_NOTE_B# = 907#
 CONST SIGN_14BIT = &H2000
 
 TYPE ActiveNoteStr
@@ -141,20 +152,20 @@ END TYPE
 DIM MIDI AS MIDIStr
 DIM Status AS StatusStr
 
-REDIM SHARED ActiveNote(0 TO 15, 0 TO 127) AS ActiveNoteStr
-REDIM SHARED ActiveNoteCount(0 TO 15) AS INTEGER
-REDIM SHARED ActiveNoteList(0 TO 15, 0 TO 99) AS INTEGER
-REDIM SHARED Channels(0 TO 17) AS ChannelStr
-REDIM SHARED ChannelInstruments(0 TO 17) AS ChannelInstrumentStr
-REDIM SHARED ChannelSettings(0 TO 15) AS ChannelSettingsStr
-REDIM SHARED Instruments(0 TO 180, 0 TO 6) AS INTEGER
+DIM SHARED ActiveNoteCount(0 TO 15) AS INTEGER
+DIM SHARED ActiveNoteList(0 TO 15, 0 TO 99) AS INTEGER
+DIM SHARED ActiveNotes(0 TO 15, 0 TO 127) AS ActiveNoteStr
+DIM SHARED Channels(0 TO 17) AS ChannelStr
+DIM SHARED ChannelInstruments(0 TO 17) AS ChannelInstrumentStr
+DIM SHARED ChannelSettings(0 TO 15) AS ChannelSettingsStr
+DIM SHARED Instruments(0 TO 180, 0 TO 6) AS INTEGER
 REDIM SHARED Loops(0 TO 0) AS TrackStr
 REDIM SHARED LoopsBackup(0 TO 0) AS TrackStr
 REDIM SHARED Tracks(0 TO 0) AS TrackStr
 
 Initialize Status
-Main Status, MIDI
-Quit Status, MIDI
+Main MIDI, Status
+Quit MIDI, Status
 END
 
 'The data words are:
@@ -349,6 +360,7 @@ DATA &H1502,&H3F,&HF700,&HF5F3,&H3,&H38,&H44: 'GP85
 DATA &H201,&H4F,&HF8FA,&HB58D,&H0,&H37,&H30: 'GP86
 DATA &H0,&H0,&HF6F6,&H60C,&H0,&H34,&H35: 'GP87
 
+
 SUB PlayerLoop
     SHARED MIDI AS MIDIStr
     SHARED Status AS StatusStr
@@ -390,17 +402,17 @@ FUNCTION AllocateChannel% (Instrument AS INTEGER)
     AllocateChannel = AllocatedChannel
 END FUNCTION
 
-SUB ChangePanning (Channel AS INTEGER, DataV AS INTEGER)
-    DIM Panning AS INTEGER
+SUB ChangePanning (Channel AS INTEGER, Panning AS INTEGER)
+    DIM NewPanning AS INTEGER
 
-    Panning = NULL
-    IF DataV < &H30 THEN
-        Panning = OPL_C0_RIGHT_SPEAKER_ENABLE
-    ELSEIF DataV >= &H50 THEN
-        Panning = OPL_C0_LEFT_SPEAKER_ENABLE
+    NewPanning = NULL
+    IF Panning < &H30 THEN
+        NewPanning = OPL_C0_RIGHT_SPEAKER_ENABLE
+    ELSEIF Panning >= &H50 THEN
+        NewPanning = OPL_C0_LEFT_SPEAKER_ENABLE
     END IF
 
-    ChannelSettings(Channel).Panning = Panning
+    ChannelSettings(Channel).Panning = NewPanning
 END SUB
 
 SUB ControllerChange (Channel AS INTEGER, MIDI AS MIDIStr)
@@ -432,8 +444,8 @@ SUB DeallocateActiveNote (Channel AS INTEGER, ActiveNote AS INTEGER)
     DIM NoteToDeactivate AS INTEGER
 
     NoteToDeactivate = ActiveNoteList(Channel, ActiveNote)
-    ActiveNote(Channel, NoteToDeactivate).Index = &H0
-    DeactivatedNoteChannel = ActiveNote(Channel, NoteToDeactivate).AdlibChannel
+    ActiveNotes(Channel, NoteToDeactivate).Index = &H0
+    DeactivatedNoteChannel = ActiveNotes(Channel, NoteToDeactivate).AdlibChannel
     Channels(DeactivatedNoteChannel).Age = &H0
     Channels(DeactivatedNoteChannel).IsOn = FALSE
 
@@ -448,8 +460,8 @@ SUB DeallocateActiveNote (Channel AS INTEGER, ActiveNote AS INTEGER)
     IF NOT ActiveNote = ActiveNoteCount(Channel) THEN
         NoteToDeactivate = ActiveNoteList(Channel, ActiveNoteCount(Channel))
         ActiveNoteList(Channel, ActiveNote) = NoteToDeactivate
-        ActiveNote(Channel, NoteToDeactivate).Index = ActiveNote
-        Channels(ActiveNote(Channel, NoteToDeactivate).AdlibChannel).ActiveIndex = ActiveNote
+        ActiveNotes(Channel, NoteToDeactivate).Index = ActiveNote
+        Channels(ActiveNotes(Channel, NoteToDeactivate).AdlibChannel).ActiveIndex = ActiveNote
     END IF
 
     ActiveNoteCount(Channel) = ActiveNoteCount(Channel) - 1
@@ -480,14 +492,7 @@ SUB DisplayNote (AllocatedChannel AS INTEGER, Note AS INTEGER)
 END SUB
 
 FUNCTION GetHertz# (Note AS INTEGER, Bend AS DOUBLE)
-    DIM BentNote AS DOUBLE
-
-    BentNote = Note + Bend
-    BentNote = BentNote * .057762265#
-    BentNote = EXP(BentNote)
-    BentNote = BentNote * 172.00093#
-
-    GetHertz = BentNote
+    GetHertz = SCREAM_TRACKER_3_NOTE_B * (2# ^ ((Note + Bend) / ET_SEMITONES_PER_OCTAVE)) * AMIGA_PC_SAMPLING_RATIO
 END FUNCTION
 
 SUB GetInstrumentData
@@ -612,7 +617,7 @@ SUB HandleTrackEvent (Track AS INTEGER, MIDI AS MIDIStr, Status AS StatusStr)
             CASE ME_PRESSURE
                 UpdateAllLiveNotes Channel, MOP_PRESSURE, ASC(INPUT$(&H1, MIDI.FileH))
             CASE ME_BEND
-                ChannelSettings(Channel).Bend = (((ASC(INPUT$(&H1, MIDI.FileH)) AND &H7F) OR (ASC(INPUT$(&H1, MIDI.FileH)) * &H80)) - SIGN_14BIT) * MIDI.BendSense
+                ChannelSettings(Channel).Bend = (ReadInteger(MIDI) - SIGN_14BIT) * MIDI.BendSense
                 UpdateAllLiveNotes Channel, MOP_PITCH, NULL
         END SELECT
     ELSE
@@ -650,14 +655,14 @@ FUNCTION IsRunningStatus% (Byte AS INTEGER)
     IsRunningStatus = ((Byte AND ME_FIRST) = &H0)
 END FUNCTION
 
-SUB Main (Status AS StatusStr, MIDI AS MIDIStr)
+SUB Main (MIDI AS MIDIStr, Status AS StatusStr)
     DIM FileName AS STRING
     DIM KeyStroke AS STRING
 
     FileName = COMMAND$
     IF FileName = "" THEN FileName = _OPENFILEDIALOG$("Select MIDI File", , "*.mid|*.midi|*.MID|*.MIDI", "MIDI Files")
 
-    IF FileName = "" THEN
+    IF LEN(FileName) = NULL THEN
         Display 1, 1, 15, "No file specified."
     ELSE
         OpenMIDI FileName, MIDI
@@ -685,7 +690,7 @@ SUB NoteOff (Channel AS INTEGER, MIDI AS MIDIStr)
     SEEK #MIDI.FileH, SEEK(MIDI.FileH) + &H1
 
     ChannelSettings(Channel).Bend = &H0
-    ActiveNote = ActiveNote(Channel, Note).Index
+    ActiveNote = ActiveNotes(Channel, Note).Index
     IF NOT ActiveNote = &H0 THEN
         DeallocateActiveNote Channel, ActiveNote
     END IF
@@ -703,12 +708,12 @@ SUB NoteOn (Channel AS INTEGER, Status AS StatusStr, MIDI AS MIDIStr)
     Volume = ASC(INPUT$(&H1, MIDI.FileH))
 
     IF Volume = NULL THEN
-        ActiveNoteCount = ActiveNote(Channel, TrackNote).Index
+        ActiveNoteCount = ActiveNotes(Channel, TrackNote).Index
         IF NOT ActiveNoteCount = 0 THEN
             DeallocateActiveNote Channel, ActiveNoteCount
         END IF
     ELSE
-        IF ActiveNote(Channel, TrackNote).Index = &H0 THEN
+        IF ActiveNotes(Channel, TrackNote).Index = &H0 THEN
             IF Channel = PERCUSSION_ONLY THEN
                 Instrument = GP_01 + TrackNote
                 NoteToBePlayed = Instruments(Instrument, PERCUSSIVE_NOTES)
@@ -729,13 +734,13 @@ SUB NoteOn (Channel AS INTEGER, Status AS StatusStr, MIDI AS MIDIStr)
             Status.Began = TRUE
 
             ActiveNoteCount = ActiveNoteCount(Channel) + 1
-            ActiveNote(Channel, TrackNote).Index = ActiveNoteCount
             ActiveNoteList(Channel, ActiveNoteCount) = TrackNote
             ActiveNoteCount(Channel) = ActiveNoteCount
+            ActiveNotes(Channel, TrackNote).Index = ActiveNoteCount
 
-            ActiveNote(Channel, TrackNote).AdlibChannel = AllocatedChannel
-            ActiveNote(Channel, TrackNote).Note = NoteToBePlayed
-            ActiveNote(Channel, TrackNote).Volume = Volume
+            ActiveNotes(Channel, TrackNote).AdlibChannel = AllocatedChannel
+            ActiveNotes(Channel, TrackNote).Note = NoteToBePlayed
+            ActiveNotes(Channel, TrackNote).Volume = Volume
             Channels(AllocatedChannel).MIDIChannel = Channel
             Channels(AllocatedChannel).ActiveIndex = ActiveNoteCount
             OPLPatch AllocatedChannel
@@ -757,10 +762,10 @@ SUB NoteTouch (Channel AS INTEGER, MIDI AS MIDIStr)
 
     Note = ASC(INPUT$(&H1, MIDI.FileH))
     Volume = ASC(INPUT$(&H1, MIDI.FileH))
-    IF NOT ActiveNote(Channel, Note).Index = &H0 THEN
-        ActiveChannel = ActiveNote(Channel, Note).AdlibChannel
+    IF NOT ActiveNotes(Channel, Note).Index = &H0 THEN
+        ActiveChannel = ActiveNotes(Channel, Note).AdlibChannel
         Display 20 - ActiveChannel, Channels(ActiveChannel).x, Channels(ActiveChannel).ColorV, "&"
-        ActiveNote(Channel, Note).Volume = Volume
+        ActiveNotes(Channel, Note).Volume = Volume
         UpdateNoteVolume ActiveChannel, Channel, Volume
     END IF
 END SUB
@@ -789,7 +794,7 @@ SUB OpenMIDI (FileName AS STRING, MIDI AS MIDIStr)
                 TicksPerQuarterNote = ParseBEWord(INPUT$(&H2, MIDI.FileH))
                 MIDI.InvertedDeltaTicks = GetInvertedDeltaTicks(TicksPerQuarterNote)
                 MIDI.Tempo = DEFAULT_TEMPO * MIDI.InvertedDeltaTicks
-                MIDI.BendSense = &H2 / MAXIMUM_SIGNED_B_END
+                MIDI.BendSense = DEFAULT_PITCH_BEND
 
                 FOR Track = 0 TO MIDI.TrackCount - 1
                     IF INPUT$(&H4, MIDI.FileH) = "MTrk" THEN
@@ -827,6 +832,7 @@ SUB OPLNoteOn (Channel AS INTEGER, Hertz AS DOUBLE)
     OPLSetUp Channel, OPL
 
     Adlib_WriteRegister &HA0 OR OPL.SubChannel, Octave AND &HFF&
+
     Adlib_WriteRegister &HB0 OR OPL.SubChannel, (((Octave AND &HFF00&) \ &H100&) AND (OPL_B0_FREQUENCY_MASK OR OPL_B0_BLOCK_MASK)) OR OPL_B0_NOTE_ON
 
     ChannelInstruments(Channel).Pitch = (Octave AND &HFF00) \ &H100&
@@ -845,10 +851,10 @@ SUB OPLPatch (Channel AS INTEGER)
     Adlib_WriteRegister &H80 + OPL.Operator, Instruments(Instrument, &H3) AND &HFF&
     Adlib_WriteRegister &HE0 + OPL.Operator, Instruments(Instrument, &H4) AND &HFF&
 
-    Adlib_WriteRegister &H20 + OPL.Operator + &H3, (Instruments(Instrument, &H0) AND &HFF00&) / &H100&
-    Adlib_WriteRegister &H60 + OPL.Operator + &H3, (Instruments(Instrument, &H2) AND &HFF00&) / &H100&
-    Adlib_WriteRegister &H80 + OPL.Operator + &H3, (Instruments(Instrument, &H3) AND &HFF00&) / &H100&
-    Adlib_WriteRegister &HE0 + OPL.Operator + &H3, (Instruments(Instrument, &H4) AND &HFF00&) / &H100&
+    Adlib_WriteRegister &H20 + OPL.Operator + &H3, (Instruments(Instrument, &H0) AND &HFF00&) \ &H100&
+    Adlib_WriteRegister &H60 + OPL.Operator + &H3, (Instruments(Instrument, &H2) AND &HFF00&) \ &H100&
+    Adlib_WriteRegister &H80 + OPL.Operator + &H3, (Instruments(Instrument, &H3) AND &HFF00&) \ &H100&
+    Adlib_WriteRegister &HE0 + OPL.Operator + &H3, (Instruments(Instrument, &H4) AND &HFF00&) \ &H100&
 END SUB
 
 SUB OPLReset
@@ -921,7 +927,7 @@ SUB OPLTouchReal (Channel AS INTEGER, Volume AS INTEGER)
  
     Adlib_WriteRegister &H40 + OPL.Operator, ((KSLA OR OPL_MAXIMUM_ATTENUATION) - Volume) + Attenuation
 
-    KSLA = (Instruments(Instrument, 1) AND &HFF00&) / &H100&
+    KSLA = (Instruments(Instrument, 1) AND &HFF00&) \ &H100&
     Attenuation = ((KSLA AND OPL_ATTENUATION_MASK) * Volume) \ OPL_MAXIMUM_VOLUME
 
     Adlib_WriteRegister &H43 + OPL.Operator, ((KSLA OR OPL_MAXIMUM_ATTENUATION) - Volume) + Attenuation
@@ -976,7 +982,7 @@ SUB ProcessTrackEvents (MIDI AS MIDIStr, Status AS StatusStr)
     LOOP
 END SUB
 
-SUB Quit (Status AS StatusStr, MIDI AS MIDIStr)
+SUB Quit (MIDI AS MIDIStr, Status AS StatusStr)
     TIMER(Status.timerHandle) OFF
     TIMER(Status.timerHandle) FREE
     Display NULL, NULL, 9, "End!"
@@ -984,6 +990,15 @@ SUB Quit (Status AS StatusStr, MIDI AS MIDIStr)
     CLOSE #MIDI.FileH
     Adlib_Finalize
 END SUB
+
+FUNCTION ReadInteger% (MIDI AS MIDIStr)
+    DIM IntegerV AS INTEGER
+
+    IntegerV = ASC(INPUT$(&H1, MIDI.FileH)) AND &H7F
+    IntegerV = IntegerV OR (ASC(INPUT$(&H1, MIDI.FileH)) * &H80)
+
+    ReadInteger = IntegerV
+END FUNCTION
 
 FUNCTION ReadVariableLengthInteger& (MIDI AS MIDIStr)
     DIM Byte AS INTEGER
@@ -1079,19 +1094,19 @@ SUB UpdateAllLiveNotes (Channel AS INTEGER, MIDIOperation AS INTEGER, Volume AS 
 
     FOR ActiveNote = 1 TO ActiveCount
         Note = ActiveNoteList(Channel, ActiveNote)
-        ActiveChannel = ActiveNote(Channel, Note).AdlibChannel
+        ActiveChannel = ActiveNotes(Channel, Note).AdlibChannel
         SELECT CASE MIDIOperation
             CASE MOP_OFF
                 DeallocateActiveNote Channel, ActiveNote
             CASE MOP_PAN
                 UpdateNotePan ActiveChannel, Channel
             CASE MOP_PITCH
-                OPLNoteOn ActiveChannel, GetHertz(ActiveNote(Channel, Note).Note, ChannelSettings(Channel).Bend)
+                OPLNoteOn ActiveChannel, GetHertz(ActiveNotes(Channel, Note).Note, ChannelSettings(Channel).Bend)
             CASE MOP_PRESSURE
-                ActiveNote(Channel, Note).Volume = Volume
-                UpdateNoteVolume ActiveChannel, Channel, ActiveNote(Channel, Note).Volume
+                ActiveNotes(Channel, Note).Volume = Volume
+                UpdateNoteVolume ActiveChannel, Channel, ActiveNotes(Channel, Note).Volume
             CASE MOP_VOLUME
-                UpdateNoteVolume ActiveChannel, Channel, ActiveNote(Channel, Note).Volume
+                UpdateNoteVolume ActiveChannel, Channel, ActiveNotes(Channel, Note).Volume
         END SELECT
     NEXT ActiveNote
 END SUB
@@ -1105,10 +1120,18 @@ SUB UpdateNotePan (ActiveChannel AS INTEGER, Channel AS INTEGER)
 END SUB
 
 SUB UpdateNoteVolume (ActiveChannel AS INTEGER, Channel AS INTEGER, Volume AS INTEGER)
+    DIM UpdatedVolume AS DOUBLE
+
     IF Volume = &H0 THEN
         OPLTouchReal ActiveChannel, &H0
     ELSE
-        OPLTouchReal ActiveChannel, (LOG((Volume * ChannelSettings(Channel).Volume) / &H3F01) * &H8) + &H3F
+        UpdatedVolume = Volume * ChannelSettings(Channel).Volume
+        UpdatedVolume = LOG(UpdatedVolume / MAXIMUM_VOLUME)
+        UpdatedVolume = UpdatedVolume / LOG(2)
+        UpdatedVolume = UpdatedVolume * DOUBLE_LINEAR_AMPLITUDE
+        UpdatedVolume = UpdatedVolume + ADLIB_VOLUME_RANGE
+
+        OPLTouchReal ActiveChannel, CINT(UpdatedVolume)
     END IF
 END SUB
 
