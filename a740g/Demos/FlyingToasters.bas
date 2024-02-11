@@ -118,11 +118,12 @@ END
 
 
 SUB Toaster_Init (t AS ToasterType)
-    ' Non realistic values
-    t.x = -_WIDTH
-    t.y = _HEIGHT
-    t.speed = 0
-    t.frame = 0
+    SHARED bmpToaster() AS LONG
+
+    t.x = RND * (_WIDTH + _HEIGHT)
+    t.y = -_HEIGHT(bmpToaster(1))
+    t.frame = 1
+    t.speed = RND * 3 + 1
 END SUB
 
 
@@ -138,12 +139,7 @@ SUB Toaster_Go (t AS ToasterType)
     IF t.frame > 4 THEN t.frame = 1
 
     ' When toaster reaches the edge of the screen, render it inactive and bring a new one into existence
-    IF (t.x < -_WIDTH(bmpToaster(1))) OR (t.y >= _HEIGHT) THEN
-        t.x = RND * (_WIDTH + _HEIGHT)
-        t.y = -_HEIGHT(bmpToaster(1))
-        t.frame = 1
-        t.speed = RND * 3 + 1
-    END IF
+    IF (t.x < -_WIDTH(bmpToaster(1))) OR (t.y >= _HEIGHT) THEN Toaster_Init t
 END SUB
 
 
