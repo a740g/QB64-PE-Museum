@@ -51,7 +51,7 @@ DO
     _LIMIT 60
 LOOP UNTIL _KEYHIT = 27
 
-END
+SYSTEM
 
 
 ' Applies some kind of blurring effect on the frame buffer

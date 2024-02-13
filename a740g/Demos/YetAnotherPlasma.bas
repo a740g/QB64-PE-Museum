@@ -78,7 +78,7 @@ LOOP UNTIL _KEYHIT = 27
 
 _KEYCLEAR
 
-END
+SYSTEM
 
 
 ' Calculates and returns the hertz value when repeatedly called inside a loop

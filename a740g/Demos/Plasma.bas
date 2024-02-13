@@ -36,7 +36,7 @@ DO
     _LIMIT 60
 LOOP UNTIL _KEYHIT = 27
 
-END
+SYSTEM
 
 
 ' Plots the correct plasma pixels with the correct color

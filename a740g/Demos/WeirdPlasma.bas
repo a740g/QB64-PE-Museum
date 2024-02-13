@@ -21,7 +21,7 @@ WHILE _KEYHIT <> 27
     _LIMIT 120
 WEND
 
-END
+SYSTEM
 
 
 SUB DrawWeirdPlasma

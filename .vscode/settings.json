@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "*.bi": "vb",
-        "*.bm": "vb",
-        "*.frm": "vb",
-        "inttypes.h": "c",
-        "opl3.c": "cpp"
-    }
-}

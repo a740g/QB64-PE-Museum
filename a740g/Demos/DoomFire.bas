@@ -67,7 +67,7 @@ DO
     _LIMIT 60
 LOOP
 
-END
+SYSTEM
 
 
 SUB SetPalette (t AS LONG)

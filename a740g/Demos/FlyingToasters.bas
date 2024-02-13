@@ -114,7 +114,14 @@ LOOP UNTIL _KEYHIT = 27
 
 _KEYCLEAR
 
-END
+' Cleanup
+FOR i = 1 TO NUMTOASTERFRAMES
+    _FREEIMAGE bmpToaster(i)
+NEXT
+_FREEIMAGE bmpBackground
+_FREEIMAGE bmpCircle
+
+SYSTEM
 
 
 SUB Toaster_Init (t AS ToasterType)
@@ -205,7 +212,7 @@ SUB LoadAssets
     "Uqi10lqj984Ygzknay323pxzuPfy3uO3S1YJDEIBDMPb3f/Ak+B0vn2+4JDgb1Co95wO/M9v22d+Bk1TJ1VSd90ARAcePDCL4r/na+Zd32BJr3zo" + _
     "hctcz33+H3zZsq2X/yeB7KnRS5/AaxBJv6ECfMkgvdLXgFHbwqkTSBn0ttOfAzDTnPSQOgGFbEY5C7QsaICdaW4LmN0L8N2fQQ=="
 
-    bmpToaster(1) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER1_BMP_2518, SIZE_TOASTER1_BMP_2518, COMP_TOASTER1_BMP_2518), -1, 0, "memory", 0)
+    bmpToaster(1) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER1_BMP_2518, SIZE_TOASTER1_BMP_2518, COMP_TOASTER1_BMP_2518), TRUE, FALSE, "memory", 0)
 
     CONST SIZE_TOASTER2_BMP_2518~& = 2518~&
     CONST COMP_TOASTER2_BMP_2518%% = -1%%
@@ -222,7 +229,7 @@ SUB LoadAssets
     "tVZaa/TeGWMw52Stxd6bcw73Xt57iAi/XTrQoBCM4Si+U+3+9f4P3LWF1fIlBOinBGcjtm2bfR7gbG3e6+f5vu8D08SVXbEsv5RDzeCH8/N6L8V7" + _
     "17ubuccTFLjtS/aIvj+Res9oP9pB5ZkINOhROOYmBvvdAQlUeRBI1Rd3R1LLc4Bzv+78yIo0uk8vD++515+X/QEUV5we"
 
-    bmpToaster(2) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER2_BMP_2518, SIZE_TOASTER2_BMP_2518, COMP_TOASTER2_BMP_2518), -1, 0, "memory", 0)
+    bmpToaster(2) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER2_BMP_2518, SIZE_TOASTER2_BMP_2518, COMP_TOASTER2_BMP_2518), TRUE, FALSE, "memory", 0)
 
     CONST SIZE_TOASTER3_BMP_2518~& = 2518~&
     CONST COMP_TOASTER3_BMP_2518%% = -1%%
@@ -239,7 +246,7 @@ SUB LoadAssets
     "OWdKKdRaaa3Re2eMwZyTtRZ7b8453Ht57/3252iFYRCAoWhjeyf9/x8eFDJxxFWhj7vPR43bOGBbCTd5Hy2SlgCyJ/Baq0R+gcRVzd3Iq+/8lD1r" + _
     "HuT2fc2Xoi7ynKrjeF1dh1q/5vvf9x4Gnt677AN32QftgseVKd/4lG96zrsbHwu89+dX2bvn/b/negMelJyn"
 
-    bmpToaster(3) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER3_BMP_2518, SIZE_TOASTER3_BMP_2518, COMP_TOASTER3_BMP_2518), -1, 0, "memory", 0)
+    bmpToaster(3) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER3_BMP_2518, SIZE_TOASTER3_BMP_2518, COMP_TOASTER3_BMP_2518), TRUE, FALSE, "memory", 0)
 
     bmpCircle = _NEWIMAGE(5, 5, 256)
     _COPYPALETTE bmpToaster(1), bmpCircle
