@@ -11,25 +11,6 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 
 | Name | Description |
 |------|-------------|
-| Mooncrap | A Galaxian clone by Daniel Kupfer |
-| Nibbles | Snake clone by [Microsoft](https://github.com/microsoft/) |
-| OpenGL Demos | OpenGL demos by [Galleon](https://github.com/Galleondragon) & [Ashish Kushwaha](https://github.com/AshishKingdom) |
-| Pendulum | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Phone | Simple phone directory by [Microsoft](https://github.com/microsoft/) |
-| PIXELplus 256 | Bitmap graphics library by Chris Chadwick |
-| Platform | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| QB-Bounce | Breakout clone by Future Software |
-| QB-WM | QB64 Window Manager by [Kit](https://github.com/aouwt) |
-| QB45BIN | QuickBASIC 4.5 Binary Source file to Text converter by qarnos |
-| QB64 Asteroids! | Asteroids game by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| QB64 Button Library | Button routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| QB64 Space Invaders! | Space Invaders game by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| QB64 Menu Library | Menu routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| QB64 Graphics Line Input Library | Line Input routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| QB64 Sprite Library | Sprite routines by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| GuiTools GUI Library | A GUI library by [Roland Heyder](https://github.com/RhoSigma-QB64) |
-| QBASCII | ASCII art drawing app by [Jeremy Munn](https://github.com/jtmunn) |
-| QBasic Beautifier | QB code beautifier by Kewbie_newbie |
 | QBasic Nventory | (i)nventory manager by [Morwic](https://github.com/morwic) |
 | Qbasic Tank Commander | Qbasic TANK COMMANDER by Matthew River Knight |
 | QBlocks | Tertis clone by [Microsoft](https://github.com/microsoft/) |
