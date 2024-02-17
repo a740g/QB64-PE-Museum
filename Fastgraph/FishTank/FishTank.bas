@@ -282,7 +282,7 @@ SUB LoadAssets
     "6rWJ7W1+9H4RUAHUlvsAPY11a/yQ6eTFNLziZsA8h3Bbq4FUrnYx7Mevuy6CYILXXYC+fXvSjwaG4+f6me85vwYQLJUr5Ns6sH9R9EwLv4ELQ8jT" + _
     "7UvvYT8qWn709sP9nh5AsFotPR/AzPe0X1MJc3z85n52+8F+zxeAxrDbaLj9+KmsyXYfP4CWdA74yd/Hb93+R34fwNfe7+P3D7y729Y="
 
-    bmpCoral = Graphics_LoadImage(Base64_LoadResourceString(DATA_CORAL_BMP_65078, SIZE_CORAL_BMP_65078, COMP_CORAL_BMP_65078), FALSE, TRUE, "memory, sxbr2", _RGB32(0))
+    bmpCoral = Graphics_LoadImage(Base64_LoadResourceString(DATA_CORAL_BMP_65078, SIZE_CORAL_BMP_65078, COMP_CORAL_BMP_65078), FALSE, TRUE, "memory, hq3xa", _RGB32(0))
 
     CONST SIZE_FISH_BMP_65078~& = 65078~&
     CONST COMP_FISH_BMP_65078%% = -1%%
