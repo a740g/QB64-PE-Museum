@@ -1,138 +1,139 @@
-Sub SETOBJHIDDEN (objid As Integer, n As Integer)
+
+SUB SETOBJHIDDEN (objid AS INTEGER, n AS INTEGER)
     g_objects(objid).hidden = n
-End Sub
-Sub SETOBJX (objid As Integer, x As Float)
+END SUB
+SUB SETOBJX (objid AS INTEGER, x AS FLOAT)
     g_objects(objid).x = x
-End Sub
-Sub SETOBJY (objid As Integer, y As Float)
+END SUB
+SUB SETOBJY (objid AS INTEGER, y AS FLOAT)
     g_objects(objid).y = y
-End Sub
-Sub SETOBJZ (objid As Integer, z As Float)
+END SUB
+SUB SETOBJZ (objid AS INTEGER, z AS FLOAT)
     g_objects(objid).z = z
-End Sub
-Sub SETOBJPOS (objid As Integer, x As Float, y As Float, z As Float)
+END SUB
+SUB SETOBJPOS (objid AS INTEGER, x AS FLOAT, y AS FLOAT, z AS FLOAT)
     g_objects(objid).x = x
     g_objects(objid).y = y
     g_objects(objid).z = z
-End Sub
-Sub SETOBJROT (objid As Integer, xr As Float, yr As Float, zr As Float)
+END SUB
+SUB SETOBJROT (objid AS INTEGER, xr AS FLOAT, yr AS FLOAT, zr AS FLOAT)
     g_objects(objid).rotx = xr
     g_objects(objid).roty = yr
     g_objects(objid).rotz = zr
-End Sub
-Sub ROTATEOBJX (objid As Integer, deg As Float)
-    g_objects(objid).rotx = (g_objects(objid).rotx + deg) Mod 360
-End Sub
-Sub ROTATEOBJY (objid As Integer, deg As Float)
-    g_objects(objid).roty = (g_objects(objid).roty + deg) Mod 360
-End Sub
-Sub ROTATEOBJZ (objid As Integer, deg As Float)
-    g_objects(objid).rotz = (g_objects(objid).rotz + deg) Mod 360
-End Sub
-Sub MOVEOBJX (objid As Integer, n As Float)
+END SUB
+SUB ROTATEOBJX (objid AS INTEGER, deg AS FLOAT)
+    g_objects(objid).rotx = (g_objects(objid).rotx + deg) MOD 360
+END SUB
+SUB ROTATEOBJY (objid AS INTEGER, deg AS FLOAT)
+    g_objects(objid).roty = (g_objects(objid).roty + deg) MOD 360
+END SUB
+SUB ROTATEOBJZ (objid AS INTEGER, deg AS FLOAT)
+    g_objects(objid).rotz = (g_objects(objid).rotz + deg) MOD 360
+END SUB
+SUB MOVEOBJX (objid AS INTEGER, n AS FLOAT)
     g_objects(objid).x = g_objects(objid).x + n
-End Sub
-Sub MOVEOBJY (objid As Integer, n As Float)
+END SUB
+SUB MOVEOBJY (objid AS INTEGER, n AS FLOAT)
     g_objects(objid).y = g_objects(objid).y + n
-End Sub
-Sub MOVEOBJZ (objid As Integer, n As Float)
+END SUB
+SUB MOVEOBJZ (objid AS INTEGER, n AS FLOAT)
     g_objects(objid).z = g_objects(objid).z + n
-End Sub
-Sub SETOBJSCALE (objid As Integer, x As Float, y As Float, z As Float)
+END SUB
+SUB SETOBJSCALE (objid AS INTEGER, x AS FLOAT, y AS FLOAT, z AS FLOAT)
     g_objects(objid).scalex = x
     g_objects(objid).scaley = y
     g_objects(objid).scalez = z
-End Sub
-Sub ROTATECAMX (deg As Float)
-    g_cam.rotx = (g_cam.rotx + deg) Mod 360
-End Sub
-Sub ROTATECAMY (deg As Float)
-    g_cam.roty = (g_cam.roty + deg) Mod 360
-End Sub
-Sub ROTATECAMZ (deg As Float)
-    g_cam.rotz = (g_cam.rotz + deg) Mod 360
-End Sub
-Sub MOVECAMX (n As Float)
+END SUB
+SUB ROTATECAMX (deg AS FLOAT)
+    g_cam.rotx = (g_cam.rotx + deg) MOD 360
+END SUB
+SUB ROTATECAMY (deg AS FLOAT)
+    g_cam.roty = (g_cam.roty + deg) MOD 360
+END SUB
+SUB ROTATECAMZ (deg AS FLOAT)
+    g_cam.rotz = (g_cam.rotz + deg) MOD 360
+END SUB
+SUB MOVECAMX (n AS FLOAT)
     g_cam.x = g_cam.x + n
-End Sub
-Sub MOVECAMY (n As Float)
+END SUB
+SUB MOVECAMY (n AS FLOAT)
     g_cam.y = g_cam.y + n
-End Sub
-Sub MOVECAMZ (n As Float)
+END SUB
+SUB MOVECAMZ (n AS FLOAT)
     g_cam.z = g_cam.z + n
-End Sub
+END SUB
 
-Function boxCollision (a As CBOX, b As CBOX)
-    If a.y + a.height < b.y Or a.y > b.y + b.height Or a.x + a.width < b.x Or a.x > b.x + b.width Then
+FUNCTION boxCollision (a AS CBOX, b AS CBOX)
+    IF a.y + a.height < b.y OR a.y > b.y + b.height OR a.x + a.width < b.x OR a.x > b.x + b.width THEN
         boxCollision = 0
-        Exit Function
-    End If
+        EXIT FUNCTION
+    END IF
     boxCollision = 1
-End Function
+END FUNCTION
 
 
-Function chooseShadeTex (num As Integer)
+FUNCTION chooseShadeTex (num AS INTEGER)
     chooseShadeTex = 0
-    If num <= 40 Then
+    IF num <= 40 THEN
         chooseShadeTex = 8
-    ElseIf num <= 70 Then
+    ELSEIF num <= 70 THEN
         chooseShadeTex = 7
-    ElseIf num <= 100 Then
+    ELSEIF num <= 100 THEN
         chooseShadeTex = 6
-    ElseIf num <= 130 Then
+    ELSEIF num <= 130 THEN
         chooseShadeTex = 5
-    ElseIf num <= 160 Then
+    ELSEIF num <= 160 THEN
         chooseShadeTex = 4
-    ElseIf num <= 180 Then
+    ELSEIF num <= 180 THEN
         chooseShadeTex = 3
-    ElseIf num <= 200 Then
+    ELSEIF num <= 200 THEN
         chooseShadeTex = 2
-    ElseIf num <= 220 Then
+    ELSEIF num <= 220 THEN
         chooseShadeTex = 1
-    End If
-End Function
+    END IF
+END FUNCTION
 
-Sub createTexture (filename As String, image_array() As Long)
-    Dim imgw, imgh
-    Dim i
-    Dim tmp_image_array(8) As Long
-    ReDim Preserve image_array(8) As Long
+SUB createTexture (filename AS STRING, image_array() AS LONG)
+    DIM imgw, imgh
+    DIM i
+    DIM tmp_image_array(8) AS LONG
+    REDIM PRESERVE image_array(8) AS LONG
 
-    tmp_image_array(0) = LoadImage(filename)
-    image_array(0) = CopyImage(tmp_image_array(0), 33)
+    tmp_image_array(0) = LOADIMAGE(filename)
+    image_array(0) = COPYIMAGE(tmp_image_array(0), 33)
 
-    imgw = Width(tmp_image_array(0))
-    imgh = Height(tmp_image_array(0))
-    tmp_image_array(1) = CopyImage(tmp_image_array(0), 32)
-    tmp_image_array(2) = CopyImage(tmp_image_array(0), 32)
-    tmp_image_array(3) = CopyImage(tmp_image_array(0), 32)
-    tmp_image_array(4) = CopyImage(tmp_image_array(0), 32)
-    tmp_image_array(5) = CopyImage(tmp_image_array(0), 32)
-    tmp_image_array(6) = CopyImage(tmp_image_array(0), 32)
-    tmp_image_array(7) = CopyImage(tmp_image_array(0), 32)
-    tmp_image_array(8) = CopyImage(tmp_image_array(0), 32)
+    imgw = WIDTH(tmp_image_array(0))
+    imgh = HEIGHT(tmp_image_array(0))
+    tmp_image_array(1) = COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(2) = COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(3) = COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(4) = COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(5) = COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(6) = COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(7) = COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(8) = COPYIMAGE(tmp_image_array(0), 32)
 
-    Dest tmp_image_array(1): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 10), BF , 255 '0 - transparent
-    Dest tmp_image_array(2): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 50), BF , 255
-    Dest tmp_image_array(3): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 90), BF , 255
-    Dest tmp_image_array(4): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 130), BF , 255
-    Dest tmp_image_array(5): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 160), BF , 255
-    Dest tmp_image_array(6): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 190), BF , 255
-    Dest tmp_image_array(7): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 220), BF , 255
-    Dest tmp_image_array(8): Line (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 250), BF , 255
+    DEST tmp_image_array(1): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 10), BF , 255 '0 - transparent
+    DEST tmp_image_array(2): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 50), BF , 255
+    DEST tmp_image_array(3): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 90), BF , 255
+    DEST tmp_image_array(4): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 130), BF , 255
+    DEST tmp_image_array(5): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 160), BF , 255
+    DEST tmp_image_array(6): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 190), BF , 255
+    DEST tmp_image_array(7): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 220), BF , 255
+    DEST tmp_image_array(8): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 250), BF , 255
 
-    image_array(1) = CopyImage(tmp_image_array(1), 33)
-    image_array(2) = CopyImage(tmp_image_array(2), 33)
-    image_array(3) = CopyImage(tmp_image_array(3), 33)
-    image_array(4) = CopyImage(tmp_image_array(4), 33)
-    image_array(5) = CopyImage(tmp_image_array(5), 33)
-    image_array(6) = CopyImage(tmp_image_array(6), 33)
-    image_array(7) = CopyImage(tmp_image_array(7), 33)
-    image_array(8) = CopyImage(tmp_image_array(8), 33)
+    image_array(1) = COPYIMAGE(tmp_image_array(1), 33)
+    image_array(2) = COPYIMAGE(tmp_image_array(2), 33)
+    image_array(3) = COPYIMAGE(tmp_image_array(3), 33)
+    image_array(4) = COPYIMAGE(tmp_image_array(4), 33)
+    image_array(5) = COPYIMAGE(tmp_image_array(5), 33)
+    image_array(6) = COPYIMAGE(tmp_image_array(6), 33)
+    image_array(7) = COPYIMAGE(tmp_image_array(7), 33)
+    image_array(8) = COPYIMAGE(tmp_image_array(8), 33)
 
-    For i = 0 To UBound(tmp_image_array)
-        FreeImage (tmp_image_array(i))
-    Next i
+    FOR i = 0 TO UBOUND(tmp_image_array)
+        FREEIMAGE (tmp_image_array(i))
+    NEXT i
     DEST G_MAINSCREEN
 END SUB
 
@@ -632,4 +633,3 @@ END SUB
 FUNCTION Deg2Rad## (d##)
     Deg2Rad = d## * _PI / 180
 END FUNCTION
-
