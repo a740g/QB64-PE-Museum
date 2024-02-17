@@ -738,9 +738,7 @@ DO
         p1 = TriangleVertex(t)
         p2 = TriangleVertex(t + 1)
         p3 = TriangleVertex(t + 2)
-_maptriangle(    VertexTX(p1),    VertexTY(p1))-(    VertexTX(p2),    VertexTY(p2))-(    VertexTX(p3),    VertexTY(p3)), _
-tex to _
-(VertexX(p1),Vertexy(p1),Vertexz(p1))-(VertexX(p2),Vertexy(p2),Vertexz(p2))-(VertexX(p3),Vertexy(p3),Vertexz(p3))
+        _MAPTRIANGLE (VertexTX(p1), VertexTY(p1))-(VertexTX(p2), VertexTY(p2))-(VertexTX(p3), VertexTY(p3)), tex TO(VertexX(p1), VertexY(p1), VertexZ(p1))-(VertexX(p2), VertexY(p2), VertexZ(p2))-(VertexX(p3), VertexY(p3), VertexZ(p3))
 
     NEXT
 
