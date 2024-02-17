@@ -11,65 +11,6 @@ These are [BASIC](https://en.wikipedia.org/wiki/BASIC) ([GWBASIC](https://winwor
 
 | Name | Description |
 |------|-------------|
-| 2D Robot Arm | Robot simulation by [Bantis Asterios](https://github.com/bandisast) |
-| 3D Experiment | Experimentation with 3D formulae by [qb40](https://github.com/qb40) |
-| 3D Grapher | 3D Grapher in QB64 using OpenGL by [Ashish Kushwaha](https://github.com/AshishKingdom) |
-| 3D Library for QB64 | Simple to use 3D library for QB64 by [Boris / creamcast](https://github.com/creamcast) |
-| 3DCTRWGRAPH | 3D Graphics and Physics Engine by [William F. Barnes](http://barnes.x10host.com/home/) |
-| 3DS Object Viewer | 3DS Object Viewer by David Llewellyn |
-| 4Pong | Four player Pong game by Matthew |
-| Abacus | Abacus app by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
-| aKFrameWork | GUI library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
-| Amongst | Among Us clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Animax |  A Graphics/Animation utility by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
-| ArcDemo | A 2D platformer game by Tsiplacov Sergey |
-| ASCIIMAN | ASCII-based platforming game/engine by [musicman3569](https://github.com/musicman3569) |
-| Assault | A turn-based artillery game by Glenn Powell |
-| Bad Boxes | Bad Boxes by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| Bad Boxes Revenge | Revenge of the Bad Boxes! by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| Bin2BAS | Binary to text converter by [Dav](http://qbasicnews.com/dav) |
-| Bin2Include | Binary to Include converter by [Zachary Spriggs](https://github.com/SpriggsySpriggs) |
-| Biorythm Chart | Biorythm Chart by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
-| Blockout | Breakout clone by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Breakout 2002 | A platformer by [Sean Weeks](http://scybolt.com/ti/qbasic2.html) |
-| Calculator | GUI calculator by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| Can't Contain Me | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Castle | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
-| Chess | Chess game by rfrost |
-| ChessSubs | Chess game subroutines by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
-| Cloned Shades | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Condense | Text file condenser by [Samuel Gomes](https://github.com/a740g) |
-| D1NGOS Maze | A maze game by [DingoLabs](https://github.com/DingoLabs) |
-| Demos | QB64 Demos from various sources |
-| Didris | A Tertis clone by [Dietmar Moritz](https://github.com/didi-moritz) |
-| Donkey | DONKEY.BAS by [IBM](https://github.com/IBM) |
-| Drum Machine | A drum beat creation tool by [Dav](http://qbasicnews.com/dav) |
-| Epicycles | Plotting curves using epicycles by [William F. Barnes](http://barnes.x10host.com/home/) |
-| Fake CPU | A fictional CPU emulator by [magicaros](https://github.com/magicaros) |
-| Flappy Bird | Flappy Bird Clone by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| FluidCraft | A particle sandbox simulation by [William F. Barnes](http://barnes.x10host.com/home/) |
-| Four in a Row | Connect Four Game by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| Frogger | QB64 game by Matt Bross |
-| Frosbite | Frosbite Tribute by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Future Blocks | Tertis clone by [Michael Fogleman](https://github.com/fogleman) |
-| Genius | Genius memory game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Ghost Wizard | A Roguelike game by Zack Johnson |
-| Gorillas | A turn-based artillery game by [Microsoft](https://github.com/microsoft/) |
-| GridLife | Grid based simulation by [William F. Barnes](http://barnes.x10host.com/home/) |
-| GUI Menu Bar | Lightweight Menu Bar library by [Ashish Kushwaha](https://github.com/AshishKingdom) |
-| Hex | Hex editor by [Luke Ceddia](https://github.com/flukiluke) |
-| Hunter | Maze Hunter game by [Microsoft](https://github.com/microsoft/) |
-| Hunter's Revenge | A shooting game by [Ashish Kushwaha](https://github.com/AshishKingdom) |
-| InForm Demos | Demos using the InForm library by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| Kaboom! | A remake of the 1983 game by [Terry Ritchie](https://www.qb64tutorial.com/) |
-| KING-KONG vs MIGHTY JOE YOUNG | A turn-based artillery game by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
-| Lights On | QB64 game by [Fellippe Heitor](https://github.com/FellippeHeitor) |
-| MADMIX | A Pacman clone by Enrique Huerta |
-| MakeCARR | MakeCARR & MakeDATA file embedding utilities by [Roland Heyder](https://github.com/RhoSigma-QB64) |
-| Maze | Maze of Misery by Steve M. |
-| Mini Golf | A mini golf game by [Bob Seguin](https://qb64phoenix.com/forum/forumdisplay.php?fid=27) |
-| Money | Simple money manager by [Microsoft](https://github.com/microsoft/) |
-| Moon Lander | Moon Lander by rfrost |
 | Mooncrap | A Galaxian clone by Daniel Kupfer |
 | Nibbles | Snake clone by [Microsoft](https://github.com/microsoft/) |
 | OpenGL Demos | OpenGL demos by [Galleon](https://github.com/Galleondragon) & [Ashish Kushwaha](https://github.com/AshishKingdom) |
