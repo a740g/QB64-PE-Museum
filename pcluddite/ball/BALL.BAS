@@ -1,21 +1,10 @@
-DECLARE SUB CreateOtherFancyBox ()
-DECLARE FUNCTION Rand% (Bottom AS INTEGER, Top AS INTEGER)
-DECLARE SUB ATTRACTION (i%)
-DECLARE SUB ChangeValue (selected!, k$)
-DECLARE SUB CreateFancyBox ()
-DECLARE SUB GRAVITY (i%)
-DECLARE SUB COLLISION (i%)
-DECLARE SUB delay (ticks%)
-DECLARE SUB REDRAW (i%)
-DECLARE SUB SETUP ()
-
 TYPE BALL
-  X AS DOUBLE
-  Y AS DOUBLE
-  U AS DOUBLE
-  V AS DOUBLE
-  XA AS DOUBLE
-  YA AS DOUBLE
+    X AS DOUBLE
+    Y AS DOUBLE
+    U AS DOUBLE
+    V AS DOUBLE
+    XA AS DOUBLE
+    YA AS DOUBLE
 END TYPE
 
 DIM SHARED nBall AS INTEGER
@@ -24,10 +13,10 @@ DIM SHARED dt AS DOUBLE
 DIM SHARED radius AS INTEGER
 DIM SHARED diam AS INTEGER
 DIM SHARED elastic AS DOUBLE
-DIM SHARED fric AS CURRENCY
+DIM SHARED fric AS DOUBLE
 DIM SHARED isCollision AS INTEGER
-DIM SHARED grav AS CURRENCY
-DIM SHARED attract AS CURRENCY
+DIM SHARED grav AS DOUBLE
+DIM SHARED attract AS DOUBLE
 DIM SHARED bg AS INTEGER
 DIM SHARED fg AS INTEGER
 DIM SHARED dela AS INTEGER
@@ -60,60 +49,62 @@ LINE (0, gh + 1)-(gw, gh + 1), 0
 PAINT (0, gh + 2), 0
 
 WHILE 1
-  FOR i% = 1 TO nBall
-    CIRCLE (balls(i%).X, balls(i%).Y), radius, bg
-    REDRAW i%
-    IF i% = sBall THEN
-        CIRCLE (balls(i%).X, balls(i%).Y), radius, 0
-    ELSE
-        CIRCLE (balls(i%).X, balls(i%).Y), radius, fg
-    END IF
-  NEXT
-  k$ = INKEY$
-  SELECT CASE k$
-    CASE CHR$(27)
-        CLS
-        SETUP
-        SCREEN 12
-        PAINT (0, 0), bg
-        LINE (0, gh + 1)-(gw, gh + 1), 0
-        PAINT (0, gh + 2), 0
-    CASE "=", "+"
-        sBall = sBall + 1
-        IF sBall > nBall THEN sBall = 1
-    CASE "-"
-        sBall = sBall - 1
-        IF sBall < 1 THEN sBall = nBall
-    CASE " "
-        WHILE INKEY$ <> " ": WEND
-    CASE CHR$(13)
-        balls(sBall).U = 0
-        balls(sBall).V = 0
-    CASE CHR$(0) + "P"
-        balls(sBall).V = balls(sBall).V + 1
-    CASE CHR$(0) + "H"
-        balls(sBall).V = balls(sBall).V - 1
-    CASE CHR$(0) + "M"
-        balls(sBall).U = balls(sBall).U + 1
-    CASE CHR$(0) + "K"
-        balls(sBall).U = balls(sBall).U - 1
+    FOR i% = 1 TO nBall
+        CIRCLE (balls(i%).X, balls(i%).Y), radius, bg
+        REDRAW i%
+        IF i% = sBall THEN
+            CIRCLE (balls(i%).X, balls(i%).Y), radius, 0
+        ELSE
+            CIRCLE (balls(i%).X, balls(i%).Y), radius, fg
+        END IF
+    NEXT
+    k$ = INKEY$
+    SELECT CASE k$
+        CASE CHR$(27)
+            CLS
+            SETUP
+            SCREEN 12
+            PAINT (0, 0), bg
+            LINE (0, gh + 1)-(gw, gh + 1), 0
+            PAINT (0, gh + 2), 0
+        CASE "=", "+"
+            sBall = sBall + 1
+            IF sBall > nBall THEN sBall = 1
+        CASE "-"
+            sBall = sBall - 1
+            IF sBall < 1 THEN sBall = nBall
+        CASE " "
+            WHILE INKEY$ <> " ": WEND
+        CASE CHR$(13)
+            balls(sBall).U = 0
+            balls(sBall).V = 0
+        CASE CHR$(0) + "P"
+            balls(sBall).V = balls(sBall).V + 1
+        CASE CHR$(0) + "H"
+            balls(sBall).V = balls(sBall).V - 1
+        CASE CHR$(0) + "M"
+            balls(sBall).U = balls(sBall).U + 1
+        CASE CHR$(0) + "K"
+            balls(sBall).U = balls(sBall).U - 1
     END SELECT
+
+    _LIMIT 60
 WEND
 
 
 SUB ATTRACTION (i%)
-  IF attract <> 0 THEN
-    FOR j% = i% + 1 TO nBall
-        xm = balls(j%).X - balls(i%).X
-        ym = balls(j%).Y - balls(i%).Y
-        dist = xm ^ 2 + ym ^ 2
-        IF dist < (radius ^ 2) THEN dist = radius ^ 2
-        balls(i%).U = attract * xm / dist + balls(i%).U
-        balls(i%).V = attract * ym / dist + balls(i%).V
-        balls(j%).U = attract * xm / dist + balls(j%).U
-        balls(j%).V = -attract * ym / dist + balls(j%).V
-    NEXT
-  END IF
+    IF attract <> 0 THEN
+        FOR j% = i% + 1 TO nBall
+            xm = balls(j%).X - balls(i%).X
+            ym = balls(j%).Y - balls(i%).Y
+            dist = xm ^ 2 + ym ^ 2
+            IF dist < (radius ^ 2) THEN dist = radius ^ 2
+            balls(i%).U = attract * xm / dist + balls(i%).U
+            balls(i%).V = attract * ym / dist + balls(i%).V
+            balls(j%).U = attract * xm / dist + balls(j%).U
+            balls(j%).V = -attract * ym / dist + balls(j%).V
+        NEXT
+    END IF
 END SUB
 
 SUB ChangeValue (selected, k$)
@@ -283,7 +274,7 @@ SUB ChangeValue (selected, k$)
                 PRINT iattract%
                 LOCATE 12, 51
                 PRINT "0"
-                END IF
+            END IF
             LOCATE 12, 48
             PRINT INT(attract)
             LOCATE 12, 50
@@ -407,165 +398,165 @@ SUB COLLISION (i%)
             balls(i%).Y = yi
             balls(j%).X = xj
             balls(j%).Y = yj
-       END IF
+        END IF
     NEXT
 END SUB
 
 SUB CreateFancyBox ()
 
-COLOR 15, 1
+    COLOR 15, 1
 
-LOCATE 3, 23
-PRINT CHR$(201)
-LOCATE 18, 23
-PRINT CHR$(200)
-LOCATE 18, 56
-PRINT CHR$(188)
-LOCATE 3, 56
-PRINT CHR$(187)
+    LOCATE 3, 23
+    PRINT CHR$(201)
+    LOCATE 18, 23
+    PRINT CHR$(200)
+    LOCATE 18, 56
+    PRINT CHR$(188)
+    LOCATE 3, 56
+    PRINT CHR$(187)
 
-COLOR 1, 0
+    COLOR 1, 0
 
-FOR i% = 0 TO 13
-    FOR j% = 0 TO 32
-        LOCATE 4 + i%, 24 + j%
-        PRINT CHR$(219)
+    FOR i% = 0 TO 13
+        FOR j% = 0 TO 32
+            LOCATE 4 + i%, 24 + j%
+            PRINT CHR$(219)
+        NEXT
     NEXT
-NEXT
 
-COLOR 15, 1
+    COLOR 15, 1
 
-FOR i% = 0 TO 31
-LOCATE 3, 24 + i%
-PRINT CHR$(205)
-LOCATE 18, 24 + i%
-PRINT CHR$(205)
-NEXT
+    FOR i% = 0 TO 31
+        LOCATE 3, 24 + i%
+        PRINT CHR$(205)
+        LOCATE 18, 24 + i%
+        PRINT CHR$(205)
+    NEXT
 
-FOR i% = 0 TO 13
-LOCATE 4 + i%, 23
-PRINT CHR$(186)
-LOCATE 4 + i%, 56
-PRINT CHR$(186)
-NEXT
+    FOR i% = 0 TO 13
+        LOCATE 4 + i%, 23
+        PRINT CHR$(186)
+        LOCATE 4 + i%, 56
+        PRINT CHR$(186)
+    NEXT
 
 END SUB
 
 SUB CreateOtherFancyBox ()
 
-COLOR 2, 0
+    COLOR 2, 0
 
-FOR i% = 0 TO 3
-    FOR j% = 0 TO 43
-        LOCATE 20 + i%, 18 + j%
-        PRINT CHR$(219)
+    FOR i% = 0 TO 3
+        FOR j% = 0 TO 43
+            LOCATE 20 + i%, 18 + j%
+            PRINT CHR$(219)
+        NEXT
     NEXT
-NEXT
 
-COLOR 15, 2
+    COLOR 15, 2
 
-FOR i% = 0 TO 41
-LOCATE 20, 19 + i%
-PRINT CHR$(205)
-LOCATE 23, 19 + i%
-PRINT CHR$(205)
-NEXT
+    FOR i% = 0 TO 41
+        LOCATE 20, 19 + i%
+        PRINT CHR$(205)
+        LOCATE 23, 19 + i%
+        PRINT CHR$(205)
+    NEXT
 
-FOR i% = 0 TO 1
-LOCATE 21 + i%, 18
-PRINT CHR$(186)
-LOCATE 21 + i%, 61
-PRINT CHR$(186)
+    FOR i% = 0 TO 1
+        LOCATE 21 + i%, 18
+        PRINT CHR$(186)
+        LOCATE 21 + i%, 61
+        PRINT CHR$(186)
 
-NEXT
+    NEXT
 
-LOCATE 20, 18
-PRINT CHR$(201)
-LOCATE 23, 18
-PRINT CHR$(200)
-LOCATE 23, 61
-PRINT CHR$(188)
-LOCATE 20, 61
-PRINT CHR$(187)
+    LOCATE 20, 18
+    PRINT CHR$(201)
+    LOCATE 23, 18
+    PRINT CHR$(200)
+    LOCATE 23, 61
+    PRINT CHR$(188)
+    LOCATE 20, 61
+    PRINT CHR$(187)
 
-LOCATE 21, 20
-PRINT "CHANGE SELECTED: +/-"
+    LOCATE 21, 20
+    PRINT "CHANGE SELECTED: +/-"
 
-LOCATE 21, 46
-PRINT "STOP:  {ENTER}"
-LOCATE 22, 46
-PRINT "PAUSE: {SPACE}"
-
-
-LOCATE 22, 20
-PRINT "CHANGE VELOCITY:"
-
-FOR i% = 0 TO 1
-    LOCATE 22, 37 + (2 * i%)
-    PRINT CHR$(24 + i%)
-NEXT
-
-FOR i% = 1 TO 0 STEP -1
-    LOCATE 22, 43 - (2 * i%)
-    PRINT CHR$(26 + i%)
-NEXT
+    LOCATE 21, 46
+    PRINT "STOP:  {ENTER}"
+    LOCATE 22, 46
+    PRINT "PAUSE: {SPACE}"
 
 
-COLOR 15, 1
+    LOCATE 22, 20
+    PRINT "CHANGE VELOCITY:"
+
+    FOR i% = 0 TO 1
+        LOCATE 22, 37 + (2 * i%)
+        PRINT CHR$(24 + i%)
+    NEXT
+
+    FOR i% = 1 TO 0 STEP -1
+        LOCATE 22, 43 - (2 * i%)
+        PRINT CHR$(26 + i%)
+    NEXT
+
+
+    COLOR 15, 1
 
 END SUB
 
 SUB delay (ticks%)
 
-FOR i% = 1 TO ticks%
-    st# = TIMER
-    WHILE TIMER = st#: WEND
-NEXT i%
+    FOR i% = 1 TO ticks%
+        st# = TIMER
+        WHILE TIMER = st#: WEND
+    NEXT i%
 
 END SUB
 
 SUB GRAVITY (i%)
-  U = balls(i%).U
-  V = balls(i%).V
-  fricscale = (1 - fric / SQR(1 + U ^ 2 + V ^ 2))
-  balls(i%).U = fricscale * U
-  balls(i%).V = fricscale * V + grav
+    U = balls(i%).U
+    V = balls(i%).V
+    fricscale = (1 - fric / SQR(1 + U ^ 2 + V ^ 2))
+    balls(i%).U = fricscale * U
+    balls(i%).V = fricscale * V + grav
 END SUB
 
 SUB PAUSE ()
-  WHILE INKEY$ = "": WEND
+    WHILE INKEY$ = "": WEND
 END SUB
 
 FUNCTION Rand% (Bottom AS INTEGER, Top AS INTEGER)
-  RANDOMIZE TIMER
-  RANDOMIZE RND
-  Rand% = INT((Top - Bottom + 1) * RND + Bottom)
+    RANDOMIZE TIMER
+    RANDOMIZE RND
+    Rand% = INT((Top - Bottom + 1) * RND + Bottom)
 END FUNCTION
 
 SUB REDRAW (i%)
-  balls(i%).X = balls(i%).X + (balls(i%).U * dt)
-  balls(i%).Y = balls(i%).Y + (balls(i%).V * dt)
-  X = balls(i%).X
-  Y = balls(i%).Y
-  IF X < radius THEN
-    balls(i%).U = -balls(i%).U
-    balls(i%).X = radius
-  END IF
-  IF X > (gw - radius) THEN
-    balls(i%).U = -balls(i%).U
-    balls(i%).X = (gw - radius)
-  END IF
-  IF Y < radius THEN
-    balls(i%).V = -balls(i%).V
-    balls(i%).Y = radius
-  END IF
-  IF Y > (gh - radius) THEN
-    balls(i%).V = -balls(i%).V
-    balls(i%).Y = gh - radius
-  END IF
-  COLLISION i%
-  GRAVITY i%
-  ATTRACTION i%
+    balls(i%).X = balls(i%).X + (balls(i%).U * dt)
+    balls(i%).Y = balls(i%).Y + (balls(i%).V * dt)
+    X = balls(i%).X
+    Y = balls(i%).Y
+    IF X < radius THEN
+        balls(i%).U = -balls(i%).U
+        balls(i%).X = radius
+    END IF
+    IF X > (gw - radius) THEN
+        balls(i%).U = -balls(i%).U
+        balls(i%).X = (gw - radius)
+    END IF
+    IF Y < radius THEN
+        balls(i%).V = -balls(i%).V
+        balls(i%).Y = radius
+    END IF
+    IF Y > (gh - radius) THEN
+        balls(i%).V = -balls(i%).V
+        balls(i%).Y = gh - radius
+    END IF
+    COLLISION i%
+    GRAVITY i%
+    ATTRACTION i%
 END SUB
 
 SUB SETUP ()
@@ -622,18 +613,18 @@ SUB SETUP ()
     ChangeValue 3, ""
     ChangeValue 4, ""
     ChangeValue 5, ""
-    
+
     LOCATE 15, 25
     PRINT "{ENTER} TO RUN SIMULATION"
-    
+
     IF isStart = 1 THEN COLOR 8, 1
     LOCATE 16, 25
     PRINT "{R}     TO RESUME SIMULATION"
     IF isStart = 1 THEN COLOR 15, 1
-    
+
     LOCATE 17, 25
     PRINT "{ESC}   TO EXIT"
-    
+
     COLOR 6, 1
     LOCATE 8, 54
     PRINT CHR$(16)
@@ -651,7 +642,7 @@ SUB SETUP ()
     PRINT CHR$(16)
 
     selected = 0
-    
+
     WHILE 1
         k$ = INKEY$
         SELECT CASE k$
@@ -701,7 +692,7 @@ SUB SETUP ()
         END SELECT
     WEND
 
-START:
+    START:
     IF r = 0 THEN
         sBall = 1
         FOR i% = 1 TO nBall
@@ -712,4 +703,3 @@ START:
         NEXT
     END IF
 END SUB
-
