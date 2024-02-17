@@ -119,7 +119,7 @@ SUB ChangeValue (selected, k$)
                 nBall = nBall - 1
                 IF nBall < 1 THEN nBall = 20
             END IF
-            
+
             IF nBall > 9 THEN
                 LOCATE 8, 50
             ELSE
