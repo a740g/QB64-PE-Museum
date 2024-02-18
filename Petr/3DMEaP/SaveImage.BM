@@ -1,0 +1,1595 @@
+'Header include below is just here for ease of quick formatting and error checking of SUBS/FUNCTIONS when writing/editing the library.
+''$INCLUDE:'SaveImage.BI'
+
+'************************************************
+'  Beginning of SaveImage Library Subs/Functions by SMcNeill
+'************************************************
+
+Function SaveImage (file$, image&, x1%, y1%, x2%, y2%)
+    '-1   All is good.  We think we exported a proper PNG file.
+    ' 0   Compression failed.  File is probably corrupt.
+    ' 1   File Already Exists.  As these are Binary files, we probably don't want to just overwrite the same file.
+    ' 2   Incorrect Alpha settings.  Check for Alpha mode, and Color mode, and look for conflicts.
+    ' 3   Bad GrabMode
+    ' 4   Bad x1 coordinate
+    ' 5   Bad y1 coordinate
+    ' 6   Bad x2 coordinate
+    ' 7   Bad y2 coordinate
+    ' 8   x2 < x1 -- correct this to proceed
+    ' 9   y2 < y1 -- correct this to proceed
+    '10   Bad color mode.  Either use 256 or 32 color mode.
+    '11   Attempted to export a text screen which will not work.
+    '12   PNG save is impossible on non-Windows systems.  Can only use BMP
+    '13   Invalid extension, or lack of extension
+
+    If x1% < 0 Then SaveImage = 4: Exit Function
+    If y1% < 0 Then SaveImage = 5: Exit Function
+    If x2% > _Width(image&) Then SaveImage = 6: Exit Function
+    If y2% > _Height(image&) Then SaveImage = 7: Exit Function
+    If x1% > x2% Then SaveImage = 8: Exit Function
+    If y1% > y2% Then SaveImage = 9: Exit Function
+
+    If _PixelSize(image&) = 0 Then
+        If x1% < 1 Then x1% = 1 'Text Coordinates start at 1 to _WIDTH
+        If y1% < 1 Then y1% = 1
+
+        If SaveTextAs256Color Then
+            tempimage& = TextScreenToImage256&(image&)
+        Else
+            tempimage& = TextScreenToImage32&(image&)
+        End If
+        F = _Font(image&)
+        FW = _FontWidth(F): FH = _FontHeight(F)
+        SaveImage = SaveImage(file$, tempimage&, (x1% - 1) * FW, (y1% - 1) * FH, x2% * FW - 1, y2% * FH - 1)
+        _FreeImage tempimage&
+        Exit Function
+    End If
+    ext$ = UCase$(Right$(file$, 4))
+
+    If x2% = _Width(image&) Then x2% = _Width(image&) - 1
+    If y2% = _Height(image&) Then y2% = _Height(image&) - 1
+
+
+    If ext$ = ".BMP" Then
+        SaveBMP file$, image&, x1%, y1%, x2%, y2%
+        SaveImage = -1
+    ElseIf ext$ = ".PNG" Then
+        SaveImage = PNGExport(file$, image&, x1%, y1%, x2%, y2%)
+    ElseIf ext$ = ".JPG" Then
+        SaveJPG file$, image&, x1%, y1%, x2%, y2%
+        SaveImage = -1
+    ElseIf ext$ = ".GIF" Then
+        S = _Source: D = _Dest
+        If _PixelSize(image&) = 4 Then 'It's a 32-bit image screen.  It has to be converted down to 256 colors before making a GIF
+            t = Image32To256(image&) 'View comments in FUNCTION Image32To256 for CONST settings to toggle behavior
+            _Dest t: _Source t 'make the converted image our source
+            MakeGIF file$, x1%, y1%, x2%, y2%, 256
+            _Dest D: _Source S 'restore our source
+            _FreeImage t 'free the converted image
+        Else
+            _Source image&: MakeGIF file$, x1%, y1%, x2%, y2%, 256
+            _Source S
+        End If
+        SaveImage = -1
+    Else
+        SaveImage = 13
+    End If
+End Function
+
+Sub SaveFullImage (filename$)
+    S = _Source
+    result = SaveImage(filename$, S, 0, 0, _Width(S) - 1, _Height(S) - 1)
+End Sub
+
+Sub SaveFullBMP (filename$)
+    S = _Source
+    SaveBMP filename$, S, 0, 0, _Width(S) - 1, _Height(S) - 1
+End Sub
+
+Function SaveFullPNG (filename$)
+    S = _Source
+    SaveFullPNG = PNGExport(filename$, S, 0, 0, _Width(S) - 1, _Height(S) - 1)
+End Function
+
+Sub SaveFullJPG (filename$)
+    S = _Source
+    SaveJPG filename$, S, 0, 0, _Width(S) - 1, _Height(S) - 1
+End Sub
+
+Sub SaveBMP (filename$, image&, x1%, y1%, x2%, y2%)
+    'Super special STEVE-Approved BMP Export routine for use with any QB64 graphic mode.
+    If x2% = _Width(image&) Then x2% = x2% - 1
+    If y2% = _Height(image&) Then y2% = y2% - 1
+
+    If _PixelSize(image&) = 0 Then
+        If SaveTextAs256Color Then
+            tempimage& = TextScreenToImage256&(image&)
+        Else
+            tempimage& = TextScreenToImage32&(image&)
+        End If
+        F = _Font(image&)
+        FW = _FontWidth(F): FH = _FontHeight(F)
+        SaveBMP filename$, tempimage&, x1% * FW, y1% * FH, x2% * FW, y2% * FH
+        _FreeImage tempimage&
+        Exit Sub
+    End If
+
+    Type BMPFormat
+        ID As String * 2
+        Size As Long
+        Blank As Long
+        Offset As Long
+        Hsize As Long
+        PWidth As Long
+        PDepth As Long
+        Planes As Integer
+        BPP As Integer
+        Compression As Long
+        ImageBytes As Long
+        Xres As Long
+        Yres As Long
+        NumColors As Long
+        SigColors As Long
+    End Type
+
+
+    Dim BMP As BMPFormat
+    Dim x As Long, y As Long
+    Dim temp As String, t As String * 1
+
+    Dim n As _MEM, o As _Offset, m As _MEM
+    m = _MemImage(image&)
+
+    If x1% > x2% Then Swap x1%, x2%
+    If y1% > y2% Then Swap y1%, y2%
+    If x2% = _Width(imagehandle%) Then x2% = _Width(imagehandle%) - 1 'troubleshoot in case user does a common mistake for 0-width instead of 0 - (width-1) for fullscreen
+    If y2% = _Height(imagehandle%) Then y2% = _Height(imagehandle%) - 1 'troubleshoot in case user does a common mistake for 0-width instead of 0 - (width-1) for fullscreen
+
+    s& = _Source
+    _Source image&
+
+    BMP.PWidth = (x2% - x1%) + 1
+    BMP.PDepth = (y2% - y1%) + 1
+    BMP.ID = "BM"
+    BMP.Blank = 0
+    BMP.Hsize = 40
+    BMP.Planes = 1
+    BMP.Compression = 0
+    BMP.Xres = 0
+    BMP.Yres = 0
+
+    BMP.SigColors = 0
+
+    Select Case _PixelSize(image&)
+        Case 1
+            temp = Space$(x2% - x1% + 1)
+            OffsetBITS& = 54 + 1024 'add palette in 256 color modes
+            BMP.BPP = 8
+            If BMP.PWidth Mod 4 Then ZeroPAD$ = Space$(4 - (BMP.PWidth Mod 4))
+            ImageSize& = (BMP.PWidth + Len(ZeroPAD$)) * BMP.PDepth
+            BMP.ImageBytes = ImageSize&
+            BMP.NumColors = 256
+            BMP.Size = ImageSize& + OffsetBITS&
+            BMP.Offset = OffsetBITS&
+        Case 4
+            temp = Space$(3)
+            OffsetBITS& = 54 'no palette in 24/32 bit
+            BMP.BPP = 24
+            If ((BMP.PWidth * 3) Mod 4) Then ZeroPAD$ = Space$(4 - ((BMP.PWidth * 3) Mod 4))
+            ImageSize& = (BMP.PWidth + Len(ZeroPAD$)) * BMP.PDepth
+            BMP.ImageBytes = ImageSize&
+            BMP.NumColors = 0
+            BMP.Size = ImageSize& * 3 + OffsetBITS&
+            BMP.Offset = OffsetBITS&
+    End Select
+
+    n = _MemNew(BMP.Size)
+    _MemPut n, n.OFFSET, BMP
+    o = n.OFFSET + 54
+    zp& = Len(ZeroPAD$)
+    $Checking:Off
+
+    If BMP.BPP = 8 Then 'Store the Palette for 256 color mode
+        For c& = 0 To 255 ' read BGR color settings from JPG image + 1 byte spacer(CHR$(0))
+            cv& = _PaletteColor(c&, image&) ' color attribute to read.
+            b$ = Chr$(_Blue32(cv&)) + Chr$(_Green32(cv&)) + Chr$(_Red32(cv&)) + Chr$(0) 'spacer byte
+            _MemPut n, o, b$
+            o = o + 4
+        Next
+        y = y2% + 1
+        w& = _Width(image&)
+        x = x2% - x1% + 1
+        Do
+            y = y - 1
+            _MemGet m, m.OFFSET + (w& * y + x1%), temp
+            _MemPut n, o, temp
+            o = o + x
+            _MemPut n, o, ZeroPAD$
+            o = o + zp&
+        Loop Until y = y1%
+    Else
+        y = y2% + 1
+        w& = _Width(image&)
+        Do
+            y = y - 1: x = x1% - 1
+            Do
+                x = x + 1
+                _MemGet m, m.OFFSET + (w& * y + x) * 4, temp
+                _MemPut n, o, temp
+                o = o + 3
+            Loop Until x = x2%
+            _MemPut n, o, ZeroPAD$
+            o = o + zp&
+        Loop Until y = y1%
+    End If
+    $Checking:On
+    F = FreeFile
+    Open filename$ For Binary As #F
+    t1$ = Space$(BMP.Size)
+    _MemGet n, n.OFFSET, t1$
+    Put #F, , t1$
+    Close #F
+    _Source s&
+    _MemFree m
+    _MemFree n
+End Sub
+
+Function TextScreenToImage256& (image&)
+    d& = _Dest: s& = _Source
+    Dim Plt(15) As Long
+    _Source image&: _Dest image&
+    For i = 0 To 15: Plt(i) = _PaletteColor(i, image&): Next
+    f& = _Font(image&)
+    _Font f&
+    fw& = _FontWidth
+    fh& = _FontHeight
+    w& = _Width * _FontWidth
+    h& = _Height * _FontHeight '+ _HEIGHT
+    l& = (_Width * _Height) * 2 'The screen is width * height in pixels.  (80X25) = 2000 X 2 bytes each = 4000 total bytes to hold a page of screen 0 text and color
+    tempscreen& = _NewImage(w&, h& + _Height, 256)
+    Screen0to256& = _NewImage(w&, h&, 256)
+
+    Dim m As _MEM, b As _Unsigned _Byte, t As String * 1
+    Dim o As _Offset
+    m = _MemImage(image&)
+    o = m.OFFSET
+
+    _Dest (tempscreen&)
+    For i = 0 To 15: _PaletteColor i, Plt(i): Next
+    _Font f&
+
+    For i = 0 To l& - 2 Step 2
+        _MemGet m, m.OFFSET + i, t
+        _MemGet m, m.OFFSET + i + 1, b
+        If b > 127 Then b = b - 128
+        Color b Mod 16, b \ 16
+        Print t;
+    Next
+    _PutImage , tempscreen&, Screen0to256&, (0, 0)-(w&, h&)
+    _FreeImage tempscreen&
+    _Dest d&: _Source s&
+    _MemFree m
+    TextScreenToImage256 = Screen0to256&
+End Function
+
+Function TextScreenToImage32& (image&)
+    d& = _Dest: s& = _Source
+    Dim Plt(15) As Long
+    _Source image&
+    For i = 0 To 15: Plt(i) = _PaletteColor(i, image&): Next
+    f& = _Font(image&)
+    _Font f&
+    fw& = _FontWidth
+    fh& = _FontHeight
+    w& = _Width * _FontWidth
+    h& = _Height * _FontHeight '+ _HEIGHT
+    l& = (_Width * _Height) * 2 'The screen is width * height in pixels.  (80X25) = 2000 X 2 bytes each = 4000 total bytes to hold a page of screen 0 text and color
+    tempscreen& = _NewImage(w&, h& + _Height, 32)
+    Screen0to32& = _NewImage(w&, h&, 32)
+    _Dest tempscreen&
+
+    Dim m As _MEM, b As _Unsigned _Byte, t As String * 1
+    Dim o As _Offset
+    m = _MemImage(image&)
+    o = m.OFFSET
+
+    _Font f&
+
+    For i = 0 To l& - 2 Step 2
+        _MemGet m, m.OFFSET + i, t
+        _MemGet m, m.OFFSET + i + 1, b
+        If b > 127 Then b = b - 128
+        fgc = b Mod 16: bgc = b \ 16
+        Color _RGB32(_Red(fgc, image&), _Green(fgc, image&), _Blue(fgc, image&)), _RGB32(_Red(bgc, image&), _Green(bgc, image&), _Blue(bgc, image&))
+        Print t;
+    Next
+    _PutImage , tempscreen&, Screen0to32&, (0, 0)-(w&, h&)
+    _FreeImage tempscreen&
+    _Dest d&: _Source s&
+    _MemFree m
+    TextScreenToImage32 = Screen0to32&
+End Function
+
+
+
+
+
+
+
+Sub Update_PNGCRC (PNGCRC As _Unsigned Long, buf As _MEM)
+    'PNGCRC is updated by reference
+    Dim n As _Unsigned _Offset
+    If 0 = PNGCRC_table_computed Then Make_PNGCRC_Table
+    n = 0
+    While n < buf.SIZE
+        PNGCRC = PNGCRC_table((PNGCRC Xor _MemGet(buf, buf.OFFSET + n, _Unsigned _Byte)) And &HFF) Xor PNGCRC \ 2 ^ 8
+        n = n + 1
+    Wend
+End Sub
+
+Function ConvertUL~& (x As _Unsigned Long)
+    ConvertUL = x \ 2 ^ 24 Or x * 2 ^ 24 Or (x And &HFF0000) \ 2 ^ 8 Or (x And &HFF00~&) * 2 ^ 8
+End Function
+
+Sub Make_PNGCRC_Table
+    Dim c As _Unsigned Long
+    Dim n As Long, k As Long
+    For n = 0 To 255
+        c = n
+        For k = 0 To 7
+            If c And 1 Then
+                c = &HEDB88320 Xor c \ 2
+            Else
+                c = c \ 2
+            End If
+        Next
+        PNGCRC_table(n) = c
+    Next
+    PNGCRC_table_computed = 1
+End Sub
+
+Sub PNGAutoReset
+    PNGOptions.Alpha = 0
+    PNGOptions.Screen = 0
+    PNGOptions.GrabMode = 0
+    PNGOptions.x1 = 0
+    PNGOptions.y1 = 0
+    PNGOptions.x2 = 0
+    PNGOptions.y2 = 0
+End Sub
+
+
+
+Function PNGExport (file$, imagehandle%, x1%, y1%, x2%, y2%)
+    'file$ is the name of the file we want to save to
+    'imagehandle% is the handle of the image to save
+    'x1,y1,x2,y2 define the screen portion that we want to save to
+    'Alpha is a True/False toggle for 32-bit color modes in case we want to save the screen alpha channels
+
+    Dim PNGImageHeader As PNGImageHeaderType
+
+    Dim PNGFileSignature As _Unsigned _Integer64 ' 727905341920923785
+    Dim PNGChunk As PNGChunkLayout
+    Dim x As _Unsigned _Integer64
+    Dim l As _Unsigned Long
+    Dim b As _Unsigned _Byte
+    Dim m As _MEM
+    Dim FileSize As _Unsigned Long
+    Dim CompSize As _Unsigned Long
+    Dim Result As Long
+    Dim z As _Unsigned Long
+
+    PNGOptions.Screen = imagehandle%
+    WorkScreen& = _Source
+    _Source PNGOptions.Screen
+    Select Case _PixelSize(imagehandle%)
+        Case 0: tempPNGExport = 11 'Can't export text screen image
+        Case 1: PNGOptions.Color = 256
+        Case 4: PNGOptions.Color = 32
+    End Select
+
+    PNGExport = 0
+    If x2% = _Width(imagehandle%) Then x2% = _Width(imagehandle%) - 1 'troubleshoot in case user does a common mistake for 0-width instead of 0 - (width-1) for fullscreen
+    If y2% = _Height(imagehandle%) Then y2% = _Height(imagehandle%) - 1 'troubleshoot in case user does a common mistake for 0-width instead of 0 - (width-1) for fullscreen
+    PNGOptions.x1 = x1%
+    PNGOptions.y1 = y1%
+    PNGOptions.x2 = x2%
+    PNGOptions.y2 = y2%
+    PNGOptions.Alpha = 0
+
+
+    If PNGOptions.Color = 32 Then '32 bit color mode
+        m = _MemImage(imagehandle%)
+        i = 0
+        Do
+            check = _MemGet(m, m.OFFSET + i + 3, _Unsigned _Byte)
+            If check <> 255 Then PNGOptions.Alpha = 1: Exit Do
+            i = i + 4
+        Loop Until i >= m.SIZE
+        _MemFree m
+    End If
+
+    If PNGOptions.x1 < 0 Or PNGOptions.x1 >= _Width(imagehandle%) Then tempPNGExport = 4
+    If PNGOptions.y1 < 0 Or PNGOptions.y1 >= _Height(imagehandle%) Then tempPNGExport = 5
+    If PNGOptions.x2 < 0 Or PNGOptions.x2 >= _Width(imagehandle%) Then tempPNGExport = 6
+    If PNGOptions.y2 < 0 Or PNGOptions.y2 >= _Height(imagehandle%) Then tempPNGExport = 7
+    If PNGOptions.x2 < PNGOptions.x1 Then tempPNGExport = 8
+    If PNGOptions.y2 < PNGOptions.y1 Then tempPNGExport = 9
+    If PNGOptions.Color <> 256 And PNGOptions.Color <> 32 Then tempPNGExport = 10
+
+    If tempPNGExport <> 0 Then
+        PNGExport = tempPNGExport
+        _Source WorkScreen&
+        Exit Function
+    End If
+
+
+
+    'PNGExport results:
+    '-1   All is good.  We think we exported a proper PNG file.
+    ' 0   Compression failed.  File is probably corrupt.
+    ' 1   File Already Exists.  As these are Binary files, we probably don't want to just overwrite the same file.
+    ' 2   Incorrect Alpha settings.  Check for Alpha mode, and Color mode, and look for conflicts.
+    ' 3   Bad GrabMode
+    ' 4   Bad x1 coordinate
+    ' 5   Bad y1 coordinate
+    ' 6   Bad x2 coordinate
+    ' 7   Bad y2 coordinate
+    ' 8   x2 < x1 -- correct this to proceed
+    ' 9   y2 < y1 -- correct this to proceed
+    '10   Bad color mode.  Either use 256 or 32 color mode.
+    '11   Attempted to export a text screen which will not work.
+    '12   PNG save is impossible on non-Windows systems.  Can only use BMP
+
+    'Check to see if we already have a file with the name we want to save as.
+    'If so, return error code #1 -- File Exists
+    If _FileExists(file$) Then PNGExport = 1: Exit Function
+
+    f = FreeFile
+    Open file$ For Binary As #f 'This will be our save file, if all works as it should
+
+    PNGFileSignature = 727905341920923785 '1st 8 bytes are 137 80 78 71 13 10 26 10, this is a PNG file signature.  Without these, it's not a PNG file
+    Put #f, , PNGFileSignature 'The first 8 bytes of any PNG file.  This identifies it as PNG format.
+    l = ConvertUL~&(13) '13 bytes in the header
+    Put #f, , l 'Store the length of the header
+    temp$ = "IHDR" 'The name of the header
+    Put #f, , temp$
+
+    ' the next info is the image header which holds the data specifications of our image
+
+    height = PNGOptions.y2 - PNGOptions.y1 + 1
+    width = PNGOptions.x2 - PNGOptions.x1 + 1
+
+    PNGImageHeader.Width = ConvertUL~&(width)
+    PNGImageHeader.Height = ConvertUL~&(height)
+    PNGImageHeader.Depth = 8
+
+    PNGImageHeader.ColorType = 2
+    If PNGOptions.Color = 32 Then
+        m = _MemImage(imagehandle%)
+        Dim o As _Offset
+        Do Until 0 >= m.SIZE
+            alpha% = _MemGet(m, m.OFFSET + o, _Unsigned _Byte)
+            If alpha% <> 255 Then PNGImageHeader.ColorType = 6: mode = 32: Exit Do
+            o = o + 4
+        Loop
+        _MemFree m
+    End If
+    If PNGOptions.Color = 256 Then PNGImageHeader.ColorType = 3
+    PNGImageHeader.Compression = 0
+    PNGImageHeader.Filter = 0
+    PNGImageHeader.Interlace = 0
+    Put #f, , PNGImageHeader
+    m = _Mem(PNGImageHeader)
+    ReDim temparray(0 To Len(PNGImageHeader) - 1) As _Unsigned _Byte
+    For mcheck = 0 To Len(PNGImageHeader) - 1
+        temparray(mcheck) = _MemGet(m, m.OFFSET + mcheck, _Unsigned _Byte)
+    Next
+    _MemFree m
+
+    l = ConvertUL(PNGCRCDataCheck("IHDR", temparray()))
+    Put #f, , l '                                                                  Our PNGCRC check for IHDR
+
+    'IF we're in 256 color mode in QB64, then we need to get our color palette
+    If PNGOptions.Color = 256 Then
+        temp$ = "PLTE"
+        Dim pal(255 * 3 + 2) As _Unsigned _Byte
+        For i = 0 To 255
+            pal(i * 3) = _Red(i)
+            pal(i * 3 + 1) = _Green(i)
+            pal(i * 3 + 2) = _Blue(i)
+        Next
+        l = ConvertUL(255 * 3 + 3) 'length of our data array to hold all 256 colors in our palette
+        Put #f, , l
+        Put #f, , temp$
+        Put #f, , pal()
+        l = ConvertUL(PNGCRCDataCheck("PLTE", pal()))
+        Put #f, , l
+    End If
+
+
+
+    temp$ = "IDAT"
+
+
+    If mode = 0 Then
+        FileSize = height * (3 * width + 1)
+    Else
+        FileSize = height * (4 * width + 1)
+    End If
+    If PNGOptions.Color = 256 Then FileSize = height * (width + 1)
+    Dim FileBuff(0 To FileSize) As _Unsigned _Byte
+    z = 0
+    For y = PNGOptions.y1 To PNGOptions.y2
+        z = z + 1
+        FileBuff(z) = 0
+        For x = PNGOptions.x1 To PNGOptions.x2
+            If PNGOptions.Color = 256 Then
+                z = z + 1
+                FileBuff(z) = Point(x, y)
+            Else
+                t~& = Point(x, y)
+                FileBuff(z + 1) = _Red32(t~&)
+                FileBuff(z + 2) = _Green32(t~&)
+                FileBuff(z + 3) = _Blue32(t~&)
+                If mode = 0 Then
+                    z = z + 3 'We don't want to gather any alpha
+                Else
+                    FileBuff(z + 4) = _Alpha32(t~&)
+                    z = z + 4 'We need the alpha channel
+                End If
+            End If
+        Next
+    Next
+
+    temp$ = Space$(FileSize)
+    m = _Mem(FileBuff())
+    _MemGet m, m.OFFSET + 1, temp$
+    compresseddata$ = _Deflate$(temp$)
+    l = ConvertUL~&(Len(compresseddata$))
+    Put #f, , l
+    temp$ = "IDAT"
+    Put #f, , temp$
+    Put #f, , compresseddata$
+    l = ConvertUL(PNGCRCStringCheck("IDAT", compresseddata$))
+    Put #f, , l
+
+
+    l = 0 ' a zero length data field goes with IEND.  It's the END of our PNG indicator/
+    Put #f, , l
+    temp$ = "IEND"
+    Put #f, , temp$
+    l = ConvertUL(PNGCRCStringCheck("IEND", ""))
+    Put #f, , l
+
+    Close
+
+    'And we should have now exported a PNG file.
+    If PNGOptions.Color = 32 Then
+        temphandle& = _LoadImage(file$, 32)
+        If temphandle& = -1 Then
+            PNGExport = 666 'EVIL code.  We exported something, but we can't load it!
+        Else
+            PNGExport = -1 'We have good export, but QB64 _LOADIMAGE won't import it.
+            _FreeImage temphandle&
+        End If
+    Else
+        PNGExport = -1 'We can't currently load 256 color images in QB64, so we have to assume that it worked at this point
+    End If
+    _Source WorkScreen&
+    If PNGOptions.AutoReset = 1 Then PNGAutoReset
+End Function
+
+
+Function PNGCRCStringCheck~& (id As String * 4, dta$)
+    Dim m As _MEM
+    Dim text(0 To Len(dta$) - 1) As _Unsigned _Byte
+    PNGCRC = -1
+    For z = 0 To Len(dta$) - 1: text(z) = Asc(dta$, z + 1): Next
+
+    m = _Mem(id): Update_PNGCRC PNGCRC, m: _MemFree m
+    m = _Mem(text()): Update_PNGCRC PNGCRC, m: _MemFree m
+    PNGCRCStringCheck~& = Not PNGCRC
+End Function
+
+
+Function PNGCRCDataCheck~& (id As String * 4, dta() As _Unsigned _Byte)
+    Dim m As _MEM
+    Dim temp(0 To 3) As _Unsigned _Byte
+    PNGCRC = -1
+    For z = 1 To 4: temp(z - 1) = Asc(id, z): Next
+
+    m = _Mem(temp()): Update_PNGCRC PNGCRC, m: _MemFree m
+    m = _Mem(dta()): Update_PNGCRC PNGCRC, m: _MemFree m
+    PNGCRCDataCheck~& = Not PNGCRC
+End Function
+
+
+'SaveJPG functions from here on down
+Sub SaveJPG (file$, image&, startx, starty, finishx, finishy)
+    Dim D As Long, S As Long
+    Dim tempimage As Long, genx As Integer, geny As Integer
+    Dim outfilename As String
+
+    D = _Dest: S = _Source
+    tempimage = _NewImage(finishx - startx + 1, finishy - starty + 1, 32)
+    genx = _Width(tempimage): geny = _Height(tempimage)
+    _PutImage (0, 0)-(genx, geny), image&, tempimage&, (startx, starty)-(finishx, finishy)
+    _Source tempimage&: _Dest tempimage&
+    outfilename = file$
+    Open outfilename For Binary As #1
+
+    'Set quality tables
+    'The smaller the paramter, the higher the quality
+    '0.01 is 100% quality
+    JPEG.StandardQT 0.05, JPG_Library_QT()
+
+    'Start image
+    JPEG.Begin 1, genx, geny, JPG_Library_Sampling(), JPG_Library_State, JPG_Library_QT(), JPG_Library_Huff()
+
+
+    Dim B(0 To 7, 0 To 7) As Integer
+    Dim SuperY As Integer, SuperX As Integer
+    Dim BlockY As Integer, BlockX As Integer
+    Dim OffY As Integer, OffX As Integer
+    Dim JPG_Library_X As Single, JPG_Library_Y As Single
+    Dim R As Integer, G As Integer, B As Integer
+    For SuperY = 0 To geny - 1 Step 16
+        For SuperX = 0 To genx - 1 Step 16: Rem vstupni velikost obrazku
+
+            'Output the luminance blocks
+
+            For BlockY = 0 To 15 Step 8
+                For BlockX = 0 To 15 Step 8
+                    For OffY = 0 To 7: For OffX = 0 To 7
+                        JPG_Library_X! = OffX + BlockX + SuperX: Rem- 63.5
+                        JPG_Library_Y! = OffY + BlockY + SuperY: Rem - 63.5
+
+                        R = _Red32(Point(JPG_Library_X!, JPG_Library_Y!))
+                        G = _Green32(Point(JPG_Library_X!, JPG_Library_Y!))
+                        B = _Blue32(Point(JPG_Library_X!, JPG_Library_Y!))
+                        B(OffX, OffY) = JPEG.JPG_Library_Y(R, G, B)
+                    Next OffX, OffY
+                    JPEG.Block.Output B(), JPG_Library_State, JPG_Library_QT(), JPG_Library_Huff()
+            Next BlockX, BlockY
+
+            'Output the blue chrominance block
+
+            For OffY = 0 To 7: For OffX = 0 To 7
+                JPG_Library_X! = OffX * 2 + SuperX
+                JPG_Library_Y! = OffY * 2 + SuperY
+
+                R = _Red32(Point(JPG_Library_X!, JPG_Library_Y!))
+                G = _Green32(Point(JPG_Library_X!, JPG_Library_Y!))
+                B = _Blue32(Point(JPG_Library_X!, JPG_Library_Y!))
+                B(OffX, OffY) = JPEG.Cb(R, G, B)
+            Next OffX, OffY
+            JPEG.Block.Output B(), JPG_Library_State, JPG_Library_QT(), JPG_Library_Huff()
+
+            'Output the red chrominance block
+
+            For OffY = 0 To 7: For OffX = 0 To 7
+                JPG_Library_X! = OffX * 2 + SuperX
+                JPG_Library_Y! = OffY * 2 + SuperY
+
+                R = _Red32(Point(JPG_Library_X!, JPG_Library_Y!))
+                G = _Green32(Point(JPG_Library_X!, JPG_Library_Y!))
+                B = _Blue32(Point(JPG_Library_X!, JPG_Library_Y!))
+                B(OffX, OffY) = JPEG.Cr(R, G, B)
+            Next OffX, OffY
+            JPEG.Block.Output B(), JPG_Library_State, JPG_Library_QT(), JPG_Library_Huff()
+
+    Next SuperX, SuperY
+
+    JPEG.Finish JPG_Library_State
+
+    Close
+    _Dest D: _Source S
+End Sub
+
+Sub JPEG.ACHuff (RLE As Integer, AC As Integer, JPG_Library_Huff() As Integer, A As Integer, JPG_Library_State As JPEGState)
+    Dim C As Integer, JPG_Library_X As Integer
+    C = JPEG.Category(AC)
+    JPG_Library_X = RLE * 16 + C
+    JPEG.PutBinString JPG_Library_Huff(JPG_Library_X, 1, A, 0), JPG_Library_Huff(JPG_Library_X, 1, A, 1), JPG_Library_State
+    JPEG.PutRightBinString AC + (AC < 0), C, JPG_Library_State
+End Sub
+
+Sub JPEG.Begin (FileNo As Integer, W As Integer, H As Integer, JPG_Library_Sampling() As Integer, JPG_Library_State As JPEGState, JPG_Library_QT() As Integer, JPG_Library_Huff() As Integer)
+
+    Dim I As Integer, J As Integer, JPG_Library_X As Integer, JPG_Library_Y As Integer, JPG_Library_T As Integer
+    Dim S As String
+    JPG_Library_State.FileNo = FileNo
+
+    Restore Huff0
+    JPEG.GenerateHuffmanTable JPG_Library_Huff(), 0, 0
+    JPEG.GenerateHuffmanTable JPG_Library_Huff(), 0, 1
+    JPEG.GenerateHuffmanTable JPG_Library_Huff(), 1, 0
+    JPEG.GenerateHuffmanTable JPG_Library_Huff(), 1, 1
+
+
+    JPG_Library_State.YCount = JPG_Library_Sampling(0, 0) * JPG_Library_Sampling(0, 1)
+    JPG_Library_State.CbCount = JPG_Library_Sampling(1, 0) * JPG_Library_Sampling(1, 1)
+    JPG_Library_State.CrCount = JPG_Library_Sampling(2, 0) * JPG_Library_Sampling(2, 1)
+    JPG_Library_State.YDC = 0
+    JPG_Library_State.CbDC = 0
+    JPG_Library_State.CrDC = 0
+
+    JPG_Library_State.Position = 0
+
+    JPG_Library_State.Leftover = 0
+    JPG_Library_State.LeftoverBits = 0
+
+
+    'SOI
+    PutChar FileNo, 255
+    PutChar FileNo, 216
+    'APP0
+    PutChar FileNo, 255
+    PutChar FileNo, 224
+    JPEG.PutWord FileNo, 16
+    S$ = "JFIF" + Chr$(0): Put FileNo, , S$
+    PutChar FileNo, 1
+    PutChar FileNo, 2
+    PutChar FileNo, 0
+    PutChar FileNo, 0
+    PutChar FileNo, 1
+    PutChar FileNo, 0
+    PutChar FileNo, 1
+    PutChar FileNo, 0
+    PutChar FileNo, 0
+
+    'DQT
+    PutChar FileNo, 255
+    PutChar FileNo, 219
+    JPEG.PutWord FileNo, 132
+
+    PutChar FileNo, 0
+    For I = 0 To 63
+        PutChar FileNo, JPG_Library_QT(JPG_Library_ZigZagX(I), JPG_Library_ZigZagY(I), 0)
+    Next
+
+
+
+    PutChar FileNo, 1
+    For I = 0 To 63
+        PutChar FileNo, JPG_Library_QT(JPG_Library_ZigZagX(I), JPG_Library_ZigZagY(I), 1)
+    Next
+
+
+
+    'DHT
+    PutChar FileNo, 255
+    PutChar FileNo, 196
+    JPG_Library_T = 2 + 4 * (16 + 1)
+    Restore Huff0
+    For I = 1 To 16 * 4
+        Read JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+            JPG_Library_T = JPG_Library_T + 1
+        Next
+    Next
+
+    JPEG.PutWord FileNo, JPG_Library_T
+
+    PutChar FileNo, 0
+    Restore Huff0
+    For I = 1 To 16
+        Read JPG_Library_X
+        PutChar FileNo, JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+        Next
+    Next
+    Restore Huff0
+    For I = 1 To 16
+        Read JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+            PutChar FileNo, JPG_Library_Y
+        Next
+    Next
+
+    PutChar FileNo, 1
+    Restore Huff1
+    For I = 1 To 16
+        Read JPG_Library_X
+        PutChar FileNo, JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+        Next
+    Next
+    Restore Huff1
+    For I = 1 To 16
+        Read JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+            PutChar FileNo, JPG_Library_Y
+        Next
+    Next
+
+    PutChar FileNo, 16
+    Restore Huff2
+    For I = 1 To 16
+        Read JPG_Library_X
+        PutChar FileNo, JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+        Next
+    Next
+    Restore Huff2
+    For I = 1 To 16
+        Read JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+            PutChar FileNo, JPG_Library_Y
+        Next
+    Next
+
+    PutChar FileNo, 17
+    Restore Huff3
+    For I = 1 To 16
+        Read JPG_Library_X
+        PutChar FileNo, JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+        Next
+    Next
+    Restore Huff3
+    For I = 1 To 16
+        Read JPG_Library_X
+        For J = 1 To JPG_Library_X
+            Read JPG_Library_Y
+            PutChar FileNo, JPG_Library_Y
+        Next
+    Next
+
+    'SOF0
+    PutChar FileNo, 255
+    PutChar FileNo, 192
+    JPEG.PutWord FileNo, 8 + 9
+    PutChar FileNo, 8
+    JPEG.PutWord FileNo, H
+    JPEG.PutWord FileNo, W
+
+    PutChar FileNo, 3
+
+    PutChar FileNo, 1
+    PutChar FileNo, JPG_Library_Sampling(0, 0) * 16 + JPG_Library_Sampling(0, 1)
+    PutChar FileNo, 0
+    PutChar FileNo, 2
+    PutChar FileNo, JPG_Library_Sampling(1, 0) * 16 + JPG_Library_Sampling(1, 1)
+    PutChar FileNo, 1
+    PutChar FileNo, 3
+    PutChar FileNo, JPG_Library_Sampling(2, 0) * 16 + JPG_Library_Sampling(2, 1)
+    PutChar FileNo, 1
+
+    'SOS
+
+    PutChar FileNo, 255
+    PutChar FileNo, 218
+    JPEG.PutWord FileNo, 12
+
+    PutChar FileNo, 3
+
+    PutChar FileNo, 1
+    PutChar FileNo, &H0
+    PutChar FileNo, 2
+    PutChar FileNo, &H11
+    PutChar FileNo, 3
+    PutChar FileNo, &H11
+
+    PutChar FileNo, 0
+    PutChar FileNo, 63
+    PutChar FileNo, 0
+
+End Sub
+
+Sub JPEG.Block.Huffman (B() As Integer, LastDC As Integer, JPG_Library_Huff() As Integer, A As Integer, JPG_Library_State As JPEGState)
+    Dim DC As Integer, I As Integer
+    Dim C As Integer
+    DC = B(0) - LastDC
+    JPEG.DCHuff DC, JPG_Library_Huff(), A, JPG_Library_State
+    B(64) = -1
+
+    I = 1
+    Do
+        C = 0
+        If B(I) = 0 Then
+
+            Do
+                I = I + 1
+                C = C + 1
+            Loop While B(I) = 0
+            If I = 64 Then
+
+                JPEG.PutBinString JPG_Library_Huff(0, 1, A, 0), JPG_Library_Huff(0, 1, A, 1), JPG_Library_State
+                Exit Do
+            End If
+            While C >= 16
+
+                JPEG.PutBinString JPG_Library_Huff(&HF0, 1, A, 0), JPG_Library_Huff(&HF0, 1, A, 1), JPG_Library_State
+                C = C - 16
+            Wend
+
+        End If
+
+
+        JPEG.ACHuff C, B(I), JPG_Library_Huff(), A, JPG_Library_State
+        I = I + 1
+    Loop While I < 64
+End Sub
+
+Sub JPEG.Block.Output (B() As Integer, JPG_Library_State As JPEGState, JPG_Library_QT() As Integer, JPG_Library_Huff() As Integer)
+
+    Dim O(0 To 64) As Integer
+    JPG_Library_State.Position = JPG_Library_State.Position + 1
+    If JPG_Library_State.Position > JPG_Library_State.YCount + JPG_Library_State.CbCount + JPG_Library_State.CrCount Then JPG_Library_State.Position = 1
+    If JPG_Library_State.Position <= JPG_Library_State.YCount Then
+        JPEG.Block.Transform B(), O(), JPG_Library_QT(), 0
+        JPEG.Block.Huffman O(), JPG_Library_State.YDC, JPG_Library_Huff(), 0, JPG_Library_State
+        JPG_Library_State.YDC = O(0)
+    Else
+        JPEG.Block.Transform B(), O(), JPG_Library_QT(), 1
+        If JPG_Library_State.Position <= JPG_Library_State.YCount + JPG_Library_State.CbCount Then
+            JPEG.Block.Huffman O(), JPG_Library_State.CbDC, JPG_Library_Huff(), 1, JPG_Library_State
+            JPG_Library_State.CbDC = O(0)
+        Else
+            JPEG.Block.Huffman O(), JPG_Library_State.CrDC, JPG_Library_Huff(), 1, JPG_Library_State
+            JPG_Library_State.CrDC = O(0)
+        End If
+    End If
+
+End Sub
+
+Sub JPEG.Block.Transform (B() As Integer, O() As Integer, JPG_Library_QT() As Integer, A As Integer)
+    Dim U As Integer, V As Integer, JPG_Library_X As Integer, JPG_Library_Y As Integer
+    Dim B2(0 To 7, 0 To 7) As Single
+    Dim JPG_Library_T As Single
+
+    For V = 0 To 7: For U = 0 To 7
+        JPG_Library_T = 0
+        For JPG_Library_X = 0 To 7
+            JPG_Library_T = JPG_Library_T + B(JPG_Library_X, V) * JPG_Library_Cosine(JPG_Library_X, U)
+            Next JPG_Library_X
+            B2(U, V) = JPG_Library_T
+    Next U, V
+
+    For U = 0 To 7: For V = 0 To 7
+        JPG_Library_T = 0
+        For JPG_Library_Y = 0 To 7
+            JPG_Library_T = JPG_Library_T + B2(U, JPG_Library_Y) * JPG_Library_Cosine(JPG_Library_Y, V)
+            Next JPG_Library_Y
+            JPG_Library_T = JPG_Library_T / 4
+            If U = 0 Then JPG_Library_T = JPG_Library_T / Sqr(2)
+            If V = 0 Then JPG_Library_T = JPG_Library_T / Sqr(2)
+            B(U, V) = CInt(JPG_Library_T / JPG_Library_QT(U, V, A))
+    Next V, U
+
+    For U = 0 To 63
+        O(U) = B(JPG_Library_ZigZagX(U), JPG_Library_ZigZagY(U))
+    Next
+
+End Sub
+
+Function JPEG.Category% (JPG_Library_X As Integer)
+    Dim JPG_Library_T As Integer, I As Integer
+    JPG_Library_T = Abs(JPG_Library_X)
+    While JPG_Library_T
+        JPG_Library_T = JPG_Library_T \ 2
+        I = I + 1
+    Wend
+    JPEG.Category = I
+End Function
+
+Function JPEG.Cb% (R As Integer, G As Integer, B As Integer)
+
+    JPEG.Cb = -.1687 * R - .3313 * G + .5 * B
+
+End Function
+
+Function JPEG.Cr% (R As Integer, G As Integer, B As Integer)
+
+    JPEG.Cr = .5 * R - .4187 * G - .0813 * B
+
+End Function
+
+Sub JPEG.DCHuff (DC As Integer, JPG_Library_Huff() As Integer, A As Integer, JPG_Library_State As JPEGState)
+    Dim C As Integer
+    C = JPEG.Category(DC)
+    JPEG.PutBinString JPG_Library_Huff(C, 0, A, 0), JPG_Library_Huff(C, 0, A, 1), JPG_Library_State
+    JPEG.PutRightBinString DC + (DC < 0), C, JPG_Library_State
+End Sub
+
+Sub JPEG.Finish (JPG_Library_State As JPEGState)
+
+    Def Seg = VarSeg(JPG_Library_State.Leftover)
+    If JPG_Library_State.LeftoverBits > 8 Then
+        JPEG.PutByte JPG_Library_State.FileNo, Peek(VarPtr(JPG_Library_State.Leftover) + 1)
+        Poke VarPtr(JPG_Library_State.Leftover) + 1, JPG_Library_State.Leftover And 255
+        JPG_Library_State.LeftoverBits = JPG_Library_State.LeftoverBits - 8
+    End If
+
+    If JPG_Library_State.LeftoverBits Then
+        JPEG.PutByte JPG_Library_State.FileNo, Peek(VarPtr(JPG_Library_State.Leftover) + 1) Or (JPG_Library_Pow2(8 - JPG_Library_State.LeftoverBits) - 1)
+    End If
+    Def Seg
+
+    'EOF marker
+    PutChar JPG_Library_State.FileNo, 255
+    PutChar JPG_Library_State.FileNo, 217
+
+End Sub
+
+Sub JPEG.GenerateHuffmanTable (JPG_Library_Huff() As Integer, A As Integer, B As Integer)
+    Dim S As Long, I As Integer, J As Integer, JPG_Library_T As Integer
+    Dim JPG_Library_X As Integer, JPG_Library_Y As Integer
+    S = -1
+
+    For I = 1 To 16
+        Read JPG_Library_X
+        For J = 1 To JPG_Library_X
+
+            If S = -1 Then
+                S = 0
+            Else
+                S = S + JPG_Library_Pow2(JPG_Library_T)
+            End If
+
+
+            Read JPG_Library_Y
+            If S And 32768 Then JPG_Library_Huff(JPG_Library_Y, A, B, 0) = CInt(S And 32767&) Or -32768 Else JPG_Library_Huff(JPG_Library_Y, A, B, 0) = S
+            JPG_Library_Huff(JPG_Library_Y, A, B, 1) = I
+            JPG_Library_T = 16 - I
+
+        Next
+    Next
+End Sub
+
+Sub JPEG.PutBinString (BS As Integer, Length As Integer, JPG_Library_State As JPEGState)
+    Dim Temp As Integer
+
+    Temp = BS
+    JPG_Library_State.Leftover = JPG_Library_State.Leftover Or JPEG.Shift(Temp, JPG_Library_State.LeftoverBits)
+    JPG_Library_State.LeftoverBits = JPG_Library_State.LeftoverBits + Length
+    If JPG_Library_State.LeftoverBits >= 16 Then
+        Def Seg = VarSeg(JPG_Library_State.Leftover)
+        JPEG.PutByte JPG_Library_State.FileNo, Peek(VarPtr(JPG_Library_State.Leftover) + 1)
+        Def Seg
+        JPEG.PutByte JPG_Library_State.FileNo, JPG_Library_State.Leftover And 255
+        JPG_Library_State.LeftoverBits = JPG_Library_State.LeftoverBits - 16
+        JPG_Library_State.Leftover = Temp
+    End If
+
+End Sub
+
+Sub JPEG.PutByte (FileNo As Integer, Byte As Integer)
+    Dim C As String * 1
+    C = Chr$(Byte)
+    Put FileNo, , C
+    If Byte = 255 Then C = Chr$(0): Put FileNo, , C
+End Sub
+
+Sub JPEG.PutRightBinString (BS As Integer, Length As Integer, JPG_Library_State As JPEGState)
+
+    Dim Temp As Long
+    If Length Then
+        Temp = (CLng(BS) And JPG_Library_Pow2(Length) - 1) * JPG_Library_Pow2(16 - Length)
+        If Temp And 32768 Then Temp = Temp Or -65536
+        JPEG.PutBinString CInt(Temp), Length, JPG_Library_State
+    End If
+
+End Sub
+
+Sub JPEG.PutWord (FileNo As Integer, Word As Integer)
+    Dim C As String * 1
+    C = Chr$(Word \ 256)
+    Put FileNo, , C
+    C = Chr$(Word And 255)
+    Put FileNo, , C
+End Sub
+
+Function JPEG.Shift% (I As Integer, N As Integer)
+    Dim JPG_Library_T As Long
+
+    If N = 0 Then
+        JPEG.Shift = I
+        I = 0
+        Exit Function
+    End If
+    JPG_Library_T = CLng(I) And 65535
+
+    JPEG.Shift = JPG_Library_T \ JPG_Library_Pow2(N)
+
+    JPG_Library_T = (JPG_Library_T And (JPG_Library_Pow2(N) - 1)) * JPG_Library_Pow2((16 - N) And 15)
+    If JPG_Library_T And 32768 Then I = CInt(JPG_Library_T And 32767&) Or -32768 Else I = CInt(JPG_Library_T)
+End Function
+
+Sub JPEG.StandardQT (quality As Single, JPG_Library_QT() As Integer)
+    Dim I As Integer, JPG_Library_X As Integer, JPG_Library_Y As Integer, JPG_Library_T As Integer
+    Restore StandardQT
+    For I = 0 To 1: For JPG_Library_Y = 0 To 7: For JPG_Library_X = 0 To 7
+        Read JPG_Library_T
+        JPG_Library_QT(JPG_Library_X, JPG_Library_Y, I) = JPG_Library_T * quality
+        If JPG_Library_QT(JPG_Library_X, JPG_Library_Y, I) = 0 Then JPG_Library_QT(JPG_Library_X, JPG_Library_Y, I) = 1
+    Next JPG_Library_X, JPG_Library_Y, I
+End Sub
+
+Function JPEG.JPG_Library_Y% (R As Integer, G As Integer, B As Integer)
+    JPEG.JPG_Library_Y = .299 * R + .587 * G + .114 * B - 128
+End Function
+
+Sub PutChar (FileNo As Integer, Char As Integer)
+    Dim C As String * 1
+    C = Chr$(Char)
+    Put FileNo, , C
+End Sub
+
+'END OF JPEG Stuff
+
+
+Function Image32To256 (image&)
+    'This routine can benefit/be altered if the user sets a CONST or DIM SHARED variable name ConvertToStandard256Palette, as so:
+    '     CONST ConvertToStandard256Palette = -1
+    '           Set the value to 0 (FALSE) to preseve the color information perfectly, using its default palette.
+    '           If the CONST is set (TRUE), then we convert our colors to as close of a match as possible, while
+    '           preserving the standard QB64 256-color palette.
+    Dim o As _Offset
+    Dim a As _Unsigned _Byte, r As _Unsigned _Byte
+    Dim g As _Unsigned _Byte, b As _Unsigned _Byte
+    Dim t As _Unsigned Long, color256 As _Unsigned Long
+    Dim index256 As _Unsigned Long
+    Type Pal_type
+        c As _Unsigned Long 'color index
+        n As Long 'number of times it appears
+    End Type
+    Dim Pal(255) As _Unsigned Long
+    I256 = _NewImage(_Width(image&), _Height(image&), 256)
+    Dim m(1) As _MEM: m(0) = _MemImage(image&): m(1) = _MemImage(I256)
+    Do 'get the palette and number of colors used
+        _MemGet m(0), m(0).OFFSET + o, t 'Get the colors from the original screen
+        For i = 0 To colors 'check to see if they're in the existing palette we're making
+            If Pal(i) = t Then Exit For
+        Next
+        If i > colors Then
+            Pal(colors) = t
+            colors = colors + 1 'increment the index for the new color found
+            If colors > 255 Then 'no need to check any further; it's not a normal QB64 256 color image
+                Image32To256 = RemapImageFS(image&, I256)
+                _FreeImage I256
+                _MemFree m()
+                Exit Function 'and we're done, with 100% image compatability saved
+            End If
+        End If
+        o = o + 4
+    Loop Until o >= m(0).SIZE
+
+    '  we might be working with a standard qb64 256 color screen
+    '  check for that first
+    colors = colors - 1 'back up one, as we found our limit and aren't needing to set another
+    For i = 0 To colors 'comparing palette against QB64 256 color palette
+        t = Pal(i)
+        index256 = _RGBA(_Red32(t), _Green32(t), _Blue32(t), _Alpha32(t), I256)
+        color256 = _RGBA32(_Red(index256, I256), _Green(index256, I256), _Blue(index256, I256), _Alpha(index256, I256))
+        If t <> color256 Then NSCU = -1: Exit For
+    Next
+    If NSCU Then 'it's not a standard QB64 256 color palette, but it's still less than 256 total colors.
+        If ConvertToStandard256Palette Then
+            TI256 = RemapImageFS(image&, I256)
+            _MemFree m(1) 'free the old memory
+            _FreeImage I256 'and the old image
+            I256 = TI256 'replace with the new image
+            m(1) = _MemImage(I256) 'and point the mem block to the new image
+        Else
+            For i = 0 To colors: _PaletteColor i, Pal(i), I256: Next 'set the palette
+        End If
+    End If
+    'If we didn't change the palette above, we should work 100% with qb64's internal 256 color palette
+    o = 0
+    Do 'Get the colors, put them to a 256 color screen, as is
+        _MemGet m(0), m(0).OFFSET + o + 3, a
+        _MemGet m(0), m(0).OFFSET + o + 2, r
+        _MemGet m(0), m(0).OFFSET + o + 1, g
+        _MemGet m(0), m(0).OFFSET + o + 0, b
+        _MemPut m(1), m(1).OFFSET + o \ 4, _RGBA(r, g, b, a, I256) As _UNSIGNED _BYTE
+        o = o + 4
+    Loop Until o >= m(0).SIZE
+    _MemFree m()
+    Image32To256 = I256
+End Function
+
+Function RemapImageFS& (ohan&, dhan&) 'Routine written by RhoSigma and used (with permission) for SaveImage Library
+    '// +---------------+---------------------------------------------------+
+    '// | ###### ###### |     .--. .         .-.                            |
+    '// | ##  ## ##   # |     |   )|        (   ) o                         |
+    '// | ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+    '// | ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+    '// | ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+    '// | ##     ##   # |                            ._.'                   |
+    '// | ##     ###### | Sources & Documents placed under the MIT License. |
+    '// +-------------------------------------------------------------------+
+    '// | Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+    '// | Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+    '// | any questions or suggestions. Thanx for your interest in my work. |
+    '// +-------------------------------------------------------------------+
+
+    RemapImageFS& = -1 'so far return invalid handle
+    shan& = ohan& 'avoid side effect on given argument
+    If shan& < -1 Or shan& = 0 Then '0 represents the visible screen
+        '--- check/adjust source image & get new 8-bit image ---
+        swid% = _Width(shan&): shei% = _Height(shan&)
+        If _PixelSize(shan&) <> 4 Then
+            than& = _NewImage(swid%, shei%, 32)
+            If than& >= -1 Then Exit Function
+            _PutImage , shan&, than&
+            shan& = than&
+        Else
+            than& = -1 'avoid freeing below
+        End If
+        nhan& = _NewImage(swid%, shei%, 256)
+        '--- Floyd-Steinberg error distribution arrays ---
+        rhan& = _NewImage(swid%, 2, 32) 'these are missused as LONG arrays,
+        ghan& = _NewImage(swid%, 2, 32) 'with CHECKING:OFF this is much faster
+        bhan& = _NewImage(swid%, 2, 32) 'than real QB64 arrays
+        '--- curr/next row offsets (for distribution array access) ---
+        cro% = 0: nro% = swid% * 4 'will be swapped after each pixel row
+        '--- the matrix values are extended by 16384 to avoid slow floating ---
+        '--- point ops and to allow for integer storage in the above arrays ---
+        '--- also it's a power of 2, which may be optimized into a bitshift ---
+        seven% = 7168 '(7 / 16) * 16384 'X+1,Y+0 error fraction
+        three% = 3072 '(3 / 16) * 16384 'X-1,Y+1 error fraction
+        five% = 5120 '(5 / 16) * 16384 'X+0,Y+1 error fraction
+        one% = 1025 '(1 / 16) * 16384 'X+1,Y+1 error fraction
+        '--- if all is good, then start remapping ---
+        $Checking:Off
+        If nhan& < -1 And rhan& < -1 And ghan& < -1 And bhan& < -1 Then
+            _CopyPalette dhan&, nhan& 'dest palette to new image
+            '--- for speed we do direct memory access ---
+            Dim sbuf As _MEM: sbuf = _MemImage(shan&): soff%& = sbuf.OFFSET
+            Dim nbuf As _MEM: nbuf = _MemImage(nhan&): noff%& = nbuf.OFFSET
+            Dim rbuf As _MEM: rbuf = _MemImage(rhan&): roff%& = rbuf.OFFSET
+            Dim gbuf As _MEM: gbuf = _MemImage(ghan&): goff%& = gbuf.OFFSET
+            Dim bbuf As _MEM: bbuf = _MemImage(bhan&): boff%& = bbuf.OFFSET
+            '--- iterate through pixels ---
+            For y% = 0 To shei% - 1
+                For x% = 0 To swid% - 1
+                    '--- curr/prev/next pixel offsets ---
+                    cpo% = x% * 4: ppo% = cpo% - 4: npo% = cpo% + 4
+                    '--- get pixel ARGB value from source ---
+                    srgb~& = _MemGet(sbuf, soff%&, _Unsigned Long)
+                    '--- add distributed error, shrink by 16384, clear error ---
+                    '--- current pixel X+0, Y+0 (= cro% (current row offset)) ---
+                    poff% = cro% + cpo% 'pre-calc full pixel offset
+                    sr% = ((srgb~& And &HFF0000~&) \ 65536) + (_MemGet(rbuf, roff%& + poff%, Long) \ 16384) 'red
+                    sg% = ((srgb~& And &HFF00~&) \ 256) + (_MemGet(gbuf, goff%& + poff%, Long) \ 16384) 'green
+                    sb% = (srgb~& And &HFF~&) + (_MemGet(bbuf, boff%& + poff%, Long) \ 16384) 'blue
+                    _MemPut rbuf, roff%& + poff%, 0 As LONG 'clearing each single pixel error using _MEMPUT
+                    _MemPut gbuf, goff%& + poff%, 0 As LONG 'turns out even faster than clearing the entire
+                    _MemPut bbuf, boff%& + poff%, 0 As LONG 'pixel row using _MEMFILL at the end of the loop
+                    '--- find nearest color ---
+                    crgb~& = _RGBA32(sr%, sg%, sb%, 0) 'used for fast value clipping + channel merge
+                    npen% = _RGB(sr%, sg%, sb%, nhan&)
+                    '--- put colormapped pixel to dest ---
+                    _MemPut nbuf, noff%&, npen% As _UNSIGNED _BYTE
+                    '------------------------------------------
+                    '--- Floyd-Steinberg error distribution ---
+                    '------------------------------------------
+                    '--- You may comment this block out, to see the
+                    '--- result without applied FS matrix.
+                    '-----
+                    '--- get dest palette RGB value, calc error to clipped source ---
+                    nrgb~& = _PaletteColor(npen%, nhan&)
+                    er% = ((crgb~& And &HFF0000~&) - (nrgb~& And &HFF0000~&)) \ 65536
+                    eg% = ((crgb~& And &HFF00~&) - (nrgb~& And &HFF00~&)) \ 256
+                    eb% = (crgb~& And &HFF~&) - (nrgb~& And &HFF~&)
+                    '--- distribute error according to FS matrix ---
+                    If x% > 0 Then
+                        '--- X-1, Y+1 (= nro% (next row offset)) ---
+                        poff% = nro% + ppo% 'pre-calc full pixel offset
+                        _MemPut rbuf, roff%& + poff%, _MemGet(rbuf, roff%& + poff%, Long) + (er% * three%) As LONG 'red
+                        _MemPut gbuf, goff%& + poff%, _MemGet(gbuf, goff%& + poff%, Long) + (eg% * three%) As LONG 'green
+                        _MemPut bbuf, boff%& + poff%, _MemGet(bbuf, boff%& + poff%, Long) + (eb% * three%) As LONG 'blue
+                    End If
+                    '--- X+0, Y+1 (= nro% (next row offset)) ---
+                    poff% = nro% + cpo% 'pre-calc full pixel offset
+                    _MemPut rbuf, roff%& + poff%, _MemGet(rbuf, roff%& + poff%, Long) + (er% * five%) As LONG 'red
+                    _MemPut gbuf, goff%& + poff%, _MemGet(gbuf, goff%& + poff%, Long) + (eg% * five%) As LONG 'green
+                    _MemPut bbuf, boff%& + poff%, _MemGet(bbuf, boff%& + poff%, Long) + (eb% * five%) As LONG 'blue
+                    If x% < (swid% - 1) Then
+                        '--- X+1, Y+0 (= cro% (current row offset)) ---
+                        poff% = cro% + npo% 'pre-calc full pixel offset
+                        _MemPut rbuf, roff%& + poff%, _MemGet(rbuf, roff%& + poff%, Long) + (er% * seven%) As LONG 'red
+                        _MemPut gbuf, goff%& + poff%, _MemGet(gbuf, goff%& + poff%, Long) + (eg% * seven%) As LONG 'green
+                        _MemPut bbuf, boff%& + poff%, _MemGet(bbuf, boff%& + poff%, Long) + (eb% * seven%) As LONG 'blue
+                        '--- X+1, Y+1 (= nro% (next row offset)) ---
+                        poff% = nro% + npo% 'pre-calc full pixel offset
+                        _MemPut rbuf, roff%& + poff%, _MemGet(rbuf, roff%& + poff%, Long) + (er% * one%) As LONG 'red
+                        _MemPut gbuf, goff%& + poff%, _MemGet(gbuf, goff%& + poff%, Long) + (eg% * one%) As LONG 'green
+                        _MemPut bbuf, boff%& + poff%, _MemGet(bbuf, boff%& + poff%, Long) + (eb% * one%) As LONG 'blue
+                    End If
+                    '------------------------------------------
+                    '--- End of FS ----------------------------
+                    '------------------------------------------
+                    noff%& = noff%& + 1 'next dest pixel
+                    soff%& = soff%& + 4 'next source pixel
+                Next x%
+                tmp% = cro%: cro% = nro%: nro% = tmp% 'exchange distribution array row offsets
+            Next y%
+            '--- memory cleanup ---
+            _MemFree bbuf
+            _MemFree gbuf
+            _MemFree rbuf
+            _MemFree nbuf
+            _MemFree sbuf
+            '--- set result ---
+            RemapImageFS& = nhan&
+            nhan& = -1 'avoid freeing below
+        End If
+        $Checking:On
+        '--- remapping done or error, cleanup remains ---
+        If bhan& < -1 Then _FreeImage bhan&
+        If ghan& < -1 Then _FreeImage ghan&
+        If rhan& < -1 Then _FreeImage rhan&
+        If nhan& < -1 Then _FreeImage nhan&
+        If than& < -1 Then _FreeImage than&
+    End If
+End Function
+
+'-----------------------------------------------------------------------------
+'             GIFcreate.BM Compression Routine v1.00 By Rich Geldreich 1992
+'             Converted into one SUB Library routine by Ted Weissgerber 2011
+'             Copied from QB64 wiki and inserted into SaveImage library 2019
+'-----------------------------------------------------------------------------
+'                   For 1 BPP, 4 BPP or 8 BPP images only!
+'file$       = save image output filename
+'XStart      = <-left hand column of area to encode
+'YStart      = <-upper row of area to encode
+'Xend        = <-right hand column of area to encode
+'Yend        = <-lowest row of area to encode                                       "
+'NumColors   = # of colors on screen: 2(Black & White), 16(SCREEN 12), 256(SCREEN13)
+'
+
+Sub MakeGIF (file$, Xstart, YStart, Xend, Yend, NumColors)
+    If Xend = _Width Then Xend = _Width - 1 'Minor correct to prevent many simple user errors
+    If Yend = _Width Then Yend = _Height - 1 '
+
+    Const True = -1, False = 0
+    Const Table.size = 7177 'hash table's size - must be a prime number!
+
+    Dim Prefix(Table.size - 1), Suffix(Table.size - 1), Code(Table.size - 1)
+    Dim Shift(7) As Long
+    Dim i As Integer, PWidth As Integer, PDepth As Integer
+    Dim MaxX As Integer, MaxY As Integer
+    Dim MinX As Integer, MinY As Integer
+    Dim GIF As Integer
+    Dim temp As String, Zero As String, OutBuffer As String
+    Dim BitsPixel As Integer
+    Dim StartSize As Integer
+    Dim StartCode As Integer
+    Dim StartMax As Integer
+    Dim ColorBits As Integer
+    Dim CP As Integer, C As Integer, R As Integer, G As Integer
+    Dim B As Integer, CurrentBit As Integer, CHAR As Long
+    Dim MaxCode As Integer, CodeSize As Integer, ClearCode As Integer
+    Dim EOFCode As Integer, NextCode As Integer
+    Dim Buff As Long
+    Dim Oseg As Integer, OAddress As Integer, OEndAddress As Integer, OStartAddress As Integer
+    Dim PC As Integer, x As Integer, y As Integer, Prefix As Integer
+    Dim GB As Integer, Done As Integer, PB As Integer
+    Dim BlockLength As Integer, LastLoc As Long
+    Dim Suffix As Integer, Found As Integer, Index As Integer
+    Dim A As Integer, Offset As Integer, BW As Integer
+
+    For i = 0 To 7: Shift(i) = 2 ^ i: Next 'create exponent array for speed.
+
+    PWidth% = Abs(Xend - Xstart) + 1
+    PDepth% = Abs(Yend - YStart) + 1
+    'MinX, MinY, MaxX, MaxY are maximum and minimum image coordinates
+    If Xstart > Xend Then MaxX = Xstart: MinX = Xend Else MaxX = Xend: MinX = Xstart
+    If YStart > Xend Then MaxY = YStart: MinY = Yend Else MaxY = Yend: MinY = YStart
+
+    'Open GIF output file
+    GIF = FreeFile 'use next free file
+    Open file$ For Binary As #GIF
+
+    temp = "GIF87a": Put #GIF, , temp 'Put GIF87a header at beginning of file
+
+    Select Case NumColors 'get color settings
+        Case 2 'monochrome (B&W) image
+            BitsPixel = 1 '1 bit per pixel
+            StartSize = 3 'first LZW code is 3 bits
+            StartCode = 4 'first free code
+            StartMax = 8 'maximum code in 3 bits
+        Case 16 '16 colors images SCREENS 7, 8, 9, 12, 13
+            BitsPixel = 4 '4 bits per pixel
+            StartSize = 5 'first LZW code is 5 bits
+            StartCode = 16 'first free code
+            StartMax = 32 'maximum code in 5 bits
+        Case 256 '256 color images SCREEN 13 or _NEWIMAGE 256
+            BitsPixel = 8 '8 bits per pixel
+            StartSize = 9 'first LZW code is 9 bits
+            StartCode = 256 'first free code
+            StartMax = 512 'maximum code in 9 bits
+    End Select
+
+    'ColorBits = 2      'for EGA
+    ColorBits = 6 'VGA monitors ONLY
+
+    Put #GIF, , PWidth% 'put screen's dimensions
+    Put #GIF, , PDepth%
+
+    CP = 128 + (ColorBits - 1) * 16 + (BitsPixel - 1) 'pack colorbits and bits per pixel
+    Put #GIF, , CP
+
+    Zero$ = Chr$(0) 'PUT a zero into the GIF file
+    Put #GIF, , Zero$
+
+    Out &H3C7, 0 'start read at color 0
+    For C = 0 To NumColors - 1 'Get the RGB palette from the screen and put into file
+        R = (Inp(&H3C9) * 65280) \ 16128 'C = R * 4.0476190(for 0-255)
+        G = (Inp(&H3C9) * 65280) \ 16128
+        B = (Inp(&H3C9) * 65280) \ 16128
+        temp = Chr$(R): Put #GIF, , temp
+        temp = Chr$(G): Put #GIF, , temp
+        temp = Chr$(B): Put #GIF, , temp
+    Next
+    'write out an image descriptor
+    temp = "," 'image separator
+    Put #GIF, , temp 'write it
+    Put #GIF, , MinX 'image start locations
+    Put #GIF, , MinY
+    Put #GIF, , PWidth% 'store them into the file
+    Put #GIF, , PDepth%
+    temp = Chr$(BitsPixel - 1) '# bits per pixel in the image
+    Put #GIF, , temp
+    temp = Chr$(StartSize - 1) 'store the LZW minimum code size
+    Put #GIF, , temp
+
+    CurrentBit = 0: CHAR& = 0 'Initialize the vars needed by PutCode
+
+    MaxCode = StartMax 'the current maximum code size
+    CodeSize = StartSize 'the current code size
+    ClearCode = StartCode 'ClearCode & EOF code are the
+    EOFCode = StartCode + 1 'first two entries
+    StartCode = StartCode + 2 'first free code that can be used
+    NextCode = StartCode 'the current code
+
+    OutBuffer$ = String$(5000, 32) 'output buffer; for speedy disk writes
+    Buff& = SAdd(OutBuffer$) 'find address of buffer
+    Buff& = Buff& - 65536 * (Buff& < 0)
+    Oseg = VarSeg(OutBuffer$) + (Buff& \ 16) 'get segment + offset >> 4
+    OAddress = Buff& And 15 'get address into segment
+    OEndAddress = OAddress + 5000 'end of disk buffer
+    OStartAddress = OAddress 'current location in disk buffer
+    Def Seg = Oseg
+
+    GoSub ClearTree 'clear the tree & output a
+    PC = ClearCode: GoSub PutCode 'clear code
+
+    x = Xstart: y = YStart 'X & Y have the current pixel
+    GoSub GetByte: Prefix = GB 'the first pixel is a special case
+    Done = False 'True when image is complete
+
+    Do 'while there are more pixels to encode
+        Do 'until we have a new string to put into the table
+            If Done Then 'write out the last pixel, clear the disk buffer
+                '           'and fix up the last block so its count is correct
+
+                PC = Prefix: GoSub PutCode 'write last pixel
+                PC = EOFCode: GoSub PutCode 'send EOF code
+
+                If CurrentBit <> 0 Then PC = 0: GoSub PutCode 'flush out the last code...
+                PB = 0: GoSub PutByte
+                OutBuffer$ = Left$(OutBuffer$, OAddress - OStartAddress)
+                Put #GIF, , OutBuffer$
+                temp = ";" + String$(8, &H1A) 'the 8 EOF chars is not standard,
+                Put #GIF, , temp
+                temp = Chr$(255 - BlockLength) 'correct the last block's count
+                Put #GIF, LastLoc&, temp
+                Close #GIF: Exit Sub '<<<<<<<<<<< End of procedure
+            Else 'get a pixel from the screen and find the new string in table
+                GoSub GetByte: Suffix = GB
+                GoSub Hash 'is it in hash table?
+                If Found = True Then Prefix = Code(Index) 'replace prefix:suffix string with code in table
+            End If
+        Loop While Found 'don't stop unless we find a new string
+
+        PC = Prefix: GoSub PutCode 'output the prefix to the file
+        Prefix(Index) = Prefix 'put the new string in the table
+        Suffix(Index) = Suffix
+        Code(Index) = NextCode 'we've got to keep track of code!
+
+        Prefix = Suffix 'Prefix = the last pixel pulled from the screen
+
+        NextCode = NextCode + 1 'get ready for the next code
+        If NextCode = MaxCode + 1 Then 'increase the code size
+            MaxCode = MaxCode * 2
+            'Note: The GIF89a spec mentions something about a deferred clear code
+            If CodeSize = 12 Then 'is the code size too big?
+                PC = ClearCode: GoSub PutCode 'yup; clear the table and
+                GoSub ClearTree 'start over
+                NextCode = StartCode
+                CodeSize = StartSize
+                MaxCode = StartMax
+            Else CodeSize = CodeSize + 1 'increase code size if not too high (not > 12)
+            End If
+        End If
+    Loop 'while we have more pixels
+
+    '                              'GOSUB ROUTINES
+    ClearTree:
+    For A = 0 To Table.size - 1 'clears the hashing table
+        Prefix(A) = -1 '-1 = invalid entry
+        Suffix(A) = -1
+        Code(A) = -1
+    Next
+    Return
+
+    Hash: 'hash the prefix & suffix(there are also many ways to do this...)
+    Index = ((Prefix * 256&) Xor Suffix) Mod Table.size
+
+    '        Note: the table size(7177 in this case) must be a prime number
+    '    Calculate an offset just in case we don't find what we want first try...
+    If Index = 0 Then 'cannot have Table.Size 0!
+        Offset = 1
+    Else
+        Offset = Table.size - Index
+    End If
+
+    Do 'loop until we find an empty entry or find what we're lookin for
+        If Code(Index) = -1 Then 'is this entry blank?
+            Found = False ' didn't find the string
+            Return
+        ElseIf Prefix(Index) = Prefix And Suffix(Index) = Suffix Then
+            Found = True 'found the string
+            Return
+        Else 'didn't find anything, must retry - this slows hashing down.
+            Index = Index - Offset
+            If Index < 0 Then 'too far down the table? wrap back the index to end of table
+                Index = Index + Table.size
+            End If
+        End If
+    Loop
+
+    PutByte: 'Puts a byte into the GIF file & also takes care of each block.
+    BlockLength = BlockLength - 1 'are we at the end of a block?
+    If BlockLength <= 0 Then 'end of block
+        BlockLength = 255 'block length is now 255
+        LastLoc& = Loc(GIF) + 1 + (OAddress - OStartAddress) 'remember the position
+        BW = 255: GoSub BufferWrite 'for later fixing
+    End If
+    BW = PB: GoSub BufferWrite
+    Return
+
+    BufferWrite: 'Puts a byte into the buffer
+    If OAddress = OEndAddress Then 'are we at the end of the buffer?
+        Put #GIF, , OutBuffer$ 'write it out and
+        OAddress = OStartAddress 'start all over
+    End If
+    Poke OAddress, BW 'put byte in buffer
+    OAddress = OAddress + 1 'increment position
+    Return
+
+    GetByte: 'This routine gets one pixel from the display
+    GB = Point(x, y) 'get the "byte"
+    x = x + 1 'increment X coordinate
+    If x > MaxX Then 'are we too far?
+        x = MinX 'go back to start
+        y = y + 1 'increment Y coordinate
+        If y > MaxY Then Done = True 'flag if too far down
+    End If
+    Return
+
+    PutCode: 'Puts an LZW variable-bit code into the output file...
+    CHAR& = CHAR& + PC * Shift(CurrentBit) 'put the char were it belongs;
+    CurrentBit = CurrentBit + CodeSize 'shifting it to its proper place
+    Do While CurrentBit > 7 'do we have a least one full byte?
+        PB = CHAR& And 255: GoSub PutByte 'mask it off and write it out
+        CHAR& = CHAR& \ 256 'shift the bit buffer right 8 bits
+        CurrentBit = CurrentBit - 8 'now we have 8 less bits
+    Loop 'loop until we don't have a full byte
+    Return
+End Sub
+
+

@@ -1,0 +1,284 @@
+Function LOADICO& (file As String, fram As Integer)
+
+    Type File_Head
+        reserved As Integer '0
+        id_Type As Integer '1
+        id_Count As Integer 'pocet ikon v souboru ICO
+    End Type
+
+    Type ICO_Head
+        bWidth As _Unsigned _Byte
+        bHeight As _Unsigned _Byte
+        color_count As _Unsigned _Byte '0 = >256 colors
+        bReserved As _Unsigned _Byte '0
+        wPlanes As _Unsigned Integer 'pocet bitovych rovin
+        wBitCount As _Unsigned Integer 'pocet bitu na pixel
+        dwBytesInRes As Long 'delka obrazku v bytech vcetne palety
+        dwImageOffset As Long 'zacatek ikony od zacatku souboru - tim se ridit!
+    End Type
+
+
+
+    Type Ico_Image
+        ThisSize As Long '40
+        width As Long
+        height As Long
+        biPlanes As Integer '1
+        BitCount As Integer 'pocet bitu na pixel, tj 1, 4 , 8, 24
+        Compression As Long '0 = BI_RGB, 1 = BI_RLE8, 2 = BI_RLE4
+        SizeImage As Long 'velikost obrazu
+        XPelsPerMeter As Long '0
+        YPelsPerMeter As Long '0
+        nic As Long '0
+        taky_nic As Long '0
+    End Type
+
+    Type IcIm
+        W As Integer
+        H As Integer
+        colors As _Unsigned _Byte
+        BPP As _Unsigned _Byte
+        L As Long
+        Offset As Long
+        WP As _Unsigned Integer
+    End Type
+
+    Dim FH As File_Head, IH As ICO_Head, II As Ico_Image
+    ch = FreeFile
+
+    If _FileExists(file$) Then Open file$ For Binary As #ch Else Print "ICO loader error: file "; file$; " not exist.": Sleep 2: System
+    Get #ch, , FH
+    If FH.reserved = 0 And FH.id_Type = 1 Then Else Print "unknown format!": System
+    frames = FH.id_Count
+    If fram < 0 Then LOADICO& = frames: Exit Function '                                                                                                        -1 is for returning number frames in file
+    If fram > frames Then Print "This file contains not so much images. File "; file$; " contains "; frames; "frames. Can not using frame"; fram: Sleep 2: Exit Function
+    ReDim Ico(frames) As IcIm
+    For al_fr = 1 To frames
+        Get #ch, , IH
+        Ico(al_fr).W = IH.bWidth
+        Ico(al_fr).H = IH.bHeight
+        Ico(al_fr).colors = IH.color_count '0 = >256 colors
+        Ico(al_fr).BPP = IH.wBitCount
+        Ico(al_fr).L = IH.dwBytesInRes
+        Ico(al_fr).Offset = IH.dwImageOffset + 1
+        If IH.color_count = 0 Then IHcolor_count = 256 Else IHcolor_count = IH.color_count
+        Ico(al_fr).WP = IHcolor_count
+    Next al_fr
+
+
+
+    If fram = 0 Then vs = 1: ve = frames Else vs = fram: ve = fram
+    For all = vs To ve
+        Seek #ch, Ico(all).Offset
+
+
+        If Ico(all).BPP = 32 Or Ico(all).BPP = 24 Then ' nejprve otestuju pritomnost PNG pokud je hloubka 32 bit:
+            current_position = Seek(ch)
+            Dim start_test As String * 8
+            '            DIM end_test AS STRING * 12
+            start$ = Chr$(137) + Chr$(80) + Chr$(78) + Chr$(71) + Chr$(13) + Chr$(10) + Chr$(26) + Chr$(10)
+            Get #ch, , start_test$
+            If start_test$ = start$ Then
+                '   Ico(all).BPP = 32
+                Ico(all).W = 256
+                Ico(all).H = 256
+                icon& = _CopyImage(extract_png&(ch), 32): GoTo ______skip
+            Else
+                Seek #ch, current_position
+            End If
+        End If
+
+
+        Get #ch, , II
+
+        If Ico(all).BPP > 0 And Ico(all).BPP <= 8 Then depth = 256 Else depth = 32
+        If Ico(all).W = 0 Then Ico(all).W = 256
+        If Ico(all).H = 0 Then Ico(all).H = 256
+
+
+        icon& = _NewImage(Ico(all).W, Ico(all).H, depth)
+        _Dest icon&
+
+        Select Case Ico(all).BPP
+            Case 1
+                PalLenght = 1
+            Case 4
+                PalLenght = 15
+            Case 8
+                PalLenght = 255
+            Case 0, 32, 24
+                GoTo _______NoPalete
+        End Select
+
+        ReDim pal As _Unsigned Long
+        For palete = 0 To PalLenght
+            Get #ch, , pal
+            _PaletteColor palete, pal, icon&
+        Next palete
+        _______NoPalete:
+
+        Select Case Ico(all).BPP
+
+            Case 1
+                ReDim bwi As String, valuee As _Unsigned _Byte
+                For draw1 = 1 To Ico(all).W * Ico(all).H
+                    Get #ch, , valuee
+                    bwi = bwi + DECtoBIN$(valuee)
+                Next
+
+                drawX = 0
+                drawY = Ico(all).H
+                For DrawXOR = 1 To Ico(all).W * Ico(all).H
+
+                    If (Mid$(bwi$, DrawXOR, 1)) = "1" Then PSet (drawX, drawY)
+                    drawX = drawX + 1: If drawX >= Ico(all).W And Ico(all).H Mod 4 = 0 Then drawX = 0: drawY = drawY - 1
+                Next
+
+            Case 4
+                Dim R4 As _Unsigned _Byte
+                binary$ = ""
+
+                For READ_XOR_DATA = 1 To (Ico(all).W * Ico(all).H) / 2
+                    Get #ch, , R4
+                    binary$ = binary$ + DECtoBIN$(R4)
+                Next READ_XOR_DATA
+
+                Dim colors4(Len(binary$)) As _Byte
+                calc_color = 0
+
+
+                For calc_colors = 1 To Len(binary$) Step 4
+                    colors4(calc_color) = BINtoDEC(Mid$(binary$, calc_colors, 4))
+                    calc_color = calc_color + 1
+                Next calc_colors
+
+                binary$ = ""
+
+                clc = 0
+
+                drawX = 0
+                drawY = Ico(all).H
+                For DrawXOR = 0 To Ico(all).W * Ico(all).H
+                    drawX = drawX + 1: If drawX >= Ico(all).W And Ico(all).H Mod 8 = 0 Then drawX = 0: drawY = drawY - 1
+                    If drawX < Ico(all).W Then PSet (drawX, drawY), colors4(clc): clc = clc + 1
+                Next
+
+                Erase colors4: binary$ = ""
+                AndMaskLen = (Ico(all).H * Ico(all).W) / 8
+
+                For AM = 1 To AndMaskLen
+                    Get #ch, , R4
+                    binary$ = binary$ + DECtoBIN$(R4)
+                Next AM
+
+
+                clc = 0
+                For DrawAND = 0 To Ico(all).W * Ico(all).H
+                    drawX = drawX + 1: If drawX >= Ico(all).W And Ico(all).H Mod 8 = 0 Then drawX = 0: drawY = drawY - 1
+                    If drawX <= Ico(all).W And Mid$(binary$, clc, 1) = "1" Then
+                        _Source icon&
+                        cur = Point(drawX, drawY)
+                        PSet (drawX, drawY), 255 And cur: clc = clc + 1
+                    End If
+                Next
+                _Source 0
+
+            Case 8
+                ReDim colors8(Ico(all).H * Ico(all).W) As _Unsigned _Byte
+                For calc_colors = 1 To Ico(all).H * Ico(all).W
+                    Get #ch, , colors8(calc_colors)
+                Next calc_colors
+
+                binary$ = ""
+                AndMaskLen = (Ico(all).H * Ico(all).W) / 8
+                ReDim r5 As _Unsigned _Byte
+                For AM = 1 To AndMaskLen
+                    Get #ch, , r5
+                    binary$ = binary$ + DECtoBIN$(r5)
+                Next AM
+
+                clc = 0
+                For draw_itY = 1 To Ico(all).H
+                    For draw_itX = 0 To Ico(all).W - 1
+                        clc = clc + 1
+                        _Source icon&
+                        cur = Point(draw_itX + 1, draw_itY)
+                        PSet (draw_itX, Ico(all).H - draw_itY), colors8(clc)
+                Next: Next
+
+                drawY = Ico(all).H - 1
+                clc = 0
+                For DrawAND = 1 To Ico(all).W * Ico(all).H
+                    drawX = drawX + 1: If drawX >= Ico(all).W And Ico(all).H Mod 4 = 0 Then drawX = 0: drawY = drawY - 1
+                    clrr = Point(drawX, drawY)
+                    clc = clc + 1
+                    If Mid$(binary$, clc, 1) = "1" Then PSet (drawX, drawY), 255 And clrr
+
+                Next
+                _Source 0
+
+
+            Case 0, 32
+                ReDim cache(1 To Ico(all).W, 1 To Ico(all).H) As _Unsigned Long
+
+                For draw_itY = 1 To Ico(all).H
+                    For draw_itX = 1 To Ico(all).W
+                        Get #ch, , cache(draw_itX, draw_itY)
+                Next: Next
+
+                For draw_itY = 1 To Ico(all).H
+                    For draw_itX = 1 To Ico(all).W
+                        PSet (draw_itX - 1, Ico(all).H - draw_itY), cache(draw_itX, draw_itY)
+                Next: Next
+                Erase cache
+
+        End Select
+
+        ______skip:
+        _Dest 0
+        If fram = 0 Then
+            If _PixelSize(_Dest) < 4 Then Print "LOADICO parameter is set as 0. This option is for view all frames in ICO and muss be used with 32 bit screen.": Sleep 2: Exit Function
+            ______resetview:
+            If listed = 0 Then listed = 1: Cls: _PrintString (300, 20), "    Image nr.   Width   Height    BPP    Color count": row = 40
+            If _Height - (row + 10) < 256 Then _PrintString (50, row + 100), "Press key for view next...": Sleep: Cls: listed = 0: GoTo ______resetview
+            _PutImage (50, row), icon&, 0
+            _FreeImage icon&
+            row = row + Ico(all).H + 10
+            info$ = "  " + Str$(all) + "      " + Str$(Ico(all).W) + "      " + Str$(Ico(all).H) + "    " + Str$(Ico(all).BPP) + "         " + Str$(Ico(all).WP)
+            _PrintString (350, row - (Ico(all).H + 10 / 2)), info$
+        Else
+            If all = fram Then LOADICO& = icon&: _Dest 0: Exit Function Else _FreeImage icon&
+        End If
+    Next all
+End Function
+
+
+Function BINtoDEC (b As String)
+    BINtoDEC = Val("&B" + b)
+End Function
+
+Function extract_png& (ch)
+    start$ = Chr$(137) + Chr$(80) + Chr$(78) + Chr$(71) + Chr$(13) + Chr$(10) + Chr$(26) + Chr$(10)
+    eend$ = Chr$(0) + Chr$(0) + Chr$(0) + Chr$(0) + Chr$(73) + Chr$(69) + Chr$(78) + Chr$(68) + Chr$(174) + Chr$(66) + Chr$(96) + Chr$(130)
+    Seek #ch, Seek(ch) - 8
+    Z = Seek(ch)
+    Dim scan As String * 12
+    Do
+        Get #ch, , scan$
+        If scan$ = eend$ Then Exit Do
+        Seek #ch, Seek(ch) - 11
+    Loop
+    K = Seek(ch)
+    png$ = Space$(K - Z)
+    Seek #ch, Z
+    Get #ch, , png$
+    swp = FreeFile
+    Open "---png_extr_" For Output As #swp
+    Close #swp: Open "---png_extr_" For Binary As #swp
+    Put #swp, , png$
+    Close #swp
+    extract_png& = _LoadImage("---png_extr_", 32)
+    Kill "---png_extr_"
+    png$ = ""
+End Function
+
