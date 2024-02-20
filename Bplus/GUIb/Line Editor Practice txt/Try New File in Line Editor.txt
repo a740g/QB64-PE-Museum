@@ -1,0 +1,3 @@
+OK, that`s looking better. 
+Good, plus sent to correct line.
+Looking good! Got saved and reloaded. I am now considering arrow keys on keypad.

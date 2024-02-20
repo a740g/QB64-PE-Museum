@@ -1,0 +1,951 @@
+' 2022-12-22 GUIb rename N1, N2, ...
+
+''$include:'GUIb.BI'
+
+'Sub BtnClickEvent (i As Long)
+'    i = i
+'    '   Select Case i
+'    '   End Select
+'End Sub
+
+'Sub LstSelectEvent (control As Long)
+'    control = control
+'    '   Select Case control
+'    '   End Select
+'End Sub
+
+'Sub SldClickEvent (i As Long)
+'    i = i
+'End Sub
+
+'Sub PicClickEvent (i As Long, Pmx As Long, Pmy As Long)
+'    i = i: Pmx = Pmx: Pmy = Pmy
+'    '   Select Case i
+'    '   End Select
+'End Sub
+
+'Sub PicFrameUpdate (i As Long, MXfracW, MYfracH)
+'    i = i: MXfracW = MXfracW: MYfracH = MYfracH
+'    '   Select Case i
+'    '   End Select
+'End Sub
+
+'Sub LblClickEvent (i As Long)
+'    i = i
+'    '   Select Case i
+'    '   End Select
+'End Sub
+
+'==================================================================================================
+
+Sub OpenWindow (WinWidth As Long, WinHeight As Long, title$, fontFile$)
+    Dim As Long xo, yo
+    Screen _NewImage(WinWidth, WinHeight, 32)
+    xo = (1300 - WinWidth) / 2
+    If xo < 0 Then xo = 0
+    yo = (730 - WinHeight) / 2
+    If yo < 0 Then yo = 0
+    _ScreenMove xo, yo
+    _PrintMode _KeepBackground
+    _Title title$
+    Color White, screenBC
+    Cls
+    Dim As Long j
+    For j = 10 To 128
+        FontHandle&(j) = _LoadFont(FontPath + fontFile$, j)
+        If FontHandle&(j) <= 0 Then
+            Cls
+            Print "Font did not load (OpenWindow sub) at height" + Str$(j) + ", goodbye!"
+            Sleep: End
+        End If
+    Next
+End Sub
+
+Function NewControl& (ConType As Long, X As Long, Y As Long, W As Long, H As Long, s$, l$)
+
+    NControls = NControls + 1
+    ReDim _Preserve con(0 To NControls) As Control
+    con(NControls).ConType = ConType
+    con(NControls).X = X
+    con(NControls).Y = Y
+    con(NControls).W = W
+    con(NControls).H = H
+    con(NControls).Text = s$
+    con(NControls).Label = l$
+    If l$ <> "" Then drwConLbl NControls ' one time only unless there needs to be a screen refresh
+
+    'set these to 0 in case want to use later
+    con(NControls).ImgHnd = 0
+    con(NControls).Align = 0
+
+    con(NControls).CurCol = 0
+    con(NControls).CurRow = 0
+
+    con(NControls).CurSec = 0
+    con(NControls).CurPage = 0
+
+    con(NControls).CharsW = 0
+    con(NControls).RowsPPg = 0
+
+    con(NControls).MaxChars = 0
+    con(NControls).MaxLines = 0
+
+    con(NControls).Toggle = 0
+    con(NControls).DecPts = 0
+    con(NControls).SldLow = 0
+    con(NControls).sldHigh = 0
+    con(NControls).SldValue = 0
+    con(NControls).ToggleStr = ""
+    con(NControls).SelTxt = ""
+
+    Select Case ConType
+        Case 1 ' btn
+            If Left$(s$, 1) = "<" Then
+                If _FileExists(ImgPath + Mid$(s$, 2)) Then con(NControls).ImgHnd = _LoadImage(ImgPath + Mid$(s$, 2))
+            End If
+            if H < 24 then con(NControls).FontH = H - 4 else con(NControls).FontH = 20
+            con(NControls).FC = C3(800): con(NControls).BC = C3(888)
+            drwBtn NControls
+        Case 2 ' tb
+            If H > 21 Then con(NControls).FontH = 20 Else con(NControls).FontH = H - 2
+            con(NControls).FC = C3(778): con(NControls).BC = C3(225)
+            con(NControls).FontH = 16
+            con(NControls).CurSec = 1 ' page/section
+            con(NControls).CurCol = 1 ' highlite
+            con(NControls).CharsW = Int((con(NControls).W - 8) / 8) ' width of section
+            con(NControls).MaxChars = Len(con(NControls).Text) + 1
+            drwTB NControls
+        Case 3 ' lst
+            con(NControls).FC = C3(889): con(NControls).BC = C3(336)
+            con(NControls).FontH = 16 ' rev 2022-11-30
+            con(NControls).CurPage = 1 ' page number
+            con(NControls).CurRow = 1 ' select highlite bar
+            con(NControls).CharsW = (W - 32) / 8 ' rev 2022-12-18 minus 3 char widths for slider and split char for margin
+            con(NControls).RowsPPg = Int(H / 16) - 2 ' lines we can fit inside the H given the box the
+            '                            top and bottom line are blank for mouse pgUp/dn Home End
+            '                page height 2 empty lines for home, end, page up, page down clicking
+            ' n5 max index of array changes according to lines delimiters in text
+            drwLst NControls
+        Case 4 'sld
+            con(NControls).ImgHnd = _NewImage(con(NControls).W, con(NControls).H, 32)
+            'drwSld NControls, -1   ' best not to draw this until get more variables assigned
+        Case 5 ' pic
+            con(NControls).ImgHnd = _NewImage(con(NControls).W, con(NControls).H, 32)
+            _Dest con(NControls).ImgHnd
+            Line (0, 0)-Step(con(NControls).W - 1, con(NControls).H - 1), Black, BF
+            _Dest 0
+            drwPic NControls
+        Case 6 ' lbl
+            con(NControls).FC = C3(50): con(NControls).BC = C3(669)
+            con(NControls).FontH = H - 4 ' if want to show a back color will want space above and below letter
+            con(NControls).Align = 0 ' label alignment is now N1
+            con(NControls).Toggle = 0 ' toggle value   on or off when enter or right clicked
+            drwLbl NControls
+    End Select
+    NewControl& = NControls ' same as ID
+End Function
+
+Sub MainRouter ' 2022-12-06 add MouseBox, MXpercW, MYpercH
+    Dim As Long kh, mx, my, mb1, mb2, i, shift, temp, Mousebox, lineNum
+    Dim As Single MXfracW, MYfracH, frac
+    If ActiveControl = 0 Then SetActiveControl 1
+    Do
+        ' mouse clicks and tabs will decide the active control
+        While _MouseInput ' scroll lst if active while polling mouse
+            If con(ActiveControl).ConType = 3 Then
+                If _MouseWheel > 0 Then
+                    LstKeyEvent ActiveControl, 20480
+                ElseIf _MouseWheel < 0 Then
+                    LstKeyEvent ActiveControl, 18432
+                End If
+            End If
+        Wend
+        mx = _MouseX: my = _MouseY: mb1 = _MouseButton(1): mb2 = _MouseButton(2)
+        Mousebox = 0: MXfracW = 0: MYfracH = 0
+        For i = 1 To NControls
+            If mx >= con(i).X And mx <= con(i).X + con(i).W Then
+                If my >= con(i).Y And my <= con(i).Y + con(i).H Then ' we are  inside a control
+                    ' do we have a mouse click inside a control?
+                    If mb1 Then ' click, find which type control we are in and exit for
+                        _Delay .2
+                        If i <> ActiveControl Then ' active control is changed
+                            SetActiveControl i
+                        End If
+                        If con(i).ConType = 1 Then
+                            BtnClickEvent i
+                        ElseIf con(i).ConType = 2 Then ' move cursor to click point
+                            If mx > con(i).X + 4 And mx < con(i).X + con(i).W Then
+                                If my >= con(i).Y And my <= con(i).Y + con(i).H Then
+                                    con(i).CurCol = Int((mx - (con(i).X + 4)) / 8) + 1
+                                    If (con(i).CurSec - 1) * con(i).CharsW + con(i).CurCol > con(i).MaxChars Then
+                                        If con(i).MaxChars Mod con(i).CharsW = 0 Then
+                                            'last page exactly at end of it
+                                            con(i).CurSec = Int(con(i).MaxChars / con(i).CharsW)
+                                            con(i).CurCol = con(i).CharsW
+                                        Else
+                                            ' last page with only some lines
+                                            con(i).CurSec = Int(con(i).MaxChars / con(i).CharsW) + 1
+                                            con(i).CurCol = con(i).MaxChars Mod con(i).CharsW
+                                        End If
+                                    End If
+                                    drwTB i
+                                End If
+                            End If
+                        ElseIf con(i).ConType = 3 Then ' top buttons
+                            If my >= con(i).Y And my <= con(i).Y + con(i).FontH Then ' top empty
+                                If mx < con(i).X + .5 * con(i).W Then 'home else pgUp
+                                    LstKeyEvent i, 18176 ' home
+                                ElseIf mx > con(i).X + .5 * con(i).W Then
+                                    LstKeyEvent i, 18688 ' pgup
+                                End If
+                            ElseIf my >= con(i).Y + con(i).H - con(i).FontH Then ' bottom buttons
+                                If my <= con(i).Y + con(i).H Then
+                                    If mx < con(i).X + .5 * con(i).W Then 'end else pgDn
+                                        LstKeyEvent i, 20224 ' end
+                                    ElseIf mx > con(i).X + .5 * con(i).W Then
+                                        LstKeyEvent i, 20736 ' pgdn
+                                    End If
+                                End If
+                            ElseIf my >= con(i).Y + con(i).FontH Then
+                                If my < con(i).Y + con(i).H - con(i).FontH Then
+
+                                    ' newest section
+                                    If mx > con(i).X + con(i).W - 24 Then 'slider bar   already check y for button pgup, pgdn
+                                        frac = (my - con(i).Y - 16) / (con(i).H - 48) ' h- 32 -16 slider height
+                                        lineNum = Int(frac * con(i).MaxLines) 'times total lines
+                                        If lineNum < 1 Then lineNum = 1
+                                        If lineNum > con(i).MaxLines Then lineNum = con(i).MaxLines
+                                        con(i).CurPage = Int(lineNum / con(i).RowsPPg) + 1
+                                        con(i).CurRow = lineNum Mod con(i).RowsPPg
+                                        If con(i).CurRow = 0 Then ' divided exactly then end of a page
+                                            con(i).CurPage = con(i).CurPage - 1
+                                            con(i).CurRow = con(i).RowsPPg
+                                            If con(i).CurPage < 1 Then con(i).CurPage = 1
+                                        End If
+
+
+
+                                    Else ' main body of list items
+                                        temp = Int((my - con(i).Y - con(i).FontH) / con(i).FontH)
+                                        con(i).CurRow = temp + 1
+                                        If (con(i).CurPage - 1) * con(i).RowsPPg + con(i).CurRow > con(i).MaxLines Then
+                                            LstKeyEvent i, 20224 ' end
+                                        End If
+                                    End If
+                                    drwLst i
+                                End If
+                            End If
+                        ElseIf con(i).ConType = 4 Then
+                            drwSld i, mx - con(i).X ' update slider, coder likely will do more
+                            SldClickEvent i 'sld box click event
+                        ElseIf con(i).ConType = 5 Then
+                            PicClickEvent i, mx - con(i).X, my - con(i).Y 'picture box click event
+                        ElseIf con(i).ConType = 6 Then
+                            con(i).Toggle = 1 - con(i).Toggle ' toggle value in lbl's
+                            LblClickEvent i
+                        End If ' what kind of control
+                    End If ' left click a control check
+
+                    If mb2 Then ' check right clicking to select
+                        _Delay .2
+                        If i <> ActiveControl Then ' active control is changed
+                            SetActiveControl i
+                        End If
+                        If con(i).ConType = 3 Then ' only selecting in lst box
+                            LstSelectEvent i ' check event called for 5
+                        End If ' control type 3
+                    End If ' mb2
+                    If con(i).ConType = 5 Then ' no left right clicks but mouse inside box
+                        Mousebox = i
+                        MXfracW = (mx - con(i).X) / con(i).W ' use these when call PicFrameUpdate
+                        MYfracH = (my - con(i).Y) / con(i).H
+                    End If
+                    Exit For ' should only be inside one control
+                End If ' my is inside control
+            End If 'mx inside control
+        Next
+
+        kh = _KeyHit ' now for key presses
+        shift = _KeyDown(100304) Or _KeyDown(100303)
+        If kh = 9 Then 'tab
+            If shift Then SetActiveControl ActiveControl - 1 Else SetActiveControl ActiveControl + 1
+        ElseIf kh = 13 And con(ActiveControl).ConType = 1 Then ' enter on a btn
+            BtnClickEvent ActiveControl
+        ElseIf kh = 13 And con(ActiveControl).ConType = 2 Then
+            SetActiveControl ActiveControl + 1
+        ElseIf kh = 13 And con(ActiveControl).ConType = 3 Then
+            LstSelectEvent ActiveControl
+        ElseIf kh = 13 And con(ActiveControl).ConType = 6 Then
+            con(i).Toggle = 1 - con(i).Toggle ' toggle this value between 1 and 0
+            LblClickEvent ActiveControl
+        End If
+        If con(ActiveControl).ConType = 2 Then
+            TBKeyEvent ActiveControl, kh, shift ' this handles keypress in active textbox
+        ElseIf con(ActiveControl).ConType = 3 Then
+            LstKeyEvent ActiveControl, kh
+        End If
+        For i = 1 To NControls ' update active picture boxes
+            ' 2022-12-06 now with mouse location as fraction of width and height
+            If con(i).ConType = 5 Then
+                If Mousebox = i Then PicFrameUpdate i, MXfracW, MYfracH Else PicFrameUpdate i, 0, 0
+            End If
+        Next
+        _Display
+        _Limit 60
+
+        If _Exit Then Exit Sub ' MUST Handle End or System in code now!!!
+    Loop
+End Sub
+
+' Hopefull this takes care of reseting the old active control border more efficiently
+' Coder now just says SetActiveControl and the border updates are done automatically
+Sub SetActiveControl (newCon) ' handle the box border drawing also
+    Dim As Long oldCon
+    oldCon = ActiveControl 'save old active control
+    If newCon > NControls Then newCon = 1 ' newCon could come in > NControls
+    If newCon < 1 Then newCon = NControls
+    ActiveControl = newCon 'set new focus
+    Select Case con(oldCon).ConType 'turn off highlite on last active according to contype
+        Case 1 ' drwBtn stick out just need border
+            Line (con(oldCon).X, con(oldCon).Y)-Step(con(oldCon).W, 0), White
+            Line (con(oldCon).X, con(oldCon).Y)-Step(0, con(oldCon).H), White
+            Line (con(oldCon).X + con(oldCon).W, con(oldCon).Y)-Step(0, con(oldCon).H), Black
+            Line (con(oldCon).X, con(oldCon).Y + con(oldCon).H)-Step(con(oldCon).W, 0), Black
+        Case 2
+            drwTB oldCon ' because of cursor this needs to be redrawn
+        Case 3, 4, 5 ' just need new border
+            Line (con(oldCon).X, con(oldCon).Y)-Step(con(oldCon).W, 0), Black
+            Line (con(oldCon).X, con(oldCon).Y)-Step(0, con(oldCon).H), Black
+            Line (con(oldCon).X + con(oldCon).W, con(oldCon).Y)-Step(0, con(oldCon).H), White
+            Line (con(oldCon).X, con(oldCon).Y + con(oldCon).H)-Step(con(oldCon).W, 0), White
+        Case 6
+            Line (con(oldCon).X, con(oldCon).Y)-Step(con(oldCon).W, con(oldCon).H), con(oldCon).BC, B
+    End Select
+    Select Case con(newCon).ConType 'highlight new active control according to contype
+        Case 2: drwTB newCon 'because cursor goes over background
+        Case 1, 3, 4, 5, 6 ' just need yellow border
+            Line (con(newCon).X, con(newCon).Y)-Step(con(newCon).W, con(newCon).H), Yellow, B
+    End Select
+End Sub
+
+Sub drwBtn (i As Long) ' gray back, black text
+    Dim As Long tempX, tempY
+    If con(i).ConType <> 1 Then
+        _MessageBox "drwBtn Error:", "Warning: The Control Type coming in is not for a Button!", "error"
+    End If
+    If con(i).ImgHnd > -2 Then ' no image
+        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF
+        _Font FontHandle&(con(i).FontH)
+        tempX = con(i).X + (con(i).W - _PrintWidth(con(i).Text)) / 2
+        tempY = con(i).Y + (con(i).H - con(i).FontH) / 2
+        If con(i).FontH >= 20 Then
+            Color Black
+            _PrintString (tempX - 1, tempY - 1), con(i).Text
+        End If
+        Color con(i).FC
+        _PrintString (tempX, tempY), con(i).Text
+    Else
+        _PutImage (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).ImgHnd, 0
+    End If
+    If i = ActiveControl Then
+        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), Yellow, B
+    Else
+        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), White
+        Line (con(i).X, con(i).Y)-Step(0, con(i).H), White
+        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), Black
+        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), Black
+    End If
+    _Display
+End Sub
+
+Sub drwTB (i As Long) ' blue back, white text
+    ' just like LstBox
+    ' N1 = section / page number we are on   now  curSec
+    ' N2 = current location of the highlight bar on the page 1 to page/section width now curCol
+    ' N3 = char width allowed for char fontH * .65  this is always 8
+    ' N4 = page height or section width   now charsW
+    ' N5 = len(text) + 1 upperbound of letters   now maxChars
+
+    Dim As Long j,  tempX
+    Dim t$
+    If con(i).ConType <> 2 Then
+        _MessageBox "drwTB Error:", "Warning: The Control Type coming in is not for a Text Box!", "error"
+    End If
+    Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF
+    con(i).MaxChars = Len(con(i).Text) + 1 ' allow for 1 more char insertion or insertion on end
+    _Font 16
+    Color con(i).FC
+    For j = 1 To con(i).CharsW
+        If (con(i).CurSec - 1) * con(i).CharsW + j <= con(i).MaxChars Then
+            t$ = Mid$(con(i).Text, (con(i).CurSec - 1) * con(i).CharsW + j, 1)
+            tempX = con(i).X + 4 + (j - 1) * 8
+            If j = con(i).CurCol And i = ActiveControl Then ' vertical cursor 3 different shades
+                Line (tempX - 1, con(i).Y + 3)-Step(0, con(i).H - 6), Black, BF
+                Line (tempX, con(i).Y + 3)-Step(0, con(i).H - 6), &HFF888888, BF
+                Line (tempX + 1, con(i).Y + 3)-Step(0, con(i).H - 6), White, BF
+            End If
+            _PrintString (tempX, con(i).Y + (con(i).H - con(i).FontH) / 2), t$
+        End If
+    Next
+    If i = ActiveControl Then
+        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), Yellow, B
+    Else
+        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), Black
+        Line (con(i).X, con(i).Y)-Step(0, con(i).H), Black
+        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), White
+        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), White
+    End If
+    _Display
+End Sub
+
+Sub drwLst (i As Long)
+    ' new control will get numbers for constructing a screen
+    ' N1 = page number we are on
+    ' N2 = current location of the highlight bar on the page
+    ' N3 = page width in chars
+    ' N4 = page height + 2 lines are left blank at top and bottom
+    ' N5 = Ubound of the list() base 1 ie last item number
+
+    Dim As Long j, listPos, tempY, xo, linNum
+    Dim frac, sldY
+
+    If con(i).ConType <> 3 Then
+        _MessageBox "drwLst Error:", "Warning: The Control Type coming in is not for a List Box!", "error"
+    End If
+
+    ReDim lst(1 To 1) As String
+    Split con(i).Text, "~", lst()
+    con(i).MaxLines = UBound(lst)
+
+    linNum = con(i).RowsPPg * (con(i).CurPage - 1) + con(i).CurRow
+    frac = linNum / con(i).MaxLines
+    sldY = frac * (con(i).H - 48) + 16
+
+    Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF ' BC color background
+    ' label Home, End, PgUp, PgDn inferred buttons
+
+    ' slider box   drk gray box, black slot, rect button
+    Line (con(i).X + con(i).W - 24, con(i).Y + 17)-Step(22, con(i).H - 34), _RGB32(140), BF
+    Line (con(i).X + con(i).W - 16, con(i).Y + 24)-Step(8, con(i).H - 48), Black, BF
+    Line (con(i).X + con(i).W - 22, con(i).Y + sldY - 8)-Step(20, 16), White, BF
+
+    Color con(i).BC 'reverse fc bc  ' buttons for Home, PgUp, End, PgDn
+    _Font 8
+
+    ' xoffset for words to print in little buttons to center them in buttons
+    xo = .5 * (.5 * (con(i).W - 24) - 40) ' fit into .5 width - 1/2 char margin both sides - 4 char word
+
+    Line (con(i).X + 4, con(i).Y + 3)-(con(i).X + .5 * (con(i).W - 24) - 4, con(i).Y + 13), con(i).FC, BF
+    _PrintString (con(i).X + xo, con(i).Y + 4), "home"
+
+    Line (con(i).X + .5 * (con(i).W - 24) + 4, con(i).Y + 3)-(con(i).X + (con(i).W - 24) - 4, con(i).Y + 13), con(i).FC, BF
+    _PrintString (con(i).X + .5 * con(i).W + xo, con(i).Y + 4), "pgup"
+
+    Line (con(i).X + 4, con(i).Y + con(i).H - 13)-(con(i).X + .5 * (con(i).W - 24) - 4, con(i).Y + con(i).H - 3), con(i).FC, BF
+    _PrintString (con(i).X + xo, con(i).Y + con(i).H - 12), " end"
+
+    Line (con(i).X + .5 * (con(i).W - 24) + 4, con(i).Y + con(i).H - 14)-(con(i).X + (con(i).W - 24) - 4, con(i).Y + con(i).H - 3), con(i).FC, BF
+    _PrintString (con(i).X + .5 * con(i).W + xo, con(i).Y + con(i).H - 12), "pgdn"
+
+
+    _Font 16
+    For j = 1 To con(i).RowsPPg ' - 1
+        listPos = (con(i).CurPage - 1) * con(i).RowsPPg + j
+        If listPos <= con(i).MaxLines Then
+            tempY = con(i).Y + j * 16
+            If j <> con(i).CurRow Then ' not highlite bar  else is bar
+                Color con(i).FC
+            Else
+                Line (con(i).X + 1, tempY)-Step(con(i).W - 26, con(i).FontH), con(i).FC, BF
+                Color con(i).BC
+            End If
+            _PrintString (con(i).X + 4, tempY), Mid$(lst(listPos), 1, con(i).CharsW)
+        End If
+    Next
+    If i = ActiveControl Then
+        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), Yellow, B
+    Else
+        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), Black ' fancy shadow? 3d-ish
+        Line (con(i).X, con(i).Y)-Step(0, con(i).H), Black
+        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), White
+        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), White
+    End If
+    _Display
+End Sub
+
+Sub drwConLbl (i As Long) ' fonth = 20, align = 0 fc = white, bc is form color
+    ' one time only at NewControl and for Sliders always
+    Line (con(i).X, con(i).Y - 22)-Step(con(i).W, 21), screenBC, BF
+    _Font FontHandle&(20)
+    Color Black
+    _PrintString (con(i).X + (con(i).W - _PrintWidth(con(i).Label)) / 2 + 1, con(i).Y - 21), con(i).Label
+    Color White
+    _PrintString (con(i).X + (con(i).W - _PrintWidth(con(i).Label)) / 2, con(i).Y - 22), con(i).Label
+    _Display
+End Sub
+
+Sub drwPic (i As Long)
+    If con(i).ConType <> 5 Then
+        _messageBox "drwPic Error:", "Warning: The #" + _trim$(Str$(i)) +_
+         " Control Type coming in," + Str$(con(i).ConType) + ", is not for a Picture Box!"
+    End If
+    _PutImage (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).ImgHnd, 0
+    If i = ActiveControl Then
+        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), Yellow, B
+    Else
+        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), Black ' fancy shadow? 3d-ish
+        Line (con(i).X, con(i).Y)-Step(0, con(i).H), Black
+        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), White
+        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), White
+    End If
+    _Display
+End Sub
+
+Sub drwSld (i As Long, MouseX) ' uses Sliders() of type Slider
+    Dim fraction, yo
+    If con(i).ConType <> 4 Then
+        _messageBox "drwSdl Error:", "Warning: The #" + _trim$(Str$(i)) +_
+         " Control Type coming in," + Str$(con(i).ConType) + ", is not for a Picture Box!"
+    End If
+
+    '   main router already does math to convert mouse x to box x
+    If Abs(con(i).sldHigh - con(i).SldLow) > .1 Then ' dont need div by 0 errors
+        If MouseX >= 5 And MouseX <= con(i).W - 5 Then
+            fraction = (MouseX - 5) / (con(i).W - 10)
+            con(i).SldValue = (con(i).SldHigh - con(i).SldLow) * (MouseX - 5) / (con(i).W - 10) +_
+            con(i).SldLow
+
+        Else
+            fraction = (con(i).SldValue - con(i).SldLow) / (con(i).sldHigh - con(i).SldLow)
+        End If
+        ' else fraction = 0
+    End If
+    _Dest con(i).ImgHnd
+    yo = .5 * con(i).H
+    Line (0, 0)-(con(i).W, con(i).H), _RGB32(140), BF ' cls
+    Line (5, yo - 5)-Step(con(i).W - 11, 10), Black, BF
+    Line (fraction * (con(i).W - 10) + 1, yo - 15)-Step(8, 30), White, BF
+    Line (fraction * (con(i).W - 10) + 9, yo - 15)-Step(0, 30), Black
+    Line (fraction * (con(i).W - 10) + 1, yo + 15)-Step(8, 0), Black
+    _Dest 0
+    _PutImage (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).ImgHnd, 0
+    If i = ActiveControl Then
+        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), Yellow, B
+    Else
+        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), Black ' fancy shadow? 3d-ish
+        Line (con(i).X, con(i).Y)-Step(0, con(i).H), Black
+        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), White
+        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), White
+    End If
+    con(i).Label = con(i).Text + Round2$(con(i).SldValue, con(i).DecPts) ' check
+    drwConLbl i
+    _Display
+End Sub
+
+Sub drwLbl (i As Long)
+    Dim As Long xo, ypos
+    If con(i).ConType <> 6 Then
+        _messageBox "drwLbl Error:", "Warning: The #" + _trim$(Str$(i)) +_
+         " Control Type coming in," + Str$(con(i).ConType) + ", is not for a Label!"
+    End If
+
+    Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF
+    _Font FontHandle&(con(i).FontH)
+    Select Case con(i).Align ' according to alignment  calc ao alignment offset
+        Case 0: xo = con(i).X + (con(i).W - _PrintWidth(con(i).Text)) / 2 'center text
+        Case 1: xo = con(i).X + 4 ' left align
+        Case 2: xo = con(i).X + con(i).W - 4 - _PrintWidth(con(i).Text)
+    End Select
+    ypos = con(i).Y + (con(i).H - con(i).FontH) / 2
+    If con(i).FontH >= 36 Then
+        Color White
+        _PrintString (xo - 1, ypos - 1), con(i).Text
+    End If
+    If con(i).FontH >= 18 Then
+        Color Black
+        _PrintString (xo + 1, ypos + 1), con(i).Text
+    End If
+    Color con(i).FC
+    _PrintString (xo, ypos), con(i).Text
+    If i = ActiveControl Then
+        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), Yellow, B
+    End If
+    _Display
+End Sub
+
+' this is standard for all Text Boxes
+Sub TBKeyEvent (i As Long, ky As Long, shift As Long) ' for all text boxes
+    Dim As Long L
+    ' just like LstBox
+    ' N1 = section / page number we are on
+    ' N2 = current location of the highlight bar on the page 1 to page/section width
+    ' N3 = char width allowed for char fontH * .65
+    ' N4 = page height or section width
+    ' N5 = len(text) + 1 upperbound of letters
+    L = (con(i).CurSec - 1) * con(i).CharsW + con(i).CurCol ' help shorten really long lines
+    If ky = 19200 Then 'left arrow
+        If con(i).CurCol > 1 Then
+            con(i).CurCol = con(i).CurCol - 1: drwTB i
+        Else
+            If con(i).CurSec > 1 Then con(i).CurSec = con(i).CurSec - 1: con(i).CurCol = con(i).CharsW: drwTB i
+        End If
+    ElseIf ky = 19712 Then ' right arrow
+        If con(i).CurCol < con(i).CharsW And (con(i).CurSec - 1) * con(i).CharsW + con(i).CurCol < con(i).MaxChars Then
+            con(i).CurCol = con(i).CurCol + 1: drwTB i
+        Else
+            If con(i).CurCol = con(i).CharsW Then ' can we move to another page
+                If con(i).CurSec < con(i).MaxChars / con(i).CharsW Then
+                    con(i).CurSec = con(i).CurSec + 1: con(i).CurCol = 1: drwTB i
+                End If
+            End If
+        End If
+    ElseIf ky = 18176 Then ' home
+        con(i).CurSec = 1: con(i).CurCol = 1: drwTB i
+    ElseIf ky = 20224 Then ' end
+        If con(i).MaxChars Mod con(i).CharsW = 0 Then
+            con(i).CurSec = Int(con(i).MaxChars / con(i).CharsW)
+            con(i).CurCol = con(i).CharsW
+        Else
+            con(i).CurSec = Int(con(i).MaxChars / con(i).CharsW) + 1
+            con(i).CurCol = con(i).MaxChars Mod con(i).CharsW
+        End If
+        drwTB i
+    ElseIf ky = 18688 Then ' PgUp
+        If con(i).CurSec > 1 Then con(i).CurSec = con(i).CurSec - 1: drwTB i
+    ElseIf ky = 20736 Then ' PgDn
+        If con(i).CurSec < con(i).MaxChars / con(i).CharsW Then
+            con(i).CurSec = con(i).CurSec + 1: con(i).CurCol = 1: drwTB i
+        End If
+    ElseIf ky >= 32 And ky <= 128 Then ' normal letter or digit or symbol
+        con(i).Text = Mid$(con(i).Text, 1, L - 1) + Chr$(ky) + Mid$(con(i).Text, L)
+        con(i).MaxChars = Len(con(i).Text) + 1
+        ' now do right arrow code
+        If con(i).CurCol < con(i).CharsW And (con(i).CurSec - 1) * con(i).CharsW + con(i).CurCol < con(i).MaxChars Then
+            con(i).CurCol = con(i).CurCol + 1: drwTB i
+        Else
+            If con(i).CurCol = con(i).CharsW Then ' can we move to another page
+                If con(i).CurSec < con(i).MaxChars / con(i).CharsW Then
+                    con(i).CurSec = con(i).CurSec + 1: con(i).CurCol = 1: drwTB i
+                End If
+            End If
+        End If
+    ElseIf ky = 8 Then 'backspace
+        If shift Then
+            con(i).Text = "": con(i).CurCol = 1: con(i).CurSec = 1: con(i).MaxChars = 1: drwTB i
+        Else
+            If con(i).CurCol > 1 Then
+                con(i).Text = Mid$(con(i).Text, 1, L - 2) + Mid$(con(i).Text, L)
+                con(i).MaxChars = Len(con(i).Text) + 1
+                con(i).CurCol = con(i).CurCol - 1: drwTB i
+            ElseIf con(i).CurSec <> 1 Then
+                con(i).Text = Mid$(con(i).Text, 1, L - 2) + Mid$(con(i).Text, L)
+                con(i).MaxChars = Len(con(i).Text) + 1
+                con(i).CurSec = con(i).CurSec - 1: con(i).CurCol = con(i).CharsW: drwTB i
+            End If
+        End If
+    ElseIf ky = 21248 Then 'delete  shift is super delete
+        If shift Then
+            con(i).Text = "": con(i).CurCol = 1: con(i).CurSec = 1: con(i).MaxChars = 1: drwTB i
+        Else
+            con(i).Text = Mid$(con(i).Text, 1, L - 1) + Mid$(con(i).Text, L + 1)
+            con(i).MaxChars = Len(con(i).Text) + 1: drwTB i
+        End If
+    End If
+End Sub
+
+' this is standard for all List Boxes
+Sub LstKeyEvent (i As Long, ky As Long) ' for all List boxes
+    If ky = 18432 Then 'up arrow
+        If con(i).CurRow > 1 Then
+            con(i).CurRow = con(i).CurRow - 1: drwLst i
+        Else
+            If con(i).CurPage > 1 Then con(i).CurPage = con(i).CurPage - 1: con(i).CurRow = con(i).RowsPPg: drwLst i
+        End If
+    ElseIf ky = 20480 Then ' down arrow
+        If con(i).CurRow < con(i).RowsPPg And (con(i).CurPage - 1) * con(i).RowsPPg + con(i).CurRow < con(i).MaxLines Then
+            con(i).CurRow = con(i).CurRow + 1: drwLst i
+        Else
+            If con(i).CurRow = con(i).RowsPPg Then ' can we start another page
+                If con(i).CurPage < con(i).MaxLines / con(i).RowsPPg Then
+                    con(i).CurPage = con(i).CurPage + 1: con(i).CurRow = 1: drwLst i
+                End If
+            End If
+        End If
+    ElseIf ky = 18176 Then 'home
+        con(i).CurPage = 1: con(i).CurRow = 1: drwLst i
+    ElseIf ky = 20224 Then ' end
+        If con(i).MaxLines Mod con(i).RowsPPg = 0 Then
+            con(i).CurPage = Int(con(i).MaxLines / con(i).RowsPPg)
+            con(i).CurRow = con(i).RowsPPg
+        Else
+            con(i).CurPage = Int(con(i).MaxLines / con(i).RowsPPg) + 1
+            con(i).CurRow = con(i).MaxLines Mod con(i).RowsPPg
+        End If
+        drwLst i
+    ElseIf ky = 18688 Then 'pgUp
+        If con(i).CurPage > 1 Then con(i).CurPage = con(i).CurPage - 1: drwLst i
+    ElseIf ky = 20736 Then 'pgDn
+        If con(i).CurPage * con(i).RowsPPg < con(i).MaxLines Then
+            con(i).CurPage = con(i).CurPage + 1
+            If con(i).CurPage > Int(con(i).MaxLines / con(i).RowsPPg) Then ' > last whole page check high bar
+                If con(i).CurRow > con(i).MaxLines Mod con(i).RowsPPg Then con(i).CurRow = con(i).MaxLines Mod con(i).RowsPPg
+            End If
+            drwLst i
+        End If
+    End If
+End Sub
+
+Function LstHighliteNum& (controlI As Long) ' 2022-11-27 adding this to BM
+    LstHighliteNum& = (con(controlI).CurPage - 1) * con(controlI).RowsPPg + con(controlI).CurRow
+End Function
+
+Function LstHighliteItem$ (controlI As Long) ' 2022-07-20 adding this to BM
+    ReDim lst(1 To 1) As String 'need to find highlighted item
+    Split con(controlI).Text, "~", lst()
+    LstHighliteItem$ = lst((con(controlI).CurPage - 1) * con(controlI).RowsPPg + con(controlI).CurRow)
+End Function
+
+' This is used and available for maniupating strings to arrays ie change delimiters to commas
+Sub Split (SplitMeString As String, delim As String, loadArray() As String)
+    Dim curpos As Long, arrpos As Long, LD As Long, dpos As Long 'fix use the Lbound the array already has
+    curpos = 1: arrpos = LBound(loadArray): LD = Len(delim)
+    dpos = InStr(curpos, SplitMeString, delim)
+    Do Until dpos = 0
+        loadArray(arrpos) = Mid$(SplitMeString, curpos, dpos - curpos)
+        arrpos = arrpos + 1
+        If arrpos > UBound(loadArray) Then
+            ReDim _Preserve loadArray(LBound(loadArray) To UBound(loadArray) + 1000) As String
+        End If
+        curpos = dpos + LD
+        dpos = InStr(curpos, SplitMeString, delim)
+    Loop
+    loadArray(arrpos) = Mid$(SplitMeString, curpos)
+    ReDim _Preserve loadArray(LBound(loadArray) To arrpos) As String 'get the ubound correct
+End Sub
+
+' Available if need to create a string from an array
+Function Join$ (arr() As String, delimiter$) ' modified to avoid blank lines
+    Dim i As Long, b$
+    For i = LBound(arr) To UBound(arr)
+        If arr(i) <> "" Then
+            If b$ = "" Then b$ = arr(i) Else b$ = b$ + delimiter$ + arr(i)
+        End If
+    Next
+    Join$ = b$
+End Function
+
+Function LeftOf$ (source$, of$)
+    If InStr(source$, of$) > 0 Then
+        LeftOf$ = Mid$(source$, 1, InStr(source$, of$) - 1)
+    Else
+        LeftOf$ = source$
+    End If
+End Function
+
+' update these 2 in case of$ is not found! 2021-02-13
+Function RightOf$ (source$, of$)
+    If InStr(source$, of$) > 0 Then
+        RightOf$ = Mid$(source$, InStr(source$, of$) + Len(of$))
+    Else
+        RightOf$ = ""
+    End If
+End Function
+
+Function TS$ (n As Long)
+    TS$ = _Trim$(Str$(n))
+End Function
+
+Function N2S$ (EXP$) 'remove scientific Notation to String (~40 LOC)
+    'SMcNeill Jan 7, 2020 ref: https://www.qb64.org/forum/index.php?topic=1555.msg112989#msg112989
+    'Last Function in code marked Best Answer (removed debug comments and blank lines added these 2 lines.)
+    ReDim t$, sign$, l$, r$, r&&
+    ReDim dp As Long, dm As Long, ep As Long, em As Long, check1 As Long, l As Long, i As Long
+    t$ = LTrim$(RTrim$(EXP$))
+    If Left$(t$, 1) = "-" Or Left$(t$, 1) = "N" Then sign$ = "-": t$ = Mid$(t$, 2)
+    dp = InStr(t$, "D+"): dm = InStr(t$, "D-")
+    ep = InStr(t$, "E+"): em = InStr(t$, "E-")
+    check1 = Sgn(dp) + Sgn(dm) + Sgn(ep) + Sgn(em)
+    If check1 < 1 Or check1 > 1 Then N2S = _Trim$(EXP$): Exit Function 'If no scientic notation is found, or if we find more than 1 type, it's not SN!
+    Select Case l 'l now tells us where the SN starts at.
+        Case Is < dp: l = dp
+        Case Is < dm: l = dm
+        Case Is < ep: l = ep
+        Case Is < em: l = em
+    End Select
+    l$ = Left$(t$, l - 1) 'The left of the SN
+    r$ = Mid$(t$, l + 1): r&& = Val(r$) 'The right of the SN, turned into a workable long
+    If InStr(l$, ".") Then 'Location of the decimal, if any
+        If r&& > 0 Then
+            r&& = r&& - Len(l$) + 2
+        Else
+            r&& = r&& + 1
+        End If
+        l$ = Left$(l$, 1) + Mid$(l$, 3)
+    End If
+    Select Case r&&
+        Case 0 'what the heck? We solved it already?
+            'l$ = l$
+        Case Is < 0
+            For i = 1 To -r&&
+                l$ = "0" + l$
+            Next
+            l$ = "." + l$
+        Case Else
+            For i = 1 To r&&
+                l$ = l$ + "0"
+            Next
+            l$ = l$
+    End Select
+    N2S$ = sign$ + l$
+End Function
+
+Function Round2$ (anyNumber As _Float, dp As Long) ' uses N2S$
+    ' 5 and up at decimal place dp+1 > +1 at decimal place   4 and down  > +0 at dp
+
+    '2 1 0.-1 -2 -3 -4 ...  pick dp like this for this Round$ Function
+    Dim sn$, dot, predot, postdot, rtn$
+
+    sn$ = N2S$(Str$(anyNumber + Sgn(anyNumber) * .5 * 10 ^ dp)) 'get rid of sci notation, steve trims it so next find dot
+    dot = InStr(sn$, ".")
+    If dot Then
+        predot = dot - 1
+        postdot = Len(sn$) - (dot + 1)
+    Else
+        predot = Len(sn$)
+        postdot = 0
+    End If
+    ' xxx.yyyyyy  dp = -2
+    '      ^ dp
+    If dp >= 0 Then
+        rtn$ = Mid$(sn$, 1, predot - dp) + String$(dp, "0")
+    Else
+        rtn$ = Mid$(sn$, 1, predot) + "." + Mid$(sn$, dot + 1, -dp)
+    End If
+    If rtn$ = "" Then Round2$ = "0" Else Round2$ = rtn$
+End Function
+
+Sub Remove (item$, a$())
+    Dim As Long i, c, lba
+    lba = LBound(a$)
+    Dim t$(lba To UBound(a$))
+    c = lba - 1
+    For i = lba To UBound(a$)
+        If a$(i) <> "" And a$(i) <> item$ Then c = c + 1: t$(c) = a$(i)
+    Next
+    ReDim a$(lba To c)
+    For i = lba To c
+        a$(i) = t$(i)
+    Next
+End Sub
+
+Sub cAnalysis (c As _Unsigned Long, outRed, outGrn, outBlu, outAlp)
+    outRed = _Red32(c): outGrn = _Green32(c): outBlu = _Blue32(c): outAlp = _Alpha32(c)
+End Sub
+
+Function C3~& (i As Long) ' from 0 to 999 3 digit pos integers
+    Dim s$
+    s$ = Right$("   " + Str$(i), 3)
+    C3~& = _RGB32(Val(Mid$(s$, 1, 1)) * 28, Val(Mid$(s$, 2, 1)) * 28, Val(Mid$(s$, 3, 1)) * 28)
+End Function
+
+Sub drawGridRect (x, y, w, h, xstep, ystep)
+    Dim i
+    For i = 0 To w Step xstep
+        Line (x + i, y + 0)-(x + i, y + y + h)
+    Next
+    For i = 0 To h Step ystep
+        Line (x + 0, y + i)-(x + w, y + i)
+    Next
+End Sub
+
+Sub drawBall (x, y, r, c As _Unsigned Long)
+    Dim rred As Long, grn As Long, blu As Long, rr As Long, f
+    rred = _Red32(c): grn = _Green32(c): blu = _Blue32(c)
+    For rr = r To 0 Step -1
+        f = 1 - rr / r
+        fcirc x, y, rr, _RGB32(rred * f, grn * f, blu * f)
+    Next
+End Sub
+
+Sub thic (x1, y1, x2, y2, thick, K As _Unsigned Long)
+    Dim PD2 As Double, t2 As Single, a As Single, x3 As Single, y3 As Single, x4 As Single, y4 As Single
+    Dim x5 As Single, y5 As Single, x6 As Single, y6 As Single
+    PD2 = 1.570796326794897
+    t2 = thick / 2
+    If t2 < 1 Then t2 = 1
+    a = _Atan2(y2 - y1, x2 - x1)
+    x3 = x1 + t2 * Cos(a + PD2)
+    y3 = y1 + t2 * Sin(a + PD2)
+    x4 = x1 + t2 * Cos(a - PD2)
+    y4 = y1 + t2 * Sin(a - PD2)
+    x5 = x2 + t2 * Cos(a + PD2)
+    y5 = y2 + t2 * Sin(a + PD2)
+    x6 = x2 + t2 * Cos(a - PD2)
+    y6 = y2 + t2 * Sin(a - PD2)
+    ftri x6, y6, x4, y4, x3, y3, K
+    ftri x3, y3, x5, y5, x6, y6, K
+End Sub
+
+Sub fellipse (CX As Long, CY As Long, xr As Long, yr As Long, C As _Unsigned Long)
+    If xr = 0 Or yr = 0 Then Exit Sub
+    Dim h2 As _Integer64, w2 As _Integer64, h2w2 As _Integer64
+    Dim x As Long, y As Long
+    w2 = xr * xr: h2 = yr * yr: h2w2 = h2 * w2
+    Line (CX - xr, CY)-(CX + xr, CY), C, BF
+    Do While y < yr
+        y = y + 1
+        x = Sqr((h2w2 - y * y * w2) \ h2)
+        Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
+        Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
+    Loop
+End Sub
+
+'from Steve Gold standard
+Sub fcirc (CX As Long, CY As Long, R As Long, C As _Unsigned Long)
+    Dim Radius As Long, RadiusError As Long
+    Dim X As Long, Y As Long
+    Radius = Abs(R): RadiusError = -Radius: X = Radius: Y = 0
+    If Radius = 0 Then PSet (CX, CY), C: Exit Sub
+    Line (CX - X, CY)-(CX + X, CY), C, BF
+    While X > Y
+        RadiusError = RadiusError + Y * 2 + 1
+        If RadiusError >= 0 Then
+            If X <> Y + 1 Then
+                Line (CX - Y, CY - X)-(CX + Y, CY - X), C, BF
+                Line (CX - Y, CY + X)-(CX + Y, CY + X), C, BF
+            End If
+            X = X - 1
+            RadiusError = RadiusError - X * 2
+        End If
+        Y = Y + 1
+        Line (CX - X, CY - Y)-(CX + X, CY - Y), C, BF
+        Line (CX - X, CY + Y)-(CX + X, CY + Y), C, BF
+    Wend
+End Sub
+
+Sub ftri (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+    Dim D As Long
+    Static a&
+    D = _Dest ' so important
+    If a& = 0 Then a& = _NewImage(1, 1, 32)
+    _Dest a&
+    _DontBlend a& '  '<<<< new 2019-12-16 fix
+    PSet (0, 0), K
+    _Blend a& '<<<< new 2019-12-16 fix
+    _Dest D
+    _MapTriangle _Seamless(0, 0)-(0, 0)-(0, 0), a& To(x1, y1)-(x2, y2)-(x3, y3)
+End Sub
+
+Sub RotoZoom (X As Long, Y As Long, Image As Long, Scale As Double, degreesRotation As Double)
+    Dim px(3) As Single, py(3) As Single, W&, H&, sinr!, cosr!, i&, x2&, y2&
+    W& = _Width(Image&): H& = _Height(Image&)
+    px(0) = -W& / 2: py(0) = -H& / 2: px(1) = -W& / 2: py(1) = H& / 2
+    px(2) = W& / 2: py(2) = H& / 2: px(3) = W& / 2: py(3) = -H& / 2
+    sinr! = Sin(-degreesRotation / 57.2957795131): cosr! = Cos(-degreesRotation / 57.2957795131)
+    For i& = 0 To 3
+        x2& = (px(i&) * cosr! + sinr! * py(i&)) * Scale + X: y2& = (py(i&) * cosr! - px(i&) * sinr!) * Scale + Y
+        px(i&) = x2&: py(i&) = y2&
+    Next
+    _MapTriangle (0, 0)-(0, H& - 1)-(W& - 1, H& - 1), Image& To(px(0), py(0))-(px(1), py(1))-(px(2), py(2))
+    _MapTriangle (0, 0)-(W& - 1, 0)-(W& - 1, H& - 1), Image& To(px(0), py(0))-(px(3), py(3))-(px(2), py(2))
+End Sub

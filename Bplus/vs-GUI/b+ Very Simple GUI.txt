@@ -1,0 +1,506 @@
+Very Simple GUI Notes b+ start 2022-06-17 (with Add PicBox)
+
+Contents (use to search for section)
+
+=============== Controls Notes:
+				Control sub tiles under this section 
+=============== The Controls Editor App:
+=============== Sub and Functions listing:
+=============== Change Log:
+=============== ToDo Ideas Log:
+===============	General Log: (2022-06-25 combined the above 2 Logs)			
+=============== direntry.h
+
+
+=============== Controls Notes: Contents (use to search for section)
+
+The NewControl call is key to setting up a "vs GUI" app. So Important I have built an vs GUI
+Controls Editor to aid in the setup. There are 9 Properties plus a name/handle for the setup 
+with the NewControls Routine: 
+	name/handle = NewControl(conType, X, Y, W, H, FontH, FC, BC, "Text")
+All Properties and name/handle are Long Type, Text is only string.
+
+Type Control ' all are boxes with colors
+    As Long ConType, X, Y, W, H, FontH, FC, BC, N1, N2, N3, N4, N5
+	* X,Y,W,H - dims are in pixels
+	* FontH - mult font heights are set with OpenWindow call with a Font File
+	          use heights less than control, for List Box and Picture Box way less!
+	* FC, BC for Fore or Back Color screenBC = 669 in C3 eg for Labels with your FC
+	         Using C3 1000 color system that gets converted to _RGB32 in NewControl call
+	* N1, N2,...  sometimes controls need extra numbers for special functions
+    As String Text
+	* Text - for labeling buttons, lists for list box, default starter or result of Text Box
+	         To use an image for a button or label, make Text = "<" + "ImageFilename.extension"
+			 The "<" will signal to _LOadImage
+End Type
+
+Active Control:
+Showing white border around the control for active control, black for inactive ones.
+The mouse over any control makes it active. To use Tabs or Shift + Tab make sure mouse is not over
+a Control. You can change the Tab order merely by altering the listing of the controls;
+Tab order is from top down, labels are skipped over.
+
+5 Control Types "conType"
+==== Button(Btn) conType = 1
+==== Text Box (TB) conType = 2
+==== List Box (Lst) conType = 3
+==== Label (Lbl) conType = 4
+==== Picture Box (Pic) conType = 5
+
+
+==== Button(Btn) conType = 1, Click or press enter to cause click event if tab to btn
+You can use an image instead of a text string to "label" the button. Just use "<" + the image
+filename is quotes for the Text property in the NewControl call eg "<MyImageFileName.png"
+
+==== Text Box (TB) conType = 2
+.H Height needs to be at least 8 pixels more than Font Height, FontH (Hmm... that's no longer needed).  
+.N1 = section of text we are on, section length is how many chars fit in width of box / N3.
+.N2 = current highlighted letter location in section. 
+.N3 = pixel width allowed for chars formula = .65 * FontH
+.N4 = number of chars that fit in box width section
+.N5 = len(text) + 1 for growth
+Same system as Lst Boxes only string sections instead of pages. 
+Key presses Home, End, Left/Right Arrow, Backspace, Delete function as normal
+Shift + Backspace or Shift + Delete should clear Text. You can make text in TB as long as you need.
+You can even use PgUp and PgDn to move through string faster forward, PgDn, and back, PgUp.
+Enter key-press on textBox will shift Active control down the index by 1, like a Tab (if mouse not
+hovering over a control). 
+
+Remember: A quick way to clear a Text Box is Shift+Delete or Shift+Backspace.
+
+==== List Box (Lst) conType = 3
+
+Mousing with a List Box:
+	Blank Lines are at top and bottom of a List Box, these are for Mouse Clicking Home, End, PgUp 
+	and PgDn:
+		Left Click Blank Top Left side > Home
+		Left Click Blank Top Right side > PgUp
+		Left Click Blank Bottom Left side > End
+		Left Click Blank Bottom Right side > PgDn
+	You can scroll lists with Mouse wheel!	
+	Right Click Box to call your LstSelect code. You can use tLstHighLiteItem$(controlHandle/name)
+	Function to get the string currently highlighted in the List Box.
+	note! this wont activate or change highlight, only calls LstSelectEvent with List Box 
+	ActiveControl name/handle.
+	
+Key Presses while Inside a List Box:
+	For entering or exiting boxes to or from next box: Tab, Shft+Tab, Enter
+	For navigation: Arrows: up, Down, Left, Right, Home, End, PgUp, PgDn all 
+	For Selecting the highlighted item: Enter, calls LstSelectEvent for you to code.
+
+For NewControl function call to assign the LstHandle
+.X = left pixel of box
+.Y = top pixel of box
+.W = number of pixels width need about .65 * FontH for each char, 
+     List Boxes will show letters as many letters that will fit across W.
+.H = number of lines you want to show in list plus 2 and multiply by FontH leaves top and 
+     bottom blank.
+.FontH = now all controls have sizable Font from 6 pixels to 128 in height.
+.FC = Fore color for printed stuff
+.BC = Back color for control
+.Text = is string split-able into array so need .text = Join$(array$, "~") or 
+        "Monday~Tuesday~Wednesday...."
+Remember:		
+	To make a value to use for the List Box .Text value, create an string array$(): 
+		MyListString$ = Join$(array$(), "~")
+Creates MyListString$ for the List Box .Text Property at the beginning of your code app or
+revise as needed in the app. 
+	Right clicking selects the highlighted item in the active list box, it does not change 
+highlighted item.
+
+The NewControl Function calculates these: (but you need to know for using numbers too in coding 
+      events)
+.N1 = page number we are on
+.N2 = current location of the highlight bar on the page
+.N3 = page width in chars
+.N4 = page height = .H - 2*16 lines (32 pixels) are left blank at top and bottom for mouse click 
+      navigation.
+.N5 = Ubound of the list() base 1 ie last item number
+
+.Text Helper Sub Split and function Join$ added to manipulate arrays into strings (Join$) or
+strings into arrays (Split). The Split sub is used in DrwLst to separate ~ delimited string into
+an array for List Box to display. Also I used split text when need to find selected item.
+
+==== Label (Lbl) conType = 4 
+
+.X, .Y is left top corner of label box, .Text is centered in both .W and .H of the label control. 
+Text height is set to FontH. You can use a picture instead of a label by specifying the image file
+like done for an image for a Button Control: 
+lblImage = NewControl(4, x, y, h, w, 0 (no FontH), 0, 0 (no colors), "<MyImageFile.png" 
+The image will be fit into the Control Box in place of Text.
+
+==== Picture Box (Pic) conType = 5
+
+.N1 is used to store image for box. If there is .Text the picture box will be labeled with text at
+the bottom using FC, BC for colors and FontH for text height. The Picture Box has 2 events subs one
+for clicking with mouse locations: PicClickEvent control/handle, pmx, pmy
+The other event is for updating an animation frame:
+	PicFrameUpdate PicName/Handle
+The MainRouter goes at _Limit 60 at fastest if not processing allot list stuff eg file and folder 
+updates and runs code from this event each loop for animation. Ironically NewControl does not
+load file images for Pic Boxes.
+
+=============== The Controls Editor App:
+
+The controls to left of Controls List Box are for adding controls to main Controls list.
+Start or Edit you Controls list for NewControl calls from the bas files you are developing from.
+Line labels that mark the start and end of the Controls section in a source "vs GUI" bas file. 
+' GUI Controls
+' End GUI Controls
+
+The tab order follows the order of properties and values needed to call NewControl for setting
+up Controls for your GUI app. You can always swap them around to change Tab order. 
+
+The name/handle number is the same as Tab order number assigned when the NewControl function is
+called with the 9 key values: conType, X, Y, W, H, FontH, FC, BC, "Text"
+	+ conType is a number 1 to 5 s far for the specific behaviors of control.
+	+ x, y the top left corner of the Control Box 
+	(click just inside that corner for moving it around in the Preview screen). 
+	+ w and h are what you add to x and y to get to the bottom right corner of the Control Box 
+	(click just inside there and drag corner to resize the Control Box in the Preview Screen). 
+	+ FC and BC are entered in NewControl Function as Long Integers (3C Color ystem) and converted
+	 to _RGB32 see the 3 Digit Color picker app included with package.
+
+The Delete button deletes the highlighted Control line from the Control List Box written shown in
+a label below the box. 
+
+The Edit button deletes the control line as well but writes in all the values on the left side. 
+Edit those values and Add Item back to Edit that line. 
+
+The File button writes to file saves the Controls List changes to the Bas Workfile or "untitled". 
+From there you can move and rename as you need.  
+
+While in Preview screen click the < label in the top left corner or press Shift+< buttons to 
+get back to main screen to add, edit or delete other controls (just like in a browser).
+
+Warning: Don't add any more items to the text value of the List Box .text control because they need
+to be delimited by the ~ character which is same used in the Forms Designer to make the Controls
+List for that box. 
+
+Warning #2: Any values using variables in the NewControls list will be replaced by "" or 0's when
+returning edited controls back to the source bas file.
+
+=============== Sub and Functions listing:
+
+Sub Split (SplitMeString As String, delim As String, loadMeArray() As String)  
+= Needed for converting strings into arrays as UDT's can't do arrays.
+
+Function Join$ (arr() As String, delimiter$) ' modified to avoid blank lines
+= Needed to create strings from arrays for List Boxes.
+
+Function LeftOf$ (source$, of$)
+= String helper function
+
+Function RightOf$ (source$, of$)
+= String helper function
+
+Function TS$ (n As Long) ' Short for Trim Stringed Number
+= remove space from pos number
+
+Sub Remove (item$, a$())  
+= Just take out item$ from array$ however many times it may occur.
+
+Function C3~& (i As Long) ' from 0 to 999 3 digit pos integers  
+= with just 3 digits we can get 1000 RGB32 numbers converted from a 0-999 positive integer.
+
+Sub drawGridRect (x, y, w, h, xstep, ystep) 
+= in pixels: top left x, y, x side, y side, cell width, cell height of grid
+
+Sub fellipse (CX As Long, CY As Long, xr As Long, yr As Long, C As _Unsigned Long)     
+= handy to have added for drawing space ships
+
+Sub fcirc (x As Long, y As Long, R As Long, C As _Unsigned Long) 'vince version
+= also handy, vince version is almost identical to Steve's, just happened to use that on with
+space ship.
+
+Sub ftri (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+= filltriangle given each x, y point.
+   
+Sub ScnState (restoreTF As Long) 'Thanks Steve McNeill for idea to use with MBox and InputBx$ 
+= saves or restores program state before changing settings eg, Dialog with user.
+
+Sub mBox (title As String, m As String)
+= provide info to user, title$ limit is 57 chars, all lines are 58 chars max, version 2019-08-06
+= You can grab this box by title and drag it around screen for full viewing while answering prompt.
+= THIS SUB NOW NEEDS SUB scnState(restoreTF) for saving and restoring screen settings 
+
+Function inputBox$ (prompt$, title$, boxWidth As Long) ' boxWidthin default 8x16 chars!!!
+= get input from user without cluttering up screen.
+= You can grab this box by title and drag it around screen for full viewing while answering prompt.
+= Only one line allowed for prompt$
+= boxWidth (in 8x16 chars) is 4 more than the allowed length of input, 
+= It needs to be longer than title$ and prompt$
+
+Sub GetLists (SearchDirectory As String, DirList() As String, FileList() As String)
+= Uses cross platform method to get Directories and Files lists.
+ 
+Sub GetListStrings (dirOut$, fileOut$)   
+= uses GetLists for arrays to covert to ~ delimited strings for List Boxes. 
+
+
+=============== Change Log: + added, - deleted, ~ changed
+
+2022-06-13 
+	+ Post Starter Text Boxes and Btns
+
+2022-06-14 & 15 
+	+ add List Boxes and Labels, Posted 15th
+
+2022-06-15 & 16 
+	~ change labels to a control 
+	~ change Sub NewControl to a Function that returns the index number to control variable name.
+	- Take out ID as property in Control Type
+	~ This should make it easier to modify screens using variable names for your controls.
+	~ swap i, active in drwBtn and drwTB routines
+
+2022-06-16 
+	+ add getLists that needs direntry.h in QB64.exe Folder or Project Folder that uses it.
+	+ A copy is provided at the end of BM code. 
+	~ changed , delimiter to ~ because some files use commas.
+	+ code for InputBx$.
+
+2022-06-17
+	+ added GuiTitle to BI globals
+	+ post Repack GUI Get Filename with 6 files: 
+	+ 3 source.bas, Font.TTF, direntry.h, 
+	+ 3 vs GUI.BI, vs GUI.BM, b+ Very Simple GUI.txt notes and change log started
+	+ Sub MBox title$, Message$ added and checked to provide additional information.
+	
+2022-06-18
+	+ b+ Very Simple GUI.txt file got lot's reorganization, writing and editing
+	+ chased a bug in Text Boxes with blinking cursor escaping box boundaries. 
+	+ started on Forms Designer but don't know how to show controls layout
+	~ Moved Dim Shared CurPath$ to .BI set in OpenWindow to _CWD$
+	
+2022-06-19
+	+ shift+delete or shift+backspace will clear a Text Box.
+	+ .N6 added to Control because I need to save the Selection number as well as text from List
+       Box.
+	+ Added functions: LeftOf$ and RightOf$ for more sting manipulation.
+	+ Got GUI Forms Designer working with first compiled program it writes!
+	+ Finish code for Delete (Control) and Edit (Control) buttons.
+	+ add code to animate Picture Box, both for Click events and animation.
+	+ Post GUI Forms Designer with a Picture Box demo with screen shots
+	
+2022-06-20
+	~ fix a couple of things with PicFrameUpdate: the code animating picture need fix and then
+	  showing control as active or not needed a fix.
+	~ fix gap in controls listing when GUI_Preview.bas gets written
+	
+2022-06-21
+	+ Form Designer ability to move and resize controls
+	~ code for Preview moved to Btn File 
+	+ fcirc and fellipse to BM
+	
+2022-06-22
+	+ Added TS$(Num as Long) to routines in BM
+	+ Got the Moving and Resizing Controls section working 
+	+ Now have "<" label to click or press < (with shift) to return back to first screen.
+
+2022-06-23
+	+ Adding the controls of Get Filename to the Form Designer app to get Files extract.
+	edit and insert back into their bas source. Tracking down weird results bugs, I have to
+	distinguish which screen the controls are associated with thus creating sMode. sMode is for 
+	customizing code to particular control handles because sets of handles created in 
+	NewControl routine duplicate indexes 1, 2, 3,... so sMode specifies which 1,2,3 set we are
+	meaning to reference.
+	
+discontinued 6-25
+	
+=============== ToDo Ideas Planning Log:
+
+2022-06-16 To test something serious with ListBoxes maybe file navigator, Get Filename.
+	yeah and do something with the Pathed Filename like Run it or Kill it! 
+	6-22 I am not done with this!
+
+2022-06-17 Main goal add PicBx, need to search for project 
+	* Maybe plot Quadratic 
+	* Maybe Tile Designer
+	
+2022-06-18	
+	*** Oh how about a Form Designer for the first Demo of a PicBox!!!  
+	** Also have idea for overhaul of NewControl for adding in additional parameters not required
+		by all controls eg, filename = myFile.txt for loading an image, sound, data or text file
+	** MBox really needs an OK and Cancel (or yes / no) , just Info is not enough.
+		
+2022-06-22
+	* Need to match the form size xmax, ymax chosen by user to locate Controls on, not the form
+	Designer size.
+	* oh I want to label files with: 
+		' Controls Insertion ============================
+		' End Controls Insertion ========================
+		So I can open up bas files and edit controls without messing up the rest of the file.
+	* I saw someone using GUI for inputting angle and power for the artillery game that Ken worked on.
+	* Another idea for GUI, my Formula Saver app 
+	* Dang why do I need ideas for GUI?
+
+2022-06-24 still getting bugs worked out for Get File assimulation
+	* Since the Forms Designer Form is bigger than Get Filename, I could move down bottom set of
+	controls 	to have more room in the list boxes. 
+	
+2022-06-24 messing with Bas extension files
+	* Filename requirements ie GUI in title along with .Bas extension
+	* File extract/insert lablels along with BI and BM lines
+	* Can I use LoadMe sub like in Forms Designer comes before .BM include label
+	* Oh yeah, the question about letting user define form size? or one form size fits all like for
+	colors? (for now, just to get past petty detail stuff and get real functions working.) But yeah 
+	now is good time to start thing about user defined form size. I dont think it can be bigger than
+	Forms Designer but certainly can be smaller!
+	* So easy to get distracted by questions like making the Font range bigger for Labels.
+	Right now Sat AM getting ready for Extract, Edit Insert Controls we need to know what and where 
+	in file to look to extract or insert.
+	' extract / insert the '$include:'vs GUI.BI' landmark #1 first line in program except maybe 
+	Option _Explicit and _Title which could go after and will 
+		(review)  BI contains: 
+		1. Declare for direntry.h use
+		2. Color settings for controls
+		3. Control Type Definition
+		4. Dim Shared for 
+			1. GuiTitle$ ' WindowOpen
+			2. curPath$ ' _CWD$ in OpenWindow for file stuff
+			3. Xmax, Ymax, NControls, ActiveControl
+			4. con(0) As Control
+			5. beenHereFont ' using drwLbl and drwLbl2 both need to load font once
+			6. fontHandle&(6 To 64) ' more range? does it take so long to load up to 256?
+	
+	' extract / insert the '$include:'vs GUI.BM' landmark #2 last exec line in programs
+		(review)  BM contains Subs and Functions:
+		1. MainRouter
+		2. It's Helpers
+		3. NewControl biggy! for adding controls to GUI code
+		4. Control Drw instructions
+		5. A collection of handy Subs and Functions I've used for GUI and likely find useful again.
+		The last ones deal with getting File and Folder Lists.
+
+discontinued 6-25
+		
+===============	General Log:
+		
+2022-06-25 How about just a general Log?
+	* Today I have Get File loading .bas files and controls if properly labeled into Forms 
+	Designer. You can load them, move and resize or edit them and file them back into the 
+	WorkFile$. Next to work on is "snap to grid" a mode to set in main form and then when moving
+	and resizing all dimensions are rounded to nearest 10. Yes! Skip the mode just do it! Better
+	now to nearest 10.
+	
+2022-06-26 Continuing the "impossible project" of converting Ken's Artillery to GUI: 
+	Added four more labels today, over and above 2 labels 2 text boxes and 1 btn started yesterday.
+	Fell into huge hole of frustration because my very handy and robust ftri was changing dest back
+	to zero. Didn't even dawn on me that was why nothing was getting drawn when and where it was 
+	supposed to be! BTW I've used GUI Forms designer to change labels and kill files successfully.
+	Decided to set wind speed once but display in label. Another big hole of frustration, things 
+	NOT getting drawn because _Display was used in MainRouter and never found in my checks/searches
+	for it when I was using BI/BM. Yeah, go ahead and search for Display in "Test bas file.bas",
+	my GUI mod of a mod of Ken's Artillery. Now that I have successful GUI conversion and GUI Form
+	Designer is working pretty well, time to post update.
+
+2022-07-05 Tuesday Lost the hard drive on my computer. Had TB reworked so that you can edit text 
+	lines far the width of the TB. But day was very frustrating with all the new GUI properties 
+	I had added to 	the NewControl Function. Too many! Decided on one font but allow sizes from
+	6 to 128. Also decided 	on a 3 digit color system, C3, I've begun to call it.
+
+2022-07-09 Find a great Computer Repair Shop and have good one fixed fatser with SSD drive, about
+	half the storage space but way faster with bootup, browser... Windows no longer hogging the
+	Disk and shutting me out. So Sat spent reloading computer.
+
+2022-07-10 Really nice new Controls Editor, no longer calling it the Form Designer. But I could
+	not get TB going as I had before. Very frustrating night!
+
+2022-07-11 Decided to do Text Boxes the same way I do Lst Boxes, instead of lines vertically 
+	divided into pages, we have letters/chars horizontally divided into "sections". I knew this
+	but was having trouble getting things lined up until I followed what I did with Lst Boxes more
+	exactly! By 11 AM TB's were working. I dumped the blinking cursor and use a highliter like Lst
+	Boxes. Spent rest of getting all the other parts of the Controls Editor going again. Then in
+	an hour or so I updated all the GUI apps made with current system: Get Filenme, Kens Artillery
+	b+ mod, 3 Digit Color picker. And finally I log in here and write up th enew things.
+	
+2022-07-026
+		Reworked some fine points in MainRouter, Control Type, LstBox. Removed need for both N6
+	and Text2. The new Function LstHighLiteItem$(lstHdl) retieves the highlighted string from the
+	List Box.
+		I was hung up for quite awhile on what I call the Rinky Dink Problem, sometimes when I
+	Changed Directory the Lst box for Directories or Files or both would not update and be left
+	blank. I had no idea the cause of problem and just forgot about GUI for awhile. When I came 
+	back to it, I saw the pattern and cause of the problem. N1 and N2 needed to be reset to 1 for
+	both when resetting the files or directories list. Rinky Dink because this little problem
+	causing random blank lists seemed like very 2nd rate programming!
+		Last night I ran into another stumper with the Controls Editor. I could not click a button
+	that threw out all the controls on screen and rebuilt it with the Get Filename controls and
+	code, but if I just used enter everything worked fine. A Btn click and an Enter keypress both
+	call the same code so WTH? Turns out the click kept the MainRouter in a For Loop with i which 
+	was a controls indexer. When I switched out 29 controls for 10 or 11 I was getting subscript 
+	out of range errors because those 12+ controls no longer were in play. Easy solution just Exit
+	For loop when find the control the mouse was in after the Click event executes. The For i loop
+	readjusts with new set of controls.
+		Mouse over a control now activates it and you can't Tab while Mouse is over a control,
+	mouse wins. Text Box FontH can now be any size up to 2 pixels less than TB .H Property.
+	ScreenBC const now matches 3 Digit color 669, if you want to make a Label other than default.
+		Now I am checking all the old apps with the newest BI & BM and hope to post the whole 
+	revised set as one. Oh, I've yet to test but Image Files can be loaded in Btn and Lbl controls
+	just use < in the text for the NewControl() call, eg "<MyImageFile.png"
+		I redid the BM file and this txt file so that most all lines are 100 or less.
+				
+=============== direntry.h save this in your QB64.exe folder or in each your project folder 
+
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+const int IS_DIR_FLAG = 1, IS_FILE_FLAG = 2;
+
+DIR *pdir;
+struct dirent *next_entry;
+struct stat statbuf1;
+
+char current_dir[FILENAME_MAX];
+#ifdef QB64_WINDOWS
+  #define GetCurrentDir _getcwd
+#else
+  #define GetCurrentDir getcwd
+#endif
+
+int load_dir (char * path) {
+  struct dirent *pent;
+  struct stat statbuf1;
+//Open current directory
+pdir = opendir(path);
+if (!pdir) {
+return 0; //Didn't open
+}
+return -1;
+}
+
+int has_next_entry () {
+  next_entry = readdir(pdir);
+  if (next_entry == NULL) return -1;
+
+  stat(next_entry->d_name, &statbuf1);
+  return strlen(next_entry->d_name);
+}
+
+void get_next_entry (char * nam, int * flags, int * file_size) {
+  strcpy(nam, next_entry->d_name);
+  if (S_ISDIR(statbuf1.st_mode)) {
+    *flags = IS_DIR_FLAG;
+  } else {
+    *flags = IS_FILE_FLAG;
+  }
+  *file_size = statbuf1.st_size;
+  return ;
+}
+
+void close_dir () {
+  closedir(pdir);
+  pdir = NULL;
+  return ;
+}
+
+int current_dir_length () {
+  GetCurrentDir(current_dir, sizeof(current_dir));
+  return strlen(current_dir);
+}
+
+void get_current_dir(char *dir) {
+  memcpy(dir, current_dir, strlen(current_dir));
+  return ;
+}

@@ -1,0 +1,37 @@
+2022-12-02,Balance                                                  ,     100.00,     100.00
+2022-12-02,line 1 deduct                                            ,     -33.33,      66.67
+2022-12-02,line 1.5 insert over line 2                              ,     -17.00,      49.67
+2022-12-03,Make a line to insert over line 4                        ,       4.00,      53.67
+2022-12-02,line 2 add                                               ,      50.33,     104.00
+2022-12-02,line 2 add                                               ,      50.33,     154.33
+2022-12-04,Make an insert for line 7                                ,     100.00,     254.33
+2022-12-02,line 2 add                                               ,      50.33,     304.66
+2022-12-04,new line after a bunch of changes to code                ,       5.34,     310.00
+2022-12-04,Add another                                              ,      50.00,     360.00
+2022-12-04,Add another                                              ,      50.00,     410.00
+2022-12-04,Make an replace over empty 2022-12-04 mistake            ,      20.00,     430.00
+2022-12-04,add still again                                          ,      90.00,     520.00
+2022-12-04,add still again (copied)                                 ,      90.00,     610.00
+2022-12-04,add still again (copied)                                 ,      90.00,     700.00
+2022-12-06,Another update to GUI code                               ,     -50.00,     650.00
+2022-12-09,Another big change to GUI Control labels and custom ones ,    -100.00,     550.00
+2022-12-09,testing a major change to labels                         ,      50.00,     600.00
+2022-12-10,And still another major update to test                   ,     100.00,     700.00
+2022-12-10,testing a major change to labels                         ,      50.00,     750.00
+2022-12-11,testing more changes to BM                               ,      25.00,     775.00
+2022-12-12,Reversing last change to BM and rechecking               ,      25.00,     800.00
+2022-12-14,I am now onto next version of GUIa                       ,      25.00,     825.00
+2022-12-14,Good I have the lst box buttons                          ,     100.00,     925.00
+2022-12-14,I have Labels back as Type number 6                      ,     100.00,    1025.00
+2022-12-14,Accts Tracker up and running with new GUIa BI and BM     ,     100.00,    1125.00
+2022-12-14,The idea of using Lst Boxes for Menus SUCKED!            ,   -1000.00,     125.00
+2022-12-14,Use btns for menu stuff way less confusing               ,    2000.00,    2125.00
+2022-12-16,Trying Accts Tracker in another folder modified sliders  ,    -125.00,    2000.00
+2022-12-17,testing moving work files into separate folders          ,      25.00,    2025.00
+2022-12-17,Test open file in another folder and appending this      ,    2025.00,    4050.00
+2022-12-18,Checking out the centering of button words in lst box    ,     500.00,    4550.00
+2022-12-23,Add another line from another new version of GUI         ,     150.00,    4700.00
+2022-12-23,More changes more lines                                  ,      25.00,    4725.00
+2022-12-23,This starts next page                                    ,      27.00,    4752.00
+2022-12-23,Now have something to pgdn to!                           ,     -29.00,    4723.00
+2023-04-10,Test code edit                                           ,     100.00,    4823.00

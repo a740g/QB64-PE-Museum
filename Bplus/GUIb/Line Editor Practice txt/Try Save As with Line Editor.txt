@@ -1,0 +1,7 @@
+testing 1, 2, 3... first line to ? Call it Test 1 Line Editor
+OK, I am typing from a keypad for mouse.
+Hey I just noticed there cursor line is not showing from the keypad.
+So how do we get that fixed?!
+Fixed by setting the TbL as the active control.
+OK let's see if I have the delete key working. It's the one in the bottom right.
+Yes, good. OK

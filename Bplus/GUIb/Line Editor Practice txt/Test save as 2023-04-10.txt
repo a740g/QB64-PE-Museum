@@ -1,0 +1,10 @@
+testing 1, 2, 3... first line to ? Call it Test 1 Line Editor
+line 2  of Test 1 Line Editor
+line 3 fixed as well as the rest
+line 4
+ 
+line 6?
+Yes! that was line 6 it took the empty space line 7
+line 8 after deleting last line 8
+Insert this onto line 9
+OK trying another file after radical upheaval to Line Editor.

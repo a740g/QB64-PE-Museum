@@ -1,0 +1,1091 @@
+Option _Explicit
+_Title "GUI Makeover #4 Get Filename" 'b+ 2022-07-02 test new control changes
+' Change It's to File, removed 2 selected file labels using a quicker method to get file name from what is highlited
+' New Function LstHighliteItem$
+
+'    DO NOT Put more than one item in a List Box for text val, because the control LstCon needs to be split by same delimiter
+
+'$include:'vs GUI.BI'
+
+'==================================================================================================================  vs GUI.BI start
+
+'' direntry.h needs to be in QB64 folder '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< see b+ Very Simple GUI.txt file end
+'Declare CustomType Library ".\direntry"
+'    Function load_dir& (s As String)
+'    Function has_next_entry& ()
+'    Sub close_dir ()
+'    Sub get_next_entry (s As String, flags As Long, file_size As Long)
+'End Declare
+
+''reset your Default colors here   FC = ForeColor  BC = Back Color  All the RGB32() are right here in constants section!
+'Dim Shared As _Unsigned Long Black, White, screenBC, BtnFC, BtnBC, TbFC, TbBC, LstFC, LstBC, LblFC
+'Black = _RGB32(0, 0, 0)
+'White = _RGB32(255, 255, 255)
+'screenBC = _RGB32(160, 160, 255)
+'BtnFC = _RGB32(0, 0, 0)
+'BtnBC = _RGB32(250, 250, 250)
+'TbFC = _RGB32(180, 180, 255)
+'TbBC = _RGB32(0, 0, 128)
+'LstFC = _RGB32(255, 180, 180)
+'LstBC = _RGB32(190, 0, 0)
+'LblFC = _RGB32(0, 0, 68)
+
+'Type Control ' all are boxes with colors, 1 is active
+'    As Long ConType, X, Y, W, H, FontH, TabStop, Hide, N1, N2, N3, N4, N5 ' N1, N2 sometimes controls need extra numbers for special functions
+'    As String Text ' dims are pixels
+'    As _Unsigned Long FC, BC
+'End Type
+'Dim Shared GuiTitle$ ' WindowOpen
+'Dim Shared curPath$ ' _CWD$ in OpenWindow for file stuff
+'Dim Shared As Long Xmax, Ymax, NControls, ActiveControl
+'ReDim Shared con(0) As Control
+'Dim Shared fontHandle&(6 To 128) ' more range? to 128 set in OpenWindow
+
+'================================================================================================================== vs GUI.BI end
+
+'   Set Globals from BI
+Xmax = 1280: Ymax = 700: GuiTitle$ = "GUI Makeover #4 Get Filename" ' <<<<<  Window size shared throughout program
+OpenWindow Xmax, Ymax, GuiTitle$, "Arial.ttf" ' need to do this before drawing anything from NewControls
+Dim fils$, dirs$
+GetListStrings dirs$, fils$
+'              !!!  Warning: Running the controls in controls editor removes dirs$ and Fils$ variables!!!!
+'                   Also _width for lblPath and lblCurPath and curPath$
+' GUI Controls
+'                     Dim and set Globals for GUI app
+Dim Shared As Long lblPath, lblCurPath, lblDirs, LblFils, lstD, btnCD, lstF, BtnOk, BtnSetClip, BtnAddClip, BtnCancel, BtnKill
+lblPath = NewControl(4, 0, 10, _Width, 20, 20, 0, 0, "Current Folder:")
+lblCurPath = NewControl(4, 0, 35, _Width, 20, 16, 30, 669, curPath$)
+lblDirs = NewControl(4, 150, 60, 300, 20, 20, 0, 0, "Sub Directories:")
+LblFils = NewControl(4, 530, 60, 630, 20, 20, 0, 0, "Files:")
+lstD = NewControl(3, 150, 85, 300, 480, 20, 0, 0, dirs$)
+btnCD = NewControl(1, 150, 575, 300, 30, 16, 0, 0, "To Ch Dir:  Enter, Right Click or Me")
+lstF = NewControl(3, 530, 85, 630, 520, 20, 0, 0, fils$)
+BtnOk = NewControl(1, 20, 640, 240, 50, 24, 0, 0, "Run File")
+BtnSetClip = NewControl(1, 280, 640, 230, 50, 24, 0, 0, "Clipboard File")
+BtnAddClip = NewControl(1, 530, 640, 232, 50, 24, 0, 0, "Add File To Clip")
+BtnCancel = NewControl(1, 780, 640, 232, 50, 24, 0, 0, "Quit")
+BtnKill = NewControl(1, 1030, 640, 230, 50, 24, 0, 0, "Kill File!")
+' End GUI Controls
+
+' Backup set of Controls in case the above gets accidently run in the Controls Editor
+'Dim Shared As Long lblPath, lblCurPath, lblDirs, LblFils, lstD, btnCD, lstF, BtnOk, BtnSetClip, BtnAddClip, BtnCancel, BtnKill
+'lblPath = NewControl(4, 0, 10, _Width, 20, 20, 0, 0, "Current Folder:")
+'lblCurPath = NewControl(4, 0, 35, _Width, 20, 16, 30, 669, curPath$)
+'lblDirs = NewControl(4, 150, 60, 300, 20, 20, 0, 0, "Sub Directories:")
+'LblFils = NewControl(4, 530, 60, 630, 20, 20, 0, 0, "Files:")
+'lstD = NewControl(3, 150, 85, 300, 480, 20, 0, 0, dirs$)
+'btnCD = NewControl(1, 150, 575, 300, 30, 16, 0, 0, "To Ch Dir:  Enter, Right Click or Me")
+'lstF = NewControl(3, 530, 85, 630, 520, 20, 0, 0, fils$)
+'BtnOk = NewControl(1, 20, 640, 240, 50, 24, 0, 0, "Run File")
+'BtnSetClip = NewControl(1, 280, 640, 230, 50, 24, 0, 0, "Clipboard File")
+'BtnAddClip = NewControl(1, 530, 640, 232, 50, 24, 0, 0, "Add File To Clip")
+'BtnCancel = NewControl(1, 780, 640, 232, 50, 24, 0, 0, "Quit")
+'BtnKill = NewControl(1, 1030, 640, 230, 50, 24, 0, 0, "Kill File!")
+
+MainRouter ' after all controls setup
+
+'  EDIT these to your programs needs
+Sub BtnClickEvent (i As Long) ' attach you button click code in here
+    Dim answer$, dirs$, fils$ ' <<<<<<<<<<<<<<<<<< dim for click code
+    Select Case i
+        Case btnCD 'test same exact code
+            LstSelectEvent lstD
+        Case BtnOk: Shell _DontWait curPath$ + "/" + LstHighliteItem$(lstF) ' hey run it!
+        Case BtnSetClip: _Clipboard$ = curPath$ + "/" + LstHighliteItem$(lstF)
+        Case BtnAddClip: _Clipboard$ = _Clipboard$ + Chr$(10) + curPath$ + "/" + LstHighliteItem$(lstF)
+        Case BtnKill
+            answer$ = inputBox$(curPath$ + "/" + LstHighliteItem$(lstF), "Confirm Kill, enter y or n", _Width \ 8 - 7)
+            If answer$ = "y" Then
+                Kill curPath$ + "/" + LstHighliteItem$(lstF)
+                GetListStrings dirs$, fils$
+                con(lstD).Text = dirs$
+                con(lstF).Text = fils$
+                drwLst lstD, 0
+                drwLst lstF, 0
+            End If
+        Case BtnCancel: System ' goodbye
+    End Select
+End Sub
+
+Sub LstSelectEvent (control As Long)
+    Dim fils$, dirs$
+    Select Case control
+        Case lstD ' change directory get new lists and reset the N controls to start of lists
+            If _Trim$(LstHighliteItem$(lstD)) <> "" Then
+                ChDir LstHighliteItem$(lstD) ' use new function to get highlite item
+                curPath$ = _CWD$
+                con(lblCurPath).Text = curPath$
+                drwLbl lblCurPath
+                GetListStrings dirs$, fils$
+                con(lstD).Text = dirs$
+                con(lstF).Text = fils$
+                '    ' just like LstBox
+                '    ' N1 = section / page number we are on
+                '    ' N2 = current location of the highlight bar on the page 1 to page/section width
+                '    ' N3 = char width allowed for char fontH * .65
+                '    ' N4 = page height or section width
+                '    ' N5 = len(text) + 1 upperbound of letters
+                con(lstD).N1 = 1 ' these have to be updated otherwise get random non draws!
+                con(lstD).N2 = 1
+                ' note: N3, N4 never change, N5 is updated with each drwLst
+                drwLst lstD, lstD = ActiveControl
+                con(lstF).N1 = 1 ' these have to be updated otherwise get random non draws!
+                con(lstF).N2 = 1
+                ' note: N3, N4 never change, N5 is updated with each drwLst
+                drwLst lstF, lstF = ActiveControl 'should be active
+            End If
+    End Select
+End Sub
+
+Sub PicClickEvent (i As Long, Pmx As Long, Pmy As Long) ' attach your Picture click code in here
+    Select Case i
+    End Select
+End Sub
+
+Sub PicFrameUpdate (i As Long) ' each frame update of picture for animation
+    Select Case i
+    End Select
+End Sub
+
+'$include:'vs GUI.BM'
+
+'================================================================================================================== vs GUI.BM start to end
+
+''  GUI.BM 2022-07-20 add Function LstHighliteItem$
+'' Change MainRouter clicking outside a control was changing the control if it was also active, no more!
+'' If Mouse Over a Control, that controls becomes active, don't try and Tab off a control that a mouse is over, mouse wins!
+'' 2022-07-25
+'' Fix mousewheel list updating with a _Display after fixes, oh do display after all drwX's
+'' Font Heights for Text Boxes, Btns, Pic Box (but that is stupid no room for pic) now only have to be 2 pixels less than Control Height.
+'' Removed N6, Text2, Fhdl, FontFile, ImgFile from the Control Type we can do without them for vs GUI.
+'' more changes made to BM from Controls Editor
+
+'Function LstHighliteItem$ (controlI As Long) ' 2022-07-20 adding this to BM
+'    ReDim lst(1 To 1) As String 'need to find highlighted item
+'    Split con(controlI).Text, "~", lst()
+'    LstHighliteItem$ = lst((con(controlI).N1 - 1) * con(controlI).N4 + con(controlI).N2)
+'End Function
+
+'Function NewControl& (ConType As Long, X As Long, Y As Long, W As Long, H As Long, FontH As Long, FC As Long, BC As Long, s$) ' dims are pixels
+'    Dim As Long a
+'    NControls = NControls + 1
+'    ReDim _Preserve con(0 To NControls) As Control
+'    con(NControls).ConType = ConType
+'    con(NControls).X = X
+'    con(NControls).Y = Y
+'    con(NControls).W = W
+'    con(NControls).H = H
+'    con(NControls).Text = s$
+'    ActiveControl = 1
+'    If NControls = 1 Then a = 1 Else a = 0
+'    Select Case ConType
+'        Case 1
+'            con(NControls).N1 = 0
+'            If Left$(s$, 1) = "<" Then
+'                If _FileExists(Mid$(s$, 2)) Then con(NControls).N1 = _LoadImage(Mid$(s$, 2))
+'            End If
+'            If FontH < H - 1 Then con(NControls).FontH = FontH Else con(NControls).FontH = H - 2
+'            If FC = 0 And BC = 0 Then ' use default colors
+'                con(NControls).FC = C3(800): con(NControls).BC = C3(888)
+'            Else ' convert to RGB
+'                con(NControls).FC = C3(FC): con(NControls).BC = C3(BC)
+'            End If
+'            drwBtn NControls, a
+'        Case 2
+'            If FontH < H - 1 Then con(NControls).FontH = FontH Else con(NControls).FontH = H - 2
+'            If FC = 0 And BC = 0 Then ' use default colors
+'                con(NControls).FC = C3(778): con(NControls).BC = C3(225)
+'            Else ' convert to RGB
+'                con(NControls).FC = C3(FC): con(NControls).BC = C3(BC)
+'            End If
+'            con(NControls).N1 = 1 ' page/section
+'            con(NControls).N2 = 1 ' highlite
+'            con(NControls).N3 = Int(con(NControls).FontH * .65) ' width of character
+'            con(NControls).N4 = Int((con(NControls).W - 4) / con(NControls).N3) ' width of section
+'            con(NControls).N5 = Len(con(NControls).Text) + 1
+'            drwTB NControls, a
+'        Case 3
+'            If FC = 0 And BC = 0 Then ' use default colors
+'                con(NControls).FC = C3(889): con(NControls).BC = C3(336)
+'            Else ' convert to RGB
+'                con(NControls).FC = C3(FC): con(NControls).BC = C3(BC)
+'            End If
+'            If 3 * FontH > H Then con(NControls).FontH = Int(H / 3) Else con(NControls).FontH = FontH
+'            con(NControls).N4 = Int((H - 2 * con(NControls).FontH) / con(NControls).FontH) ' page height 2 empty lines for page up, page down clicking
+'            con(NControls).N1 = 1 ' page number
+'            con(NControls).N2 = 1 ' select highlite bar
+'            drwLst NControls, a
+'        Case 4
+'            con(NControls).N1 = 0
+'            If Left$(s$, 1) = "<" Then
+'                If _FileExists(Mid$(s$, 2)) Then con(NControls).N1 = _LoadImage(Mid$(s$, 2))
+'            End If
+'            If FontH <= H Then con(NControls).FontH = FontH Else con(NControls).FontH = H
+'            If FC = 0 And BC = 0 Then ' use default colors
+'                con(NControls).FC = C3(889): con(NControls).BC = screenBC
+'            Else ' convert to RGB
+'                con(NControls).FC = C3(FC): con(NControls).BC = C3(BC)
+'            End If
+'            drwLbl NControls
+'        Case 5
+'            If FontH < H - 1 Then con(NControls).FontH = FontH Else con(NControls).FontH = H - 2
+'            If s$ <> "" Then ' label color is
+'                If FC = 0 And BC = 0 Then ' use default colors
+'                    con(NControls).FC = C3(590): con(NControls).BC = C3(40)
+'                Else ' convert to RGB
+'                    con(NControls).FC = C3(FC): con(NControls).BC = C3(BC)
+'                End If
+'            End If
+'            con(NControls).N1 = _NewImage(con(NControls).W, con(NControls).H, 32)
+'            _Dest con(NControls).N1
+'            Line (0, 0)-Step(con(NControls).W - 1, con(NControls).H - 1), Black, BF
+'            _Dest 0
+'            drwPic NControls, a
+'    End Select
+'    NewControl& = NControls ' same as ID
+'End Function
+
+'Sub MainRouter
+'    Dim As Long kh, mx, my, mb1, mb2, i, shift
+'    Do
+'        ' mouse clicks and tabs will decide the active control
+'        While _MouseInput
+'            If con(ActiveControl).ConType = 3 Then
+'                If _MouseWheel > 0 Then
+'                    LstKeyEvent ActiveControl, 20480
+'                ElseIf _MouseWheel < 0 Then
+'                    LstKeyEvent ActiveControl, 18432
+'                End If
+'            End If
+'        Wend
+
+'        mx = _MouseX: my = _MouseY: mb1 = _MouseButton(1): mb2 = _MouseButton(2)
+'        For i = 1 To NControls
+'            If mx >= con(i).X And mx <= con(i).X + con(i).W Then
+'                If my >= con(i).Y And my <= con(i).Y + con(i).H Then ' we are  inside a control
+'                    If i <> ActiveControl And con(i).ConType <> 4 Then ' acknowledge actove control is changed
+'                        activateControl ActiveControl, 0
+'                        ActiveControl = i
+'                        activateControl ActiveControl, -1
+'                    End If
+
+'                    If mb1 Then ' find which control
+'                        If con(i).ConType = 1 Then
+'                            BtnClickEvent i
+'                        ElseIf con(i).ConType = 2 Then ' move cursor to click point
+'                            If mx > con(i).X + 4 And mx < con(i).X + con(i).W Then
+'                                If my >= con(i).Y And my <= con(i).Y + con(i).H Then
+'                                    con(i).N2 = Int((mx - (con(i).X + 4)) / con(i).N3) + 1
+'                                    If (con(i).N1 - 1) * con(i).N4 + con(i).N2 > con(i).N5 Then ' ky end
+'                                        If con(i).N5 Mod con(i).N4 = 0 Then 'last page exactly at end of it
+'                                            con(i).N1 = Int(con(i).N5 / con(i).N4)
+'                                            con(i).N2 = con(i).N4
+'                                        Else
+'                                            con(i).N1 = Int(con(i).N5 / con(i).N4) + 1 ' last page but partial
+'                                            con(i).N2 = con(i).N5 Mod con(i).N4
+'                                        End If
+'                                    End If
+'                                    drwTB i, -1
+'                                End If
+'                            End If
+'                        ElseIf con(i).ConType = 3 Then
+'                            If my >= con(i).Y And my <= con(i).Y + con(i).FontH Then ' top empty
+'                                If mx < con(i).X + .5 * con(i).W Then 'home else pgUp
+'                                    LstKeyEvent i, 18176 ' home
+'                                ElseIf mx > con(i).X + .5 * con(i).W Then
+'                                    LstKeyEvent i, 18688 ' pgup
+'                                End If
+'                            ElseIf my >= con(i).Y + con(i).H - con(i).FontH And my <= con(i).Y + con(i).H Then
+'                                If mx < con(i).X + .5 * con(i).W Then 'end else pgDn
+'                                    LstKeyEvent i, 20224 ' end
+'                                ElseIf mx > con(i).X + .5 * con(i).W Then
+'                                    LstKeyEvent i, 20736 ' pgdn
+'                                End If
+'                            ElseIf my >= con(i).Y + con(i).FontH And my < con(i).Y + con(i).H - con(i).FontH Then
+'                                con(i).N2 = Int((my - con(i).Y - con(i).FontH) / con(i).FontH) + 1
+'                                If (con(i).N1 - 1) * con(i).N4 + con(i).N2 > con(i).N5 Then LstKeyEvent i, 20224 ' end
+'                                drwLst i, -1
+'                            End If
+'                        ElseIf con(i).ConType = 5 Then
+'                            PicClickEvent i, mx - con(i).X, my - con(i).Y 'picture box click event
+'                        End If ' what kind of control
+
+'                        _Delay .2 ' user release key wait
+'                    End If ' left click a control check
+
+'                    If mb2 Then ' use right clicking to select
+'                        If con(i).ConType = 3 Then ' only selecting in lst box
+'                            LstSelectEvent i ' check event called for 5
+'                        End If ' control type 3
+'                        _Delay .2 ' user release button  so action not taken twice
+'                    End If ' mb2
+'                End If ' y is inside control
+'            End If 'x inside control
+'        Next
+
+'        kh = _KeyHit
+'        shift = _KeyDown(100304) Or _KeyDown(100303)
+'        If kh = 9 Then 'tab
+'            If shift Then
+'                shiftActiveControl -1
+'            Else
+'                shiftActiveControl 1
+'            End If
+'        ElseIf kh = 13 And con(ActiveControl).ConType = 1 Then ' enter on a btn
+'            BtnClickEvent ActiveControl
+'            shiftActiveControl 1
+'        ElseIf kh = 13 And con(ActiveControl).ConType = 2 Then
+'            shiftActiveControl 1
+'        ElseIf kh = 13 And con(ActiveControl).ConType = 3 Then
+'            LstSelectEvent ActiveControl
+'            shiftActiveControl 1
+'        End If
+'        If con(ActiveControl).ConType = 2 Then
+'            TBKeyEvent ActiveControl, kh, shift ' this handles keypress in active textbox
+'        ElseIf con(ActiveControl).ConType = 3 Then
+'            LstKeyEvent ActiveControl, kh
+'        End If
+'        For i = 1 To NControls ' update active picture boxes
+'            If con(i).ConType = 5 Then
+'                PicFrameUpdate i
+'            End If
+'        Next
+'        _Display
+'        _Limit 60
+'    Loop
+'    System
+'End Sub
+
+'Sub shiftActiveControl (change As Long) ' change = 1 or -1
+'    activateControl ActiveControl, 0 ' turn off last
+'    Do
+'        ActiveControl = ActiveControl + change
+'        If ActiveControl > NControls Then ActiveControl = 1
+'        If ActiveControl < 1 Then ActiveControl = NControls
+'    Loop Until con(ActiveControl).ConType <> 4
+'    activateControl ActiveControl, -1 ' turn on next
+'End Sub
+
+'Sub activateControl (i, activate)
+'    Select Case con(i).ConType
+'        Case 1: drwBtn i, activate
+'        Case 2: drwTB i, activate
+'        Case 3: drwLst i, activate
+'        Case 5: drwPic i, activate
+'    End Select
+'End Sub
+
+'Sub OpenWindow (WinWidth As Long, WinHeight As Long, title$, fontFile$)
+'    Screen _NewImage(WinWidth, WinHeight, 32)
+'    _ScreenMove 80, 0
+'    _PrintMode _KeepBackground
+'    _Title title$
+'    curPath$ = _CWD$ ' might need this for file stuff
+'    Color White, screenBC
+'    Cls
+'    Dim As Long j
+'    For j = 6 To 128
+'        fontHandle&(j) = _LoadFont(fontFile$, j)
+'        If fontHandle&(j) <= 0 Then
+'            Cls: Print "Font did not load (OpenWindow sub) at height" + Str$(j) + ", goodbye!": Sleep: End
+'        End If
+'    Next
+'End Sub
+
+'Sub drwBtn (i As Long, active As Long) ' gray back, black text
+'    If con(i).N1 > -2 Then ' no image
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF
+'        _Font fontHandle&(con(i).FontH)
+'        If con(i).FontH >= 20 Then
+'            Color Black
+'            _PrintString (con(i).X + (con(i).W - _PrintWidth(con(i).Text)) / 2 - 1, (con(i).Y + (con(i).H - con(i).FontH) / 2) - 1), con(i).Text
+'        End If
+'        Color con(i).FC
+'        _PrintString (con(i).X + (con(i).W - _PrintWidth(con(i).Text)) / 2, (con(i).Y + (con(i).H - con(i).FontH) / 2)), con(i).Text
+'    Else
+'        _PutImage (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).N1, 0
+'    End If
+'    If active Then
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), White, B
+'    Else
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), White
+'        Line (con(i).X, con(i).Y)-Step(0, con(i).H), White
+'        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), Black
+'        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), Black
+'    End If
+'    _Display
+'End Sub
+
+'Sub drwTB (i As Long, active As Long) ' blue back, white text
+'    ' just like LstBox
+'    ' N1 = section / page number we are on
+'    ' N2 = current location of the highlight bar on the page 1 to page/section width
+'    ' N3 = char width allowed for char fontH * .65
+'    ' N4 = page height or section width
+'    ' N5 = len(text) + 1 upperbound of letters
+
+'    Dim As Long j, xoff
+'    Dim t$
+'    Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF
+'    If active Then
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), White, B
+'    Else
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), Black
+'        Line (con(i).X, con(i).Y)-Step(0, con(i).H), Black
+'        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), White
+'        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), White
+'    End If
+'    con(i).N5 = Len(con(i).Text) + 1 ' allow for 1 more char insertion or insertion on end
+'    _Font fontHandle&(con(i).FontH)
+'    For j = 1 To con(i).N4
+'        If (con(i).N1 - 1) * con(i).N4 + j <= con(i).N5 Then
+'            t$ = Mid$(con(i).Text, (con(i).N1 - 1) * con(i).N4 + j, 1)
+'            xoff = (con(i).N3 - _PrintWidth(t$)) / 2
+'            If j <> con(i).N2 Or active = 0 Then
+'                Color con(i).FC
+'            Else ' cursor
+'                Line (con(i).X + 4 + (j - 1) * con(i).N3, con(i).Y + 1)-Step(con(i).N3, con(i).H - 2), con(i).FC, BF
+'                Color con(i).BC
+'            End If
+'            _PrintString (con(i).X + 4 + (j - 1) * con(i).N3 + xoff, con(i).Y + (con(i).H - con(i).FontH) / 2), t$
+'        End If
+'    Next
+'    _Display
+'End Sub
+
+'Sub drwLst (i As Long, active As Long)
+'    ' new control will get numbers for constructing a screen
+'    ' N1 = page number we are on
+'    ' N2 = current location of the highlight bar on the page
+'    ' N3 = page width in chars
+'    ' N4 = page height + 2 lines are left blank at top and bottom
+'    ' N5 = Ubound of the list() base 1 ie last item number
+
+'    Dim As Long j, k
+'    Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF
+'    If active Then
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), White, B
+'    Else
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, 0), Black
+'        Line (con(i).X, con(i).Y)-Step(0, con(i).H), Black
+'        Line (con(i).X + con(i).W, con(i).Y)-Step(0, con(i).H), White
+'        Line (con(i).X, con(i).Y + con(i).H)-Step(con(i).W, 0), White
+'    End If
+'    ReDim lst(1 To 1) As String
+'    Split con(i).Text, "~", lst()
+'    con(i).N5 = UBound(lst)
+'    _Font fontHandle&(con(i).FontH)
+'    For j = 1 To con(i).N4 ' - 1
+'        If (con(i).N1 - 1) * con(i).N4 + j <= con(i).N5 Then
+'            k = Len(lst((con(i).N1 - 1) * con(i).N4 + j)) ' (page-1) * lines per page + cur line j
+'            While _PrintWidth(Mid$(lst((con(i).N1 - 1) * con(i).N4 + j), 1, k)) > con(i).W - 4
+'                k = k - 1
+'            Wend
+'            If j <> con(i).N2 Then
+'                Color con(i).FC
+'            Else
+'                Line (con(i).X + 1, con(i).Y + con(i).FontH + (j - 1) * con(i).FontH)-Step(con(i).W - 2, con(i).FontH), con(i).FC, BF
+'                Color con(i).BC
+'            End If
+'            _PrintString (con(i).X + 4, con(i).Y + con(i).FontH + (j - 1) * con(i).FontH), Mid$(lst((con(i).N1 - 1) * con(i).N4 + j), 1, k)
+'        End If
+'    Next
+'    _Display
+'End Sub
+
+'Sub drwLbl (i As Long)
+'    If con(i).N1 > -2 Then ' no image
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).BC, BF
+'        _Font fontHandle&(con(i).FontH)
+'        If con(i).FontH >= 20 Then
+'            Color Black
+'            _PrintString (con(i).X + (con(i).W - _PrintWidth(con(i).Text)) / 2 + 1, con(i).Y + (con(i).H - con(i).FontH) / 2 + 1), con(i).Text
+'        End If
+'        Color con(i).FC
+'        _PrintString (con(i).X + (con(i).W - _PrintWidth(con(i).Text)) / 2, con(i).Y + (con(i).H - con(i).FontH) / 2), con(i).Text
+'    Else
+'        _PutImage (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).N1, 0
+'    End If
+'    _Display
+'End Sub
+
+'Sub drwPic (i As Long, active As Long)
+'    If con(i).Text <> "" Then ' title to display
+'        Dim sd&
+'        sd& = _Dest
+'        _Dest con(i).N1
+'        ' _PrintMode _KeepBackground
+'        Line (0, con(i).H - con(i).FontH - 2)-Step(con(i).W - 1, con(i).FontH + 2), con(i).BC, BF ' pic title
+'        _Font fontHandle&(con(i).FontH)
+'        Color con(i).FC, con(i).BC
+'        _PrintString ((con(i).W - _PrintWidth(con(i).Text)) / 2, con(i).H - con(i).FontH - 1), con(i).Text
+'        _Dest 0
+'        _PutImage (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), con(i).N1, 0
+'        _Dest sd&
+'    End If
+'    If active Then
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), White, B
+'    Else
+'        Line (con(i).X, con(i).Y)-Step(con(i).W, con(i).H), Black, B
+'    End If
+'    _Display
+'End Sub
+
+'' this is standard for all Text Boxes
+'Sub TBKeyEvent (i As Long, ky As Long, shift As Long) ' for all text boxes
+'    ' just like LstBox
+'    ' N1 = section / page number we are on
+'    ' N2 = current location of the highlight bar on the page 1 to page/section width
+'    ' N3 = char width allowed for char fontH * .65
+'    ' N4 = page height or section width
+'    ' N5 = len(text) + 1 upperbound of letters
+
+'    If ky = 19200 Then 'left arrow
+'        If con(i).N2 > 1 Then
+'            con(i).N2 = con(i).N2 - 1: drwTB i, -1
+'        Else
+'            If con(i).N1 > 1 Then con(i).N1 = con(i).N1 - 1: con(i).N2 = con(i).N4: drwTB i, -1
+'        End If
+'    ElseIf ky = 19712 Then ' right arrow
+'        If con(i).N2 < con(i).N4 And (con(i).N1 - 1) * con(i).N4 + con(i).N2 < con(i).N5 Then
+'            con(i).N2 = con(i).N2 + 1: drwTB i, -1
+'        Else
+'            If con(i).N2 = con(i).N4 Then ' can we move to another page
+'                If con(i).N1 < con(i).N5 / con(i).N4 Then
+'                    con(i).N1 = con(i).N1 + 1: con(i).N2 = 1: drwTB i, -1
+'                End If
+'            End If
+'        End If
+'    ElseIf ky = 18176 Then ' home
+'        con(i).N1 = 1: con(i).N2 = 1: drwTB i, -1
+'    ElseIf ky = 20224 Then ' end
+'        If con(i).N5 Mod con(i).N4 = 0 Then
+'            con(i).N1 = Int(con(i).N5 / con(i).N4)
+'            con(i).N2 = con(i).N4
+'        Else
+'            con(i).N1 = Int(con(i).N5 / con(i).N4) + 1
+'            con(i).N2 = con(i).N5 Mod con(i).N4
+'        End If
+'        drwTB i, -1
+'    ElseIf ky = 18688 Then ' PgUp
+'        If con(i).N1 > 1 Then con(i).N1 = con(i).N1 - 1: drwTB i, -1
+'    ElseIf ky = 20736 Then ' PgDn
+'        If con(i).N1 < con(i).N5 / con(i).N4 Then
+'            con(i).N1 = con(i).N1 + 1: con(i).N2 = 1: drwTB i, -1
+'        End If
+'    ElseIf ky >= 32 And ky <= 128 Then ' normal letter or digit or symbol
+'        con(i).Text = Mid$(con(i).Text, 1, (con(i).N1 - 1) * con(i).N4 + con(i).N2 - 1) + Chr$(ky) + Mid$(con(i).Text, (con(i).N1 - 1) * con(i).N4 + con(i).N2)
+'        con(i).N5 = Len(con(i).Text) + 1
+'        ' now do right arrow code
+'        If con(i).N2 < con(i).N4 And (con(i).N1 - 1) * con(i).N4 + con(i).N2 < con(i).N5 Then
+'            con(i).N2 = con(i).N2 + 1: drwTB i, -1
+'        Else
+'            If con(i).N2 = con(i).N4 Then ' can we move to another page
+'                If con(i).N1 < con(i).N5 / con(i).N4 Then
+'                    con(i).N1 = con(i).N1 + 1: con(i).N2 = 1: drwTB i, -1
+'                End If
+'            End If
+'        End If
+'    ElseIf ky = 8 Then 'backspace
+'        If shift Then
+'            con(i).Text = "": con(i).N2 = 1: con(i).N1 = 1: con(i).N5 = 1: drwTB i, -1
+'        Else
+'            If con(i).N2 > 1 Then
+'                con(i).Text = Mid$(con(i).Text, 1, (con(i).N1 - 1) * con(i).N4 + con(i).N2 - 2) + Mid$(con(i).Text, (con(i).N1 - 1) * con(i).N4 + con(i).N2)
+'                con(i).N5 = Len(con(i).Text) + 1
+'                con(i).N2 = con(i).N2 - 1: drwTB i, -1
+'            ElseIf con(i).N1 <> 1 Then
+'                con(i).Text = Mid$(con(i).Text, 1, (con(i).N1 - 1) * con(i).N4 + con(i).N2 - 2) + Mid$(con(i).Text, (con(i).N1 - 1) * con(i).N4 + con(i).N2)
+'                con(i).N5 = Len(con(i).Text) + 1
+'                con(i).N1 = con(i).N1 - 1: con(i).N2 = con(i).N4: drwTB i, -1
+'            End If
+'        End If
+'    ElseIf ky = 21248 Then 'delete  shift is super delete
+'        If shift Then
+'            con(i).Text = "": con(i).N2 = 1: con(i).N1 = 1: con(i).N5 = 1: drwTB i, -1
+'        Else
+'            con(i).Text = Mid$(con(i).Text, 1, (con(i).N1 - 1) * con(i).N4 + con(i).N2 - 1) + Mid$(con(i).Text, (con(i).N1 - 1) * con(i).N4 + con(i).N2 + 1)
+'            con(i).N5 = Len(con(i).Text) + 1: drwTB i, -1
+'        End If
+'    End If
+'End Sub
+
+'' this is standard for all List Boxes
+'Sub LstKeyEvent (i As Long, ky As Long) ' for all text boxes
+'    If ky = 18432 Then 'up arrow
+'        If con(i).N2 > 1 Then
+'            con(i).N2 = con(i).N2 - 1: drwLst i, -1
+'        Else
+'            If con(i).N1 > 1 Then con(i).N1 = con(i).N1 - 1: con(i).N2 = con(i).N4: drwLst i, -1
+'        End If
+'    ElseIf ky = 20480 Then ' down arrow
+'        If con(i).N2 < con(i).N4 And (con(i).N1 - 1) * con(i).N4 + con(i).N2 < con(i).N5 Then
+'            con(i).N2 = con(i).N2 + 1: drwLst i, -1
+'        Else
+'            If con(i).N2 = con(i).N4 Then ' can we start another page
+'                If con(i).N1 < con(i).N5 / con(i).N4 Then
+'                    con(i).N1 = con(i).N1 + 1: con(i).N2 = 1: drwLst i, -1
+'                End If
+'            End If
+'        End If
+'    ElseIf ky = 18176 Then 'home
+'        con(i).N1 = 1: con(i).N2 = 1: drwLst i, -1
+'    ElseIf ky = 20224 Then ' end
+'        If con(i).N5 Mod con(i).N4 = 0 Then
+'            con(i).N1 = Int(con(i).N5 / con(i).N4)
+'            con(i).N2 = con(i).N4
+'        Else
+'            con(i).N1 = Int(con(i).N5 / con(i).N4) + 1
+'            con(i).N2 = con(i).N5 Mod con(i).N4
+'        End If
+'        drwLst i, -1
+'    ElseIf ky = 18688 Then 'pgUp
+'        If con(i).N1 > 1 Then con(i).N1 = con(i).N1 - 1: drwLst i, -1
+'    ElseIf ky = 20736 Then 'pgDn
+'        If con(i).N1 * con(i).N4 < con(i).N5 Then
+'            con(i).N1 = con(i).N1 + 1
+'            If con(i).N1 > Int(con(i).N5 / con(i).N4) Then ' > last whole page check high bar
+'                If con(i).N2 > con(i).N5 Mod con(i).N4 Then con(i).N2 = con(i).N5 Mod con(i).N4
+'            End If
+'            drwLst i, -1
+'        End If
+'    End If
+'End Sub
+
+'' This is used and available for maniupating strings to arrays ie change delimiters to commas
+'Sub Split (SplitMeString As String, delim As String, loadMeArray() As String)
+'    Dim curpos As Long, arrpos As Long, LD As Long, dpos As Long 'fix use the Lbound the array already has
+'    curpos = 1: arrpos = LBound(loadMeArray): LD = Len(delim)
+'    dpos = InStr(curpos, SplitMeString, delim)
+'    Do Until dpos = 0
+'        loadMeArray(arrpos) = Mid$(SplitMeString, curpos, dpos - curpos)
+'        arrpos = arrpos + 1
+'        If arrpos > UBound(loadMeArray) Then ReDim _Preserve loadMeArray(LBound(loadMeArray) To UBound(loadMeArray) + 1000) As String
+'        curpos = dpos + LD
+'        dpos = InStr(curpos, SplitMeString, delim)
+'    Loop
+'    loadMeArray(arrpos) = Mid$(SplitMeString, curpos)
+'    ReDim _Preserve loadMeArray(LBound(loadMeArray) To arrpos) As String 'get the ubound correct
+'End Sub
+
+'' Available if need to create a string from an array
+'Function Join$ (arr() As String, delimiter$) ' modified to avoid blank lines
+'    Dim i As Long, b$
+'    For i = LBound(arr) To UBound(arr)
+'        If arr(i) <> "" Then
+'            If b$ = "" Then b$ = arr(i) Else b$ = b$ + delimiter$ + arr(i)
+'        End If
+'    Next
+'    Join$ = b$
+'End Function
+
+'Function LeftOf$ (source$, of$)
+'    If InStr(source$, of$) > 0 Then LeftOf$ = Mid$(source$, 1, InStr(source$, of$) - 1) Else LeftOf$ = source$
+'End Function
+
+'' update these 2 in case of$ is not found! 2021-02-13
+'Function RightOf$ (source$, of$)
+'    If InStr(source$, of$) > 0 Then RightOf$ = Mid$(source$, InStr(source$, of$) + Len(of$)) Else RightOf$ = ""
+'End Function
+
+'Function TS$ (n As Long)
+'    TS$ = _Trim$(Str$(n))
+'End Function
+
+'Sub Remove (item$, a$())
+'    Dim As Long i, c, lba
+'    lba = LBound(a$)
+'    Dim t$(lba To UBound(a$))
+'    c = lba - 1
+'    For i = lba To UBound(a$)
+'        If a$(i) <> "" And a$(i) <> item$ Then c = c + 1: t$(c) = a$(i)
+'    Next
+'    ReDim a$(lba To c)
+'    For i = lba To c
+'        a$(i) = t$(i)
+'    Next
+'End Sub
+
+'Function C3~& (i As Long) ' from 0 to 999 3 digit pos integers
+'    Dim s$
+'    s$ = Right$("   " + Str$(i), 3)
+'    C3~& = _RGB32(Val(Mid$(s$, 1, 1)) * 28, Val(Mid$(s$, 2, 1)) * 28, Val(Mid$(s$, 3, 1)) * 28)
+'End Function
+
+'Sub drawGridRect (x, y, w, h, xstep, ystep) ' top left x, y, x side, y side, number of x, nmber of y
+'    Dim i
+'    For i = 0 To w Step xstep
+'        Line (x + i, y + 0)-(x + i, y + y + h)
+'    Next
+'    For i = 0 To h Step ystep
+'        Line (x + 0, y + i)-(x + w, y + i)
+'    Next
+'End Sub
+
+'Sub fellipse (CX As Long, CY As Long, xr As Long, yr As Long, C As _Unsigned Long)
+'    If xr = 0 Or yr = 0 Then Exit Sub
+'    Dim h2 As _Integer64, w2 As _Integer64, h2w2 As _Integer64
+'    Dim x As Long, y As Long
+'    w2 = xr * xr: h2 = yr * yr: h2w2 = h2 * w2
+'    Line (CX - xr, CY)-(CX + xr, CY), C, BF
+'    Do While y < yr
+'        y = y + 1
+'        x = Sqr((h2w2 - y * y * w2) \ h2)
+'        Line (CX - x, CY + y)-(CX + x, CY + y), C, BF
+'        Line (CX - x, CY - y)-(CX + x, CY - y), C, BF
+'    Loop
+'End Sub
+
+'Sub fcirc (x As Long, y As Long, R As Long, C As _Unsigned Long) 'vince version  fill circle x, y, radius, color
+'    Dim x0 As Long, y0 As Long, e As Long
+'    x0 = R: y0 = 0: e = 0
+'    Do While y0 < x0
+'        If e <= 0 Then
+'            y0 = y0 + 1
+'            Line (x - x0, y + y0)-(x + x0, y + y0), C, BF
+'            Line (x - x0, y - y0)-(x + x0, y - y0), C, BF
+'            e = e + 2 * y0
+'        Else
+'            Line (x - y0, y - x0)-(x + y0, y - x0), C, BF
+'            Line (x - y0, y + x0)-(x + y0, y + x0), C, BF
+'            x0 = x0 - 1: e = e - 2 * x0
+'        End If
+'    Loop
+'    Line (x - R, y)-(x + R, y), C, BF
+'End Sub
+
+'Sub ftri (x1, y1, x2, y2, x3, y3, K As _Unsigned Long)
+'    Dim D As Long
+'    Static a&
+'    D = _Dest ' so important
+'    If a& = 0 Then a& = _NewImage(1, 1, 32)
+'    _Dest a&
+'    _DontBlend a& '  '<<<< new 2019-12-16 fix
+'    PSet (0, 0), K
+'    _Blend a& '<<<< new 2019-12-16 fix
+'    _Dest D
+'    _MapTriangle _Seamless(0, 0)-(0, 0)-(0, 0), a& To(x1, y1)-(x2, y2)-(x3, y3)
+'End Sub
+
+'Sub ScnState (restoreTF As Long) 'Thanks Steve McNeill
+'    Static defaultColor~&, backGroundColor~&
+'    Static font&, dest&, source&, row&, col&, autodisplay&, mb&
+'    If restoreTF Then
+'        _Font font&
+'        Color defaultColor~&, backGroundColor~&
+'        _Dest dest&
+'        _Source source&
+'        Locate row&, col&
+'        If autodisplay& Then _AutoDisplay Else _Display
+'        _KeyClear
+'        While _MouseInput: Wend 'clear mouse clicks
+'        mb& = _MouseButton(1)
+'        If mb& Then
+'            Do
+'                While _MouseInput: Wend
+'                mb& = _MouseButton(1)
+'                _Limit 100
+'            Loop Until mb& = 0
+'        End If
+'    Else
+'        font& = _Font: defaultColor~& = _DefaultColor: backGroundColor~& = _BackgroundColor
+'        dest& = _Dest: source& = _Source
+'        row& = CsrLin: col& = Pos(0): autodisplay& = _AutoDisplay
+'        _KeyClear
+'    End If
+'End Sub
+
+''title$ limit is 57 chars, all lines are 58 chars max, version 2019-08-06
+''THIS SUB NOW NEEDS SUB scnState(restoreTF) for saving and restoring screen settings
+'Sub mBox (title As String, m As String)
+
+'    Dim bg As _Unsigned Long, fg As _Unsigned Long
+'    bg = &HFF404040
+'    fg = &HFF33AAFF
+
+'    'first screen dimensions and items to restore at exit
+'    Dim sw As Long, sh As Long
+'    Dim curScrn As Long, backScrn As Long, mbx As Long 'some handles
+'    Dim ti As Long, limit As Long 'ti = text index for t$(), limit is number of chars per line
+'    Dim i As Long, j As Long, ff As _Bit, addb As _Byte 'index, flag and
+'    Dim bxH As Long, bxW As Long 'first as cells then as pixels
+'    Dim mb As Long, mx As Long, my As Long, mi As Long, grabx As Long, graby As Long
+'    Dim tlx As Long, tly As Long 'top left corner of message box
+'    Dim lastx As Long, lasty As Long, t As String, b As String, c As String, tail As String
+'    Dim d As String, r As Single, kh As Long
+
+'    'screen and current settings to restore at end ofsub
+'    ScnState 0
+'    sw = _Width: sh = _Height
+
+'    _KeyClear '<<<<<<<<<<<<<<<<<<<< do i still need this?   YES! 2019-08-06 update!
+
+'    'screen snapshot
+'    curScrn = _Dest
+'    backScrn = _NewImage(sw, sh, 32)
+'    _PutImage , curScrn, backScrn
+
+'    'setup t() to store strings with ti as index, linit 58 chars per line max, b is for build
+'    ReDim t(0) As String: ti = 0: limit = 58: b = ""
+'    For i = 1 To Len(m)
+'        c = Mid$(m, i, 1)
+'        'are there any new line signals, CR, LF or both? take CRLF or LFCR as one break but dbl LF or CR means blank line
+'        Select Case c
+'            Case Chr$(13) 'load line
+'                If Mid$(m, i + 1, 1) = Chr$(10) Then i = i + 1
+'                t(ti) = b: b = "": ti = ti + 1: ReDim _Preserve t(ti) As String
+'            Case Chr$(10)
+'                If Mid$(m, i + 1, 1) = Chr$(13) Then i = i + 1
+'                t(ti) = b: b = "": ti = ti + 1: ReDim _Preserve t(ti)
+'            Case Else
+'                If c = Chr$(9) Then c = Space$(4): addb = 4 Else addb = 1
+'                If Len(b) + addb > limit Then
+'                    tail = "": ff = 0
+'                    For j = Len(b) To 1 Step -1 'backup until find a space, save the tail end for next line
+'                        d = Mid$(b, j, 1)
+'                        If d = " " Then
+'                            t(ti) = Mid$(b, 1, j - 1): b = tail + c: ti = ti + 1: ReDim _Preserve t(ti)
+'                            ff = 1 'found space flag
+'                            Exit For
+'                        Else
+'                            tail = d + tail 'the tail grows!
+'                        End If
+'                    Next
+'                    If ff = 0 Then 'no break? OK
+'                        t(ti) = b: b = c: ti = ti + 1: ReDim _Preserve t(ti)
+'                    End If
+'                Else
+'                    b = b + c 'just keep building the line
+'                End If
+'        End Select
+'    Next
+'    t(ti) = b
+'    bxH = ti + 3: bxW = limit + 2
+
+'    'draw message box
+'    mbx = _NewImage(60 * 8, (bxH + 1) * 16, 32)
+'    _Dest mbx
+'    Color _RGB32(128, 0, 0), _RGB32(225, 225, 255)
+'    Locate 1, 1: Print Left$(Space$((bxW - Len(title) - 3) / 2) + title + Space$(bxW), bxW)
+'    Color _RGB32(225, 225, 255), _RGB32(200, 0, 0)
+'    Locate 1, bxW - 2: Print " X "
+'    Color fg, bg
+'    Locate 2, 1: Print Space$(bxW);
+'    For r = 0 To ti
+'        Locate 1 + r + 2, 1: Print Left$(" " + t(r) + Space$(bxW), bxW);
+'    Next
+'    Locate 1 + bxH, 1: Print Space$(limit + 2);
+
+'    'now for the action
+'    _Dest curScrn
+
+'    'convert to pixels the top left corner of box at moment
+'    bxW = bxW * 8: bxH = bxH * 16
+'    tlx = (sw - bxW) / 2: tly = (sh - bxH) / 2
+'    lastx = tlx: lasty = tly
+'    'now allow user to move it around or just read it
+'    While 1
+'        Cls
+'        _PutImage , backScrn
+'        _PutImage (tlx, tly), mbx, curScrn
+'        _Display
+'        While _MouseInput: Wend
+'        mx = _MouseX: my = _MouseY: mb = _MouseButton(1)
+'        If mb Then
+'            If mx >= tlx And mx <= tlx + bxW And my >= tly And my <= tly + 16 Then 'mouse down on title bar
+'                If mx >= tlx + bxW - 24 Then Exit While
+'                grabx = mx - tlx: graby = my - tly
+'                Do While mb 'wait for release
+'                    mi = _MouseInput: mb = _MouseButton(1)
+'                    mx = _MouseX: my = _MouseY
+'                    If mx - grabx >= 0 And mx - grabx <= sw - bxW And my - graby >= 0 And my - graby <= sh - bxH Then
+'                        'attempt to speed up with less updates
+'                        If ((lastx - (mx - grabx)) ^ 2 + (lasty - (my - graby)) ^ 2) ^ .5 > 10 Then
+'                            tlx = mx - grabx: tly = my - graby
+'                            Cls
+'                            _PutImage , backScrn
+'                            _PutImage (tlx, tly), mbx, curScrn
+'                            lastx = tlx: lasty = tly
+'                            _Display
+'                        End If
+'                    End If
+'                    _Limit 400
+'                Loop
+'            End If
+'        End If
+'        kh = _KeyHit
+'        If kh = 27 Or kh = 13 Or kh = 32 Then Exit While
+'        _Limit 400
+'    Wend
+
+'    'put things back
+'    Color _RGB32(255, 255, 255), _RGB32(0, 0, 0): Cls '
+'    _PutImage , backScrn
+'    _Display
+'    _FreeImage backScrn
+'    _FreeImage mbx
+'    ScnState 1 'Thanks Steve McNeill
+'End Sub
+
+'' You can grab this box by title and drag it around screen for full viewing while answering prompt.
+'' Only one line allowed for prompt$
+'' boxWidth is 4 more than the allowed length of input, it needs to be longer than title$ and prompt$ also
+'' Utilities > Input Box > Input Box 1 tester v 2019-07-31
+'Function inputBox$ (prompt$, title$, boxWidth As Long) ' boxWidthin default 8x16 chars!!!
+'    Dim ForeColor As _Unsigned Long, BackColor As _Unsigned Long
+'    Dim sw As Long, sh As Long, curScrn As Long, backScrn As Long, ibx As Long 'some handles
+
+'    'colors
+'    ForeColor = &HFF000055 '<  change as desired  prompt text color, back color or type in area
+'    BackColor = &HFF6080CC '<  change as desired  used fore color in type in area
+
+'    'items to restore at exit
+'    ScnState 0
+
+'    'screen snapshot
+'    sw = _Width: sh = _Height: curScrn = _Dest
+'    backScrn = _NewImage(sw, sh, 32)
+'    _PutImage , curScrn, backScrn
+
+'    'moving box around on screen
+'    Dim bxW As Long, bxH As Long
+'    Dim mb As Long, mx As Long, my As Long, mi As Long, grabx As Long, graby As Long
+'    Dim tlx As Long, tly As Long 'top left corner of message box
+'    Dim lastx As Long, lasty As Long
+'    Dim inp$, kh&
+
+'    'draw message box
+'    bxW = boxWidth * 8: bxH = 7 * 16
+'    ibx = _NewImage(bxW, bxH, 32)
+'    _Dest ibx
+'    Color &HFF880000, White
+'    Locate 1, 1: Print Left$(Space$(Int((boxWidth - Len(title$) - 3)) / 2) + title$ + Space$(boxWidth), boxWidth)
+'    Color White, &HFFBB0000
+'    Locate 1, boxWidth - 2: Print " X "
+'    Color ForeColor, BackColor
+'    Locate 2, 1: Print Space$(boxWidth);
+'    Locate 3, 1: Print Left$(Space$((boxWidth - Len(prompt$)) / 2) + prompt$ + Space$(boxWidth), boxWidth);
+'    Locate 4, 1: Print Space$(boxWidth);
+'    Locate 5, 1: Print Space$(boxWidth);
+'    Locate 6, 1: Print Space$(boxWidth);
+'    inp$ = ""
+'    GoSub finishBox
+
+'    'convert to pixels the top left corner of box at moment
+'    bxW = boxWidth * 8: bxH = 5 * 16
+'    tlx = (sw - bxW) / 2: tly = (sh - bxH) / 2
+'    lastx = tlx: lasty = tly
+'    _KeyClear
+'    'now allow user to move it around or just read it
+'    While 1
+'        Cls
+'        _PutImage , backScrn
+'        _PutImage (tlx, tly), ibx, curScrn
+'        _Display
+'        While _MouseInput: Wend
+'        mx = _MouseX: my = _MouseY: mb = _MouseButton(1)
+'        If mb Then
+'            If mx >= tlx And mx <= tlx + bxW And my >= tly And my <= tly + 16 Then 'mouse down on title bar
+'                If mx >= tlx + bxW - 24 Then Exit While
+'                grabx = mx - tlx: graby = my - tly
+'                Do While mb 'wait for release
+'                    mi = _MouseInput: mb = _MouseButton(1)
+'                    mx = _MouseX: my = _MouseY
+'                    If mx - grabx >= 0 And mx - grabx <= sw - bxW And my - graby >= 0 And my - graby <= sh - bxH Then
+'                        'attempt to speed up with less updates
+'                        If ((lastx - (mx - grabx)) ^ 2 + (lasty - (my - graby)) ^ 2) ^ .5 > 10 Then
+'                            tlx = mx - grabx: tly = my - graby
+'                            Cls
+'                            _PutImage , backScrn
+'                            _PutImage (tlx, tly), ibx, curScrn
+'                            lastx = tlx: lasty = tly
+'                            _Display
+'                        End If
+'                    End If
+'                    _Limit 400
+'                Loop
+'            End If
+'        End If
+'        kh& = _KeyHit
+'        Select Case kh& 'whew not much for the main event!
+'            Case 13: Exit While
+'            Case 27: inp$ = "": Exit While
+'            Case 32 To 128: If Len(inp$) < boxWidth - 4 Then inp$ = inp$ + Chr$(kh&): GoSub finishBox Else Beep
+'            Case 8: If Len(inp$) Then inp$ = Left$(inp$, Len(inp$) - 1): GoSub finishBox Else Beep
+'        End Select
+'        _Limit 60
+'    Wend
+
+'    'put things back
+'    ScnState 1 'need fg and bg colors set to cls
+'    Cls '? is this needed YES!!
+'    _PutImage , backScrn
+'    _Display
+'    _FreeImage backScrn
+'    _FreeImage ibx
+'    ScnState 1 'because we have to call _display, we have to call this again
+'    inputBox$ = inp$
+'    Exit Function
+
+'    finishBox:
+'    _Dest ibx
+'    Color BackColor, ForeColor
+'    Locate 5, 2: Print Left$(" " + inp$ + Space$(boxWidth - 2), boxWidth - 2)
+'    _Dest curScrn
+'    Return
+'End Function
+
+'' for saving and restoring screen settins
+
+'Sub GetLists (SearchDirectory As String, DirList() As String, FileList() As String)
+'    ' Thanks SNcNeill ! for a cross platform method to get file and directory lists
+'    'put this block in main code section of your program close to top
+'    '' direntry.h needs to be in QB64 folder '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+'    'DECLARE CUSTOMTYPE LIBRARY ".\direntry"
+'    '    FUNCTION load_dir& (s AS STRING)
+'    '    FUNCTION has_next_entry& ()
+'    '    SUB close_dir ()
+'    '    SUB get_next_entry (s AS STRING, flags AS LONG, file_size AS LONG)
+'    'END DECLARE
+
+'    Const IS_DIR = 1
+'    Const IS_FILE = 2
+'    Dim flags As Long, file_size As Long, DirCount As Integer, FileCount As Integer, length As Long
+'    Dim nam$
+'    ReDim _Preserve DirList(100), FileList(100)
+'    DirCount = 0: FileCount = 0
+
+'    If load_dir(SearchDirectory + Chr$(0)) Then
+'        Do
+'            length = has_next_entry
+'            If length > -1 Then
+'                nam$ = Space$(length)
+'                get_next_entry nam$, flags, file_size
+'                If (flags And IS_DIR) Then
+'                    DirCount = DirCount + 1
+'                    If DirCount > UBound(DirList) Then ReDim _Preserve DirList(UBound(DirList) + 100)
+'                    DirList(DirCount) = nam$
+'                ElseIf (flags And IS_FILE) Then
+'                    FileCount = FileCount + 1
+'                    If FileCount > UBound(FileList) Then ReDim _Preserve FileList(UBound(FileList) + 100)
+'                    FileList(FileCount) = nam$
+'                End If
+'            End If
+'        Loop Until length = -1
+'        'close_dir 'move to after end if  might correct the multi calls problem
+'    Else
+'    End If
+'    close_dir 'this  might correct the multi calls problem
+
+'    ReDim _Preserve DirList(DirCount)
+'    ReDim _Preserve FileList(FileCount)
+'End Sub
+
+'Sub GetListStrings (dirOut$, fileOut$)
+'    ReDim Folders$(1 To 1), Files$(1 To 1) ' setup to call GetLists
+'    If curPath$ = "" Then curPath$ = _CWD$
+'    GetLists curPath$, Folders$(), Files$()
+'    dirOut$ = Join$(Folders$(), "~")
+'    fileOut$ = Join$(Files$(), "~")
+'End Sub
+

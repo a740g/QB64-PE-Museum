@@ -1,0 +1,3 @@
+2022-12-17,Test saving data line from start without file name.      ,     100.00,     100.00
+2022-12-17,2nd line again just exit after append                    ,     101.00,     201.00
+2022-12-17,add 3 line to test saving                                ,      22.00,     223.00

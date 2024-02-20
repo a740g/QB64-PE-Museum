@@ -1,0 +1,65 @@
+Class Notes.txt b+ 2022-11-25
+===================================================================================================
+GUI get_Filename.exe is used by these bas files for getting the PE Forum - Class.txt filename.
+If you have Windows you can use binary exe provided, otherwise compile your own in sub folder and
+move exe up to main Gradebook folder.
+
+Class files end with theses 9 letters Class.txt
+Demo tests PE Forum - Class.txt for fun.
+Just use your favorite WP and make an alphabetic list of students,
+using up to 15 characters per name save it with Class.txt last 9 letters of name.
+
+Use GUI get_FileName.exe inside app code to run a file folder browser to load a filename into
+filename.txt one liner data file. Look for the ____ - Class.txt list of students we just made 
+in favorite WP and use it for get_Filename.exe app called first thing in Gradebook Sketch.bas
+and Gradebook Data Entry.bas.
+
+Grades(0 To 12, 1 to 50) String Array
+Use same basename PE Forum -  and then + Gradebook.dat to hold grade data.
+For PE Forum - gradebook.dat I will use 0 to 13 columns
+col 0 = name 15 chars right aligned
+col 1 to 10  test scores 6 chars wide right aligned for 1 to 100 MUST HAVE AT LEAST 1 POINT!
+col 12 ave rounded to integer of non 0 tests taken by 1 to 50 students rows
+
+See Gradebook Sketch.bas for demo
+Display 5 test score columns done randomly, totaled and averaged.
+
+For my next trick Data Entry for the grades array, Gradebook Data Entry.bas
+Creates ________ Gradebook.dat for demo it is PE Forum - Gradebook.dat made off base name of
+the Class.txt file. 
+Pick a class file for a list of names, start or load a basename + Gradebook.dat file
+Data entry does 1 column of test scores at a time. I used random generated stuff for demo.
+
+New 2022-11-27
+
+Selecting from a List box, first make sure you have activated the List Box when the right
+line is highlighted, Right Click inside the list box, the highlighted item becomes a selected
+item.
+
+Mouse wheel is working oddly, very slowly, it no longer scrolls immdeiately to whatever line 
+but keeps moving until it catches up to however many times the wheel changed. Maybe best to
+click desired line or PgUp/PgDn or Home/End and then click line to hightlight, again right
+click to select.
+
+Now working with much lighter vs GUI.BM code! No need now for separate get_Filename.exe and
+all the library code that entailed including Direntry.h file. Also removed from vs GUI.BM
+my version of Message and Input Boxes including helper Screen State saver and restorer.
+
+Fixed highlight bar when changed Class.txt files to line 1 and added a habdy new function
+LstHighliteNum&(LstControlHandle) to tell me the index of Highlited List Item.
+
+2022-11-29 Remove need for Direntry.k file from GUI.BI file also curPath$ ?
+Hope to post 2022-11-30 with fixes.
+1. The direntry.h stuff removed from BI
+2. tbScore not showing first ketpresses does it need to be active? fixed, tiny change in 
+   vs GUI.BM MainRouter sub.
+3. scrolling is S L O W unlike other list box apps ?? fixed with major change to vs GUI.BM
+
+2022-11-30 added a Grades table label after scrolling back to normal speeds.
+
+
+
+
+
+
+
