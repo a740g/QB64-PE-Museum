@@ -1,4 +1,7 @@
 DEFINT A-Z
+DECLARE SUB lbl (x, y, c, h)
+DECLARE SUB Speak(x,y, e$, f$)
+DECLARE SUB rainbow(x,y, c, radius)
 
 ' The whole program will revolve around the
 ' graphics produced by these two lines of code.
