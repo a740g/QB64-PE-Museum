@@ -1,18 +1,18 @@
 # p5js.bas
 
-A port of the p5.js library, written in and adapted for QB64.
+A port of the p5.js library, written in and adapted for QB64-PE.
 ***
 
 ## Say what?
 
 Lauren McCarthy has created p5.js, a native JavaScript alternative to Processing.js that has the official support of the Processing Foundation. See more about it at <https://p5js.org/>
 
-This is a rewrite of all that's possible so that the same paradigms and techniques can be accomplished in QB64-PE. QB64 is a modern extended BASIC programming language that retains QB4.5/QBasic compatibility and compiles native binaries for Windows, Linux and macOS. See more about it at <https://github.com/QB64-Phoenix-Edition/QB64pe>.
+This is a rewrite of all that's possible so that the same paradigms and techniques can be accomplished in QB64-PE. QB64-PE is a modern extended BASIC programming language that retains QB4.5/QBasic compatibility and compiles native binaries for Windows, Linux and macOS. See more about it at <https://github.com/QB64-Phoenix-Edition/QB64pe>.
 ***
 
 ## Is this for the web?
 
-Definitely not. QB64 is a compiled language, so the goal is to make drawing/animation as simple as it is on the web but for Windows/Linux/macOS programs.
+Definitely not. QB64-PE is a compiled language, so the goal is to make drawing/animation as simple as it is on the web but for Windows/Linux/macOS programs.
 ***
 
 ## Is this backed by the Processing Foundation?
