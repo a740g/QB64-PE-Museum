@@ -1,11 +1,17 @@
 'QB64 Sprite Library by Terry Ritchie (terry.ritchie@gmail.com)
 '
-'SPRITE.BI - place this file at the very bottom of your code with an INCLUDE$ metacommand.
+'SPRITETOP.BI - place this file at the very top of your code with an $INCLUDE metacommand
 '
-'SPRITETOP.BI - place file at the very top of your code with an INCLUDE$ metacommand
+'SPRITE.BI - place at the very bottom of your code with an $INCLUDE metacommand.
 '
 'Version A0.1  07/18/2011
-'Version A0.11 08/01/2011 (Current version)
+'Version A0.11 08/01/2011
+'  - minor bug fixes
+'Version 0.2   10/27/2012 (Current version)
+'  - updated error handling routines
+'      - all errors will now be forced to a true text screen (screen 0)
+'  - added SPRITEERROR function to handle errors reported by subs/functions
+'  - removed SPRITEFILEEXISTS function and replaced with QB64 _FILEEXISTS command
 '
 'COMMANDS FINISHED
 '
@@ -60,11 +66,20 @@
 'FUNCTION SPRITECURRENTHEIGHT(handle%)                                              Returns the current height of a sprite.
 'FUNCTION SPRITECURRENTWIDTH (handle%)                                              Returns the current width of a sprite.
 
+'-------------------------------------------------------------------------
+'Future features:
+'
+'SET DEPTH OF SPRITE
+'ZOOM only x or y (scale) http://www.qb64.net/forum/index.php?topic=3956.0
+'-------------------------------------------------------------------------
+
+$INCLUDEONCE
+
 '$INCLUDE:'spritetop.bi'
 
 '##################################################################################################################################
 
-Sub SPRITESPINSET (handle%, spin!)
+SUB SPRITESPINSET (handle%, spin!)
 
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Sets a sprite's automotion spin direction.                                 |                     - NOTES -                     |
@@ -77,21 +92,17 @@ Sub SPRITESPINSET (handle%, spin!)
     '| Output: none                                                               |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESPINSET: The sprite specified does not exist." '              no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESPINSET", 100 '            is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESPINSET", 101 '           is this sprite handle in use?
     sprite(handle%).spindir = spin! '                                              set the sprite's automotion spin direction
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITEZOOMLEVEL (handle%)
+FUNCTION SPRITEZOOMLEVEL (handle%)
 
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns a sprite's current zoom level.                                     |                     - NOTES -                     |
@@ -103,21 +114,17 @@ Function SPRITEZOOMLEVEL (handle%)
     '| Output: an integer value representing the sprite's zoom level.             |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEZOOMLEVEL: The sprite specified does not exist." '            no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEZOOMLEVEL", 100 '          is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEZOOMLEVEL", 101 '         is this sprite handle in use?
     SPRITEZOOMLEVEL = sprite(handle%).zoom '                                       return the sprite's current zoom value
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITEREVERSEY (handle%)
+SUB SPRITEREVERSEY (handle%)
 
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Reverses the y vector automotion value of a sprite.                        |                     - NOTES -                     |
@@ -129,21 +136,17 @@ Sub SPRITEREVERSEY (handle%)
     '| Output: none                                                               |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEREVERSEY: The sprite specified does not exist." '             no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEREVERSEY", 100 '           is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEREVERSEY", 101 '          is this sprite handle in use?
     sprite(handle%).ydir = -sprite(handle%).ydir '                                 reverse sprite's y vector automotion value
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEREVERSEX (handle%)
+SUB SPRITEREVERSEX (handle%)
 
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Reverses the x vector automotion value of a sprite.                        |                     - NOTES -                     |
@@ -155,21 +158,17 @@ Sub SPRITEREVERSEX (handle%)
     '| Output: none                                                               |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEREVERSEX: The sprite specified does not exist." '             no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEREVERSEX", 100 '           is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEREVERSEX", 101 '          is this sprite handle in use?
     sprite(handle%).xdir = -sprite(handle%).xdir '                                 reverse sprite's x vector automotion value
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITECURRENTHEIGHT (handle%)
+FUNCTION SPRITECURRENTHEIGHT (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the current height of a sprite.                                    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -180,21 +179,17 @@ Function SPRITECURRENTHEIGHT (handle%)
     '| Output: an integer value representing the height of the sprite.            |   rotated.                                        |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITECURRENTHEIGHT: The sprite specified does not exist." '        no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITECURRENTHEIGHT", 100 '      is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITECURRENTHEIGHT", 101 '     is this sprite handle in use?
     SPRITECURRENTHEIGHT = sprite(handle%).currentheight '                          return the current height of the sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITECURRENTWIDTH (handle%)
+FUNCTION SPRITECURRENTWIDTH (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the current width of a sprite.                                     |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that doe not exist will     |
@@ -205,21 +200,17 @@ Function SPRITECURRENTWIDTH (handle%)
     '| Output: an integer value representing the width of the sprite.             |   rotated.                                        |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITECURRENTWIDTH: The sprite specified does not exist." '         no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITECURRENTWIDTH", 100 '       is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITECURRENTWIDTH", 101 '      is this sprite handle in use?
     SPRITECURRENTWIDTH = sprite(handle%).currentwidth '                            return the current width of the sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITETRAVEL (handle%, direction!, speed!)
+SUB SPRITETRAVEL (handle%, direction!, speed!)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Moves a sprite in the direction and speed indicated.                       |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exists will   |
@@ -232,22 +223,18 @@ Sub SPRITETRAVEL (handle%, direction!, speed!)
     '| Output: none                                                               |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITETRAVEL: The sprite specified does not exist." '               no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    sprite(handle%).actualx = sprite(handle%).actualx + Sin(direction! * 3.1415926 / 180) * speed! ' calculate x vector and update position
-    sprite(handle%).actualy = sprite(handle%).actualy + -Cos(direction! * 3.1415926 / 180) * speed! 'calculate y vector and update position
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITETRAVEL", 100 '             is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITETRAVEL", 101 '            is this sprite handle in use?
+    sprite(handle%).actualx = sprite(handle%).actualx + SIN(direction! * 3.1415926 / 180) * speed! ' calculate x vector and update position
+    sprite(handle%).actualy = sprite(handle%).actualy + -COS(direction! * 3.1415926 / 180) * speed! 'calculate y vector and update position
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITEDIRECTION (handle%)
+FUNCTION SPRITEDIRECTION (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the direction angle a sprite's automotion has been set to.         |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -258,21 +245,17 @@ Function SPRITEDIRECTION (handle%)
     '| Output: a single numeric value representing direction angle (0 - 359.99..) |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEDIRECTION: The sprite specified does not exist." '            no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEDIRECTION", 100 '          is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEDIRECTION", 101 '         is this sprite handle in use?
     SPRITEDIRECTION = sprite(handle%).direction '                                  return the automotion direction angle
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITEDIRECTIONSET (handle%, direction!)
+SUB SPRITEDIRECTIONSET (handle%, direction!)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Sets a sprite's automotion direction angle.                                |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -284,23 +267,19 @@ Sub SPRITEDIRECTIONSET (handle%, direction!)
     '| Output: none                                                               |   for the sprite (SPRITEMOTION).                  |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEDIRECTIONSET: The sprite specified does not exist." '         no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEDIRECTIONSET", 100 '       is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEDIRECTIONSET", 101 '      is this sprite handle in use?
     sprite(handle%).direction = direction! '                                       set the automotion direction angle
-    sprite(handle%).xdir = Sin(direction! * 3.1415926 / 180) * sprite(handle%).speed ' calculate the x direction vector
-    sprite(handle%).ydir = -Cos(direction! * 3.1415926 / 180) * sprite(handle%).speed 'calculate the y direction vector
+    sprite(handle%).xdir = SIN(direction! * 3.1415926 / 180) * sprite(handle%).speed ' calculate the x direction vector
+    sprite(handle%).ydir = -COS(direction! * 3.1415926 / 180) * sprite(handle%).speed 'calculate the y direction vector
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITESPEEDSET (handle%, speed!)
+SUB SPRITESPEEDSET (handle%, speed!)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Sets a sprite's automotion speed in pixels.                                |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -312,21 +291,17 @@ Sub SPRITESPEEDSET (handle%, speed!)
     '| Output: none                                                               |   for the sprite (SPRITEMOTION).                  |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESPEEDSET: The sprite specified does not exist." '             no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESPEEDSET", 100 '           is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESPEEDSET", 101 '          is this sprite handle in use?
     sprite(handle%).speed = speed! '                                               set the sprite's speed value
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEMOTION (handle%, behavior%)
+SUB SPRITEMOTION (handle%, behavior%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Enables or disables a sprite's automotion feature.                         |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -340,21 +315,17 @@ Sub SPRITEMOTION (handle%, behavior%)
     '| Output: none                                                               |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEMOTION: The sprite specified does not exist." '               no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEMOTION", 100 '             is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEMOTION", 101 '            is this sprite handle in use?
     sprite(handle%).motion = behavior% '                                           set the automotion behavior
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITESCORE (handle%)
+FUNCTION SPRITESCORE (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Retrieves the score value from a sprite.                                   |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -365,21 +336,17 @@ Function SPRITESCORE (handle%)
     '| Output: An single value representing the score value saved.                |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESCORE: The sprite specified does not exist." '                no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESCORE", 100 '              is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESCORE", 101 '             is this sprite handle in use?
     SPRITESCORE = sprite(handle%).score '                                          return the score value of sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITESCORESET (handle%, value!)
+SUB SPRITESCORESET (handle%, value!)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Sets the score value of a sprite.                                          |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -391,21 +358,17 @@ Sub SPRITESCORESET (handle%, value!)
     '| Output: none                                                               |   indicator.                                      |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESCORESET: The sprite specified does not exist." '             no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    sprite(handle%).score = value! '                                                set the sprite's score value
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESCORESET", 100 '           is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESCORESET", 101 '          is this sprite handle in use?
+    sprite(handle%).score = value! '                                               set the sprite's score value
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITESHOWING (handle%)
+FUNCTION SPRITESHOWING (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the status of a sprite being hidden or not.                        |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -416,21 +379,17 @@ Function SPRITESHOWING (handle%)
     '| Output: an integer value of -1 (true) if showing or 0 (false) if not.      |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESHOWING: The sprite specified does not exist." '              no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESHOWING", 100 '            is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESHOWING", 101 '           is this sprite handle in use?
     SPRITESHOWING = sprite(handle%).visible '                                      return hidden status of sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEANGLE (handle%, handle2%)
+FUNCTION SPRITEANGLE (handle%, handle2%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Retrieves the angle in degrees between two sprites.                        |                     - NOTES -                     |
     '|                                                                            | - Specifying sprites that do not exist will       |
@@ -445,44 +404,36 @@ Function SPRITEANGLE (handle%, handle2%)
     '|          http://www.qb64.net/forum/index.php?topic=3934.0                                                                      |
     '+--------------------------------------------------------------------------------------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEANGLE: The first sprite specified does not exist." '          no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEANGLE: The second sprite specified does not exist." '         no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If sprite(handle2%).currenty = sprite(handle%).currenty Then '                 are both sprites at same y location?
-        If sprite(handle%).currentx = sprite(handle2%).currentx Then Exit Function 'yes, if both at same x the leave, at same location
-        If sprite(handle2%).currentx > sprite(handle%).currentx Then SPRITEANGLE = 90 Else SPRITEANGLE = 270 'sprite is either right or left
-        Exit Function
-    End If
-    If sprite(handle2%).currentx = sprite(handle%).currentx Then '                 are both sprites at same x location?
-        If sprite(handle2%).currenty > sprite(handle%).currenty Then SPRITEANGLE = 180 'yes, if its greater, 180, less, 0
-        Exit Function
-    End If
-    If sprite(handle2%).currenty < sprite(handle%).currenty Then '                 is sprite2 y value less than sprite1?
-        If sprite(handle2%).currentx > sprite(handle%).currentx Then '             yes, is sprite2 x value greater than sprite1?
-            SPRITEANGLE = Atn((sprite(handle2%).currentx - sprite(handle%).currentx) / (sprite(handle2%).currenty - sprite(handle%).currenty)) * -57.2957795131
-        Else
-            SPRITEANGLE = Atn((sprite(handle2%).currentx - sprite(handle%).currentx) / (sprite(handle2%).currenty - sprite(handle%).currenty)) * -57.2957795131 + 360
-        End If
-    Else
-        SPRITEANGLE = Atn((sprite(handle2%).currentx - sprite(handle%).currentx) / (sprite(handle2%).currenty - sprite(handle%).currenty)) * -57.2957795131 + 180
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEANGLE", 100 '              is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEANGLE", 101 '             is this sprite handle in use?
+    IF handle2% > UBOUND(sprite) THEN SPRITEERROR "SPRITEANGLE", 100 '             is this an invalid sprite handle?
+    IF NOT sprite(handle2%).inuse THEN SPRITEERROR "SPRITEANGLE", 101 '            is this sprite handle in use?
+    IF sprite(handle2%).currenty = sprite(handle%).currenty THEN '                 are both sprites at same y location?
+        IF sprite(handle%).currentx = sprite(handle2%).currentx THEN EXIT FUNCTION 'yes, if both at same x the leave, at same location
+        IF sprite(handle2%).currentx > sprite(handle%).currentx THEN SPRITEANGLE = 90 ELSE SPRITEANGLE = 270 'sprite is either right or left
+        EXIT FUNCTION
+    END IF
+    IF sprite(handle2%).currentx = sprite(handle%).currentx THEN '                 are both sprites at same x location?
+        IF sprite(handle2%).currenty > sprite(handle%).currenty THEN SPRITEANGLE = 180 'yes, if its greater, 180, less, 0
+        EXIT FUNCTION
+    END IF
+    IF sprite(handle2%).currenty < sprite(handle%).currenty THEN '                 is sprite2 y value less than sprite1?
+        IF sprite(handle2%).currentx > sprite(handle%).currentx THEN '             yes, is sprite2 x value greater than sprite1?
+            SPRITEANGLE = ATN((sprite(handle2%).currentx - sprite(handle%).currentx) / (sprite(handle2%).currenty - sprite(handle%).currenty)) * -57.2957795131
+        ELSE
+            SPRITEANGLE = ATN((sprite(handle2%).currentx - sprite(handle%).currentx) / (sprite(handle2%).currenty - sprite(handle%).currenty)) * -57.2957795131 + 360
+        END IF
+    ELSE
+        SPRITEANGLE = ATN((sprite(handle2%).currentx - sprite(handle%).currentx) / (sprite(handle2%).currenty - sprite(handle%).currenty)) * -57.2957795131 + 180
+    END IF
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITECOLLIDEWITH (handle%)
+FUNCTION SPRITECOLLIDEWITH (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the sprite number that collided with the specified sprite.         |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -493,21 +444,17 @@ Function SPRITECOLLIDEWITH (handle%)
     '| Output: handle number of the sprite that collided with specified sprite.   |   specified to determine which sprite collided.   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITECOLLIDEWITH: The sprite specified does not exist." '          no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITECOLLIDEWITH", 100 '        is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITECOLLIDEWITH", 101 '       is this sprite handle in use?
     SPRITECOLLIDEWITH = sprite(handle%).collsprite '                               return the handle number of the colliding sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITECOLLIDE (handle%, handle2%)
+FUNCTION SPRITECOLLIDE (handle%, handle2%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the status of collisions with other sprites.                       |                     - NOTES -                     |
     '|                                                                            | - Specifying sprites that do not exist will       |
@@ -529,137 +476,130 @@ Function SPRITECOLLIDE (handle%, handle2%)
     '|          downloaded from here: http://dl.dropbox.com/u/8822351/UnseenGDK_Tutorial.doc                                          |
     '+--------------------------------------------------------------------------------------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    Dim count% '                                                                   counter used to cycle through sprite array
-    Dim countfrom% '                                                               where to start count cycle
-    Dim countto% '                                                                 where to end count cycle
-    Dim x% '                                                                       pixel accurate collision box pixel x location
-    Dim y% '                                                                       pixel accurate collision box pixel y location
-    Dim w% '                                                                       pixel accurate collision box width
-    Dim h% '                                                                       pixel accurate collision box height
-    Dim p1~& '                                                                     pixel accurate image 1 pixel color
-    Dim p2~& '                                                                     pixel accurate image 2 pixel color
-    Dim a1&, a2&
+    DIM count% '                                                                   counter used to cycle through sprite array
+    DIM countfrom% '                                                               where to start count cycle
+    DIM countto% '                                                                 where to end count cycle
+    DIM x% '                                                                       pixel accurate collision box pixel x location
+    DIM y% '                                                                       pixel accurate collision box pixel y location
+    DIM w% '                                                                       pixel accurate collision box width
+    DIM h% '                                                                       pixel accurate collision box height
+    DIM p1~& '                                                                     pixel accurate image 1 pixel color
+    DIM p2~& '                                                                     pixel accurate image 2 pixel color
+    DIM a1&
+    DIM a2&
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITECOLLIDE: The first sprite specified does not exist." '        no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITECOLLIDE", 100 '            is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITECOLLIDE", 101 '           is this sprite handle in use?
     SPRITECOLLIDE = 0 '                                                            assume no collision and send this assumption back
-    If sprite(handle%).detecttype = 0 Then Exit Function '                         the sprite does not have collision detection on
+    IF sprite(handle%).detecttype = 0 THEN EXIT FUNCTION '                         the sprite does not have collision detection on
     sprite(handle%).detect = 0 '                                                   assume no collision
-    If handle2% = -1 Then '                                                        should all sprites be checked for collisions?
+    IF handle2% = -1 THEN '                                                        should all sprites be checked for collisions?
         countfrom% = 1 '                                                           yes, start at beginning of sprite array
-        countto% = UBound(sprite) '                                                end at the last element in sprite array
-    Else '                                                                         checking for a specific sprite collision
-        If Not sprite(handle2%).inuse Then '                                       is this sprite handle in use?
-            Print "SPRITECOLLIDE: The second sprite specified does not exist." '   no, report error to the programmer
-            _Display '                                                             make sure programmer sees error
-            Sleep '                                                                wait for a key press
-            System '                                                               abort program execution
-        End If
+        countto% = UBOUND(sprite) '                                                end at the last element in sprite array
+    ELSE '                                                                         checking for a specific sprite collision
+        IF handle2% > UBOUND(sprite) THEN SPRITEERROR "SPRITECOLLIDE", 100 '       is this an invalid sprite handle?
+        IF NOT sprite(handle2%).inuse THEN SPRITEERROR "SPRITECOLLIDE", 101 '      is this sprite handle in use?
         countfrom% = handle2% '                                                    start at element of specific sprite in array
         countto% = handle2% '                                                      end at element of specific sprite in array
-    End If
-    For count% = countfrom% To countto% '                                          cycle through all known sprites or single sprite
-        If count% <> handle% Then '                                                can't detect a collision with ourself!
-            If sprite(count%).visible Then '                                       don't check hidden sprites
-                If sprite(count%).detecttype <> 0 Then '                           ignore sprites with no detection enabled
-                    If sprite(count%).layer = sprite(handle%).layer Then '         sprites must be on same layer to collide
-                        If sprite(handle%).screenx1 <= sprite(count%).screenx1 + sprite(count%).currentwidth Then '               is upper left x of sprite within current sprite?
-                            If sprite(handle%).screenx1 + sprite(handle%).currentwidth >= sprite(count%).screenx1 Then '          is upper left x of current sprite within sprite?
-                                If sprite(handle%).screeny1 <= sprite(count%).screeny1 + sprite(count%).currentheight Then '      is upper left y of sprite within current sprite?
-                                    If sprite(handle%).screeny1 + sprite(handle%).currentheight >= sprite(count%).screeny1 Then ' is upper left y of current sprite within sprite?
+    END IF
+    FOR count% = countfrom% TO countto% '                                          cycle through all known sprites or single sprite
+        IF count% <> handle% THEN '                                                can't detect a collision with ourself!
+            IF sprite(count%).visible THEN '                                       don't check hidden sprites
+                IF sprite(count%).detecttype <> 0 THEN '                           ignore sprites with no detection enabled
+                    IF sprite(count%).layer = sprite(handle%).layer THEN '         sprites must be on same layer to collide
+                        IF sprite(handle%).screenx1 <= sprite(count%).screenx1 + sprite(count%).currentwidth THEN '               is upper left x of sprite within current sprite?
+                            IF sprite(handle%).screenx1 + sprite(handle%).currentwidth >= sprite(count%).screenx1 THEN '          is upper left x of current sprite within sprite?
+                                IF sprite(handle%).screeny1 <= sprite(count%).screeny1 + sprite(count%).currentheight THEN '      is upper left y of sprite within current sprite?
+                                    IF sprite(handle%).screeny1 + sprite(handle%).currentheight >= sprite(count%).screeny1 THEN ' is upper left y of current sprite within sprite?
                                         sprite(handle%).detect = -1 '              all true, sprite has collision
                                         sprite(count%).detect = -1 '               current sprite also has collision
                                         sprite(handle%).collsprite = count% '      sprite colliding with current sprite
                                         sprite(count%).collsprite = handle% '      current sprite colliding with sprite
-                                        Exit For '                                 no need to check the rest of sprites
-                                    End If
-                                End If
-                            End If
-                        End If
-                    End If
-                End If
-            End If
-        End If
-    Next count%
-    If sprite(handle%).detect Then '                                               a box collision was detected
+                                        EXIT FOR '                                 no need to check the rest of sprites
+                                    END IF
+                                END IF
+                            END IF
+                        END IF
+                    END IF
+                END IF
+            END IF
+        END IF
+    NEXT count%
+    IF sprite(handle%).detect THEN '                                               a box collision was detected
         SPRITECOLLIDE = sprite(handle%).collsprite '                               return the sprite number the collision happened with
-        If sprite(handle%).detecttype = 2 And sprite(sprite(handle%).collsprite).detecttype = 2 Then ' we need to go to pixel accurate detection
-            If sprite(handle%).screenx1 < sprite(sprite(handle%).collsprite).screenx1 Then ' get collision area and place coordinates in each sprite
+        IF sprite(handle%).detecttype = 2 AND sprite(sprite(handle%).collsprite).detecttype = 2 THEN ' we need to go to pixel accurate detection
+            IF sprite(handle%).screenx1 < sprite(sprite(handle%).collsprite).screenx1 THEN ' get collision area and place coordinates in each sprite
                 sprite(sprite(handle%).collsprite).collx1 = 0
                 sprite(handle%).collx1 = sprite(sprite(handle%).collsprite).screenx1 - sprite(handle%).screenx1 - 1
-                If sprite(sprite(handle%).collsprite).currentwidth + sprite(handle%).collx1 < sprite(handle%).currentwidth Then
+                IF sprite(sprite(handle%).collsprite).currentwidth + sprite(handle%).collx1 < sprite(handle%).currentwidth THEN
                     sprite(sprite(handle%).collsprite).collx2 = sprite(sprite(handle%).collsprite).currentwidth - 1
                     sprite(handle%).collx2 = sprite(handle%).collx1 + sprite(sprite(handle%).collsprite).currentwidth - 1
-                Else
+                ELSE
                     sprite(handle%).collx2 = sprite(handle%).currentwidth - 1
                     sprite(sprite(handle%).collsprite).collx2 = (sprite(handle%).screenx1 + sprite(handle%).currentwidth) - sprite(sprite(handle%).collsprite).screenx1 - 1
-                End If
-            ElseIf sprite(handle%).screenx1 > sprite(sprite(handle%).collsprite).screenx1 Then
+                END IF
+            ELSEIF sprite(handle%).screenx1 > sprite(sprite(handle%).collsprite).screenx1 THEN
                 sprite(handle%).collx1 = 0
                 sprite(sprite(handle%).collsprite).collx1 = sprite(handle%).screenx1 - sprite(sprite(handle%).collsprite).screenx1 - 1
-                If sprite(sprite(handle%).collsprite).currentwidth - sprite(sprite(handle%).collsprite).collx1 < sprite(handle%).currentwidth Then
+                IF sprite(sprite(handle%).collsprite).currentwidth - sprite(sprite(handle%).collsprite).collx1 < sprite(handle%).currentwidth THEN
                     sprite(handle%).collx2 = (sprite(handle%).collx1 + sprite(sprite(handle%).collsprite).currentwidth) - sprite(sprite(handle%).collsprite).collx1 - 1
                     sprite(sprite(handle%).collsprite).collx2 = sprite(sprite(handle%).collsprite).currentwidth - 1
-                Else
+                ELSE
                     sprite(handle%).collx2 = sprite(handle%).currentwidth - 1
                     sprite(sprite(handle%).collsprite).collx2 = sprite(sprite(handle%).collsprite).collx1 + sprite(handle%).currentwidth - 1
-                End If
-            End If
-            If sprite(handle%).screeny1 < sprite(sprite(handle%).collsprite).screeny1 Then
+                END IF
+            END IF
+            IF sprite(handle%).screeny1 < sprite(sprite(handle%).collsprite).screeny1 THEN
                 sprite(sprite(handle%).collsprite).colly1 = 0
                 sprite(handle%).colly1 = sprite(sprite(handle%).collsprite).screeny1 - sprite(handle%).screeny1 - 1
-                If sprite(sprite(handle%).collsprite).currentheight + sprite(handle%).colly1 < sprite(handle%).currentheight Then
+                IF sprite(sprite(handle%).collsprite).currentheight + sprite(handle%).colly1 < sprite(handle%).currentheight THEN
                     sprite(sprite(handle%).collsprite).colly2 = sprite(sprite(handle%).collsprite).currentheight - 1
                     sprite(handle%).colly2 = sprite(handle%).colly1 + sprite(sprite(handle%).collsprite).currentheight - 1
-                Else
+                ELSE
                     sprite(handle%).colly2 = sprite(handle%).currentheight - 1
                     sprite(sprite(handle%).collsprite).colly2 = (sprite(handle%).screeny1 + sprite(handle%).currentheight) - sprite(sprite(handle%).collsprite).screeny1 - 1
-                End If
-            ElseIf sprite(handle%).screeny1 > sprite(sprite(handle%).collsprite).screeny1 Then
+                END IF
+            ELSEIF sprite(handle%).screeny1 > sprite(sprite(handle%).collsprite).screeny1 THEN
                 sprite(handle%).colly1 = 0
                 sprite(sprite(handle%).collsprite).colly1 = sprite(handle%).screeny1 - sprite(sprite(handle%).collsprite).screeny1 - 1
-                If sprite(sprite(handle%).collsprite).currentheight - sprite(sprite(handle%).collsprite).colly1 < sprite(handle%).currentheight Then
+                IF sprite(sprite(handle%).collsprite).currentheight - sprite(sprite(handle%).collsprite).colly1 < sprite(handle%).currentheight THEN
                     sprite(handle%).colly2 = (sprite(handle%).colly1 + sprite(sprite(handle%).collsprite).currentheight) - sprite(sprite(handle%).collsprite).colly1 - 1
                     sprite(sprite(handle%).collsprite).colly2 = sprite(sprite(handle%).collsprite).currentheight - 1
-                Else
+                ELSE
                     sprite(handle%).colly2 = sprite(handle%).currentheight - 1
                     sprite(sprite(handle%).collsprite).colly2 = sprite(sprite(handle%).collsprite).colly1 + sprite(handle%).currentheight - 1
-                End If
-            End If '                                                               collision coordinates now in both sprites
+                END IF
+            END IF '                                                               collision coordinates now in both sprites
             x% = 0 '                                                               start at upper left x of each collision box
             y% = 0 '                                                               start at upper left y of each collision box
             w% = sprite(handle%).collx2 - sprite(handle%).collx1 '- 1 '            get the width of the collision boxes
             h% = sprite(handle%).colly2 - sprite(handle%).colly1 '- 1 '            get the height of the collision boxes
-            Do '                                                                   start looping through collision box pixels
-                _Source sprite(handle%).image '                                    set the first sprite as the image source
-                p1~& = Point(sprite(handle%).collx1 + x%, sprite(handle%).colly1 + y%) ' get the current pixel's color
-                a1& = _Alpha32(p1~&)
-                _Source sprite(sprite(handle%).collsprite).image '                 set the second sprite as the image source
-                p2~& = Point(sprite(sprite(handle%).collsprite).collx1 + x%, sprite(sprite(handle%).collsprite).colly1 + y%) ' get the current pixel's color
-                a2& = _Alpha32(p2~&)
-                If (a1& <> 0) And (a2& <> 0) Then Exit Do '                        if both are not transparent then we have a collision
+            DO '                                                                   start looping through collision box pixels
+                _SOURCE sprite(handle%).image '                                    set the first sprite as the image source
+                p1~& = POINT(sprite(handle%).collx1 + x%, sprite(handle%).colly1 + y%) ' get the current pixel's color
+                a1& = _ALPHA32(p1~&)
+                _SOURCE sprite(sprite(handle%).collsprite).image '                 set the second sprite as the image source
+                p2~& = POINT(sprite(sprite(handle%).collsprite).collx1 + x%, sprite(sprite(handle%).collsprite).colly1 + y%) ' get the current pixel's color
+                a2& = _ALPHA32(p2~&)
+                IF (a1& <> 0) AND (a2& <> 0) THEN EXIT DO '                        if both are not transparent then we have a collision
                 x% = x% + 1 '                                                      move right one pixel
-                If x% > w% Then '                                                  have we reached the edge of the collision box?
+                IF x% > w% THEN '                                                  have we reached the edge of the collision box?
                     x% = 0 '                                                       yes, move back to the left of the collision box
                     y% = y% + 1 '                                                  move down one pixel
-                End If
-            Loop Until y% > h% '                                                   stop when gone past the bottom of collision box
-            If y% > h% Then SPRITECOLLIDE = 0 '                                    no collision if we checked entire collision box
-        End If
-        _Source 0
-    End If
+                END IF
+            LOOP UNTIL y% > h% '                                                   stop when gone past the bottom of collision box
+            IF y% > h% THEN SPRITECOLLIDE = 0 '                                    no collision if we checked entire collision box
+        END IF
+        _SOURCE 0
+    END IF
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITECOLLIDETYPE (handle%, behavior%)
+SUB SPRITECOLLIDETYPE (handle%, behavior%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Sets the type of collision detection used for a sprite.                    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -676,22 +616,18 @@ Sub SPRITECOLLIDETYPE (handle%, behavior%)
     '| Sets  : sprite().detecttype to desired detection method.                   |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITECOLLIDESET: The sprite specified does not exist." '           no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If behavior% = 2 Then sprite(handle%).image = _NewImage(1, 1, 32) '            temp image for first time deletion in SPRITEPUT()
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITECOLLIDETYPE", 100 '        is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITECOLLIDETYPE", 101 '       is this sprite handle in use?
+    IF behavior% = 2 THEN sprite(handle%).image = _NEWIMAGE(1, 1, 32) '            temp image for first time deletion in SPRITEPUT()
     sprite(handle%).detecttype = behavior% '                                       set the collision detection method for this sprite
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEPUT (x!, y!, handle%)
+SUB SPRITEPUT (x!, y!, handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Places a sprite on screen at coordinates INT(x!), INT(y!).                 |                     - NOTES -                     |
     '|                                                                            | - The x! and y! values can be sent in as integers |
@@ -723,80 +659,76 @@ Sub SPRITEPUT (x!, y!, handle%)
     '|          http://qb64.net/wiki/index.php?title=MAPTRIANGLE                                                                      |
     '+--------------------------------------------------------------------------------------------------------------------------------+
 
-    Shared sheet() As SHEET '                                                      array defining sprite sheets
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sheet() AS SHEET '                                                      array defining sprite sheets
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    Dim tempsprite& '                                                              temporary holding image for sprite from sheet
-    Dim cellx% '                                                                   the upper left x location of sprite on sheet
-    Dim celly% '                                                                   the upper right y location of sprite on sheet
-    Dim px!(3) '                                                                   polar x coordinates of maptriangle
-    Dim py!(3) '                                                                   polar y coordinates of maptriangle
-    Dim sinr! '                                                                    the sine function used on rotation
-    Dim cosr! '                                                                    the cosine function used on rotation
-    Dim count% '                                                                   a generic counter used in subroutine
-    Dim x2& '                                                                      temp variable used when computing polar coordinates
-    Dim y2& '                                                                      temp variable used when computing polar coordinates
-    Dim swidth% '                                                                  the width of the sprite on the sprite sheet
-    Dim sheight% '                                                                 the height of the sprite on the sprite sheet
-    Dim bx1% '                                                                     upper left x location of background image
-    Dim by1% '                                                                     upper left y location of background image
-    Dim bx2% '                                                                     lower right x location of background image
-    Dim by2% '                                                                     lower right y location of background image
-    Dim cx% '                                                                      used to center pixel accurate collision image
-    Dim cy% '                                                                      used to center pixel accurate collision image
+    DIM tempsprite& '                                                              temporary holding image for sprite from sheet
+    DIM cellx% '                                                                   the upper left x location of sprite on sheet
+    DIM celly% '                                                                   the upper right y location of sprite on sheet
+    DIM px!(3) '                                                                   polar x coordinates of maptriangle
+    DIM py!(3) '                                                                   polar y coordinates of maptriangle
+    DIM sinr! '                                                                    the sine function used on rotation
+    DIM cosr! '                                                                    the cosine function used on rotation
+    DIM count% '                                                                   a generic counter used in subroutine
+    DIM x2& '                                                                      temp variable used when computing polar coordinates
+    DIM y2& '                                                                      temp variable used when computing polar coordinates
+    DIM swidth% '                                                                  the width of the sprite on the sprite sheet
+    DIM sheight% '                                                                 the height of the sprite on the sprite sheet
+    DIM bx1% '                                                                     upper left x location of background image
+    DIM by1% '                                                                     upper left y location of background image
+    DIM bx2% '                                                                     lower right x location of background image
+    DIM by2% '                                                                     lower right y location of background image
+    DIM cx% '                                                                      used to center pixel accurate collision image
+    DIM cy% '                                                                      used to center pixel accurate collision image
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEPUT: The sprite specified does not exist." '                  no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If sprite(handle%).onscreen And sprite(handle%).restore Then '                 is sprite on screen and should it restore background
-        _PutImage (sprite(handle%).backx, sprite(handle%).backy), sprite(handle%).background
-        _FreeImage sprite(handle%).background '                                    background image no longer needed
-    ElseIf (Not sprite(handle%).onscreen) And sprite(handle%).visible Then '       has sprite been made visible again or first time?
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEPUT", 100 '                is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEPUT", 101 '               is this sprite handle in use?
+    IF sprite(handle%).onscreen AND sprite(handle%).restore THEN '                 is sprite on screen and should it restore background
+        _PUTIMAGE (sprite(handle%).backx, sprite(handle%).backy), sprite(handle%).background
+        _FREEIMAGE sprite(handle%).background '                                    background image no longer needed
+    ELSEIF (NOT sprite(handle%).onscreen) AND sprite(handle%).visible THEN '       has sprite been made visible again or first time?
         sprite(handle%).onscreen = -1 '                                            sprite will be placed on the screen
-    End If
+    END IF
 
-    If sprite(handle%).motion Then '                                               is sprite automotion enabled?
+    IF sprite(handle%).motion THEN '                                               is sprite automotion enabled?
         sprite(handle%).actualx = sprite(handle%).actualx + sprite(handle%).xdir ' yes, update sprite x position
         sprite(handle%).actualy = sprite(handle%).actualy + sprite(handle%).ydir ' update sprite y position
-        sprite(handle%).currentx = Int(sprite(handle%).actualx) '                  this is where the sprite will show on screen
-        sprite(handle%).currenty = Int(sprite(handle%).actualy) '                  this is where the sprite will show on screen
+        sprite(handle%).currentx = INT(sprite(handle%).actualx) '                  this is where the sprite will show on screen
+        sprite(handle%).currenty = INT(sprite(handle%).actualy) '                  this is where the sprite will show on screen
 
-    Else
+    ELSE
         sprite(handle%).actualx = x! '                                             allows user to use small increments if desired
         sprite(handle%).actualy = y! '                                             allows user to use small increments if desired
-        sprite(handle%).currentx = Int(x!) '                                       this is where the sprite will show on screen
-        sprite(handle%).currenty = Int(y!) '                                       this is where the sprite will show on screen
-    End If
+        sprite(handle%).currentx = INT(x!) '                                       this is where the sprite will show on screen
+        sprite(handle%).currenty = INT(y!) '                                       this is where the sprite will show on screen
+    END IF
 
-    If Not sprite(handle%).visible Then Exit Sub '                                 if sprite hidden no need to do rest of subroutine
-    If sprite(handle%).animation Then SPRITENEXT handle% '                         perform autoanimation if enabled
+    IF NOT sprite(handle%).visible THEN EXIT SUB '                                 if sprite hidden no need to do rest of subroutine
+    IF sprite(handle%).animation THEN SPRITENEXT handle% '                         perform autoanimation if enabled
     swidth% = sheet(sprite(handle%).sheet).spritewidth '                           width of sprite
     sheight% = sheet(sprite(handle%).sheet).spriteheight '                         height of sprite
-    If sprite(handle%).currentcell Mod sheet(sprite(handle%).sheet).columns = 0 Then ' is sprite in rightmost column?
+    IF sprite(handle%).currentcell MOD sheet(sprite(handle%).sheet).columns = 0 THEN ' is sprite in rightmost column?
         cellx% = swidth% * (sheet(sprite(handle%).sheet).columns - 1) '            yes, upper left x position of sprite on sprite sheet
         celly% = ((sprite(handle%).currentcell \ sheet(sprite(handle%).sheet).columns) - 1) * sheight% ' upper left y position on sheet
-    Else '                                                                         sprite is not in rightmost column
-        cellx% = (sprite(handle%).currentcell Mod sheet(sprite(handle%).sheet).columns - 1) * swidth% ' upper left x position of sprite on sheet
+    ELSE '                                                                         sprite is not in rightmost column
+        cellx% = (sprite(handle%).currentcell MOD sheet(sprite(handle%).sheet).columns - 1) * swidth% ' upper left x position of sprite on sheet
         celly% = (sprite(handle%).currentcell \ sheet(sprite(handle%).sheet).columns) * sheight% '      upper left y position of sprite on sheet
-    End If
-    If sprite(handle%).zoom <> 100 Then '                                          does the sprite need to be zoomed in or out?
+    END IF
+    IF sprite(handle%).zoom <> 100 THEN '                                          does the sprite need to be zoomed in or out?
         swidth% = swidth% * (sprite(handle%).zoom / 100) '                         yes, calculate new sprite width
         sheight% = sheight% * (sprite(handle%).zoom / 100) '                       calculate new sprite height
-    End If
-    tempsprite& = _NewImage(swidth%, sheight%, 32) '                               create temporary image holder for sprite
-    Select Case sprite(handle%).flip '                                             should the image be flipped while copied?
-        Case 0 '                                                                   no flip, copy original sprite orientation
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly%)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
-        Case 1 '                                                                   flip sprite horizontally while copying it
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)-(cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
-        Case 2 '                                                                   flip sprite vertically while copying it
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)
-        Case 3 '                                                                   flip sprite both horizontally and vertically
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx%, celly%)
-    End Select
+    END IF
+    tempsprite& = _NEWIMAGE(swidth%, sheight%, 32) '                               create temporary image holder for sprite
+    SELECT CASE sprite(handle%).flip '                                             should the image be flipped while copied?
+        CASE 0 '                                                                   no flip, copy original sprite orientation
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly%)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
+        CASE 1 '                                                                   flip sprite horizontally while copying it
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)-(cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
+        CASE 2 '                                                                   flip sprite vertically while copying it
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)
+        CASE 3 '                                                                   flip sprite both horizontally and vertically
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx%, celly%)
+    END SELECT
     px!(0) = -swidth% / 2 '                                                        upper left  x polar coordinate of sprite
     py!(0) = -sheight% / 2 '                                                       upper left  y polar coordinate of sprite
     px!(1) = px!(0) '                                                              lower left  x polar coordinate of sprite
@@ -807,78 +739,78 @@ Sub SPRITEPUT (x!, y!, handle%)
     py!(3) = py!(0) '                                                              upper right y polar coordinate of sprite
 
 
-    If sprite(handle%).motion And sprite(handle%).spindir <> 0 Then
+    IF sprite(handle%).motion AND sprite(handle%).spindir <> 0 THEN
         sprite(handle%).rotation = sprite(handle%).rotation + sprite(handle%).spindir
-        If sprite(handle%).rotation < 0 Then sprite(handle%).rotation = sprite(handle%).rotation + 360
-        If sprite(handle%).rotation >= 360 Then sprite(handle%).rotation = sprite(handle%).rotation - 360
-    End If
+        IF sprite(handle%).rotation < 0 THEN sprite(handle%).rotation = sprite(handle%).rotation + 360
+        IF sprite(handle%).rotation >= 360 THEN sprite(handle%).rotation = sprite(handle%).rotation - 360
+    END IF
 
 
-    If sprite(handle%).rotation <> 0 Then '                                        does the sprite need to be rotated?
-        sinr! = Sin(-sprite(handle%).rotation / 57.2957795131) '                   yes, some magic math for rotation
-        cosr! = Cos(-sprite(handle%).rotation / 57.2957795131) '                   some more magic math for rotation
+    IF sprite(handle%).rotation <> 0 THEN '                                        does the sprite need to be rotated?
+        sinr! = SIN(-sprite(handle%).rotation / 57.2957795131) '                   yes, some magic math for rotation
+        cosr! = COS(-sprite(handle%).rotation / 57.2957795131) '                   some more magic math for rotation
         bx1% = 0 '                                                                 upper left  x coordinate of background
         by1% = 0 '                                                                 upper left  y coordinate of background
         bx2% = 0 '                                                                 lower right x coordinate of background
         by2% = 0 '                                                                 lower right y coordinate of background
-        For count% = 0 To 3 '                                                      cycle through all four polar coordinates
+        FOR count% = 0 TO 3 '                                                      cycle through all four polar coordinates
             x2& = (px!(count%) * cosr! + sinr! * py!(count%)) '                    compute new polar coordinate location
             y2& = (py!(count%) * cosr! - px!(count%) * sinr!) '                    compute new polar coordinate location
             px!(count%) = x2& '                                                    save the new polar coordinate
             py!(count%) = y2& '                                                    save the new polar coordinate
-            If px!(count%) < bx1% Then bx1% = px!(count%) '                        save lowest  x value seen \
-            If px!(count%) > bx2% Then bx2% = px!(count%) '                        save highest x value seen  \ background image
-            If py!(count%) < by1% Then by1% = py!(count%) '                        save lowest  y value seen  / rectangle coordinates
-            If py!(count%) > by2% Then by2% = py!(count%) '                        save highest y value seen /
-        Next count%
-        If sprite(handle%).onscreen And sprite(handle%).restore Then '             should the sprite save the background?
-            sprite(handle%).background = _NewImage((bx2% - bx1%) + 1, (by2% - by1%) + 1, 32) ' yes, compute the background image
-            _PutImage , _Dest, sprite(handle%).background, (sprite(handle%).currentx + bx1%, sprite(handle%).currenty + by1%)-(sprite(handle%).currentx + bx2%, sprite(handle%).currenty + by2%)
+            IF px!(count%) < bx1% THEN bx1% = px!(count%) '                        save lowest  x value seen \
+            IF px!(count%) > bx2% THEN bx2% = px!(count%) '                        save highest x value seen  \ background image
+            IF py!(count%) < by1% THEN by1% = py!(count%) '                        save lowest  y value seen  / rectangle coordinates
+            IF py!(count%) > by2% THEN by2% = py!(count%) '                        save highest y value seen /
+        NEXT count%
+        IF sprite(handle%).onscreen AND sprite(handle%).restore THEN '             should the sprite save the background?
+            sprite(handle%).background = _NEWIMAGE((bx2% - bx1%) + 1, (by2% - by1%) + 1, 32) ' yes, compute the background image
+            _PUTIMAGE , _DEST, sprite(handle%).background, (sprite(handle%).currentx + bx1%, sprite(handle%).currenty + by1%)-(sprite(handle%).currentx + bx2%, sprite(handle%).currenty + by2%)
             sprite(handle%).backx = sprite(handle%).currentx + bx1% ' save the background's x location
             sprite(handle%).backy = sprite(handle%).currenty + by1% ' save the background's y location
-        End If
+        END IF
         sprite(handle%).currentwidth = bx2% - bx1% + 1 '                           save width of sprite after zoom and rotation
         sprite(handle%).currentheight = by2% - by1% + 1 '                          save height of sprite after zoom and rotation
         sprite(handle%).screenx1 = sprite(handle%).currentx + bx1% '               save upper left x position of sprite on screen
         sprite(handle%).screeny1 = sprite(handle%).currenty + by1% '               save upper left y potition of sprite on screen
         sprite(handle%).screenx2 = sprite(handle%).currentx + bx2% '               save lower right x position of sprite on screen
         sprite(handle%).screeny2 = sprite(handle%).currenty + by2% '               save lower right y potition of sprite on screen
-        _MapTriangle (0, 0)-(0, sheight% - 1)-(swidth% - 1, sheight% - 1), tempsprite& To(sprite(handle%).currentx + px!(0), sprite(handle%).currenty + py!(0))-(sprite(handle%).currentx + px!(1), sprite(handle%).currenty + py!(1))-(sprite(handle%).currentx + px!(2), sprite(handle%).currenty + py!(2))
-        _MapTriangle (0, 0)-(swidth% - 1, 0)-(swidth% - 1, sheight% - 1), tempsprite& To(sprite(handle%).currentx + px!(0), sprite(handle%).currenty + py!(0))-(sprite(handle%).currentx + px!(3), sprite(handle%).currenty + py!(3))-(sprite(handle%).currentx + px!(2), sprite(handle%).currenty + py!(2))
-        If sprite(handle%).detecttype = 2 Then '                                   does sprite use pixel accuracy collision detection?
-            _FreeImage sprite(handle%).image '                                     yes, get rid of the last image save
-            sprite(handle%).image = _NewImage(sprite(handle%).currentwidth, sprite(handle%).currentheight, 32) ' create a new image holder and map triangles in
+        _MAPTRIANGLE (0, 0)-(0, sheight% - 1)-(swidth% - 1, sheight% - 1), tempsprite& TO(sprite(handle%).currentx + px!(0), sprite(handle%).currenty + py!(0))-(sprite(handle%).currentx + px!(1), sprite(handle%).currenty + py!(1))-(sprite(handle%).currentx + px!(2), sprite(handle%).currenty + py!(2))
+        _MAPTRIANGLE (0, 0)-(swidth% - 1, 0)-(swidth% - 1, sheight% - 1), tempsprite& TO(sprite(handle%).currentx + px!(0), sprite(handle%).currenty + py!(0))-(sprite(handle%).currentx + px!(3), sprite(handle%).currenty + py!(3))-(sprite(handle%).currentx + px!(2), sprite(handle%).currenty + py!(2))
+        IF sprite(handle%).detecttype = 2 THEN '                                   does sprite use pixel accuracy collision detection?
+            _FREEIMAGE sprite(handle%).image '                                     yes, get rid of the last image save
+            sprite(handle%).image = _NEWIMAGE(sprite(handle%).currentwidth, sprite(handle%).currentheight, 32) ' create a new image holder and map triangles in
             cx% = sprite(handle%).currentwidth / 2
             cy% = sprite(handle%).currentheight / 2
-            _MapTriangle (0, 0)-(0, sheight% - 1)-(swidth% - 1, sheight% - 1), tempsprite& To(cx% + px!(0), cy% + py!(0))-(cx% + px!(1), cy% + py!(1))-(cx% + px!(2), cy% + py!(2)), sprite(handle%).image
-            _MapTriangle (0, 0)-(swidth% - 1, 0)-(swidth% - 1, sheight% - 1), tempsprite& To(cx% + px!(0), cy% + py!(0))-(cx% + px!(3), cy% + py!(3))-(cx% + px!(2), cy% + py!(2)), sprite(handle%).image
-        End If
-    Else '                                                                         no rotation was needed, just place image on screen
-        If sprite(handle%).onscreen And sprite(handle%).restore Then '             should the sprite save the background?
-            sprite(handle%).background = _NewImage(Int(px!(2)) - Int(px!(0)), Int(py!(2)) - Int(py!(0)), 32) ' yes, compute the background image
-            _PutImage , _Dest, sprite(handle%).background, (sprite(handle%).currentx + Int(px!(0)), sprite(handle%).currenty + Int(py!(0)))-(sprite(handle%).currentx + Int(px!(2)) - 1, sprite(handle%).currenty + Int(py!(2)) - 1)
-            sprite(handle%).backx = sprite(handle%).currentx + Int(px!(0)) '       save the background's x location
-            sprite(handle%).backy = sprite(handle%).currenty + Int(py!(0)) '       save the background's y location
-        End If
-        sprite(handle%).currentwidth = Int(px!(2)) - Int(px!(0)) '                 save width of sprite after zoom
-        sprite(handle%).currentheight = Int(py!(2)) - Int(py!(0)) '                save height of sprite after zoom
-        sprite(handle%).screenx1 = sprite(handle%).currentx + Int(px!(0)) '        save upper left x of sprite on screen
-        sprite(handle%).screeny1 = sprite(handle%).currenty + Int(py!(0)) '        save upper left y of sprite on screen
-        sprite(handle%).screenx2 = sprite(handle%).currentx + Int(px!(2)) - 1 '    save lower right x of sprite onscreen
-        sprite(handle%).screeny2 = sprite(handle%).currenty + Int(py!(2)) - 1 '    save lower right y of sprite onscreen
-        _PutImage (sprite(handle%).screenx1, sprite(handle%).screeny1), tempsprite& ' copy temporary sprite image to the screen
-        If sprite(handle%).detecttype = 2 Then '                                   does sprite use pixel accuracy collision detection?
-            _FreeImage sprite(handle%).image '                                     yes, get rid of the last image saved
-            sprite(handle%).image = _CopyImage(tempsprite&) '                      save a copy of the current sprite image
-        End If
-    End If
-    _FreeImage tempsprite& '                                                       temporary image holder no longer needed
+            _MAPTRIANGLE (0, 0)-(0, sheight% - 1)-(swidth% - 1, sheight% - 1), tempsprite& TO(cx% + px!(0), cy% + py!(0))-(cx% + px!(1), cy% + py!(1))-(cx% + px!(2), cy% + py!(2)), sprite(handle%).image
+            _MAPTRIANGLE (0, 0)-(swidth% - 1, 0)-(swidth% - 1, sheight% - 1), tempsprite& TO(cx% + px!(0), cy% + py!(0))-(cx% + px!(3), cy% + py!(3))-(cx% + px!(2), cy% + py!(2)), sprite(handle%).image
+        END IF
+    ELSE '                                                                         no rotation was needed, just place image on screen
+        IF sprite(handle%).onscreen AND sprite(handle%).restore THEN '             should the sprite save the background?
+            sprite(handle%).background = _NEWIMAGE(INT(px!(2)) - INT(px!(0)), INT(py!(2)) - INT(py!(0)), 32) ' yes, compute the background image
+            _PUTIMAGE , _DEST, sprite(handle%).background, (sprite(handle%).currentx + INT(px!(0)), sprite(handle%).currenty + INT(py!(0)))-(sprite(handle%).currentx + INT(px!(2)) - 1, sprite(handle%).currenty + INT(py!(2)) - 1)
+            sprite(handle%).backx = sprite(handle%).currentx + INT(px!(0)) '       save the background's x location
+            sprite(handle%).backy = sprite(handle%).currenty + INT(py!(0)) '       save the background's y location
+        END IF
+        sprite(handle%).currentwidth = INT(px!(2)) - INT(px!(0)) '                 save width of sprite after zoom
+        sprite(handle%).currentheight = INT(py!(2)) - INT(py!(0)) '                save height of sprite after zoom
+        sprite(handle%).screenx1 = sprite(handle%).currentx + INT(px!(0)) '        save upper left x of sprite on screen
+        sprite(handle%).screeny1 = sprite(handle%).currenty + INT(py!(0)) '        save upper left y of sprite on screen
+        sprite(handle%).screenx2 = sprite(handle%).currentx + INT(px!(2)) - 1 '    save lower right x of sprite onscreen
+        sprite(handle%).screeny2 = sprite(handle%).currenty + INT(py!(2)) - 1 '    save lower right y of sprite onscreen
+        _PUTIMAGE (sprite(handle%).screenx1, sprite(handle%).screeny1), tempsprite& ' copy temporary sprite image to the screen
+        IF sprite(handle%).detecttype = 2 THEN '                                   does sprite use pixel accuracy collision detection?
+            _FREEIMAGE sprite(handle%).image '                                     yes, get rid of the last image saved
+            sprite(handle%).image = _COPYIMAGE(tempsprite&) '                      save a copy of the current sprite image
+        END IF
+    END IF
+    _FREEIMAGE tempsprite& '                                                       temporary image holder no longer needed
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITEY2 (handle%)
+FUNCTION SPRITEY2 (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the lower right y screen position of the sprite.                   |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -889,21 +821,17 @@ Function SPRITEY2 (handle%)
     '| Output: an integer value containing the lower right y screen coordinate.   |   sprite.                                         |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEY2: The sprite specified does not exist." '                   no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEY2", 100 '                 is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEY2", 101 '                is this sprite handle in use?
     SPRITEY2 = sprite(handle%).screeny2 '                                          return the lower right y coordinate of sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEX2 (handle%)
+FUNCTION SPRITEX2 (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the lower right x screen position of the sprite.                   |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -914,21 +842,17 @@ Function SPRITEX2 (handle%)
     '| Output: an integer value containing the lower right x screen coordinate.   |   sprite.                                         |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEX2: The sprite specified does not exist." '                   no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEX2", 100 '                 is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEX2", 101 '                is this sprite handle in use?
     SPRITEX2 = sprite(handle%).screenx2 '                                          return the lower right x coordinate of sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEY1 (handle%)
+FUNCTION SPRITEY1 (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the upper left y screen position of the sprite.                    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -939,21 +863,17 @@ Function SPRITEY1 (handle%)
     '| Output: an integer value containing the upper left y screen coordinate.    |   sprite.                                         |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEY1: The sprite specified does not exist." '                   no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEY1", 100 '                 is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEY1", 101 '                is this sprite handle in use?
     SPRITEY1 = sprite(handle%).screeny1 '                                          return the upper left y coordinate of sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEX1 (handle%)
+FUNCTION SPRITEX1 (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the upper left x screen position of the sprite.                    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -964,21 +884,17 @@ Function SPRITEX1 (handle%)
     '| Output: an integer value containing the upper left x screen coordinate.    |   sprite.                                         |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEX1: The sprite specified does not exist." '                   no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEX1", 100 '                 is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEX1", 101 '                is this sprite handle in use?
     SPRITEX1 = sprite(handle%).screenx1 '                                          return the upper left x coordinate of sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEMOUSEAY (handle%)
+FUNCTION SPRITEMOUSEAY (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the y location of the mouse on the screen.                         |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -989,21 +905,17 @@ Function SPRITEMOUSEAY (handle%)
     '| Output: an integer value containing the mouse's y screen position.         |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEMOUSEAY: The sprite specified does not exist." '              no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEMOUSEAY", 100 '            is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEMOUSEAY", 101 '           is this sprite handle in use?
     SPRITEMOUSEAY = sprite(handle%).mouseay '                                      report the y location of pointer on screen
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEMOUSEAX (handle%)
+FUNCTION SPRITEMOUSEAX (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the x location of the mouse on the screen.                         |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1014,21 +926,17 @@ Function SPRITEMOUSEAX (handle%)
     '| Output: an integer value containing the mouse's x screen position.         |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEMOUSEAX: The sprite specified does not exist." '              no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEMOUSEAX", 100 '            is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEMOUSEAX", 101 '           is this sprite handle in use?
     SPRITEMOUSEAX = sprite(handle%).mouseax '                                      report the x location of pointer on screen
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEMOUSEY (handle%)
+FUNCTION SPRITEMOUSEY (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the y location of the mouse on the sprite itself.                  |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1039,21 +947,17 @@ Function SPRITEMOUSEY (handle%)
     '| Output: an integer value containing the mouse's y poisition on the sprite. |   return a y value of 0 through 49.               |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEMOUSEY: The sprite specified does not exist." '               no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEMOUSEY", 100 '             is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEMOUSEY", 101 '            is this sprite handle in use?
     SPRITEMOUSEY = sprite(handle%).mousecy '                                       report the y location of pointer on sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEMOUSEX (handle%)
+FUNCTION SPRITEMOUSEX (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the x location of the mouse on the sprite itself.                  |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1064,21 +968,17 @@ Function SPRITEMOUSEX (handle%)
     '| Output: an integer value containing the mouse's x position on the sprite.  |   return an x value of 0 through 49.              |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEMOUSEX: The sprite specified does not exist." '               no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEMOUSEX", 100 '             is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEMOUSEX", 101 '            is this sprite handle in use?
     SPRITEMOUSEX = sprite(handle%).mousecx '                                       report the x location of pointer on sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEMOUSE (handle%)
+FUNCTION SPRITEMOUSE (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the status of the current sprite and mouse pointer interaction.    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1103,48 +1003,44 @@ Function SPRITEMOUSE (handle%)
     '|                          =32767 = no interaction (constant NOVALUE)        |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    Dim event% '                                                                   event currently interacting between mouse and sprite
+    DIM event% '                                                                   event currently interacting between mouse and sprite
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEMOUSE: The sprite specified does not exist." '                no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    Do: Loop While _MouseInput '                                                   get the most up to date mouse event
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEMOUSE", 100 '              is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEMOUSE", 101 '             is this sprite handle in use?
+    DO: LOOP WHILE _MOUSEINPUT '                                                   get the most up to date mouse event
     SPRITEMOUSE = 0 '                                                              report no sprite and mouse interaction by default
     event% = 3 '                                                                   assume mouse in currenly hovering over sprite
-    If _MouseButton(1) Then event% = 1 '                                           if left button pressed then set the event
-    If _MouseButton(2) Then event% = 2 '                                           if the right button pressed then set the event
-    If sprite(handle%).onscreen Then '                                             is the sprite currently on the screen?
-        If (_MouseX >= sprite(handle%).screenx1) And (_MouseX <= sprite(handle%).screenx2) And (_MouseY >= sprite(handle%).screeny1) And (_MouseY <= sprite(handle%).screeny2) Then
+    IF _MOUSEBUTTON(1) THEN event% = 1 '                                           if left button pressed then set the event
+    IF _MOUSEBUTTON(2) THEN event% = 2 '                                           if the right button pressed then set the event
+    IF sprite(handle%).onscreen THEN '                                             is the sprite currently on the screen?
+        IF (_MOUSEX >= sprite(handle%).screenx1) AND (_MOUSEX <= sprite(handle%).screenx2) AND (_MOUSEY >= sprite(handle%).screeny1) AND (_MOUSEY <= sprite(handle%).screeny2) THEN
             sprite(handle%).pointer = event% '                                     mouse pointer is over sprite, set the event
             SPRITEMOUSE = event% '                                                 report the event number
-        Else '                                                                     mouse pointer is not currently over sprite
+        ELSE '                                                                     mouse pointer is not currently over sprite
             sprite(handle%).pointer = 0 '                                          set event as no mouse interaction
             SPRITEMOUSE = 0 '                                                      report the event number
             event% = 0 '                                                           set the event as no interaction
-        End If
-        If event% <> 0 Then '                                                      was there mouse interaction with this sprite?
-            sprite(handle%).mouseax = _MouseX '                                    yes, save the actual screen x location of pointer
-            sprite(handle%).mouseay = _MouseY '                                    save the actual screen y location of pointer
-            sprite(handle%).mousecx = _MouseX - sprite(handle%).screenx1 '         save the pointer x location on sprite itself
-            sprite(handle%).mousecy = _MouseY - sprite(handle%).screeny1 '         save the pointer y location on sprite itself
-        Else '                                                                     there is no mouse interaction with sprite
+        END IF
+        IF event% <> 0 THEN '                                                      was there mouse interaction with this sprite?
+            sprite(handle%).mouseax = _MOUSEX '                                    yes, save the actual screen x location of pointer
+            sprite(handle%).mouseay = _MOUSEY '                                    save the actual screen y location of pointer
+            sprite(handle%).mousecx = _MOUSEX - sprite(handle%).screenx1 '         save the pointer x location on sprite itself
+            sprite(handle%).mousecy = _MOUSEY - sprite(handle%).screeny1 '         save the pointer y location on sprite itself
+        ELSE '                                                                     there is no mouse interaction with sprite
             sprite(handle%).mouseax = -32767 '                                     set the mouse x value as having no interaction
             sprite(handle%).mouseay = -32767 '                                     set the mouse y value as having no interaction
             sprite(handle%).mousecx = -32767 '                                     set the mouse x location on sprite as no interaction
             sprite(handle%).mousecy = -32767 '                                     set the mouse y location on sprite as no interaction
-        End If
-    End If
+        END IF
+    END IF
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITEFREE (handle%)
+SUB SPRITEFREE (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Removes a sprite from memory, freeing its resources.                       |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1158,31 +1054,27 @@ Sub SPRITEFREE (handle%)
     '|         sprite().background image freed if element contained one.          |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEFREE: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If sprite(handle%).restore Then '                                              has this sprite been saving the background?
-        If sprite(handle%).onscreen Then '                                         yes, is the sprite onscreen?
-            _PutImage (sprite(handle%).backx, sprite(handle%).backy), sprite(handle%).background ' restore background
-        End If
-        _FreeImage sprite(handle%).background '                                    free the sprite's background image
-    End If
-    If handle% = UBound(sprite) And handle% <> 1 Then '                            is this the last element in the array?
-        ReDim _Preserve sprite(handle% - 1) As SPRITE '                            yes, resize the array, removing the element
-    Else '                                                                         this is not the last element in the array
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEFREE", 100 '               is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEFREE", 101 '              is this sprite handle in use?
+    IF sprite(handle%).restore THEN '                                              has this sprite been saving the background?
+        IF sprite(handle%).onscreen THEN '                                         yes, is the sprite onscreen?
+            _PUTIMAGE (sprite(handle%).backx, sprite(handle%).backy), sprite(handle%).background ' restore background
+        END IF
+        _FREEIMAGE sprite(handle%).background '                                    free the sprite's background image
+    END IF
+    IF handle% = UBOUND(sprite) AND handle% <> 1 THEN '                            is this the last element in the array?
+        REDIM _PRESERVE sprite(handle% - 1) AS SPRITE '                            yes, resize the array, removing the element
+    ELSE '                                                                         this is not the last element in the array
         sprite(handle%).inuse = 0 '                                                mark the array entry as not in use
-    End If
+    END IF
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITESTAMP (x%, y%, handle%)
+SUB SPRITESTAMP (x%, y%, handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Places a sprite on the background as if using a sprite stamp pad.          |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1198,52 +1090,48 @@ Sub SPRITESTAMP (x%, y%, handle%)
     '|          http://qb64.net/wiki/index.php?title=MAPTRIANGLE                                                                      |
     '+--------------------------------------------------------------------------------------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
-    Shared sheet() As SHEET '                                                      array defining sprite sheets
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
+    SHARED sheet() AS SHEET '                                                      array defining sprite sheets
 
-    Dim tempsprite& '                                                              temporary holding image for sprite from sheet
-    Dim cellx% '                                                                   the upper left x location of sprite on sheet
-    Dim celly% '                                                                   the upper right y location of sprite on sheet
-    Dim px!(3) '                                                                   polar x coordinates of maptriangle
-    Dim py!(3) '                                                                   polar y coordinates of maptriangle
-    Dim sinr! '                                                                    the sine function used on rotation
-    Dim cosr! '                                                                    the cosine function used on rotation
-    Dim count% '                                                                   a generic counter used in subroutine
-    Dim x2& '                                                                      temp variable used when computing polar coordinates
-    Dim y2& '                                                                      temp variable used when computing polar coordinates
-    Dim swidth% '                                                                  the width of the stamp on the sprite sheet
-    Dim sheight% '                                                                 the height of the stamp on the sprite sheet
+    DIM tempsprite& '                                                              temporary holding image for sprite from sheet
+    DIM cellx% '                                                                   the upper left x location of sprite on sheet
+    DIM celly% '                                                                   the upper right y location of sprite on sheet
+    DIM px!(3) '                                                                   polar x coordinates of maptriangle
+    DIM py!(3) '                                                                   polar y coordinates of maptriangle
+    DIM sinr! '                                                                    the sine function used on rotation
+    DIM cosr! '                                                                    the cosine function used on rotation
+    DIM count% '                                                                   a generic counter used in subroutine
+    DIM x2& '                                                                      temp variable used when computing polar coordinates
+    DIM y2& '                                                                      temp variable used when computing polar coordinates
+    DIM swidth% '                                                                  the width of the stamp on the sprite sheet
+    DIM sheight% '                                                                 the height of the stamp on the sprite sheet
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESTAMP: The sprite specified does not exist." '                no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESTAMP", 100 '              is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESTAMP", 101 '             is this sprite handle in use?
     swidth% = sheet(sprite(handle%).sheet).spritewidth '                           width of stamp
     sheight% = sheet(sprite(handle%).sheet).spriteheight '                         height of stamp
-    If sprite(handle%).currentcell Mod sheet(sprite(handle%).sheet).columns = 0 Then ' is stamp in rightmost column?
+    IF sprite(handle%).currentcell MOD sheet(sprite(handle%).sheet).columns = 0 THEN ' is stamp in rightmost column?
         cellx% = swidth% * (sheet(sprite(handle%).sheet).columns - 1) '            yes, upper left x position of stamp on sprite sheet
         celly% = ((sprite(handle%).currentcell \ sheet(sprite(handle%).sheet).columns) - 1) * sheight% ' upper left y position on sheet
-    Else '                                                                         stamp is not in rightmost column
-        cellx% = (sprite(handle%).currentcell Mod sheet(sprite(handle%).sheet).columns - 1) * swidth% ' upper left x position of stamp on sheet
+    ELSE '                                                                         stamp is not in rightmost column
+        cellx% = (sprite(handle%).currentcell MOD sheet(sprite(handle%).sheet).columns - 1) * swidth% ' upper left x position of stamp on sheet
         celly% = (sprite(handle%).currentcell \ sheet(sprite(handle%).sheet).columns) * sheight% '      upper left y position of stamp on sheet
-    End If
-    If sprite(handle%).zoom <> 100 Then '                                          does the stamp need to be zoomed in or out?
+    END IF
+    IF sprite(handle%).zoom <> 100 THEN '                                          does the stamp need to be zoomed in or out?
         swidth% = swidth% * (sprite(handle%).zoom / 100) '                         yes, calculate new stamp width
         sheight% = sheight% * (sprite(handle%).zoom / 100) '                       calculate new stamp height
-    End If
-    tempsprite& = _NewImage(swidth%, sheight%, 32) '                               create temporary image holder for the stamp
-    Select Case sprite(handle%).flip '                                             should the image be flipped while copied?
-        Case 0 '                                                                   no flip, copy original stamp orientation
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly%)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
-        Case 1 '                                                                   flip stamp horizontally while copying it
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)-(cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
-        Case 2 '                                                                   flip stamp vertically while copying it
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)
-        Case 3 '                                                                   flip stamp both horizontally and vertically
-            _PutImage , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx%, celly%)
-    End Select
+    END IF
+    tempsprite& = _NEWIMAGE(swidth%, sheight%, 32) '                               create temporary image holder for the stamp
+    SELECT CASE sprite(handle%).flip '                                             should the image be flipped while copied?
+        CASE 0 '                                                                   no flip, copy original stamp orientation
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly%)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
+        CASE 1 '                                                                   flip stamp horizontally while copying it
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)-(cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)
+        CASE 2 '                                                                   flip stamp vertically while copying it
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx%, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly%)
+        CASE 3 '                                                                   flip stamp both horizontally and vertically
+            _PUTIMAGE , sheet(sprite(handle%).sheet).sheetimage, tempsprite&, (cellx% + sheet(sprite(handle%).sheet).spritewidth - 1, celly% + sheet(sprite(handle%).sheet).spriteheight - 1)-(cellx%, celly%)
+    END SELECT
     px!(0) = -swidth% / 2 '                                                        upper left  x polar coordinate of stamp
     py!(0) = -sheight% / 2 '                                                       upper left  y polar coordinate of stamp
     px!(1) = px!(0) '                                                              lower left  x polar coordinate of stamp
@@ -1252,27 +1140,27 @@ Sub SPRITESTAMP (x%, y%, handle%)
     py!(2) = py!(1) '                                                              lower right y polar coordinate of stamp
     px!(3) = px!(2) '                                                              upper right x polar coordinate of stamp
     py!(3) = py!(0) '                                                              upper right y polar coordinate of stamp
-    If sprite(handle%).rotation <> 0 Then '                                        does the stamp need to be rotated?
-        sinr! = Sin(-sprite(handle%).rotation / 57.2957795131) '                   yes, some magic math for rotation
-        cosr! = Cos(-sprite(handle%).rotation / 57.2957795131) '                   some more magic math for rotation
-        For count% = 0 To 3 '                                                      cycle through all four polar coordinates
+    IF sprite(handle%).rotation <> 0 THEN '                                        does the stamp need to be rotated?
+        sinr! = SIN(-sprite(handle%).rotation / 57.2957795131) '                   yes, some magic math for rotation
+        cosr! = COS(-sprite(handle%).rotation / 57.2957795131) '                   some more magic math for rotation
+        FOR count% = 0 TO 3 '                                                      cycle through all four polar coordinates
             x2& = (px!(count%) * cosr! + sinr! * py!(count%)) '                    compute new polar coordinate location
             y2& = (py!(count%) * cosr! - px!(count%) * sinr!) '                    compute new polar coordinate location
             px!(count%) = x2& '                                                    save the new polar coordinate
             py!(count%) = y2& '                                                    save the new polar coordinate
-        Next count%
-        _MapTriangle (0, 0)-(0, sheight% - 1)-(swidth% - 1, sheight% - 1), tempsprite& To(x% + px!(0), y% + py!(0))-(x% + px!(1), y% + py!(1))-(x% + px!(2), y% + py!(2))
-        _MapTriangle (0, 0)-(swidth% - 1, 0)-(swidth% - 1, sheight% - 1), tempsprite& To(x% + px!(0), y% + py!(0))-(x% + px!(3), y% + py!(3))-(x% + px!(2), y% + py!(2))
-    Else '                                                                         no rotation was needed, just place stamp on screen
-        _PutImage (x% + Int(px!(0)), y% + Int(py!(0))), tempsprite& '              stamp temporary sprite image to the screen
-    End If
-    _FreeImage tempsprite& '                                                       temporary image holder no longer needed
+        NEXT count%
+        _MAPTRIANGLE (0, 0)-(0, sheight% - 1)-(swidth% - 1, sheight% - 1), tempsprite& TO(x% + px!(0), y% + py!(0))-(x% + px!(1), y% + py!(1))-(x% + px!(2), y% + py!(2))
+        _MAPTRIANGLE (0, 0)-(swidth% - 1, 0)-(swidth% - 1, sheight% - 1), tempsprite& TO(x% + px!(0), y% + py!(0))-(x% + px!(3), y% + py!(3))-(x% + px!(2), y% + py!(2))
+    ELSE '                                                                         no rotation was needed, just place stamp on screen
+        _PUTIMAGE (x% + INT(px!(0)), y% + INT(py!(0))), tempsprite& '              stamp temporary sprite image to the screen
+    END IF
+    _FREEIMAGE tempsprite& '                                                       temporary image holder no longer needed
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITECOPY (handle%)
+FUNCTION SPRITECOPY (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Makes a copy of a sprite and returns the newly created sprite's handle.    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1286,32 +1174,28 @@ Function SPRITECOPY (handle%)
     '|         from original sprite().*                                           |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    Dim newhandle% '                                                               the handle number fo the newly created sprite
+    DIM newhandle% '                                                               the handle number fo the newly created sprite
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITECOPY: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITECOPY", 100 '               is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITECOPY", 101 '              is this sprite handle in use?
     newhandle% = 0 '                                                               initialize handle value
-    Do '                                                                           look for the next available handle
+    DO '                                                                           look for the next available handle
         newhandle% = newhandle% + 1 '                                              increment the handle value
-    Loop Until (Not sprite(newhandle%).inuse) Or newhandle% = UBound(sprite) '     stop looking when valid handle value found
-    If sprite(newhandle%).inuse Then '                                             is the last array element in use?
+    LOOP UNTIL (NOT sprite(newhandle%).inuse) OR newhandle% = UBOUND(sprite) '     stop looking when valid handle value found
+    IF sprite(newhandle%).inuse THEN '                                             is the last array element in use?
         newhandle% = newhandle% + 1 '                                              yes, increment the handle value
-        ReDim _Preserve sprite(newhandle%) As SPRITE '                             increase the size of sprite array
-    End If
+        REDIM _PRESERVE sprite(newhandle%) AS SPRITE '                             increase the size of sprite array
+    END IF
     sprite(newhandle%) = sprite(handle%) '                                         copy the sprite
     SPRITECOPY = newhandle% '                                                      report back with the new sprite handle
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITEPREVIOUS (handle%)
+SUB SPRITEPREVIOUS (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Go to previous cell of sprite's animation sequence.                        |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1325,39 +1209,35 @@ Sub SPRITEPREVIOUS (handle%)
     '|         saved sprite().animtype.                                           |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITENEXT: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    Select Case sprite(handle%).animtype '                                         which type of animation behavior should be used?
-        Case 0 '                                                                   forward looping animation
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEPREVIOUS", 100 '           is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEPREVIOUS", 101 '          is this sprite handle in use?
+    SELECT CASE sprite(handle%).animtype '                                         which type of animation behavior should be used?
+        CASE 0 '                                                                   forward looping animation
             sprite(handle%).currentcell = sprite(handle%).currentcell - 1 '        select previous sprite sheet cell
-            If sprite(handle%).currentcell < sprite(handle%).animstart Then '      does cell go beyond the minimum cell allowed?
+            IF sprite(handle%).currentcell < sprite(handle%).animstart THEN '      does cell go beyond the minimum cell allowed?
                 sprite(handle%).currentcell = sprite(handle%).animend '            yes, reset the cell back to end of animation
-            End If
-        Case 1 '                                                                   backward looping animation
+            END IF
+        CASE 1 '                                                                   backward looping animation
             sprite(handle%).currentcell = sprite(handle%).currentcell + 1 '        select next sprite sheet cell
-            If sprite(handle%).currentcell > sprite(handle%).animend Then '        does the cell go beyond the maximum cell allowed?
+            IF sprite(handle%).currentcell > sprite(handle%).animend THEN '        does the cell go beyond the maximum cell allowed?
                 sprite(handle%).currentcell = sprite(handle%).animstart '          yes, reset the cell back to beginning of animation
-            End If
-        Case 2 '                                                                   forward/backward looping animation
+            END IF
+        CASE 2 '                                                                   forward/backward looping animation
             sprite(handle%).animdir = -sprite(handle%).animdir '                   temporarily set opposite looping direction
-            If (sprite(handle%).currentcell + sprite(handle%).animdir < sprite(handle%).animstart) Or (sprite(handle%).currentcell + sprite(handle%).animdir > sprite(handle%).animend) Then
+            IF (sprite(handle%).currentcell + sprite(handle%).animdir < sprite(handle%).animstart) OR (sprite(handle%).currentcell + sprite(handle%).animdir > sprite(handle%).animend) THEN
                 sprite(handle%).animdir = -sprite(handle%).animdir '               minimum/maximum cell was reached, change direction
-            End If
+            END IF
             sprite(handle%).currentcell = sprite(handle%).currentcell + sprite(handle%).animdir ' select next/previous sheet cell
             sprite(handle%).animdir = -sprite(handle%).animdir '                   set looping direction back to what it was
-    End Select
+    END SELECT
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITENEXT (handle%)
+SUB SPRITENEXT (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Go to next cell of sprite's animation sequence.                            |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1371,37 +1251,33 @@ Sub SPRITENEXT (handle%)
     '|         sprite().animtype.                                                 |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITENEXT: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    Select Case sprite(handle%).animtype '                                         which type of animation behavior should be used?
-        Case 0 '                                                                   forward looping animation
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITENEXT", 100 '               is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITENEXT", 101 '              is this sprite handle in use?
+    SELECT CASE sprite(handle%).animtype '                                         which type of animation behavior should be used?
+        CASE 0 '                                                                   forward looping animation
             sprite(handle%).currentcell = sprite(handle%).currentcell + 1 '        select next sprite sheet cell
-            If sprite(handle%).currentcell > sprite(handle%).animend Then '        does cell go beyond the maximum cell allowed?
+            IF sprite(handle%).currentcell > sprite(handle%).animend THEN '        does cell go beyond the maximum cell allowed?
                 sprite(handle%).currentcell = sprite(handle%).animstart '          yes, reset the cell back to beginning of animation
-            End If
-        Case 1 '                                                                   backward looping animation
+            END IF
+        CASE 1 '                                                                   backward looping animation
             sprite(handle%).currentcell = sprite(handle%).currentcell - 1 '        select previous sprite sheet cell
-            If sprite(handle%).currentcell < sprite(handle%).animstart Then '      does the cell go beyond the minimum cell allowed?
+            IF sprite(handle%).currentcell < sprite(handle%).animstart THEN '      does the cell go beyond the minimum cell allowed?
                 sprite(handle%).currentcell = sprite(handle%).animend '            yes, reset the cell back to end of animation
-            End If
-        Case 2 '                                                                   forward/backward looping animation
-            If (sprite(handle%).currentcell + sprite(handle%).animdir < sprite(handle%).animstart) Or (sprite(handle%).currentcell + sprite(handle%).animdir > sprite(handle%).animend) Then
+            END IF
+        CASE 2 '                                                                   forward/backward looping animation
+            IF (sprite(handle%).currentcell + sprite(handle%).animdir < sprite(handle%).animstart) OR (sprite(handle%).currentcell + sprite(handle%).animdir > sprite(handle%).animend) THEN
                 sprite(handle%).animdir = -sprite(handle%).animdir '               minimum/maximum cell was reached, change direction
-            End If
+            END IF
             sprite(handle%).currentcell = sprite(handle%).currentcell + sprite(handle%).animdir ' select next/previous sheet cell
-    End Select
+    END SELECT
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEANIMATION (handle%, onoff%, behavior%)
+SUB SPRITEANIMATION (handle%, onoff%, behavior%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Turns on or off automatic sprite animation with specified behavior.        |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1422,22 +1298,18 @@ Sub SPRITEANIMATION (handle%, onoff%, behavior%)
     '|         sprite().animtype to 0, 1 or 2 bassed on behavior% passed in.      |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEANIMATION: The sprite specified does not exist." '            no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEANIMATION", 100 '          is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEANIMATION", 101 '         is this sprite handle in use?
     sprite(handle%).animation = onoff% '                                           enable or disable automatic sprite animation
     sprite(handle%).animtype = behavior% '                                         set animation looping type behavior
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEANIMATESET (handle%, startcell%, endcell%)
+SUB SPRITEANIMATESET (handle%, startcell%, endcell%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Sets a sprite's animation sequence start and end sprite sheet cells.       |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1453,22 +1325,18 @@ Sub SPRITEANIMATESET (handle%, startcell%, endcell%)
     '|         sprite().animend to equal the endcell number passed in.            |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEANIMATESET: The sprite specified does not exist." '           no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEANIMATESET", 100 '         is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEANIMATESET", 101 '        is this sprite handle in use?
     sprite(handle%).animstart = startcell% '                                       set sprite's starting animation cell
     sprite(handle%).animend = endcell% '                                           set sprite's ending animation cell
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITESET (handle%, cell%)
+SUB SPRITESET (handle%, cell%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Sets a sprite's image to a new image number on sprite sheet.               |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1482,21 +1350,17 @@ Sub SPRITESET (handle%, cell%)
     '| Sets  : sprite().currentcell to equal the cell number passed in.           |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESET: The sprite specified does not exist." '                  no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESET", 100 '                is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESET", 101 '               is this sprite handle in use?
     sprite(handle%).currentcell = cell% '                                          set sprite's image to new sheet image number
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITEAY (handle%)
+FUNCTION SPRITEAY (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the actual y location of a sprite.                                 |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1507,21 +1371,17 @@ Function SPRITEAY (handle%)
     '| Output: a single value indicating the actual y position of the sprite.     |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEAY: The sprite specified does not exist." '                   no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEAY", 100 '                 is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEAY", 101 '                is this sprite handle in use?
     SPRITEAY = sprite(handle%).actualy '                                           report back with sprite's actual y location
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEAX (handle%)
+FUNCTION SPRITEAX (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the actual x location of a sprite.                                 |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1532,21 +1392,17 @@ Function SPRITEAX (handle%)
     '| Output: a single value indicating the actual x position of the sprite.     |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEAX: The sprite specified does not exist." '                   no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEAX", 100 '                 is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEAX", 101 '                is this sprite handle in use?
     SPRITEAX = sprite(handle%).actualx '                                           report back with sprite's screen x location
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEY (handle%)
+FUNCTION SPRITEY (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the screen y location of a sprite.                                 |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1557,21 +1413,17 @@ Function SPRITEY (handle%)
     '| Output: an integer value indicating the y screen position of the sprite.   |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEY: The sprite specified does not exist." '                    no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEY", 100 '                  is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEY", 101 '                 is this sprite handle in use?
     SPRITEY = sprite(handle%).currenty '                                           report back with sprite's screen y location
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEX (handle%)
+FUNCTION SPRITEX (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Returns the screen x location of a sprite.                                 |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1582,21 +1434,17 @@ Function SPRITEX (handle%)
     '| Output: an integer value indicating the x screen position of the sprite.   |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEX: The sprite specified does not exist." '                    no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEX", 100 '                  is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEX", 101 '                 is this sprite handle in use?
     SPRITEX = sprite(handle%).currentx '                                           report back with sprite's screen x location
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEROTATION (handle%)
+FUNCTION SPRITEROTATION (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Gets the current rotation angle of a sprite in degrees.                    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1607,21 +1455,17 @@ Function SPRITEROTATION (handle%)
     '| Output: a single value between 0 and 359.99..                              |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEROTATION: The sprite specified does not exist." '             no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEROTATION", 100 '           is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEROTATION", 101 '          is this sprite handle in use?
     SPRITEROTATION = sprite(handle%).rotation '                                    report back with sprite's rotation angle
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Sub SPRITESHOW (handle%)
+SUB SPRITESHOW (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Unhides a sprite from view.                                                |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1634,24 +1478,20 @@ Sub SPRITESHOW (handle%)
     '| Sets  : sprite().visible to equal -1.                                      |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITESHOW: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If Not sprite(handle%).visible Then '                                          is sprite currently hidden?
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITESHOW", 100 '               is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITESHOW", 101 '              is this sprite handle in use?
+    IF NOT sprite(handle%).visible THEN '                                          is sprite currently hidden?
         sprite(handle%).visible = -1 '                                             yes, set sprite as being visible
         SPRITEPUT sprite(handle%).currentx, sprite(handle%).currenty, handle% '    put sprite back on screen
-    End If
+    END IF
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEHIDE (handle%)
+SUB SPRITEHIDE (handle%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Hides a sprite from view.                                                  |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1666,32 +1506,23 @@ Sub SPRITEHIDE (handle%)
     '|          * redundant?                                                      |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEHIDE: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If Not sprite(handle%).restore Then '                                          is this sprite saving the background?
-        Print "SPRITEHIDE: Only sprites that save the background can be hidden." ' no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If sprite(handle%).onscreen Then '                                             yes, is the sprite onscreen?
-        _PutImage (sprite(handle%).backx, sprite(handle%).backy), sprite(handle%).background ' restore background
-        _FreeImage sprite(handle%).background '                                    free the sprite's background image
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEHIDE", 100 '               is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEHIDE", 101 '              is this sprite handle in use?
+    IF NOT sprite(handle%).restore THEN SPRITEERROR "SPRITEHIDE", 102 '            can the sprite be hidden?
+    IF sprite(handle%).onscreen THEN '                                             yes, is the sprite onscreen?
+        _PUTIMAGE (sprite(handle%).backx, sprite(handle%).backy), sprite(handle%).background ' restore background
+        _FREEIMAGE sprite(handle%).background '                                    free the sprite's background image
         sprite(handle%).onscreen = 0 '                                             sprite is no longer on the screen
-    End If
+    END IF
     sprite(handle%).visible = 0 '                                                  set sprite as being hidden
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEZOOM (handle%, zoom%)
+SUB SPRITEZOOM (handle%, zoom%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Change the size (zoom level) of a sprite.                                  |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1705,27 +1536,18 @@ Sub SPRITEZOOM (handle%, zoom%)
     '| Sets  : sprite().zoom to equal the zoom value passed in.                   |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEZOOM: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If Not zoom% > 0 Then '                                                        is zoom value greater than 0?
-        Print "SPRITEZOOM: zoom value must be greater than 0" '                    no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEZOOM", 100 '               is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEZOOM", 101 '              is this sprite handle in use?
+    IF zoom% < 1 THEN SPRITEERROR "SPRITEZOOM", 103 '                              is zoom value valid?
     sprite(handle%).zoom = zoom% '                                                 set the sprite's zoom level
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEROTATE (handle%, degrees!)
+SUB SPRITEROTATE (handle%, degrees!)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Rotates a sprite from 0 to 360 degrees.                                    |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1739,27 +1561,18 @@ Sub SPRITEROTATE (handle%, degrees!)
     '| Sets  : sprite().rotation to equal the rotation degrees passed in.         |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEROTATE: The sprite specified does not exist." '               no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If (degrees! < 0) Or (Not degrees! < 360) Then '                               is the degree angle within limits?
-        Print "SPRITEROTATE: Degree angle outside allowed range." '                no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEROTATE", 100 '             is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEROTATE", 101 '            is this sprite handle in use?
+    IF (degrees! < 0) OR (degrees! > 360) THEN SPRITEERROR "SPRITEROTATE", 104 '   is angle within valid range?
     sprite(handle%).rotation = degrees! '                                          set sprite degree angle
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Sub SPRITEFLIP (handle%, behavior%)
+SUB SPRITEFLIP (handle%, behavior%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Flips a sprite horizontaly, verticaly, both or resets to no flipping.      |                     - NOTES -                     |
     '|                                                                            | - Specifying a sprite that does not exist will    |
@@ -1777,31 +1590,22 @@ Sub SPRITEFLIP (handle%, behavior%)
     '| Sets  : sprite().flip to equal the bevaior number passed in.               |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    If Not sprite(handle%).inuse Then '                                            is this sprite handle in use?
-        Print "SPRITEFLIP: The sprite specified does not exist." '                 no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
-    If behavior% < 0 Or behavior% > 3 Then '                                       was a valid flipping behavior passed in?
-        Print "SPRITEFLIP: Invalid flip behavior specified." '                     no, report error to the programmer
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program execution
-    End If
+    IF handle% > UBOUND(sprite) THEN SPRITEERROR "SPRITEFLIP", 100 '               is this an invalid sprite handle?
+    IF NOT sprite(handle%).inuse THEN SPRITEERROR "SPRITEFLIP", 101 '              is this sprite handle in use?
+    IF behavior% < 0 OR behavior% > 3 THEN SPRITEERROR "SPRITEFLIP", 105 '         is this a valid behavior?
     sprite(handle%).flip = behavior% '                                             save the new flipping behavior to the sprite
 
-End Sub
+END SUB
 
 '##################################################################################################################################
 
-Function SPRITENEW (sheet%, cell%, behavior%)
+FUNCTION SPRITENEW (sheet%, cell%, behavior%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Creates a new sprite given the sheet and images that make up the sprite.   |                     - NOTES -                     |
     '|                                                                            | - Specifying a sheet that does not exist will     |
-    '| Usage : mysprite% = SPRITENEW(mysheet%, 1, 4, -1)                          |   result in the function reporting an error and   |
+    '| Usage : mysprite% = SPRITENEW(mysheet%, 1, -1)                             |   result in the function reporting an error and   |
     '|                                                                            |   halting program execution.                      |
     '| Input : sheet%     - the sprite sheet the images reside on.                | - The constants SAVE and DONTSAVE have been       |
     '|         cell%      - the first image in the animation set.                 |   created to be used with this function.          |
@@ -1815,25 +1619,21 @@ Function SPRITENEW (sheet%, cell%, behavior%)
     '| Sets  : all variables associated with sprite().*                           |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
 
-    Shared sheet() As SHEET '                                                      array defining sprite sheets
-    Shared sprite() As SPRITE '                                                    array defining sprites
+    SHARED sheet() AS SHEET '                                                      array defining sprite sheets
+    SHARED sprite() AS SPRITE '                                                    array defining sprites
 
-    Dim handle% '                                                                  handle number of new sprite
+    DIM handle% '                                                                  handle number of new sprite
 
-    If Not sheet(sheet%).inuse Then '                                              is the specified sprite sheet in use?
-        Print "SPRITENEW: The sprite sheet specified does not exist." '            no, inform user of the error
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort the program
-    End If
+    IF sheet% > UBOUND(sheet) THEN SPRITEERROR "SPRITENEW", 106 '                  is this an invalid sheet handle?
+    IF NOT sheet(sheet%).inuse THEN SPRITEERROR "SPRITENEW", 107 '                 is this sheet handle in use?
     handle% = 0 '                                                                  initialize handle value
-    Do '                                                                           look for the next available handle
+    DO '                                                                           look for the next available handle
         handle% = handle% + 1 '                                                    increment the handle value
-    Loop Until (Not sprite(handle%).inuse) Or handle% = UBound(sprite) '           stop looking when valid handle value found
-    If sprite(handle%).inuse Then '                                                is the last array element in use?
+    LOOP UNTIL (NOT sprite(handle%).inuse) OR handle% = UBOUND(sprite) '           stop looking when valid handle value found
+    IF sprite(handle%).inuse THEN '                                                is the last array element in use?
         handle% = handle% + 1 '                                                    yes, increment the handle value
-        ReDim _Preserve sprite(handle%) As SPRITE '                                increase the size of sprite array
-    End If
+        REDIM _PRESERVE sprite(handle%) AS SPRITE '                                increase the size of sprite array
+    END IF
     sprite(handle%).inuse = -1 '                                                   mark this element as being used
     sprite(handle%).sheet = sheet% '                                               sprite sheet graphics can be found on
     sprite(handle%).currentcell = cell% '                                          reset first image as default
@@ -1886,11 +1686,11 @@ Function SPRITENEW (sheet%, cell%, behavior%)
     sprite(handle%).spindir = 0
     SPRITENEW = handle% '                                                          return the handle number pointing to this sprite
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITESHEETLOAD (filename$, spritewidth%, spriteheight%, transparent&)
+FUNCTION SPRITESHEETLOAD (filename$, spritewidth%, spriteheight%, transparent&)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
     '| Loads a sprite sheet into the sprite sheet array and assigns an integer    |                     - NOTES -                     |
     '| handle value pointing to the sheet.                                        | - Specifying a transparent color less than 0 will |
@@ -1916,97 +1716,127 @@ Function SPRITESHEETLOAD (filename$, spritewidth%, spriteheight%, transparent&)
     '|               is going to be added in a later revision of the library. Use transparent PNG files for now for transparency.     |
     '+--------------------------------------------------------------------------------------------------------------------------------+
 
-    Shared sheet() As SHEET '                                                      array defining sprite sheets
+    SHARED sheet() AS SHEET '                                                      array defining sprite sheets
 
-    Dim handle% '                                                                  handle number of new sprite sheet
-    Dim x%
-    Dim y%
-    Dim pixel&, alpha&
+    DIM handle% '                                                                  handle number of new sprite sheet
+    DIM x%
+    DIM y%
+    DIM pixel&
+    DIM alpha&
 
-    If Not SPRITEFILEEXISTS(filename$) Then '                                      does the sprite sheet exist?
-        Print "SPRITESHEETLOAD: The sheet named "; filename$; " does not exist." ' no, inform the user of error
-        _Display '                                                                 make sure programmer sees error
-        Sleep '                                                                    wait for a key press
-        System '                                                                   abort program
-    End If
+    IF NOT _FILEEXISTS(filename$) THEN SPRITEERROR "SPRITESHEETLOAD", 106 '        does the sprite sheet exist?
     handle% = 0 '                                                                  initialize handle value
-    Do '                                                                           look for the next available handle
+    DO '                                                                           look for the next available handle
         handle% = handle% + 1 '                                                    increment the handle value
-    Loop Until (Not sheet(handle%).inuse) Or handle% = UBound(sheet) '             stop looking when valid handle value found
-    If sheet(handle%).inuse Then '                                                 is the last array element in use?
+    LOOP UNTIL (NOT sheet(handle%).inuse) OR handle% = UBOUND(sheet) '             stop looking when valid handle value found
+    IF sheet(handle%).inuse THEN '                                                 is the last array element in use?
         handle% = handle% + 1 '                                                    yes, increment the handle value
-        ReDim _Preserve sheet(handle%) As SHEET '                                  increase the size of sprite sheet array
-    End If
-    sheet(handle%).sheetimage = _LoadImage(filename$, 32) '                        assign the image to the array
+        REDIM _PRESERVE sheet(handle%) AS SHEET '                                  increase the size of sprite sheet array
+    END IF
+    sheet(handle%).sheetimage = _LOADIMAGE(filename$, 32) '                        assign the image to the array
     sheet(handle%).inuse = -1 '                                                    mark this element as being used
-    sheet(handle%).sheetwidth = _Width(sheet(handle%).sheetimage) '                save the width of the sprite sheet
-    sheet(handle%).sheetheight = _Height(sheet(handle%).sheetimage) '              save the height of the sprite sheet
+    sheet(handle%).sheetwidth = _WIDTH(sheet(handle%).sheetimage) '                save the width of the sprite sheet
+    sheet(handle%).sheetheight = _HEIGHT(sheet(handle%).sheetimage) '              save the height of the sprite sheet
     sheet(handle%).spritewidth = spritewidth% '                                    save the width of each sprite
     sheet(handle%).spriteheight = spriteheight% '                                  save the height of each sprite
     sheet(handle%).columns = sheet(handle%).sheetwidth / spritewidth% '            number of sprite columns on sheet
-    Select Case transparent& '                                                     which type of transparency selected?
-        Case -2 '                                     (constant AUTOTRANSPARENCY)  auto discover the transparency color
+    SELECT CASE transparent& '                                                     which type of transparency selected?
+        CASE -2 '                                     (constant AUTOTRANSPARENCY)  auto discover the transparency color
             x% = 0 '                                                               start at upper left x of sheet
             y% = 0 '                                                               start at upper left y of sheet
-            _Source sheet(handle%).sheetimage '                                    set the sprite sheet image as the source image
-            Do '                                                                   start looping through the sheet's pixels
-                pixel& = Point(x%, y%) '                                           get the pixel's color attributes
-                alpha& = _Alpha32(pixel&) '                                        get the alpha level (0 - 255)
-                If alpha& = 0 Then Exit Do '                                       if it is transparent then leave the loop
+            _SOURCE sheet(handle%).sheetimage '                                    set the sprite sheet image as the source image
+            DO '                                                                   start looping through the sheet's pixels
+                pixel& = POINT(x%, y%) '                                           get the pixel's color attributes
+                alpha& = _ALPHA32(pixel&) '                                        get the alpha level (0 - 255)
+                IF alpha& = 0 THEN EXIT DO '                                       if it is transparent then leave the loop
                 x% = x% + 1 '                                                      move right one pixel
-                If x% > sheet(handle%).sheetwidth Then '                           have we gone off the sheet?
+                IF x% > sheet(handle%).sheetwidth THEN '                           have we gone off the sheet?
                     x% = 0 '                                                       yes, reset back to the left beginning
                     y% = y% + 1 '                                                  move down one pixel
-                End If
-            Loop Until y% > sheet(handle%).sheetheight '                           don't stop until the entire sheet has been checked
-            If alpha& = 0 Then '                                                   did we find a transparent pixel?
+                END IF
+            LOOP UNTIL y% > sheet(handle%).sheetheight '                           don't stop until the entire sheet has been checked
+            IF alpha& = 0 THEN '                                                   did we find a transparent pixel?
                 sheet(handle%).transparent = pixel& '                              yes, set the sheet's transparency to this color
-            Else '                                                                 there was no transparent pixel found
+            ELSE '                                                                 there was no transparent pixel found
                 sheet(handle%).transparent = -1 '                                  set as having no transparency layer
-            End If
-            _Source 0 '                                                            set the source back to the screen
-        Case -1 '                                     (constant NOTRANSPARENCY)    sheet has no transparency layer
+            END IF
+            _SOURCE 0 '                                                            set the source back to the screen
+        CASE -1 '                                     (constant NOTRANSPARENCY)    sheet has no transparency layer
             sheet(handle%).transparent = -1 '                                      set as having no transparency layer
-        Case Else '                                                                transparency layer specified by programmer
+        CASE ELSE '                                                                transparency layer specified by programmer
             sheet(handle%).transparent = transparent& '                            set transparency layer color
-    End Select
+    END SELECT
     SPRITESHEETLOAD = handle% '                                                    return the handle number pointing to this sheet
 
-End Function
+END FUNCTION
 
 '##################################################################################################################################
 
-Function SPRITEFILEEXISTS (filename$)
+SUB SPRITEERROR (routine$, errno%)
     '+----------------------------------------------------------------------------+---------------------------------------------------+
-    '| Checks for the existance of the file specified.                            |                     - NOTES -                     |
-    '|                                                                            | - If the file does not exist the temporary file   |
-    '| Usage : exists% = SPRITEFILEEXISTS("sprites.png")                          |   created by the function will be erased.         |
-    '|                                                                            | - It is ok to add the drive letter and path       |
-    '| Input : filename$ - the name of the file to check for existance.           |   before the actual file name.                    |
-    '|                                                                            | - This function may soon be replaced by the newly |
-    '| Output: Boolean value of 0 (false) if not exist and -1 (true) if exists.   |   announced _FILEEXISTS command to be released.   |
+    '| Reports a Sprite Library error to the programmer. Used internally only.    |                     - NOTES -                     |
+    '|                                                                            | This routine will report the error to the         |
+    '| Input : errno%                                                             | programmer and end the program.                   |
+    '|         100 - sprite does not exist                                        |                                                   |
+    '|         101 - sprite is not in use                                         |                                                   |
+    '|         102 - sprite can't be hidden                                       |                                                   |
+    '|         103 - invalid zoom value                                           |                                                   |
+    '|         104 - invalid rotation angle                                       |                                                   |
+    '|         105 - invalid flipping behavior                                    |                                                   |
+    '|         106 - sheet does not exist                                         |                                                   |
+    '|         107 - sheet is not in use                                          |                                                   |
+    '|                                                                            |                                                   |
     '+----------------------------------------------------------------------------+---------------------------------------------------+
-    '| Credits: This code was adapted from a posting on QB64's forum on June 21st of 2010. Clippy made the suggestion of writing this |
-    '|          function a better way, which was incorporated: http://www.qb64.net/forum/index.php?topic=997.0                        |
+    '| Credits: This routine was created in response to a request from QB64 member pitt                                               |
+    '|          http://www.qb64.net/forum/index.php?topic=7281.0                                                                      |
     '+--------------------------------------------------------------------------------------------------------------------------------+
 
-    Dim filenum% '                                                                 the file access number of file to open
+    SCREEN 0, 0, 0, 0 '                                                            go to a pure text screen
+    _FONT 16 '                                                                     set the standard screen 0 font
+    IF _FULLSCREEN THEN _FULLSCREEN _OFF '                                         turn off full screen if on
+    _AUTODISPLAY '                                                                 auto update the display
+    CLS '                                                                          clear the screen
+    PRINT "**" '                                                                   print error header
+    PRINT "** Sprite Library error encountered"
+    PRINT "**"
+    PRINT
+    PRINT routine$; " has reported the following error:" '                         print sub/function reporting the error
+    PRINT
+    SELECT CASE errno% '                                                           which error number is being reported?
+        CASE 100
+            PRINT "- the specified sprite does not exist"
+            PRINT "- it was either never created or removed with SPRITEFREE"
+        CASE 101
+            PRINT "- the specified sprite is not in use"
+            PRINT "- it was probably removed with SPRITEFREE"
+        CASE 102
+            PRINT "- the specified sprite can't be hidden"
+            PRINT "- change the sprite's behavior in SPRITENEW to save background"
+        CASE 103
+            PRINT "- the zoom value specified must be greater than zero"
+        CASE 104
+            PRINT "- the angle specified must be 0 to 360"
+        CASE 105
+            PRINT "- invalid flipping behavior specified"
+            PRINT "-   0 = no flipping     (constant NONE)"
+            PRINT "-   1 = flip horizontal (constant HORIZONTAL)"
+            PRINT "-   2 = flip vertical   (constant VERTICAL)"
+            PRINT "-   3 = flip both       (constant BOTH)"
+        CASE 106
+            PRINT "- the specified sprite sheet does not exist"
+        CASE 107
+            PRINT "- the specified sprite sheet is not in use"
+    END SELECT
+    DO: LOOP UNTIL INKEY$ = "" '                                                   clear the keyboard buffer
+    END '                                                                          end the program
 
-    filenum% = FreeFile '                                                          get the next available free file access number
+END SUB
 
-    SPRITEFILEEXISTS = -1 '                                                        assume the file exists
-    Open filename$ For Append As #filenum% '                                       open the file for append access
-    If LOF(filenum%) Then '                                                        does the file contain any data?
-        Close #filenum% '                                                          yes, it exists, close the file
-    Else '                                                                         no, the file contains no data
-        Close #filenum% '                                                          close the file
-        SPRITEFILEEXISTS = 0 '                                                     report that the file does not exist
-        Kill filename$ '                                                           clean the drive of temporary file created
-    End If
-
-End Function
 
 '##################################################################################################################################
+
+
+
 '+----------------------------------------------------------------------------+---------------------------------------------------+
 '| <blank>                                                                    |                     - NOTES -                     |
 '|                                                                            | -                                                 |

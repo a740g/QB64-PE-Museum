@@ -24,9 +24,9 @@
 '*                                                                            *
 '******************************************************************************
 
-$Unstable:Midi
-$MidiSoundFont:Default
-Option _Explicit
+$UNSTABLE:MIDI
+$MIDISOUNDFONT:DEFAULT
+OPTION _EXPLICIT
 
 '******************************************************************************
 '* The game utilizes my sprite library                                        *
@@ -35,56 +35,56 @@ Option _Explicit
 '*                                                                            *
 '******************************************************************************
 
-Const FALSE = 0, TRUE = Not FALSE
-Const BLACK = 0, RED = 1, EMPTY = 2 '                                          player and checkers on board flags
-Const HUMAN = -1 '                                                             tells checker drop routine human is dropping checker
-Const FULL = -32767 '                                                          used to indicate a full column of checkers
-Const MAX = 1000000 '                                                          maximum score for min/max recursive routine
+CONST FALSE = 0, TRUE = NOT FALSE
+CONST BLACK = 0, RED = 1, EMPTY = 2 '                                          player and checkers on board flags
+CONST HUMAN = -1 '                                                             tells checker drop routine human is dropping checker
+CONST FULL = -32767 '                                                          used to indicate a full column of checkers
+CONST MAX = 1000000 '                                                          maximum score for min/max recursive routine
 
-Type CELL '                                                                    used to keep track of graphics characteristics of board
-    x As Integer '                                                             x location of graphics cell
-    y As Integer '                                                             y location of graphics cell
-    c As Integer '                                                             color of checker in cell (0 = black, 1 = red, 2 = none)
-    f As Integer '                                                             which side of checker is facing (0 = front, 1 = back)
-End Type
+TYPE CELL '                                                                    used to keep track of graphics characteristics of board
+    x AS INTEGER '                                                             x location of graphics cell
+    y AS INTEGER '                                                             y location of graphics cell
+    c AS INTEGER '                                                             color of checker in cell (0 = black, 1 = red, 2 = none)
+    f AS INTEGER '                                                             which side of checker is facing (0 = front, 1 = back)
+END TYPE
 
-ReDim BoardStack%(0, 6, 5) '                                                   game board stack holding past board states
-Dim CheckerSheet% '                                                            sprite sheet containing checker images
-Dim MenuSheet% '                                                               sprite sheet containing menu options
-Dim Menu%(4, 1) '                                                              handles holding menu option graphics
-Dim MenuY%(4) '                                                                menu graphic vertical locations
-Dim Cell(6, 5) As CELL '                                                       graphics setup of game board
-Dim WinCells%(3, 1) '                                                          location of four checkers in a row on board
-Dim LastRow% '                                                                 remembers last row checker dropped into
-Dim LastColumn% '                                                              remembers last column checker dropped into
-Dim CheckersDropped% '                                                         number of checkers dropped in game
-Dim ColumnVal&(6) '                                                            column scores
-Dim Winner%(3) '                                                               sprites containing banner messages
-Dim WinSpin%(1, 3) '                                                           sprites containing winning spinning checkers
-Dim SoundOption% '                                                             determines if sound turned on/off
-Dim MusicOption% '                                                             determines if music turned on/off
-Dim MenuMusic& '                                                               handle containing menu music
-Dim Win&(1) '                                                                  handles containing winning applause sounds
-Dim Lose& '                                                                    handle containing losing sound
-Dim Board%(6, 5) '                                                             the current board state
-Dim Options%(4, 5) '                                                           sprites containing the options menu
-Dim Depth% '                                                                   the depth of look ahead recursive min/max on
-Dim Checker%(2, 1) '                                                           handles holding static checker images
-Dim SpinChecker%(1) '                                                          handles holding black and red spinning checker images
-Dim MarqueeChecker%(1) '                                                       handles holding small checkers for marquee
-Dim board& '                                                                   handle holding image of game board
-Dim CellImage% '                                                               handle holding sprite image of single cell on board
-Dim CellBlank% '                                                               handle holding sprite image of blue background box
-Dim Click& '                                                                   handle holding click sound of checker hitting chekcer
-Dim Drop& '                                                                    handle holding drop sound of first checker being dropped
-Dim Slide& '                                                                   handle holding sliding sound of checker dropping
-Dim TitleMusic& '                                                              handle holding title music used in intro sequence
-Dim GameMusic& '                                                               handle holding game music
-Dim TitleMode% '                                                               flag telling other routines when title sequence running
-Dim MenuImage& '                                                               handle holding image of menu screen
-Dim MenuOption% '                                                              the menu option selected
-Dim GameOver% '                                                                flag to set when game is over
-Dim GameLevel% '                                                               level of game play chosen by player
+REDIM BoardStack%(0, 6, 5) '                                                   game board stack holding past board states
+DIM CheckerSheet% '                                                            sprite sheet containing checker images
+DIM MenuSheet% '                                                               sprite sheet containing menu options
+DIM Menu%(4, 1) '                                                              handles holding menu option graphics
+DIM MenuY%(4) '                                                                menu graphic vertical locations
+DIM Cell(6, 5) AS CELL '                                                       graphics setup of game board
+DIM WinCells%(3, 1) '                                                          location of four checkers in a row on board
+DIM LastRow% '                                                                 remembers last row checker dropped into
+DIM LastColumn% '                                                              remembers last column checker dropped into
+DIM CheckersDropped% '                                                         number of checkers dropped in game
+DIM ColumnVal&(6) '                                                            column scores
+DIM Winner%(3) '                                                               sprites containing banner messages
+DIM WinSpin%(1, 3) '                                                           sprites containing winning spinning checkers
+DIM SoundOption% '                                                             determines if sound turned on/off
+DIM MusicOption% '                                                             determines if music turned on/off
+DIM MenuMusic& '                                                               handle containing menu music
+DIM Win&(1) '                                                                  handles containing winning applause sounds
+DIM Lose& '                                                                    handle containing losing sound
+DIM Board%(6, 5) '                                                             the current board state
+DIM Options%(4, 5) '                                                           sprites containing the options menu
+DIM Depth% '                                                                   the depth of look ahead recursive min/max on
+DIM Checker%(2, 1) '                                                           handles holding static checker images
+DIM SpinChecker%(1) '                                                          handles holding black and red spinning checker images
+DIM MarqueeChecker%(1) '                                                       handles holding small checkers for marquee
+DIM board& '                                                                   handle holding image of game board
+DIM CellImage% '                                                               handle holding sprite image of single cell on board
+DIM CellBlank% '                                                               handle holding sprite image of blue background box
+DIM Click& '                                                                   handle holding click sound of checker hitting chekcer
+DIM Drop& '                                                                    handle holding drop sound of first checker being dropped
+DIM Slide& '                                                                   handle holding sliding sound of checker dropping
+DIM TitleMusic& '                                                              handle holding title music used in intro sequence
+DIM GameMusic& '                                                               handle holding game music
+DIM TitleMode% '                                                               flag telling other routines when title sequence running
+DIM MenuImage& '                                                               handle holding image of menu screen
+DIM MenuOption% '                                                              the menu option selected
+DIM GameOver% '                                                                flag to set when game is over
+DIM GameLevel% '                                                               level of game play chosen by player
 
 '******************************************************************************
 '*                                                                            *
@@ -95,127 +95,127 @@ Dim GameLevel% '                                                               l
 CreateAssets '                                                                 Create the games graphics and sounds
 InitializeVariables '                                                          set variables to initial state
 TitleSequence '                                                                display the title sequence
-Do
-    If MusicOption% And Not _SndPlaying(MenuMusic&) Then _SndLoop MenuMusic&
+DO
+    IF MusicOption% AND NOT _SNDPLAYING(MenuMusic&) THEN _SNDLOOP MenuMusic&
     MenuOption% = MainMenu% '                                                  get the menu option player selects
-    If MenuOption% = 4 Then System '                                           player has chosen to quit
-    If MenuOption% = 3 Then SetOptions '                                       player has chosen to change/display options
-    If MenuOption% < 3 Then '                                                  player has chosen to play a game
-        If MusicOption% Then _SndStop MenuMusic&
+    IF MenuOption% = 4 THEN SYSTEM '                                           player has chosen to quit
+    IF MenuOption% = 3 THEN SetOptions '                                       player has chosen to change/display options
+    IF MenuOption% < 3 THEN '                                                  player has chosen to play a game
+        IF MusicOption% THEN _SNDSTOP MenuMusic&
         NewGame '                                                              set game variables to initial state
         DrawBoard '                                                            draw the game board
-        If MusicOption% Then _SndLoop GameMusic&
-        If MenuOption% = 2 Then '                                              player chose 2 player game
-            Do
+        IF MusicOption% THEN _SNDLOOP GameMusic&
+        IF MenuOption% = 2 THEN '                                              player chose 2 player game
+            DO
                 MoveChecker BLACK, HUMAN '                                     allow player 1 to make move
                 CheckersDropped% = CheckersDropped% + 1 '                      increment dropped checker counter
                 StackInit '                                                    save the state of board in stack
-                If CheckFour% = BLACK Then GameOver% = TRUE '                  if player got 4 in row then game over
-                If Not GameOver% Then '                                        is the game over?
+                IF CheckFour% = BLACK THEN GameOver% = TRUE '                  if player got 4 in row then game over
+                IF NOT GameOver% THEN '                                        is the game over?
                     MoveChecker RED, HUMAN '                                   no, allow player 2 to make move
                     CheckersDropped% = CheckersDropped% + 1 '                  increment dropped checker counter
                     StackInit '                                                save the state of board in stack
-                    If CheckFour% = RED Then GameOver% = TRUE '                if player got 4 in row then game over
-                End If
-            Loop Until GameOver% Or CheckersDropped% = 42 '                    keep playing until win/lose/draw
-        Else '                                                                 player chose 1 player game
-            Do
+                    IF CheckFour% = RED THEN GameOver% = TRUE '                if player got 4 in row then game over
+                END IF
+            LOOP UNTIL GameOver% OR CheckersDropped% = 42 '                    keep playing until win/lose/draw
+        ELSE '                                                                 player chose 1 player game
+            DO
                 MoveChecker BLACK, HUMAN '                                     allow player 1 to make move
                 CheckersDropped% = CheckersDropped% + 1 '                      increment dropped checker counter
                 StackInit '                                                    save the state of board in stack
-                If CheckFour% = BLACK Then GameOver% = TRUE '                  if player got 4 in row then game over
-                If Not GameOver% Then MoveChecker RED, BestMove% '             if game not over allow computer to make move
+                IF CheckFour% = BLACK THEN GameOver% = TRUE '                  if player got 4 in row then game over
+                IF NOT GameOver% THEN MoveChecker RED, BestMove% '             if game not over allow computer to make move
                 CheckersDropped% = CheckersDropped% + 1 '                      increment dropped checker counter
-            Loop Until GameOver% Or CheckersDropped% = 42 '                    keep playing until win/lose/draw
-        End If
-        If MusicOption% Then _SndStop GameMusic& '                             stop game music if necessary
-    End If
-    If GameOver% Or CheckersDropped% = 42 Then '                               game over?
+            LOOP UNTIL GameOver% OR CheckersDropped% = 42 '                    keep playing until win/lose/draw
+        END IF
+        IF MusicOption% THEN _SNDSTOP GameMusic& '                             stop game music if necessary
+    END IF
+    IF GameOver% OR CheckersDropped% = 42 THEN '                               game over?
         ShowWinner '                                                           show the winner or draw
         GameOver% = FALSE '                                                    yes, reset game over flag
-    End If
-Loop
+    END IF
+LOOP
 
 '******************************************************************************
 
-Sub PushState ()
+SUB PushState ()
     '******************************************************************************
     '*                                                                            *
     '* Pushes the state of the playing board onto the LIFO stack                  *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     row counter
-    Dim Column% '                                                                  column counter
+    DIM Row% '                                                                     row counter
+    DIM Column% '                                                                  column counter
 
-    Shared Board%()
-    Shared BoardStack%()
-    Shared Depth%
+    SHARED Board%()
+    SHARED BoardStack%()
+    SHARED Depth%
 
-    Depth% = UBound(BoardStack%) + 1 '                                             get new upper stack limit
-    ReDim _Preserve BoardStack%(Depth%, 6, 5) '                                    increase stack array
-    For Column% = 0 To 6 '                                                         cycle through all columns
-        For Row% = 0 To 5 '                                                        cycle through all rows
+    Depth% = UBOUND(BoardStack%) + 1 '                                             get new upper stack limit
+    REDIM _PRESERVE BoardStack%(Depth%, 6, 5) '                                    increase stack array
+    FOR Column% = 0 TO 6 '                                                         cycle through all columns
+        FOR Row% = 0 TO 5 '                                                        cycle through all rows
             BoardStack%(Depth%, Column%, Row%) = Board%(Column%, Row%) '           copy current board state to stack array
-        Next Row%
-    Next Column%
+        NEXT Row%
+    NEXT Column%
 
     '******************************************************************************
-End Sub
+END SUB
 
-Sub PopState ()
+SUB PopState ()
     '******************************************************************************
     '*                                                                            *
     '* Pops the previous state of the playing board from the LIFO stack           *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     row counter
-    Dim Column% '                                                                  column counter
+    DIM Row% '                                                                     row counter
+    DIM Column% '                                                                  column counter
 
-    Shared Board%()
-    Shared BoardStack%()
-    Shared Depth%
+    SHARED Board%()
+    SHARED BoardStack%()
+    SHARED Depth%
 
-    For Column% = 0 To 6 '                                                         cycle through all columns
-        For Row% = 0 To 5 '                                                        cycle through all rows
+    FOR Column% = 0 TO 6 '                                                         cycle through all columns
+        FOR Row% = 0 TO 5 '                                                        cycle through all rows
             Board%(Column%, Row%) = BoardStack%(Depth%, Column%, Row%) '           get previous board state from stack array
-        Next Row%
-    Next Column%
-    Depth% = UBound(BoardStack%) - 1 '                                             get new upper stack limit
-    ReDim _Preserve BoardStack%(Depth%, 6, 5) '                                    decrease stack array
+        NEXT Row%
+    NEXT Column%
+    Depth% = UBOUND(BoardStack%) - 1 '                                             get new upper stack limit
+    REDIM _PRESERVE BoardStack%(Depth%, 6, 5) '                                    decrease stack array
 
     '******************************************************************************
-End Sub
+END SUB
 
-Sub StackInit ()
+SUB StackInit ()
     '******************************************************************************
     '*                                                                            *
     '* Initializes the stack with current playing board information               *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     row counter
-    Dim Column% '                                                                  column counter
+    DIM Row% '                                                                     row counter
+    DIM Column% '                                                                  column counter
 
-    Shared Board%()
-    Shared Cell() As CELL
-    Shared Depth%
-    Shared BoardStack%()
+    SHARED Board%()
+    SHARED Cell() AS CELL
+    SHARED Depth%
+    SHARED BoardStack%()
 
-    ReDim BoardStack%(0, 6, 5) '                                                   clear stack
+    REDIM BoardStack%(0, 6, 5) '                                                   clear stack
 
     Depth% = 0 '                                                                   keep track of how deep stack is
-    For Column% = 0 To 6 '                                                         cycle through all columns
-        For Row% = 0 To 5 '                                                        cycle through all rows
+    FOR Column% = 0 TO 6 '                                                         cycle through all columns
+        FOR Row% = 0 TO 5 '                                                        cycle through all rows
             Board%(Column%, Row%) = Cell(Column%, Row%).c '                        get current playing board state
-        Next Row%
-    Next Column%
+        NEXT Row%
+    NEXT Column%
 
     '******************************************************************************
-End Sub
+END SUB
 
-Function BoardDrop% (Player%, DropColumn%)
+FUNCTION BoardDrop% (Player%, DropColumn%)
     '******************************************************************************
     '*                                                                            *
     '* Drops a checker into current board and returns the row number checker was  *
@@ -223,171 +223,171 @@ Function BoardDrop% (Player%, DropColumn%)
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     row counter
+    DIM Row% '                                                                     row counter
 
-    Shared Board%()
+    SHARED Board%()
 
     Row% = 0 '                                                                     start at bottom row
-    If Board%(DropColumn%, 5) <> EMPTY Then '                                      is the top row empty?
+    IF Board%(DropColumn%, 5) <> EMPTY THEN '                                      is the top row empty?
         BoardDrop% = -1 '                                                          no, set function to return column is full
-        Exit Function '                                                            leave function
-    Else '                                                                         yes, the top row is empty
-        Do While Board%(DropColumn%, Row%) <> EMPTY '                              is this board position empty?
+        EXIT FUNCTION '                                                            leave function
+    ELSE '                                                                         yes, the top row is empty
+        DO WHILE Board%(DropColumn%, Row%) <> EMPTY '                              is this board position empty?
             Row% = Row% + 1 '                                                      no, go to next row
-        Loop
+        LOOP
         Board%(DropColumn%, Row%) = Player% '                                      put the player's checker here
-    End If
+    END IF
     BoardDrop% = Row% '                                                            set function to return the row checker dropped into
 
     '******************************************************************************
-End Function
+END FUNCTION
 
-Sub NewGame ()
+SUB NewGame ()
     '******************************************************************************
     '*                                                                            *
     '* Set conditions for a new game                                              *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     current cell row
-    Dim Column% '                                                                  current cell column
+    DIM Row% '                                                                     current cell row
+    DIM Column% '                                                                  current cell column
 
-    Shared Cell() As CELL
-    Shared GameOver%
-    Shared CheckersDropped%
+    SHARED Cell() AS CELL
+    SHARED GameOver%
+    SHARED CheckersDropped%
 
     GameOver% = FALSE '                                                            reset game over flag
     CheckersDropped% = 0 '                                                         no checkers dropped yet
-    For Column% = 0 To 6 '                                                         cycle through all cell columns
-        For Row% = 0 To 5 '                                                        cycle through all cell rows
+    FOR Column% = 0 TO 6 '                                                         cycle through all cell columns
+        FOR Row% = 0 TO 5 '                                                        cycle through all cell rows
             Cell(Column%, Row%).c = EMPTY '                                        set spot on board to empty
-        Next Row%
-    Next Column%
+        NEXT Row%
+    NEXT Column%
 
     '******************************************************************************
-End Sub
+END SUB
 
-Sub SetOptions ()
+SUB SetOptions ()
     '******************************************************************************
     '*                                                                            *
     '* Set the game options                                                       *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Selection% '                                                               current menu selection
-    Dim Mcount% '                                                                  marquee counter
-    Dim ClearBuffer$ '                                                             clear keyboard input
-    Dim KeyPress$ '                                                                key user pressed
-    Dim SelectionMade% '                                                           true when finished with options
+    DIM Selection% '                                                               current menu selection
+    DIM Mcount% '                                                                  marquee counter
+    DIM ClearBuffer$ '                                                             clear keyboard input
+    DIM KeyPress$ '                                                                key user pressed
+    DIM SelectionMade% '                                                           true when finished with options
 
-    Shared Options%()
-    Shared GameLevel%
-    Shared MenuY%()
-    Shared SoundOption%
-    Shared MusicOption%
-    Shared SpinChecker%()
-    Shared MenuMusic&
+    SHARED Options%()
+    SHARED GameLevel%
+    SHARED MenuY%()
+    SHARED SoundOption%
+    SHARED MusicOption%
+    SHARED SpinChecker%()
+    SHARED MenuMusic&
 
     Selection% = 1 '                                                               start with first menu entry
     SelectionMade% = FALSE '                                                       stay in loop until options set
     SPRITESTAMP 349, MenuY%(1), Options%(1, 0) '                                   show 'Difficulty'
     SPRITESTAMP 349, MenuY%(2), Options%(2, GameLevel%) '                          show '1 2 3 4 5'
-    SPRITESTAMP 349, MenuY%(3), Options%(3, Abs(SoundOption%)) '                   show 'Sound On Off'
-    SPRITESTAMP 349, MenuY%(4), Options%(4, Abs(MusicOption%)) '                   show 'Music On Off'
-    Do
-        _Limit 36 '                                                                limit loop to 36 frames per second
-        If Selection% = 1 Then '                                                   currently on difficulty?
+    SPRITESTAMP 349, MenuY%(3), Options%(3, ABS(SoundOption%)) '                   show 'Sound On Off'
+    SPRITESTAMP 349, MenuY%(4), Options%(4, ABS(MusicOption%)) '                   show 'Music On Off'
+    DO
+        _LIMIT 36 '                                                                limit loop to 36 frames per second
+        IF Selection% = 1 THEN '                                                   currently on difficulty?
             SPRITESTAMP 349, MenuY%(1), Options%(1, 1) '                           yes, show highlighted
-        Else '                                                                     no
+        ELSE '                                                                     no
             SPRITESTAMP 349, MenuY%(1), Options%(1, 0) '                           show unhighlighted
-        End If
+        END IF
         SPRITESTAMP 349, MenuY%(2), Options%(2, GameLevel%) '                      show which level currently chosen
-        If Selection% = 2 Then '                                                   currently on sound?
-            SPRITESTAMP 349, MenuY%(3), Options%(3, Abs(SoundOption%) + 2) '       yes, show correct highlighted version
-        Else '                                                                     no
-            SPRITESTAMP 349, MenuY%(3), Options%(3, Abs(SoundOption%)) '           show correct unhighlighted version
-        End If
-        If Selection% = 3 Then '                                                   currently on music?
-            SPRITESTAMP 349, MenuY%(4), Options%(4, Abs(MusicOption%) + 2) '       yes, show correct highlighted version
-        Else '                                                                     no
-            SPRITESTAMP 349, MenuY%(4), Options%(4, Abs(MusicOption%)) '           show correct unhighlighted version
-        End If
+        IF Selection% = 2 THEN '                                                   currently on sound?
+            SPRITESTAMP 349, MenuY%(3), Options%(3, ABS(SoundOption%) + 2) '       yes, show correct highlighted version
+        ELSE '                                                                     no
+            SPRITESTAMP 349, MenuY%(3), Options%(3, ABS(SoundOption%)) '           show correct unhighlighted version
+        END IF
+        IF Selection% = 3 THEN '                                                   currently on music?
+            SPRITESTAMP 349, MenuY%(4), Options%(4, ABS(MusicOption%) + 2) '       yes, show correct highlighted version
+        ELSE '                                                                     no
+            SPRITESTAMP 349, MenuY%(4), Options%(4, ABS(MusicOption%)) '           show correct unhighlighted version
+        END IF
         SPRITEPUT 62, MenuY%(1), SpinChecker%(1) '                                 place red spinning checker on screen
         SPRITEPUT 636, MenuY%(1), SpinChecker%(0) '                                place black spinning checker on screen
         Mcount% = Mcount% + 1 '                                                    increment the marquee counter
-        If Mcount% = 9 Then '                                                      time to update the marquee (4 times per second)
+        IF Mcount% = 9 THEN '                                                      time to update the marquee (4 times per second)
             Mcount% = 1 '                                                          yes, reset the marquee counter
             Marquee '                                                              update the marquee
-        End If
-        _Display '                                                                 show all graphic updates on screen
-        Do
-            ClearBuffer$ = InKey$ '                                                get key in buffer
-            If ClearBuffer$ <> "" Then KeyPress$ = UCase$(ClearBuffer$) '          save the last key pressed
-        Loop Until ClearBuffer$ = "" '                                             keep looping until the buffer cleared
-        If Len(KeyPress$) > 1 Then KeyPress$ = Right$(KeyPress$, 1) '              strip control character from player input
-        Select Case KeyPress$ '                                                    which key was pressed?
-            Case Chr$(72) '                                                        up arrow key has been pressed
+        END IF
+        _DISPLAY '                                                                 show all graphic updates on screen
+        DO
+            ClearBuffer$ = INKEY$ '                                                get key in buffer
+            IF ClearBuffer$ <> "" THEN KeyPress$ = UCASE$(ClearBuffer$) '          save the last key pressed
+        LOOP UNTIL ClearBuffer$ = "" '                                             keep looping until the buffer cleared
+        IF LEN(KeyPress$) > 1 THEN KeyPress$ = RIGHT$(KeyPress$, 1) '              strip control character from player input
+        SELECT CASE KeyPress$ '                                                    which key was pressed?
+            CASE CHR$(72) '                                                        up arrow key has been pressed
                 Selection% = Selection% - 1 '                                      decrement the menu selection
-                If Selection% < 1 Then Selection% = 1 '                            if too low set to minimum
-            Case Chr$(80) '                                                        down arrow key has been pressed
+                IF Selection% < 1 THEN Selection% = 1 '                            if too low set to minimum
+            CASE CHR$(80) '                                                        down arrow key has been pressed
                 Selection% = Selection% + 1 '                                      increment the menu selection
-                If Selection% > 3 Then Selection% = 3 '                            if too high set to maximum
-            Case Chr$(77) '                                                        right arrow key has been pressed
-                If Selection% = 1 Then '                                           currently on difficulty?
+                IF Selection% > 3 THEN Selection% = 3 '                            if too high set to maximum
+            CASE CHR$(77) '                                                        right arrow key has been pressed
+                IF Selection% = 1 THEN '                                           currently on difficulty?
                     GameLevel% = GameLevel% + 1 '                                  yes, increment game play level
-                    If GameLevel% = 6 Then GameLevel% = 5 '                        if too high set to max
-                ElseIf Selection% = 2 Then '                                       currently on sound?
-                    SoundOption% = Not SoundOption% '                              yes, invert sound option
-                ElseIf Selection% = 3 Then '                                       currently on music?
-                    MusicOption% = Not MusicOption% '                              yes, invert music option
-                End If
-            Case Chr$(75) '                                                        left arrow key has been pressed
-                If Selection% = 1 Then '                                           currently on difficulty?
+                    IF GameLevel% = 6 THEN GameLevel% = 5 '                        if too high set to max
+                ELSEIF Selection% = 2 THEN '                                       currently on sound?
+                    SoundOption% = NOT SoundOption% '                              yes, invert sound option
+                ELSEIF Selection% = 3 THEN '                                       currently on music?
+                    MusicOption% = NOT MusicOption% '                              yes, invert music option
+                END IF
+            CASE CHR$(75) '                                                        left arrow key has been pressed
+                IF Selection% = 1 THEN '                                           currently on difficulty?
                     GameLevel% = GameLevel% - 1 '                                  yes, decrement game play level
-                    If GameLevel% = 0 Then GameLevel% = 1 '                        if too low set to minimum
-                ElseIf Selection% = 2 Then '                                       currently on sound?
-                    SoundOption% = Not SoundOption% '                              yes, invert sound option
-                ElseIf Selection% = 3 Then '                                       currently on music?
-                    MusicOption% = Not MusicOption% '                              yes, invert music option
-                End If
-            Case Chr$(13), Chr$(27) '                                              enter or ESC key has been pressed
+                    IF GameLevel% = 0 THEN GameLevel% = 1 '                        if too low set to minimum
+                ELSEIF Selection% = 2 THEN '                                       currently on sound?
+                    SoundOption% = NOT SoundOption% '                              yes, invert sound option
+                ELSEIF Selection% = 3 THEN '                                       currently on music?
+                    MusicOption% = NOT MusicOption% '                              yes, invert music option
+                END IF
+            CASE CHR$(13), CHR$(27) '                                              enter or ESC key has been pressed
                 SelectionMade% = TRUE '                                            set selection made flag to true
-        End Select
+        END SELECT
         KeyPress$ = "" '                                                           reset keyboard input string
-    Loop Until SelectionMade% '                                                    keep looping until options set
-    If _SndPlaying(MenuMusic&) And Not MusicOption% Then _SndStop MenuMusic&
-    If Not _SndPlaying(MenuMusic&) And MusicOption% Then _SndLoop MenuMusic&
-    Open "options.4ir" For Output As #1 '                                          open options file
-    Print #1, GameLevel% '                                                         save game level
-    Print #1, SoundOption% '                                                       save sound option
-    Print #1, MusicOption% '                                                       save music option
-    Close #1 '                                                                     close options file
+    LOOP UNTIL SelectionMade% '                                                    keep looping until options set
+    IF _SNDPLAYING(MenuMusic&) AND NOT MusicOption% THEN _SNDSTOP MenuMusic&
+    IF NOT _SNDPLAYING(MenuMusic&) AND MusicOption% THEN _SNDLOOP MenuMusic&
+    OPEN "options.4ir" FOR OUTPUT AS #1 '                                          open options file
+    PRINT #1, GameLevel% '                                                         save game level
+    PRINT #1, SoundOption% '                                                       save sound option
+    PRINT #1, MusicOption% '                                                       save music option
+    CLOSE #1 '                                                                     close options file
 
     '******************************************************************************
-End Sub
+END SUB
 
-Function BestMove% ()
+FUNCTION BestMove% ()
     '******************************************************************************
     '*                                                                            *
     '* Computer will pick best move                                               *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Column% '                                                                  column counter
-    Dim Row% '                                                                     row checker dropped in
-    Dim BestColumn% '                                                              column with best score
-    Dim BestWorst& '                                                               comparison from one check to next
-    Dim Goodness& '                                                                the score a checker drop ultimately receives
-    Dim CurrentRow$ '                                                              string to hold string representation of a row
-    Dim RowBelow$ '                                                                string to hold string representation of the row below
-    Dim Look%
+    DIM Column% '                                                                  column counter
+    DIM Row% '                                                                     row checker dropped in
+    DIM BestColumn% '                                                              column with best score
+    DIM BestWorst& '                                                               comparison from one check to next
+    DIM Goodness& '                                                                the score a checker drop ultimately receives
+    DIM CurrentRow$ '                                                              string to hold string representation of a row
+    DIM RowBelow$ '                                                                string to hold string representation of the row below
+    DIM Look%
 
-    Shared Cell() As CELL
-    Shared Board%()
-    Shared GameOver%
-    Shared CheckersDropped%
-    Shared ColumnVal&()
-    Shared GameLevel%
+    SHARED Cell() AS CELL
+    SHARED Board%()
+    SHARED GameOver%
+    SHARED CheckersDropped%
+    SHARED ColumnVal&()
+    SHARED GameLevel%
 
     BestColumn% = -1 '                                                             initialize column with best score
     BestWorst& = -MAX '                                                            start out with lowest possible score
@@ -398,118 +398,118 @@ Function BestMove% ()
     '** --------------------------------------------------------------
 
     StackInit '                                                                    initialize the stack to equal what board looks like
-    If Board%(3, 0) = EMPTY Then '                                                 is center bottom position free?
+    IF Board%(3, 0) = EMPTY THEN '                                                 is center bottom position free?
         BestMove% = 3 '                                                            yes, take it
-        Exit Function '                                                            leave function
-    End If
-    For Column% = 0 To 6 '                                                         cycle through all 7 columns
+        EXIT FUNCTION '                                                            leave function
+    END IF
+    FOR Column% = 0 TO 6 '                                                         cycle through all 7 columns
         StackInit '                                                                initialize the stack to equal what board looks like
         Row% = BoardDrop%(RED, Column%) '                                          simulate a dropped checker
-        If Row% > -1 Then '                                                        was the column full?
-            If CheckFour% = RED Then '                                             no, did computer get four in a row?
+        IF Row% > -1 THEN '                                                        was the column full?
+            IF CheckFour% = RED THEN '                                             no, did computer get four in a row?
                 BestMove% = Column% '                                              yes, return the winning column
                 GameOver% = TRUE '                                                 game will be over after the move
-                Exit Function '                                                    leave function with winning move
-            End If
-        End If
-    Next Column%
-    For Column% = 0 To 6
+                EXIT FUNCTION '                                                    leave function with winning move
+            END IF
+        END IF
+    NEXT Column%
+    FOR Column% = 0 TO 6
         StackInit '                                                                initialize the stack to equal what board looks like
         Row% = BoardDrop%(BLACK, Column%) '                                        simulate a dropped checker
-        If Row% > -1 Then '                                                        was the column full?
-            If CheckFour% = BLACK Then '                                           no, did human get four in a row?
+        IF Row% > -1 THEN '                                                        was the column full?
+            IF CheckFour% = BLACK THEN '                                           no, did human get four in a row?
                 BestMove% = Column% '                                              yes, return the column to block
-                Exit Function '                                                    leave function with blocking move
-            End If
-        End If
-    Next Column%
+                EXIT FUNCTION '                                                    leave function with blocking move
+            END IF
+        END IF
+    NEXT Column%
 
     '*** ------------------------------------------------------------------------------------------
     '*** check to see if human is setting up for 3 checkers in a row and blank space on either side
     '*** ------------------------------------------------------------------------------------------
 
     StackInit '                                                                    initialize the stack to equal what board looks like
-    For Row% = 0 To 5 '                                                            cycle through all rows
+    FOR Row% = 0 TO 5 '                                                            cycle through all rows
         CurrentRow$ = "" '                                                         clear current row string
-        If Row% > 0 Then '                                                         currently on row 0?
+        IF Row% > 0 THEN '                                                         currently on row 0?
             RowBelow$ = "" '                                                       no, reset row below string
-        Else '                                                                     yes, currently on row 0
+        ELSE '                                                                     yes, currently on row 0
             RowBelow$ = "0000000" '                                                create a dummy row below for now
-        End If
-        For Column% = 0 To 6 '                                                     cycle through all columns
-            CurrentRow$ = CurrentRow$ + LTrim$(Str$(Board%(Column%, Row%))) '      create string representation of current row
-            If Row% > 0 Then RowBelow$ = RowBelow$ + LTrim$(Str$(Board%(Column%, Row% - 1))) ' create string representation of row below
-        Next Column%
-        Look% = InStr(CurrentRow$, "22002") '                                      look for 2 black checkers set up for win
-        If Look% > 0 Then '                                                        does the row contain 2 black checkers set up for win?
-            If Mid$(RowBelow$, Look%, 1) <> "2" And Mid$(RowBelow$, Look% + 1, 1) <> "2" And Mid$(RowBelow$, Look% + 4, 1) <> "2" Then
-                Randomize Timer '                                                  seed generator if previous statement said to block
-                Select Case Int(Rnd(1) * 3) + 1 '                                  pick a random column to drop into
-                    Case 1
+        END IF
+        FOR Column% = 0 TO 6 '                                                     cycle through all columns
+            CurrentRow$ = CurrentRow$ + LTRIM$(STR$(Board%(Column%, Row%))) '      create string representation of current row
+            IF Row% > 0 THEN RowBelow$ = RowBelow$ + LTRIM$(STR$(Board%(Column%, Row% - 1))) ' create string representation of row below
+        NEXT Column%
+        Look% = INSTR(CurrentRow$, "22002") '                                      look for 2 black checkers set up for win
+        IF Look% > 0 THEN '                                                        does the row contain 2 black checkers set up for win?
+            IF MID$(RowBelow$, Look%, 1) <> "2" AND MID$(RowBelow$, Look% + 1, 1) <> "2" AND MID$(RowBelow$, Look% + 4, 1) <> "2" THEN
+                RANDOMIZE TIMER '                                                  seed generator if previous statement said to block
+                SELECT CASE INT(RND(1) * 3) + 1 '                                  pick a random column to drop into
+                    CASE 1
                         BestMove% = Look% - 1
-                        Exit Function
-                    Case 2
+                        EXIT FUNCTION
+                    CASE 2
                         BestMove% = Look%
-                        Exit Function
-                    Case 3
+                        EXIT FUNCTION
+                    CASE 3
                         BestMove% = Look% + 3
-                        Exit Function
-                End Select
-            End If
-        End If
-        Look% = InStr(CurrentRow$, "20022") '                                      look for 2 black checkers set up for win
-        If Look% > 0 Then '                                                        does the row contain 2 black checkers set up for win?
-            If Mid$(RowBelow$, Look%, 1) <> "2" And Mid$(RowBelow$, Look% + 3, 1) <> "2" And Mid$(RowBelow$, Look% + 4, 1) <> "2" Then
-                Randomize Timer '                                                  seed generator if previous statement said to block
-                Select Case Int(Rnd(1) * 3) + 1 '                                  pick a random column to drop into
-                    Case 1
+                        EXIT FUNCTION
+                END SELECT
+            END IF
+        END IF
+        Look% = INSTR(CurrentRow$, "20022") '                                      look for 2 black checkers set up for win
+        IF Look% > 0 THEN '                                                        does the row contain 2 black checkers set up for win?
+            IF MID$(RowBelow$, Look%, 1) <> "2" AND MID$(RowBelow$, Look% + 3, 1) <> "2" AND MID$(RowBelow$, Look% + 4, 1) <> "2" THEN
+                RANDOMIZE TIMER '                                                  seed generator if previous statement said to block
+                SELECT CASE INT(RND(1) * 3) + 1 '                                  pick a random column to drop into
+                    CASE 1
                         BestMove% = Look% - 1
-                        Exit Function
-                    Case 2
+                        EXIT FUNCTION
+                    CASE 2
                         BestMove% = Look% + 2
-                        Exit Function
-                    Case 3
+                        EXIT FUNCTION
+                    CASE 3
                         BestMove% = Look% + 3
-                        Exit Function
-                End Select
-            End If
-        End If
-    Next Row%
-    _Title "Thinking ..." '                                                        let player know computer is thinking
-    For Column% = 0 To 6 '                                                         cycle through all columns
+                        EXIT FUNCTION
+                END SELECT
+            END IF
+        END IF
+    NEXT Row%
+    _TITLE "Thinking ..." '                                                        let player know computer is thinking
+    FOR Column% = 0 TO 6 '                                                         cycle through all columns
         StackInit '                                                                initialize the state of the stack
         ColumnVal&(Column%) = 0 '                                                  set the column score to 0
         Row% = BoardDrop%(RED, Column%) '                                          drop a red checker into current column
         CheckersDropped% = CheckersDropped% + 1 '                                  keep track of how many checkers dropped
-        If Row% > -1 Then '                                                        was the drop successful?
+        IF Row% > -1 THEN '                                                        was the drop successful?
             PushState '                                                            yes, save state of board
             Row% = BoardDrop%(BLACK, Column%) '                                    drop a black checker in same column
-            If Row% > -1 Then '                                                    was the column full?
-                If CheckFour% = BLACK Then '                                       no, did the human get four in a row?
+            IF Row% > -1 THEN '                                                    was the column full?
+                IF CheckFour% = BLACK THEN '                                       no, did the human get four in a row?
                     Goodness& = -MAX '                                             yes, avoid this column!
-                Else '                                                             the column was full
+                ELSE '                                                             the column was full
                     PopState '                                                     restore the state of the board
                     Evaluate RED, GameLevel% * 2 '                                 simulate game being played
                     Goodness& = ColumnVal&(Column%) '                              get this column's score
-                End If
-            End If
-            If Goodness& > BestWorst& Then '                                       is score the best seen?
+                END IF
+            END IF
+            IF Goodness& > BestWorst& THEN '                                       is score the best seen?
                 BestWorst& = Goodness& '                                           yes, remember this score
                 BestColumn% = Column% '                                            this column is best so far
-            ElseIf Goodness& = BestWorst& Then '                                   does this column equal another for best?
-                Randomize Timer '                                                  seed random number generator
-                If (Int(Rnd(1) * 10) + 1) > 5 Then BestColumn% = Column% '         select between the two randomly
-            End If
-        End If
+            ELSEIF Goodness& = BestWorst& THEN '                                   does this column equal another for best?
+                RANDOMIZE TIMER '                                                  seed random number generator
+                IF (INT(RND(1) * 10) + 1) > 5 THEN BestColumn% = Column% '         select between the two randomly
+            END IF
+        END IF
         CheckersDropped% = CheckersDropped% - 1 '                                  decrement the dropped checkers counter
-    Next Column%
-    _Title "Game in progress!"
+    NEXT Column%
+    _TITLE "Game in progress!"
     BestMove% = BestColumn% '                                                      return the best column to drop checker in
 
     '******************************************************************************
-End Function
+END FUNCTION
 
-Sub Evaluate (Player%, Level%)
+SUB Evaluate (Player%, Level%)
     '******************************************************************************
     '*                                                                            *
     '* Recursively evaluate various checker drops                                 *
@@ -517,40 +517,40 @@ Sub Evaluate (Player%, Level%)
     '*                                                                            *
     '******************************************************************************
 
-    Dim Column% '                                                                  column counter
-    Dim Row% '                                                                     row checker dropped in (not used for any evaluation)
+    DIM Column% '                                                                  column counter
+    DIM Row% '                                                                     row checker dropped in (not used for any evaluation)
 
-    Shared Depth%
-    Shared Board%()
-    Shared CheckersDropped%
-    Shared ColumnVal&()
+    SHARED Depth%
+    SHARED Board%()
+    SHARED CheckersDropped%
+    SHARED ColumnVal&()
 
-    If Level% = Depth% - 1 Then '                                                  have we reached the depth of forward looking checks?
-        Exit Sub '                                                                 leave function
-    ElseIf CheckersDropped% = 42 Then
-        Exit Sub
-    Else '                                                                         move onto next simulated checker drop
-        For Column% = 0 To 6 '                                                     cycle through all 7 columns
-            If Board%(Column%, 5) = EMPTY Then '                                   is this column full?
+    IF Level% = Depth% - 1 THEN '                                                  have we reached the depth of forward looking checks?
+        EXIT SUB '                                                                 leave function
+    ELSEIF CheckersDropped% = 42 THEN
+        EXIT SUB
+    ELSE '                                                                         move onto next simulated checker drop
+        FOR Column% = 0 TO 6 '                                                     cycle through all 7 columns
+            IF Board%(Column%, 5) = EMPTY THEN '                                   is this column full?
                 PushState '                                                        no, save the state of the current board
                 Row% = BoardDrop%(1 - Player%, Column%) '                          drop other player's checker into this column
                 CheckersDropped% = CheckersDropped% + 1 '                          increment checker drop counter
-                If Player% = RED Then
+                IF Player% = RED THEN
                     ColumnVal&(Column%) = ColumnVal&(Column%) - GoodnessOf&(1 - Player%, Column%, Row%)
-                Else
+                ELSE
                     ColumnVal&(Column%) = ColumnVal&(Column%) + GoodnessOf&(1 - Player%, Column%, Row%)
-                End If
+                END IF
                 Evaluate 1 - Player%, Level% '                                     evaluate other player's checker drop
                 CheckersDropped% = CheckersDropped% - 1 '                          decrememnt checker drop counter
                 PopState '                                                         restore the previous state of the board
-            End If
-        Next Column%
-    End If
+            END IF
+        NEXT Column%
+    END IF
 
     '******************************************************************************
-End Sub
+END SUB
 
-Function GoodnessOf& (Player%, Pcolumn%, Prow%)
+FUNCTION GoodnessOf& (Player%, Pcolumn%, Prow%)
     '******************************************************************************
     '*                                                                            *
     '* Examines the current state of the board for a given player and returns a   *
@@ -560,38 +560,38 @@ Function GoodnessOf& (Player%, Pcolumn%, Prow%)
     '*                                                                            *
     '******************************************************************************
 
-    Dim Score& '                                                                   the score this checker receives
-    Dim Count% '                                                                   generic counter
-    Dim Count2% '                                                                  another generic counter
-    Dim Inarow% '                                                                  how many in a row is made by this checker
-    Dim Importance% '                                                              the imprtance of this move based on look-ahead depth
-    Dim StartColumn% '                                                             starting column for diagonal checks
-    Dim StartRow% '                                                                starting row for diagnoal checks
-    Dim NextRow% '                                                                 row counter used in diagonal checks
-    Dim Greatest% '                                                                used to save greatest n in a row seen
-    Dim Least% '                                                                   used to determine where to start diagnoal checks
+    DIM Score& '                                                                   the score this checker receives
+    DIM Count% '                                                                   generic counter
+    DIM Count2% '                                                                  another generic counter
+    DIM Inarow% '                                                                  how many in a row is made by this checker
+    DIM Importance% '                                                              the imprtance of this move based on look-ahead depth
+    DIM StartColumn% '                                                             starting column for diagonal checks
+    DIM StartRow% '                                                                starting row for diagnoal checks
+    DIM NextRow% '                                                                 row counter used in diagonal checks
+    DIM Greatest% '                                                                used to save greatest n in a row seen
+    DIM Least% '                                                                   used to determine where to start diagnoal checks
 
-    Shared Board%()
-    Shared GameLevel%
-    Shared Depth%
+    SHARED Board%()
+    SHARED GameLevel%
+    SHARED Depth%
 
     Importance% = GameLevel% * 2 - Depth% '                                        calculate the importance of this checker
     Score& = 0 '                                                                   reset score value
 
-    If Prow% > 0 Then '                                                            is this checker sitting on another?
+    IF Prow% > 0 THEN '                                                            is this checker sitting on another?
 
         '*** --------------------------------------
         '*** check player connecting vertical score
         '*** --------------------------------------
 
         Inarow% = 1 '                                                              yes, current checker counts for 1
-        For Count% = Prow% - 1 To 0 Step -1 '                                      cycle from the row below to bottom of board
-            If Board%(Pcolumn%, Count%) = Player% Then '                           does this checker match the player's checker?
+        FOR Count% = Prow% - 1 TO 0 STEP -1 '                                      cycle from the row below to bottom of board
+            IF Board%(Pcolumn%, Count%) = Player% THEN '                           does this checker match the player's checker?
                 Inarow% = Inarow% + 1 '                                            yes, increment the in a row counter
-            Else '                                                                 no, this is the other player's checker
-                Exit For '                                                         no need to check further
-            End If
-        Next Count%
+            ELSE '                                                                 no, this is the other player's checker
+                EXIT FOR '                                                         no need to check further
+            END IF
+        NEXT Count%
         Score& = Score& + Inarow% * Importance% '                                  add to score based on how many in a row seen
 
         '*** ------------------------------------
@@ -599,36 +599,36 @@ Function GoodnessOf& (Player%, Pcolumn%, Prow%)
         '*** ------------------------------------
 
         Inarow% = 1 '                                                              current checker counts for 1 (assume other player)
-        For Count% = Prow% - 1 To 0 Step -1 '                                      cycle from the row below to bottom of board
-            If Board%(Pcolumn%, Count%) = 1 - Player% Then '                       does this checker match the ohter player's checker?
+        FOR Count% = Prow% - 1 TO 0 STEP -1 '                                      cycle from the row below to bottom of board
+            IF Board%(Pcolumn%, Count%) = 1 - Player% THEN '                       does this checker match the ohter player's checker?
                 Inarow% = Inarow% + 1 '                                            yes, increment the in a row counter
-            Else '                                                                 no, this is the player's checker
-                Exit For '                                                         no need to check further
-            End If
-        Next Count%
+            ELSE '                                                                 no, this is the player's checker
+                EXIT FOR '                                                         no need to check further
+            END IF
+        NEXT Count%
         Score& = Score& + Inarow% * Importance% '                                  add to score based on how many in a row seen
-    End If
+    END IF
 
     StartColumn% = Pcolumn% - 3 '                                                  leftmost column possible for this checker
-    If StartColumn% < 0 Then StartColumn% = 0 '                                    make sure to stay at left side of board if breached
+    IF StartColumn% < 0 THEN StartColumn% = 0 '                                    make sure to stay at left side of board if breached
 
     '*** ----------------------------------------
     '*** check player connecting horizontal score
     '*** ----------------------------------------
 
     Greatest% = 0 '                                                                greatest n in a row seen so far
-    For Count% = StartColumn% To Pcolumn% '                                        cycle from leftmost column to current column
+    FOR Count% = StartColumn% TO Pcolumn% '                                        cycle from leftmost column to current column
         Inarow% = 0 '                                                              reset the in a row counter
-        For Count2% = Count% To Count% + 3 '                                       cycle through next 4 columns
-            If Count2% > 6 Then Exit For '                                         no need to check further if right side of board reached
-            If Board%(Count2%, Prow%) = Player% Then '                             does this checker match the player's checker?
+        FOR Count2% = Count% TO Count% + 3 '                                       cycle through next 4 columns
+            IF Count2% > 6 THEN EXIT FOR '                                         no need to check further if right side of board reached
+            IF Board%(Count2%, Prow%) = Player% THEN '                             does this checker match the player's checker?
                 Inarow% = Inarow% + 1 '                                            yes, increment the in a row counter
-            Else '                                                                 no, this is the other player's checker or a blank spot
+            ELSE '                                                                 no, this is the other player's checker or a blank spot
                 Inarow% = 0 '                                                      reset the four in a row counter
-            End If
-        Next Count2%
-        If Inarow% > Greatest% Then Greatest% = Inarow% '                          save the largest in a row seen so far
-    Next Count%
+            END IF
+        NEXT Count2%
+        IF Inarow% > Greatest% THEN Greatest% = Inarow% '                          save the largest in a row seen so far
+    NEXT Count%
     Score& = Score& + Greatest% * Importance% '                                    add to score based on how many in a row seen
 
     '*** --------------------------------------
@@ -636,55 +636,55 @@ Function GoodnessOf& (Player%, Pcolumn%, Prow%)
     '*** --------------------------------------
 
     Greatest% = 0 '                                                                greatest n in a row seen so far
-    For Count% = StartColumn% To Pcolumn% '                                        cycle from leftmost column to current column
+    FOR Count% = StartColumn% TO Pcolumn% '                                        cycle from leftmost column to current column
         Inarow% = 0 '                                                              reset the in a row counter
-        For Count2% = Count% To Count% + 3 '                                       cycle through next 4 columns
-            If Count2% > 6 Then Exit For '                                         no need to check further if right side of board reached
-            If Count2% <> Pcolumn% Then '                                          is this the checker that was dropped?
-                If Board%(Count2%, Prow%) = 1 - Player% Then '                     no, does this checker match the other player's checker
+        FOR Count2% = Count% TO Count% + 3 '                                       cycle through next 4 columns
+            IF Count2% > 6 THEN EXIT FOR '                                         no need to check further if right side of board reached
+            IF Count2% <> Pcolumn% THEN '                                          is this the checker that was dropped?
+                IF Board%(Count2%, Prow%) = 1 - Player% THEN '                     no, does this checker match the other player's checker
                     Inarow% = Inarow% + 1 '                                        yes, increment the in a row counter
-                Else '                                                             no, this is the player's checker or a blank spot
+                ELSE '                                                             no, this is the player's checker or a blank spot
                     Inarow% = 0 '                                                  reset the in a row counter
-                End If
-            Else '                                                                 yes, this is the checker that was dropped
+                END IF
+            ELSE '                                                                 yes, this is the checker that was dropped
                 Inarow% = Inarow% + 1 '                                            treat it as the other player's checker for now
-            End If
-        Next Count2%
-        If Inarow% > Greatest% Then Greatest% = Inarow% '                          save the largest in a row seen so far
-    Next Count%
+            END IF
+        NEXT Count2%
+        IF Inarow% > Greatest% THEN Greatest% = Inarow% '                          save the largest in a row seen so far
+    NEXT Count%
     Score& = Score& + Greatest% * Importance% '                                    add to score based on how many in a row seen
 
-    If Pcolumn% <= Prow% Then '                                                    is the column number = or < the row number?
+    IF Pcolumn% <= Prow% THEN '                                                    is the column number = or < the row number?
         Least% = Pcolumn% '                                                        yes, save this as the smallest number
-    Else '                                                                         no, row number is < the column number
+    ELSE '                                                                         no, row number is < the column number
         Least% = Prow% '                                                           save this as the smallest number
-    End If
-    If Least% > 3 Then Least% = 3 '                                                only need to diagonally check back three places
+    END IF
+    IF Least% > 3 THEN Least% = 3 '                                                only need to diagonally check back three places
     StartColumn% = Pcolumn% - Least% '                                             compute the starting column
     StartRow% = Prow% - Least% '                                                   compute the starting row
 
-    If StartRow% < 3 And StartColumn% < 4 Then '                                   is four in a row / diagonally possible here?
+    IF StartRow% < 3 AND StartColumn% < 4 THEN '                                   is four in a row / diagonally possible here?
 
         '*** ----------------------------------------
         '*** check player connecting / diagonal score
         '*** ----------------------------------------
 
         Greatest% = 0 '                                                            yes, greatest n in a row seen so far
-        For Count% = StartColumn% To Pcolumn% '                                    cycle from leftmost column to current column
+        FOR Count% = StartColumn% TO Pcolumn% '                                    cycle from leftmost column to current column
             Inarow% = 0 '                                                          reset the in a row counter
             NextRow% = StartRow% '                                                 set the row start on
-            For Count2% = Count% To Count% + 3 '                                   cycle through next 4 columns
-                If (Count2% > 6) Or (NextRow% > 5) Then Exit For '                 no need to check further if top or right side of board hit
-                If Board%(Count2%, NextRow%) = Player% Then '                      does this checker match the player's checker?
+            FOR Count2% = Count% TO Count% + 3 '                                   cycle through next 4 columns
+                IF (Count2% > 6) OR (NextRow% > 5) THEN EXIT FOR '                 no need to check further if top or right side of board hit
+                IF Board%(Count2%, NextRow%) = Player% THEN '                      does this checker match the player's checker?
                     Inarow% = Inarow% + 1 '                                        yes, increment the in a row counter
-                Else '                                                             no, this is the other player's checker or a blank spot
+                ELSE '                                                             no, this is the other player's checker or a blank spot
                     Inarow% = 0 '                                                  reset the in a row counter
-                End If
+                END IF
                 NextRow% = NextRow% + 1 '                                          increment the row counter
-            Next Count2%
+            NEXT Count2%
             StartRow% = StartRow% + 1 '                                            increment the starting row counter
-            If Inarow% > Greatest% Then Greatest% = Inarow% '                      save the largest in a row seen so far
-        Next Count%
+            IF Inarow% > Greatest% THEN Greatest% = Inarow% '                      save the largest in a row seen so far
+        NEXT Count%
         Score& = Score& + Greatest% * Importance% '                                add to score based on how many in a row seen
 
         '*** --------------------------------------
@@ -693,59 +693,59 @@ Function GoodnessOf& (Player%, Pcolumn%, Prow%)
 
         StartRow% = Prow% - Least% '                                               reset the starting row
         Greatest% = 0 '                                                            yes, greatest n in a row seen so far
-        For Count% = StartColumn% To Pcolumn% '                                    cycle from leftmost column to current column
+        FOR Count% = StartColumn% TO Pcolumn% '                                    cycle from leftmost column to current column
             Inarow% = 0 '                                                          reset the in a row counter
             NextRow% = StartRow% '                                                 set the row start on
-            For Count2% = Count% To Count% + 3 '                                   cycle through next 4 columns
-                If (Count2% > 6) Or (NextRow% > 5) Then Exit For '                 no need to check further if top or right side of board hit
-                If Count2% <> Pcolumn% And NextRow% <> Prow% Then '                is this the checker that was dropped?
-                    If Board%(Count2%, NextRow%) = 1 - Player% Then '              no, does this checker match the other player's checker?
+            FOR Count2% = Count% TO Count% + 3 '                                   cycle through next 4 columns
+                IF (Count2% > 6) OR (NextRow% > 5) THEN EXIT FOR '                 no need to check further if top or right side of board hit
+                IF Count2% <> Pcolumn% AND NextRow% <> Prow% THEN '                is this the checker that was dropped?
+                    IF Board%(Count2%, NextRow%) = 1 - Player% THEN '              no, does this checker match the other player's checker?
                         Inarow% = Inarow% + 1 '                                    yes, increment the in a row counter
-                    Else '                                                         no, this is the player's checker or a blank spot
+                    ELSE '                                                         no, this is the player's checker or a blank spot
                         Inarow% = 0 '                                              reset the in a row counter
-                    End If
-                Else '                                                             yes, this is the checker that was dropped
+                    END IF
+                ELSE '                                                             yes, this is the checker that was dropped
                     Inarow% = Inarow% + 1 '                                        treat it as the other player's checker for now
-                End If
+                END IF
                 NextRow% = NextRow% + 1 '                                          increment the row counter
-            Next Count2%
+            NEXT Count2%
             StartRow% = StartRow% + 1 '                                            increment the starting row counter
-            If Inarow% > Greatest% Then Greatest% = Inarow% '                      save the largest in a row seen so far
-        Next Count%
+            IF Inarow% > Greatest% THEN Greatest% = Inarow% '                      save the largest in a row seen so far
+        NEXT Count%
         Score& = Score& + Greatest% * Importance% '                                add to score based on how many in a row seen
-    End If
+    END IF
 
-    If Pcolumn% <= 5 - Prow% Then '                                                is the column number = or < the row number from the top?
+    IF Pcolumn% <= 5 - Prow% THEN '                                                is the column number = or < the row number from the top?
         Least% = Pcolumn% '                                                        yes, save this as the smallest number
-    Else '                                                                         no, row number from top is < the column number
+    ELSE '                                                                         no, row number from top is < the column number
         Least% = 5 - Prow% '                                                       save this as the smallest number
-    End If
-    If Least% > 3 Then Least% = 3 '                                                only need to diagonally check back three places
+    END IF
+    IF Least% > 3 THEN Least% = 3 '                                                only need to diagonally check back three places
     StartColumn% = Pcolumn% - Least% '                                             compute the starting column
     StartRow% = Prow% + Least% '                                                   compute the starting row
 
-    If StartRow% > 2 And StartColumn% < 4 Then '                                   is four in a row \ diagonally possible here?
+    IF StartRow% > 2 AND StartColumn% < 4 THEN '                                   is four in a row \ diagonally possible here?
 
         '*** ----------------------------------------
         '*** check player connecting \ diagonal score
         '*** ----------------------------------------
 
         Greatest% = 0 '                                                            yes, greatest n in a row seen so far
-        For Count% = StartColumn% To Pcolumn% '                                    cycle from leftmost column to current column
+        FOR Count% = StartColumn% TO Pcolumn% '                                    cycle from leftmost column to current column
             Inarow% = 0 '                                                          reset the in a row counter
             NextRow% = StartRow% '                                                 set the row start on
-            For Count2% = Count% To Count% + 3 '                                   cycle through next 4 columns
-                If (Count2% > 6) Or (NextRow% < 0) Then Exit For '                 no need to check further if bottom or right side of board hit
-                If Board%(Count2%, NextRow%) = Player% Then '                      does this checker match the player's checker?
+            FOR Count2% = Count% TO Count% + 3 '                                   cycle through next 4 columns
+                IF (Count2% > 6) OR (NextRow% < 0) THEN EXIT FOR '                 no need to check further if bottom or right side of board hit
+                IF Board%(Count2%, NextRow%) = Player% THEN '                      does this checker match the player's checker?
                     Inarow% = Inarow% + 1 '                                        yes, increment the in a row counter
-                Else '                                                             no, this is the other player's checker or a blank spot
+                ELSE '                                                             no, this is the other player's checker or a blank spot
                     Inarow% = 0 '                                                  reset the in a row counter
-                End If
+                END IF
                 NextRow% = NextRow% - 1 '                                          decrement the row counter
-            Next Count2%
+            NEXT Count2%
             StartRow% = StartRow% - 1 '                                            decrement the starting row counter
-            If Inarow% > Greatest% Then Greatest% = Inarow% '                      save the largest in a row seen so far
-        Next Count%
+            IF Inarow% > Greatest% THEN Greatest% = Inarow% '                      save the largest in a row seen so far
+        NEXT Count%
         Score& = Score& + Greatest% * Importance% '                                add to score based on how many in a row seen
 
         '*** --------------------------------------
@@ -754,33 +754,33 @@ Function GoodnessOf& (Player%, Pcolumn%, Prow%)
 
         StartRow% = Prow% + Least% '                                               reset the starting row
         Greatest% = 0 '                                                            yes, greatest n in a row seen so far
-        For Count% = StartColumn% To Pcolumn% '                                    cycle from leftmost column to current column
+        FOR Count% = StartColumn% TO Pcolumn% '                                    cycle from leftmost column to current column
             Inarow% = 0 '                                                          reset the in a row counter
             NextRow% = StartRow% '                                                 set the row start on
-            For Count2% = Count% To Count% + 3 '                                   cycle through next 4 columns
-                If (Count2% > 6) Or (NextRow% < 0) Then Exit For '                 no need to check further if bottom or right side of board hit
-                If Count2% <> Pcolumn% And NextRow% <> Prow% Then '                is this the checker that was dropped?
-                    If Board%(Count2%, NextRow%) = 1 - Player% Then '              no, does this checker match the other player's checker?
+            FOR Count2% = Count% TO Count% + 3 '                                   cycle through next 4 columns
+                IF (Count2% > 6) OR (NextRow% < 0) THEN EXIT FOR '                 no need to check further if bottom or right side of board hit
+                IF Count2% <> Pcolumn% AND NextRow% <> Prow% THEN '                is this the checker that was dropped?
+                    IF Board%(Count2%, NextRow%) = 1 - Player% THEN '              no, does this checker match the other player's checker?
                         Inarow% = Inarow% + 1 '                                    yes, increment the in a row counter
-                    Else '                                                         no, this is the player's checker or a blank spot
+                    ELSE '                                                         no, this is the player's checker or a blank spot
                         Inarow% = 0 '                                              reset the in a row counter
-                    End If
-                Else '                                                             yes, this is the checker that was dropped
+                    END IF
+                ELSE '                                                             yes, this is the checker that was dropped
                     Inarow% = Inarow% + 1 '                                        treat it as the other player's checker for now
-                End If
+                END IF
                 NextRow% = NextRow% - 1 '                                          decrement the row counter
-            Next Count2%
+            NEXT Count2%
             StartRow% = StartRow% - 1 '                                            decrement the starting row counter
-            If Inarow% > Greatest% Then Greatest% = Inarow% '                      save the largest in a row seen so far
-        Next Count%
+            IF Inarow% > Greatest% THEN Greatest% = Inarow% '                      save the largest in a row seen so far
+        NEXT Count%
         Score& = Score& + Greatest% * Importance% '                                add to score based on how many in a row seen
-    End If
+    END IF
     GoodnessOf& = Score& '                                                         return overall score
 
     '******************************************************************************
-End Function
+END FUNCTION
 
-Function CheckFour% ()
+FUNCTION CheckFour% ()
     '******************************************************************************
     '*                                                                            *
     '* Checks for four checkers in a row on entire board and returns the player   *
@@ -788,312 +788,312 @@ Function CheckFour% ()
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     row counter
-    Dim Column% '                                                                  column counter
-    Dim FourCount% '                                                               four in a row counter
-    Dim Count% '                                                                   counter used to test possible four in row spots
-    Dim Player% '                                                                  the current player's checker being tested
+    DIM Row% '                                                                     row counter
+    DIM Column% '                                                                  column counter
+    DIM FourCount% '                                                               four in a row counter
+    DIM Count% '                                                                   counter used to test possible four in row spots
+    DIM Player% '                                                                  the current player's checker being tested
 
-    Shared WinCells%()
-    Shared Board%()
+    SHARED WinCells%()
+    SHARED Board%()
 
     '** ------------------------------------------------------
     '** Check for 4 vertical checkers in a row on entire board
     '** ------------------------------------------------------
-    For Column% = 0 To 6 '                                                         cycle through all 7 columns
-        For Row% = 0 To 2 '                                                        cycle through first 3 rows
+    FOR Column% = 0 TO 6 '                                                         cycle through all 7 columns
+        FOR Row% = 0 TO 2 '                                                        cycle through first 3 rows
             Player% = Board%(Column%, Row%) '                                      get checker at current position
-            If Player% = EMPTY Then Exit For '                                     move to next column, four in row impossible
+            IF Player% = EMPTY THEN EXIT FOR '                                     move to next column, four in row impossible
             WinCells%(0, 0) = Column% '                                            save spot as potential first four in a row checker
             WinCells%(0, 1) = Row% '                                               save spot as potential first four in a row checker
             FourCount% = 1 '                                                       reset four in a row counter
-            For Count% = 1 To 3 '                                                  count through next three board positions
-                If Board%(Column%, Row% + Count%) = Player% Then '                 does this position have a player checker in it?
+            FOR Count% = 1 TO 3 '                                                  count through next three board positions
+                IF Board%(Column%, Row% + Count%) = Player% THEN '                 does this position have a player checker in it?
                     WinCells%(Count%, 0) = Column% '                               yes, save spot as another potential four in a row checker
                     WinCells%(Count%, 1) = Row% + Count% '                         save spot as another potential four in a row checker
                     FourCount% = FourCount% + 1 '                                  increment four in a row counter
-                End If
-            Next Count%
-            If FourCount% = 4 Then '                                               were 4 board positions saved?
+                END IF
+            NEXT Count%
+            IF FourCount% = 4 THEN '                                               were 4 board positions saved?
                 CheckFour% = Player% '                                             yes, player has four in a row
-                Exit Function '                                                    leave function with result
-            End If
-        Next Row%
-    Next Column%
+                EXIT FUNCTION '                                                    leave function with result
+            END IF
+        NEXT Row%
+    NEXT Column%
     '** --------------------------------------------------------
     '** Check for 4 horizontal checkers in a row on entire board
     '** --------------------------------------------------------
-    For Row% = 0 To 5 '                                                            cycle through all 6 rows
-        For Column% = 0 To 3 '                                                     cycle through first 4 columns
+    FOR Row% = 0 TO 5 '                                                            cycle through all 6 rows
+        FOR Column% = 0 TO 3 '                                                     cycle through first 4 columns
             Player% = Board%(Column%, Row%) '                                      get checker at current position
-            If Player% <> EMPTY Then '                                             skip, move to next column%
+            IF Player% <> EMPTY THEN '                                             skip, move to next column%
                 WinCells%(0, 0) = Column% '                                        save spot as potential first four in a row checker
                 WinCells%(0, 1) = Row% '                                           save spot as potential first four in a row checker
                 FourCount% = 1 '                                                   reset four in a row counter
-                For Count% = 1 To 3 '                                              count through next three board positions
-                    If Board%(Column% + Count%, Row%) = Player% Then '             does this position have a player checker in it?
+                FOR Count% = 1 TO 3 '                                              count through next three board positions
+                    IF Board%(Column% + Count%, Row%) = Player% THEN '             does this position have a player checker in it?
                         WinCells%(Count%, 0) = Column% + Count% '                  yes, save spot as another potential four in a row checker
                         WinCells%(Count%, 1) = Row% '                              save spot as another potential four in a row checker
                         FourCount% = FourCount% + 1 '                              increment four in a row counter
-                    End If
-                Next Count%
-                If FourCount% = 4 Then '                                           were 4 board positions saved?
+                    END IF
+                NEXT Count%
+                IF FourCount% = 4 THEN '                                           were 4 board positions saved?
                     CheckFour% = Player% '                                         yes, player has four in a row
-                    Exit Function '                                                leave function with result
-                End If
-            End If
-        Next Column%
-    Next Row%
+                    EXIT FUNCTION '                                                leave function with result
+                END IF
+            END IF
+        NEXT Column%
+    NEXT Row%
     '** --------------------------------------------------------
     '** Check for 4 diagonal / checkers in a row on entire board
     '** --------------------------------------------------------
-    For Row% = 0 To 2 '                                                            cycle through first 3 rows
-        For Column% = 0 To 3 '                                                     cycle through first 4 columns
+    FOR Row% = 0 TO 2 '                                                            cycle through first 3 rows
+        FOR Column% = 0 TO 3 '                                                     cycle through first 4 columns
             Player% = Board%(Column%, Row%) '                                      get checker at current position
-            If Player% <> EMPTY Then '                                             skip, move to next column%
+            IF Player% <> EMPTY THEN '                                             skip, move to next column%
                 WinCells%(0, 0) = Column% '                                        save spot as potential first four in a row checker
                 WinCells%(0, 1) = Row% '                                           save spot as potential first four in a row checker
                 FourCount% = 1 '                                                   reset four in a row counter
-                For Count% = 1 To 3 '                                              count through next three board positions
-                    If Board%(Column% + Count%, Row% + Count%) = Player% Then '    does this position have a player checker in it?
+                FOR Count% = 1 TO 3 '                                              count through next three board positions
+                    IF Board%(Column% + Count%, Row% + Count%) = Player% THEN '    does this position have a player checker in it?
                         WinCells%(Count%, 0) = Column% + Count% '                  yes, save spot as another potential four in a row checker
                         WinCells%(Count%, 1) = Row% + Count% '                     save spot as another potential four in a row checker
                         FourCount% = FourCount% + 1 '                              increment four in a row counter
-                    End If
-                Next Count%
-                If FourCount% = 4 Then '                                           were 4 board positions saved?
+                    END IF
+                NEXT Count%
+                IF FourCount% = 4 THEN '                                           were 4 board positions saved?
                     CheckFour% = Player% '                                         yes, player has four in a row
-                    Exit Function '                                                leave function with result
-                End If
-            End If
-        Next Column%
-    Next Row%
+                    EXIT FUNCTION '                                                leave function with result
+                END IF
+            END IF
+        NEXT Column%
+    NEXT Row%
     '** --------------------------------------------------------
     '** Check for 4 diagonal \ checkers in a row on entire board
     '** --------------------------------------------------------
-    For Row% = 5 To 3 Step -1 '                                                    cycle through top 3 rows
-        For Column% = 0 To 3 '                                                     cycle through first 4 columns
+    FOR Row% = 5 TO 3 STEP -1 '                                                    cycle through top 3 rows
+        FOR Column% = 0 TO 3 '                                                     cycle through first 4 columns
             Player% = Board%(Column%, Row%) '                                      get checker at current position
-            If Player% <> EMPTY Then '                                             skip, move to next column
+            IF Player% <> EMPTY THEN '                                             skip, move to next column
                 WinCells%(0, 0) = Column% '                                        save spot as potential first four in a row checker
                 WinCells%(0, 1) = Row% '                                           save spot as potential first four in a row checker
                 FourCount% = 1 '                                                   reset four in a row counter
-                For Count% = 1 To 3 '                                              count through next three board positions
-                    If Board%(Column% + Count%, Row% - Count%) = Player% Then '    does this position have a player checker in it?
+                FOR Count% = 1 TO 3 '                                              count through next three board positions
+                    IF Board%(Column% + Count%, Row% - Count%) = Player% THEN '    does this position have a player checker in it?
                         WinCells%(Count%, 0) = Column% + Count% '                  yes, save spot as another potential four in a row checker
                         WinCells%(Count%, 1) = Row% - Count% '                     save spot as another potential four in a row checker
                         FourCount% = FourCount% + 1 '                              increment four in a row counter
-                    End If
-                Next Count%
-                If FourCount% = 4 Then '                                           were 4 board positions saved?
+                    END IF
+                NEXT Count%
+                IF FourCount% = 4 THEN '                                           were 4 board positions saved?
                     CheckFour% = Player% '                                         yes, player has four in a row
-                    Exit Function '                                                leave function with result
-                End If
-            End If
-        Next Column%
-    Next Row%
+                    EXIT FUNCTION '                                                leave function with result
+                END IF
+            END IF
+        NEXT Column%
+    NEXT Row%
     CheckFour% = EMPTY '                                                           return that no player has four in a row
 
     '******************************************************************************
-End Function
+END FUNCTION
 
-Sub ShowWinner ()
+SUB ShowWinner ()
     '******************************************************************************
     '*                                                                            *
     '* Show the winner of the previous game                                       *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Count% '                                                                   generic counter
-    Dim Banner% '                                                                  the banner to show at top
-    Dim Win% '                                                                     the winner of the game
-    Dim x%, y%
+    DIM Count% '                                                                   generic counter
+    DIM Banner% '                                                                  the banner to show at top
+    DIM Win% '                                                                     the winner of the game
+    DIM x%, y%
 
-    Shared WinCells%()
-    Shared Cell() As CELL
-    Shared Win&()
-    Shared Lose&
-    Shared Winner%()
-    Shared CheckersDropped%
-    Shared MenuOption%
-    Shared SoundOption%
-    Shared CellBlank%
-    Shared CellImage%
-    Shared WinSpin%()
-    Shared GameOver%
+    SHARED WinCells%()
+    SHARED Cell() AS CELL
+    SHARED Win&()
+    SHARED Lose&
+    SHARED Winner%()
+    SHARED CheckersDropped%
+    SHARED MenuOption%
+    SHARED SoundOption%
+    SHARED CellBlank%
+    SHARED CellImage%
+    SHARED WinSpin%()
+    SHARED GameOver%
 
-    _Title "Game Over!" '                                                          change window title
+    _TITLE "Game Over!" '                                                          change window title
     Win% = Cell(WinCells%(0, 0), WinCells%(0, 1)).c '                              get the winner of the game
-    If CheckersDropped% = 42 And Not GameOver% Then '                                  was maximum amount of checkers dropped?
+    IF CheckersDropped% = 42 AND NOT GameOver% THEN '                                  was maximum amount of checkers dropped?
         Banner% = 3 '                                                              yes, set banner to display a draw
-        If SoundOption% Then _SndPlayCopy Lose& '                                  play the audience not happy
-        Do: Loop Until InKey$ = "" '                                               clear keyboard buffer
-        Do: Loop Until InKey$ <> "" '                                              wait for a key to be pressed
-        Exit Sub '                                                                 leave subroutine
-    ElseIf Win% = 0 Then '                                                         is the winner player 1?
+        IF SoundOption% THEN _SNDPLAYCOPY Lose& '                                  play the audience not happy
+        DO: LOOP UNTIL INKEY$ = "" '                                               clear keyboard buffer
+        DO: LOOP UNTIL INKEY$ <> "" '                                              wait for a key to be pressed
+        EXIT SUB '                                                                 leave subroutine
+    ELSEIF Win% = 0 THEN '                                                         is the winner player 1?
         Banner% = 0 '                                                              yes, set banner to display player 1 win
-        If SoundOption% Then _SndPlayCopy Win&(0) '                                play audience clapping
-    ElseIf MenuOption% = 1 And Win% = 1 Then '                                     is the winner player 2 against the computer?
+        IF SoundOption% THEN _SNDPLAYCOPY Win&(0) '                                play audience clapping
+    ELSEIF MenuOption% = 1 AND Win% = 1 THEN '                                     is the winner player 2 against the computer?
         Banner% = 2 '                                                              yes, set banner to display computer win
-        If SoundOption% Then _SndPlayCopy Lose& '                                  play the audience not happy
-    Else '                                                                         player 2 wins against player 1
+        IF SoundOption% THEN _SNDPLAYCOPY Lose& '                                  play the audience not happy
+    ELSE '                                                                         player 2 wins against player 1
         Banner% = 1 '                                                              set banner to display player 2 win
-        If SoundOption% Then _SndPlayCopy Win&(1) '                                play audience clapping
-    End If
-    For Count% = 1 To 100 '                                                        cycle from 1 to 100
+        IF SoundOption% THEN _SNDPLAYCOPY Win&(1) '                                play audience clapping
+    END IF
+    FOR Count% = 1 TO 100 '                                                        cycle from 1 to 100
         SPRITEZOOM Winner%(Banner%), Count% '                                      set the zoom level of the banner
         SPRITESTAMP 349, 49, Winner%(Banner%) '                                    display the banner on screen at current zoom
-        _Display '                                                                 show the changes on screen
-    Next Count%
-    For Count% = 0 To 3 '                                                          cycle from 0 to 3
+        _DISPLAY '                                                                 show the changes on screen
+    NEXT Count%
+    FOR Count% = 0 TO 3 '                                                          cycle from 0 to 3
         x% = Cell(WinCells%(Count%, 0), WinCells%(Count%, 1)).x '                  get the x location of winning checker
         y% = Cell(WinCells%(Count%, 0), WinCells%(Count%, 1)).y '                  get the y location of winning checker
         SPRITESTAMP x%, y%, CellBlank% '                                           blank the current board spot
         SPRITESTAMP x%, y%, CellImage% '                                           place a clean cell there
         SPRITEZOOM WinSpin%(Win%, Count%), 90 '                                    zoom the winning spin checker to 90%
-    Next Count%
-    Do: Loop Until InKey$ = "" '                                                   clear the keyboard buffer
-    Do
-        _Limit 36 '                                                                limit loop to 36 FPS
-        For Count% = 0 To 3 '                                                      cycle from 0 to 3
+    NEXT Count%
+    DO: LOOP UNTIL INKEY$ = "" '                                                   clear the keyboard buffer
+    DO
+        _LIMIT 36 '                                                                limit loop to 36 FPS
+        FOR Count% = 0 TO 3 '                                                      cycle from 0 to 3
             x% = Cell(WinCells%(Count%, 0), WinCells%(Count%, 1)).x '              get the x location of winning checker
             y% = Cell(WinCells%(Count%, 0), WinCells%(Count%, 1)).y '              get the y location of winning checker
             SPRITEPUT x%, y%, WinSpin%(Win%, Count%) '                             place the winning spinning checker
-        Next Count%
-        _Display '                                                                 show the changes on screen
-    Loop Until InKey$ <> "" '                                                      keep looping until a key is pressed
-    For Count% = 0 To 3 '                                                          cycle from 0 to 3
+        NEXT Count%
+        _DISPLAY '                                                                 show the changes on screen
+    LOOP UNTIL INKEY$ <> "" '                                                      keep looping until a key is pressed
+    FOR Count% = 0 TO 3 '                                                          cycle from 0 to 3
         SPRITEPUT -100, -100, WinSpin%(Win%, Count%) '                             place winning spin checkers off screen for later use
-    Next Count%
+    NEXT Count%
 
     '******************************************************************************
-End Sub
+END SUB
 
-Function MainMenu% ()
+FUNCTION MainMenu% ()
     '******************************************************************************
     '*                                                                            *
     '* The main menu                                                              *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Selection% '                                                               keep track of player menu selection
-    Dim SelectionMade% '                                                           true when player has made a selection
-    Dim KeyPress$ '                                                                which key is user pressing
-    Dim Mcount% '                                                                  keep track of when to update marquee
-    Dim ClearBuffer$
+    DIM Selection% '                                                               keep track of player menu selection
+    DIM SelectionMade% '                                                           true when player has made a selection
+    DIM KeyPress$ '                                                                which key is user pressing
+    DIM Mcount% '                                                                  keep track of when to update marquee
+    DIM ClearBuffer$
 
-    Shared MenuImage&
-    Shared MenuY%()
-    Shared Menu%()
-    Shared SpinChecker%()
-    Shared MenuMusic&
-    Shared MusicOption%
+    SHARED MenuImage&
+    SHARED MenuY%()
+    SHARED Menu%()
+    SHARED SpinChecker%()
+    SHARED MenuMusic&
+    SHARED MusicOption%
 
-    _Title "Welcome to Four in a Row!" '                                           set the window title
+    _TITLE "Welcome to Four in a Row!" '                                           set the window title
     SPRITEPUT -100, -100, SpinChecker%(0) '                                        place black spinning checker sprite off screen for later use
     SPRITEPUT -100, -100, SpinChecker%(1) '                                        place red spinning chcker sprite off screen for later use.
-    _PutImage (0, 0), MenuImage& '                                                 place saved image of menu screen on screen
+    _PUTIMAGE (0, 0), MenuImage& '                                                 place saved image of menu screen on screen
     Selection% = 1 '                                                               reset player selection to first option
     SelectionMade% = FALSE '                                                       player has not made a selection yet
     Mcount% = 0 '                                                                  reset marquee update counter
-    Do
-        _Limit 36 '                                                                limit loop to 36 frames per second
+    DO
+        _LIMIT 36 '                                                                limit loop to 36 frames per second
         Mcount% = Mcount% + 1 '                                                    increment the marquee counter
-        If Mcount% = 9 Then '                                                      time to update the marquee (4 times per second)
+        IF Mcount% = 9 THEN '                                                      time to update the marquee (4 times per second)
             Mcount% = 1 '                                                          yes, reset the marquee counter
             Marquee '                                                              update the marquee
-        End If
-        Do
-            ClearBuffer$ = InKey$ '                                                get key in buffer
-            If ClearBuffer$ <> "" Then KeyPress$ = UCase$(ClearBuffer$) '          save the last key pressed
-        Loop Until ClearBuffer$ = "" '                                             keep looping until the buffer cleared
-        If Len(KeyPress$) > 1 Then KeyPress$ = Right$(KeyPress$, 1) '              strip control character from player input
-        Select Case KeyPress$ '                                                    which key was pressed?
-            Case Chr$(72) '                                                        up arrow key has been pressed
+        END IF
+        DO
+            ClearBuffer$ = INKEY$ '                                                get key in buffer
+            IF ClearBuffer$ <> "" THEN KeyPress$ = UCASE$(ClearBuffer$) '          save the last key pressed
+        LOOP UNTIL ClearBuffer$ = "" '                                             keep looping until the buffer cleared
+        IF LEN(KeyPress$) > 1 THEN KeyPress$ = RIGHT$(KeyPress$, 1) '              strip control character from player input
+        SELECT CASE KeyPress$ '                                                    which key was pressed?
+            CASE CHR$(72) '                                                        up arrow key has been pressed
                 Selection% = Selection% - 1 '                                      decrement the menu selection
-                If Selection% < 1 Then '                                           has menu selection gone below 1?
+                IF Selection% < 1 THEN '                                           has menu selection gone below 1?
                     Selection% = 1 '                                               yes, reset menu selection back to 1
-                Else '                                                             meneu selection is within range
+                ELSE '                                                             meneu selection is within range
                     SPRITESTAMP 349, MenuY%(Selection%), Menu%(Selection%, 1) '    highlight new menu selection
                     SPRITESTAMP 349, MenuY%(Selection% + 1), Menu%(Selection% + 1, 0) ' remove highlight from former menu selection
-                End If
-            Case Chr$(80) '                                                        down arrow key has been pressed
+                END IF
+            CASE CHR$(80) '                                                        down arrow key has been pressed
                 Selection% = Selection% + 1 '                                      increment the menu selection
-                If Selection% > 4 Then '                                           has menu selection gone above 4?
+                IF Selection% > 4 THEN '                                           has menu selection gone above 4?
                     Selection% = 4 '                                               yes, reset menu selection back to 4
-                Else '                                                             menu selection is within range
+                ELSE '                                                             menu selection is within range
                     SPRITESTAMP 349, MenuY%(Selection%), Menu%(Selection%, 1) '    highlight new menu selection
                     SPRITESTAMP 349, MenuY%(Selection% - 1), Menu%(Selection% - 1, 0) ' remove highlight from former menu selection
-                End If
-            Case Chr$(13) '                                                        enter key has been pressed
+                END IF
+            CASE CHR$(13) '                                                        enter key has been pressed
                 SelectionMade% = TRUE '                                            set selection made flag to true
-        End Select
+        END SELECT
         KeyPress$ = "" '                                                           reset keyboard input string
         SPRITEPUT 62, MenuY%(Selection%), SpinChecker%(1) '                        place red spinning checker on screen
         SPRITEPUT 636, MenuY%(Selection%), SpinChecker%(0) '                       place black spinning checker on screen
-        _Display '                                                                 show all graphic updates on screen
-    Loop Until SelectionMade% '                                                    keep looping until a selection has been made
+        _DISPLAY '                                                                 show all graphic updates on screen
+    LOOP UNTIL SelectionMade% '                                                    keep looping until a selection has been made
     SPRITEPUT -100, -100, SpinChecker%(0) '                                        place black spinning checker sprite off screen for later use
     SPRITEPUT -100, -100, SpinChecker%(1) '                                        place red spinning chcker sprite off screen for later use.
     MainMenu% = Selection% '                                                       return the value of selection
 
     '******************************************************************************
-End Function
+END FUNCTION
 
-Sub Marquee () Static
+SUB Marquee () STATIC
     '******************************************************************************
     '*                                                                            *
     '* Marquee                                                                    *
     '*                                                                            *
     '******************************************************************************
 
-    Dim MainFlipFlop% '                                                            which checker color to start on
-    Dim FlipFlop% '                                                                keep track of color as checkers drawn
-    Dim count%
+    DIM MainFlipFlop% '                                                            which checker color to start on
+    DIM FlipFlop% '                                                                keep track of color as checkers drawn
+    DIM count%
 
-    Shared CheckerSheet%
-    Shared MarqueeChecker%()
+    SHARED CheckerSheet%
+    SHARED MarqueeChecker%()
 
     MainFlipFlop% = 1 - MainFlipFlop% '                                            flip the start color value
     FlipFlop% = MainFlipFlop% '                                                    set the color tracker
-    For count% = 10 To 690 Step 20 '                                               x location of checkers
+    FOR count% = 10 TO 690 STEP 20 '                                               x location of checkers
         SPRITESTAMP count%, 10, MarqueeChecker%(FlipFlop%) '                       draw top row checker
         SPRITESTAMP count%, 210, MarqueeChecker%(FlipFlop%) '                      draw bottom row checker
-        If count% < 210 Then '                                                     use x location as y location for vertical checkers
+        IF count% < 210 THEN '                                                     use x location as y location for vertical checkers
             SPRITESTAMP 10, count%, MarqueeChecker%(FlipFlop%) '                   draw left side checker
             SPRITESTAMP 690, count%, MarqueeChecker%(FlipFlop%) '                  draw right side checker
-        End If
+        END IF
         FlipFlop% = 1 - FlipFlop% '                                                flip the next checker color
-    Next count%
+    NEXT count%
 
     '******************************************************************************
-End Sub
+END SUB
 
-Sub MoveChecker (CheckerColor%, CPUColumn%)
+SUB MoveChecker (CheckerColor%, CPUColumn%)
     '******************************************************************************
     '*                                                                            *
     '* Moves the checker from column to column.                                   *
     '*                                                                            *
     '******************************************************************************
 
-    Dim SpinCount% '                                                               keep track of which checker frame is showing
-    Dim Column% '                                                                  the column spinning checker is at
-    Dim ClearBuffer$ '                                                             clears the keyboard buffer
-    Dim KeyPress$ '                                                                the key the player pressed
-    Dim ColumnChosen% '                                                            true when player has chosen column
-    Dim OldColumn% '                                                               the previous column spinning checker was at
-    Dim CheckerDrop% '                                                             flag used to indicate when checker dropped
-    Dim Face% '                                                                    indicates which side of checker to show
-    Dim WaitTime% '                                                                time in between computer movements
-    Dim NewWait% '                                                                 flag to indicate ok for computer to move
-    Dim ComputerTurn% '                                                            flag indicating it's the computer's turn to move
+    DIM SpinCount% '                                                               keep track of which checker frame is showing
+    DIM Column% '                                                                  the column spinning checker is at
+    DIM ClearBuffer$ '                                                             clears the keyboard buffer
+    DIM KeyPress$ '                                                                the key the player pressed
+    DIM ColumnChosen% '                                                            true when player has chosen column
+    DIM OldColumn% '                                                               the previous column spinning checker was at
+    DIM CheckerDrop% '                                                             flag used to indicate when checker dropped
+    DIM Face% '                                                                    indicates which side of checker to show
+    DIM WaitTime% '                                                                time in between computer movements
+    DIM NewWait% '                                                                 flag to indicate ok for computer to move
+    DIM ComputerTurn% '                                                            flag indicating it's the computer's turn to move
 
-    Shared CellBlank%
-    Shared Cell() As CELL
-    Shared SpinChecker%()
-    Shared TitleMode%
+    SHARED CellBlank%
+    SHARED Cell() AS CELL
+    SHARED SpinChecker%()
+    SHARED TitleMode%
 
-    Randomize Timer '                                                              seed the random number generator
+    RANDOMIZE TIMER '                                                              seed the random number generator
     SPRITESET SpinChecker%(0), 1 '                                                 reset black checker animation to beginning
     SPRITESET SpinChecker%(1), 37 '                                                reset red checker animation to beginning
     ComputerTurn% = FALSE '                                                        assume it is not computer's turn to move
@@ -1101,97 +1101,97 @@ Sub MoveChecker (CheckerColor%, CPUColumn%)
     ColumnChosen% = FALSE '                                                        no column chosen yet
     CheckerDrop% = FALSE '                                                         the checker has not been dropped yet
     SpinCount% = 1 '                                                               set to frame 1 of spinning animation
-    Column% = Abs(TitleMode% * 3) + 3 '                                            where should spinning checker start
+    Column% = ABS(TitleMode% * 3) + 3 '                                            where should spinning checker start
     OldColumn% = Column% '                                                         set previous column to the same
-    If CPUColumn% >= 0 Then '                                                      is it the computer's turn to move?
+    IF CPUColumn% >= 0 THEN '                                                      is it the computer's turn to move?
         ComputerTurn% = TRUE '                                                     yes, set flag indicating this
         NewWait% = TRUE '                                                          set flag telling CPU ok to move
-    End If
-    Do
-        If Not ComputerTurn% Then '                                                is it the computer's turn to move?
-            Do '                                                                   no
-                ClearBuffer$ = InKey$ '                                            get key in buffer
-                If ClearBuffer$ <> "" Then KeyPress$ = UCase$(ClearBuffer$) '      save the last key pressed
-            Loop Until ClearBuffer$ = "" '                                         keep looping until the buffer cleared
-            If Len(KeyPress$) > 1 Then KeyPress$ = Right$(KeyPress$, 1) '          strip control character from player input
-        Else '                                                                     computer's move
-            If NewWait% Then '                                                     generate a random wait time?
-                WaitTime% = Int(Rnd(1) * 20) + 9 '                                 yes, between 9 and 28 frames
-                If TitleMode% Then WaitTime% = 18 '                                set a fixed wait time if in title sequence mode
+    END IF
+    DO
+        IF NOT ComputerTurn% THEN '                                                is it the computer's turn to move?
+            DO '                                                                   no
+                ClearBuffer$ = INKEY$ '                                            get key in buffer
+                IF ClearBuffer$ <> "" THEN KeyPress$ = UCASE$(ClearBuffer$) '      save the last key pressed
+            LOOP UNTIL ClearBuffer$ = "" '                                         keep looping until the buffer cleared
+            IF LEN(KeyPress$) > 1 THEN KeyPress$ = RIGHT$(KeyPress$, 1) '          strip control character from player input
+        ELSE '                                                                     computer's move
+            IF NewWait% THEN '                                                     generate a random wait time?
+                WaitTime% = INT(RND(1) * 20) + 9 '                                 yes, between 9 and 28 frames
+                IF TitleMode% THEN WaitTime% = 18 '                                set a fixed wait time if in title sequence mode
                 NewWait% = FALSE '                                                 turn off random wait time generate until move made
-            End If
-            If SpinCount% > 0 And (SpinCount% / WaitTime% = SpinCount% \ WaitTime%) Then ' is it time for computer move?
+            END IF
+            IF SpinCount% > 0 AND (SpinCount% / WaitTime% = SpinCount% \ WaitTime%) THEN ' is it time for computer move?
                 NewWait% = TRUE '                                                  yes, a new wait time will be needed then
-                If CPUColumn% > Column% Then '                                     does computer need to move right?
-                    KeyPress$ = Chr$(77) '                                         yes, simulate the right key being pressed
-                ElseIf CPUColumn% < Column% Then '                                 does computer need to move left?
-                    KeyPress$ = Chr$(75) '                                         yes, simulate the left key being pressed
-                Else '                                                             computer is now at correct column
-                    KeyPress$ = Chr$(80) '                                         simulate the down key being pressed
-                End If
-            End If
-        End If
-        Select Case KeyPress$ '                                                    which key was pressed?
-            Case Chr$(75) '                                                        left arrow key
+                IF CPUColumn% > Column% THEN '                                     does computer need to move right?
+                    KeyPress$ = CHR$(77) '                                         yes, simulate the right key being pressed
+                ELSEIF CPUColumn% < Column% THEN '                                 does computer need to move left?
+                    KeyPress$ = CHR$(75) '                                         yes, simulate the left key being pressed
+                ELSE '                                                             computer is now at correct column
+                    KeyPress$ = CHR$(80) '                                         simulate the down key being pressed
+                END IF
+            END IF
+        END IF
+        SELECT CASE KeyPress$ '                                                    which key was pressed?
+            CASE CHR$(75) '                                                        left arrow key
                 Column% = Column% - 1 '                                            decrement column value
-            Case Chr$(77) '                                                        right arrow key
+            CASE CHR$(77) '                                                        right arrow key
                 Column% = Column% + 1 '                                            increment column value
-            Case Chr$(80), Chr$(13) '                                              down arrow or enter key
+            CASE CHR$(80), CHR$(13) '                                              down arrow or enter key
                 CheckerDrop% = TRUE '                                              set flag to drop checker
-        End Select
+        END SELECT
         KeyPress$ = "" '                                                           reset keyboard input string
-        If Column% < 0 Then Column% = 0 '                                          stay on left side of board
-        If Column% > 6 Then Column% = 6 '                                          stay on right side of board
-        If Column% <> OldColumn% Then OldColumn% = Column% '                       remember new column chosen
-        Do
-            _Limit 36 '                                                            limit this loop to 36 times per second
+        IF Column% < 0 THEN Column% = 0 '                                          stay on left side of board
+        IF Column% > 6 THEN Column% = 6 '                                          stay on right side of board
+        IF Column% <> OldColumn% THEN OldColumn% = Column% '                       remember new column chosen
+        DO
+            _LIMIT 36 '                                                            limit this loop to 36 times per second
             SPRITEPUT Cell(Column%, 1).x, 50, SpinChecker%(CheckerColor%) ' place the auto-animating checker sprite
             SpinCount% = SpinCount% + 1 '                                          keep track of which checker frame is showing
-            If SpinCount% = 36 Then SpinCount% = 0 '                               reset frame tracker when checker completes a spin
-            _Display '                                                             update the screen with changes
-            If (CheckerDrop% And (SpinCount% = 1)) Or (CheckerDrop% And (SpinCount% = 19)) Then ' is checker ready to drop?
-                If SpinCount% = 1 Then Face% = 0 Else Face% = 1 '                  yes, determine which checker face to show
+            IF SpinCount% = 36 THEN SpinCount% = 0 '                               reset frame tracker when checker completes a spin
+            _DISPLAY '                                                             update the screen with changes
+            IF (CheckerDrop% AND (SpinCount% = 1)) OR (CheckerDrop% AND (SpinCount% = 19)) THEN ' is checker ready to drop?
+                IF SpinCount% = 1 THEN Face% = 0 ELSE Face% = 1 '                  yes, determine which checker face to show
                 ColumnChosen% = DropChecker(Column%, CheckerColor%, Face%) '       drop the checker
                 CheckerDrop% = FALSE '                                             reset checker drop flag
-                If TitleMode% Then '                                               in title sequence mode?
+                IF TitleMode% THEN '                                               in title sequence mode?
                     ColumnChosen% = TRUE '                                         yes, trick routine into thinking column chosen
                     CheckerDrop% = FALSE '                                         trick routine into thinking checker dropped
-                End If
-            End If
-        Loop Until Not CheckerDrop% '                                              stay in this loop until attempted checker drop
-    Loop Until ColumnChosen% '                                                     stay in this loop until checker has actually dropped
-    Do: Loop Until InKey$ = "" '                                                   clear keyboard buffer of any stray inputs
+                END IF
+            END IF
+        LOOP UNTIL NOT CheckerDrop% '                                              stay in this loop until attempted checker drop
+    LOOP UNTIL ColumnChosen% '                                                     stay in this loop until checker has actually dropped
+    DO: LOOP UNTIL INKEY$ = "" '                                                   clear keyboard buffer of any stray inputs
 
     '******************************************************************************
-End Sub
+END SUB
 
-Function DropChecker% (Column%, CheckerColor%, Face%)
+FUNCTION DropChecker% (Column%, CheckerColor%, Face%)
     '******************************************************************************
     '*                                                                            *
     '* Drops a checker into a given column of specified color and facing side.    *
     '*                                                                            *
     '******************************************************************************
 
-    Dim RowCheck% '                                                                row to check for a checker
-    Dim RowFound% '                                                                goes true when a valid row is found
-    Dim SlideVolume! '                                                             current volume of checker sliding sound
-    Dim Fallen% '                                                                  true when checker has fallen total distance
-    Dim FallCount% '                                                               current y position of falling checker
-    Dim OldFallCount% '                                                            last y position of falling checker
-    Dim FallTime! '                                                                increasing speed of falling checker
-    Dim CellCount% '                                                               cell positions involved in drop animation
-    Dim SlideVloume!
+    DIM RowCheck% '                                                                row to check for a checker
+    DIM RowFound% '                                                                goes true when a valid row is found
+    DIM SlideVolume! '                                                             current volume of checker sliding sound
+    DIM Fallen% '                                                                  true when checker has fallen total distance
+    DIM FallCount% '                                                               current y position of falling checker
+    DIM OldFallCount% '                                                            last y position of falling checker
+    DIM FallTime! '                                                                increasing speed of falling checker
+    DIM CellCount% '                                                               cell positions involved in drop animation
+    DIM SlideVloume!
 
-    Shared CellImage%
-    Shared CellBlank%
-    Shared Cell() As CELL
-    Shared Click&
-    Shared Drop&
-    Shared Slide&
-    Shared Checker%()
-    Shared LastRow%
-    Shared LastColumn%
-    Shared SoundOption%
+    SHARED CellImage%
+    SHARED CellBlank%
+    SHARED Cell() AS CELL
+    SHARED Click&
+    SHARED Drop&
+    SHARED Slide&
+    SHARED Checker%()
+    SHARED LastRow%
+    SHARED LastColumn%
+    SHARED SoundOption%
 
     DropChecker% = FALSE '                                                         assume column can't have checker dropped
     RowCheck% = 6 '                                                                reset row count
@@ -1201,136 +1201,136 @@ Function DropChecker% (Column%, CheckerColor%, Face%)
     FallCount% = 50 '                                                              start animation y location from here
     OldFallCount% = 50 '                                                           start animation y location from here
     FallTime! = 1 '                                                                set initial falling speed of 1 pixel
-    Do
-        If Cell(Column%, RowCheck% - 1).c <> 2 Then '                              is there a checker here?
+    DO
+        IF Cell(Column%, RowCheck% - 1).c <> 2 THEN '                              is there a checker here?
             RowFound% = TRUE '                                                     yes, previous row seems valid
-        Else '                                                                     there is no checker here
+        ELSE '                                                                     there is no checker here
             RowCheck% = RowCheck% - 1 '                                            move onto the next row
-            If RowCheck% = 0 Then RowFound% = TRUE '                               leave if run out of rows to check
-        End If
-    Loop Until RowFound% '                                                         leave if a possible row is found
-    If RowCheck% <> 6 Then '                                                       was a vaild row found?
+            IF RowCheck% = 0 THEN RowFound% = TRUE '                               leave if run out of rows to check
+        END IF
+    LOOP UNTIL RowFound% '                                                         leave if a possible row is found
+    IF RowCheck% <> 6 THEN '                                                       was a vaild row found?
         DropChecker% = TRUE '                                                      return that a checker was dropped
-        If SoundOption% Then '                                                     is sound allowed?
-            _SndPlay Slide& '                                                      yes, start the sliding noise
-            _SndVol Slide&, SlideVolume! '                                         set the initial low volume
-        End If
-        Do
-            _Limit 150 '                                                           limit to 150 frames per second
+        IF SoundOption% THEN '                                                     is sound allowed?
+            _SNDPLAY Slide& '                                                      yes, start the sliding noise
+            _SNDVOL Slide&, SlideVolume! '                                         set the initial low volume
+        END IF
+        DO
+            _LIMIT 150 '                                                           limit to 150 frames per second
             SPRITESTAMP Cell(Column%, RowCheck%).x, OldFallCount%, CellBlank% '    clear the last checker position
-            FallCount% = FallCount% + Int(FallTime!) '                             update falling checker y position
+            FallCount% = FallCount% + INT(FallTime!) '                             update falling checker y position
             OldFallCount% = FallCount% '                                           remember this position to clear later
-            If FallCount% >= Cell(Column%, RowCheck%).y Then '                     has checker reached bottom?
+            IF FallCount% >= Cell(Column%, RowCheck%).y THEN '                     has checker reached bottom?
                 Fallen% = TRUE '                                                   yes, mark as such
                 SPRITESTAMP Cell(Column%, RowCheck%).x, Cell(Column%, RowCheck%).y, Checker%(CheckerColor%, Face%) ' draw checker in final spot
-                If SoundOption% Then _SndStop Slide& '                             stop the sliding noise if allowed
-                If RowCheck% = 0 Then '                                            was there no other checker in this column?
-                    If SoundOption% Then _SndPlayCopy Drop&, 1 '                   play sound of checker hitting game rack if allowed
-                Else '                                                             the falling checker hit another checker
-                    If SoundOption% Then _SndPlayCopy Click&, .1666 * (6 - RowCheck%) ' play sound of checker hitting another checker if allowed
-                End If
-            Else '                                                                 checker is still falling
+                IF SoundOption% THEN _SNDSTOP Slide& '                             stop the sliding noise if allowed
+                IF RowCheck% = 0 THEN '                                            was there no other checker in this column?
+                    IF SoundOption% THEN _SNDPLAYCOPY Drop&, 1 '                   play sound of checker hitting game rack if allowed
+                ELSE '                                                             the falling checker hit another checker
+                    IF SoundOption% THEN _SNDPLAYCOPY Click&, .1666 * (6 - RowCheck%) ' play sound of checker hitting another checker if allowed
+                END IF
+            ELSE '                                                                 checker is still falling
                 SPRITESTAMP Cell(Column%, RowCheck%).x, FallCount%, Checker%(CheckerColor%, Face%) ' draw checker's current position
-            End If
-            For CellCount% = 5 To RowCheck% Step -1 '                              loop through cells affected by animation
+            END IF
+            FOR CellCount% = 5 TO RowCheck% STEP -1 '                              loop through cells affected by animation
                 SPRITESTAMP Cell(Column%, CellCount%).x, Cell(Column%, CellCount%).y, CellImage% ' draw cell image in these locations
-            Next CellCount%
+            NEXT CellCount%
             FallTime! = FallTime! * 1.05 '                                         increase the falling speed
             SlideVolume! = SlideVolume! + .0005 '                                  increase the sliding noise volume
-            If SoundOption% Then _SndVol Slide&, SlideVolume! '                    set the new sliding noise volume if sound allowed
-            _Display '                                                             show all changes made to screen
-        Loop Until Fallen% '                                                       keep looping until checker comes to a halt
+            IF SoundOption% THEN _SNDVOL Slide&, SlideVolume! '                    set the new sliding noise volume if sound allowed
+            _DISPLAY '                                                             show all changes made to screen
+        LOOP UNTIL Fallen% '                                                       keep looping until checker comes to a halt
         Cell(Column%, RowCheck%).c = CheckerColor% '                               update array with current checker in position
         Cell(Column%, RowCheck%).f = Face% '                                       update array with current checker face showing
         LastRow% = RowCheck% '                                                     remember last row checker dropped in
         LastColumn% = Column% '                                                    remember last column checker dropped in
-    End If
+    END IF
 
     '******************************************************************************
-End Function
+END FUNCTION
 
-Sub DrawBoard ()
+SUB DrawBoard ()
     '******************************************************************************
     '*                                                                            *
     '* Draws the initial game board.                                              *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     current row of cell being drawn
-    Dim Column% '                                                                  current column of cell being drawn
+    DIM Row% '                                                                     current row of cell being drawn
+    DIM Column% '                                                                  current column of cell being drawn
 
-    Shared CellImage%
-    Shared Cell() As CELL
+    SHARED CellImage%
+    SHARED Cell() AS CELL
 
-    _Title "Game in Progress!" '                                                   change window title to show game in progress
-    Line (0, 0)-(699, 699), _RGB32(0, 0, 254), BF '                                clear the entire screen
-    For Column% = 0 To 6 '                                                         cycle through all cell columns
-        For Row% = 0 To 5 '                                                        cycle through all cell rows
+    _TITLE "Game in Progress!" '                                                   change window title to show game in progress
+    LINE (0, 0)-(699, 699), _RGB32(0, 0, 254), BF '                                clear the entire screen
+    FOR Column% = 0 TO 6 '                                                         cycle through all cell columns
+        FOR Row% = 0 TO 5 '                                                        cycle through all cell rows
             SPRITESTAMP Cell(Column%, Row%).x, Cell(Column%, Row%).y, CellImage% ' draw the cell image
-        Next Row%
-    Next Column%
+        NEXT Row%
+    NEXT Column%
 
     '******************************************************************************
-End Sub
+END SUB
 
-Sub InitializeVariables ()
+SUB InitializeVariables ()
     '******************************************************************************
     '*                                                                            *
     '* Initializes game variables to default conditions.                          *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Row% '                                                                     current cell row
-    Dim Column% '                                                                  current cell column
+    DIM Row% '                                                                     current cell row
+    DIM Column% '                                                                  current cell column
 
-    Shared Cell() As CELL '                                                        game board checker positions
+    SHARED Cell() AS CELL '                                                        game board checker positions
 
-    For Column% = 0 To 6 '                                                         cycle through all cell columns
-        For Row% = 0 To 5 '                                                        cycle through all cell rows
+    FOR Column% = 0 TO 6 '                                                         cycle through all cell columns
+        FOR Row% = 0 TO 5 '                                                        cycle through all cell rows
             Cell(Column%, Row%).x = Column% * 100 + 50 '                           compute this cell's x location
             Cell(Column%, Row%).y = 650 - Row% * 100 '                             compute this cell's y location
             Cell(Column%, Row%).c = EMPTY '                                        no checker
             Cell(Column%, Row%).f = 0 '                                            front facing checkers
-        Next Row%
-    Next Column%
+        NEXT Row%
+    NEXT Column%
 
     '******************************************************************************
-End Sub
+END SUB
 
-Sub TitleSequence ()
+SUB TitleSequence ()
     '******************************************************************************
     '*                                                                            *
     '* Plays the starting title sequence of the game.                             *
     '*                                                                            *
     '******************************************************************************
 
-    Dim Bcolumn$(6, 4) '                                                           array holding checkers spelling "4 in a row"
-    Dim DropCount% '                                                               keeps track of number of checkers dropped
-    Dim CellCount% '                                                               keeps track of number of cells visited in column
-    Dim Dummy% '                                                                   dummy value returned by DropChecker()
-    Dim Dropped% '                                                                 true when a checker has been dropped
-    Dim Column% '                                                                  the random column to drop a checker down
-    Dim Row% '                                                                     row counter
-    Dim ShrinkingChecker%(2) '                                                     shrinking checker sprites
-    Dim Zoom% '                                                                    zoom level of shrinking checkers
-    Dim FourImage& '                                                               image of red 4
-    Dim TempImage& '                                                               temporary image holder
-    Dim Count% '                                                                   generic counter
-    Dim Mcount% '                                                                  marquee counter
+    DIM Bcolumn$(6, 4) '                                                           array holding checkers spelling "4 in a row"
+    DIM DropCount% '                                                               keeps track of number of checkers dropped
+    DIM CellCount% '                                                               keeps track of number of cells visited in column
+    DIM Dummy% '                                                                   dummy value returned by DropChecker()
+    DIM Dropped% '                                                                 true when a checker has been dropped
+    DIM Column% '                                                                  the random column to drop a checker down
+    DIM Row% '                                                                     row counter
+    DIM ShrinkingChecker%(2) '                                                     shrinking checker sprites
+    DIM Zoom% '                                                                    zoom level of shrinking checkers
+    DIM FourImage& '                                                               image of red 4
+    DIM TempImage& '                                                               temporary image holder
+    DIM Count% '                                                                   generic counter
+    DIM Mcount% '                                                                  marquee counter
 
-    Shared TitleMode%
-    Shared TitleMusic&
-    Shared Cell() As CELL
-    Shared Checker%()
-    Shared CheckerSheet%
-    Shared CellBlank%
-    Shared Drop&
-    Shared Menu%()
-    Shared MenuImage&
-    Shared MenuY%()
-    Shared SpinChecker%()
-    Shared MusicOption%
-    Shared SoundOption%
+    SHARED TitleMode%
+    SHARED TitleMusic&
+    SHARED Cell() AS CELL
+    SHARED Checker%()
+    SHARED CheckerSheet%
+    SHARED CellBlank%
+    SHARED Drop&
+    SHARED Menu%()
+    SHARED MenuImage&
+    SHARED MenuY%()
+    SHARED SpinChecker%()
+    SHARED MusicOption%
+    SHARED SoundOption%
 
     Bcolumn$(0, 0) = "000000": Bcolumn$(0, 1) = "00000 ": Bcolumn$(0, 2) = " 0    ": Bcolumn$(0, 3) = "    0 ": Bcolumn$(0, 4) = "0     "
     Bcolumn$(1, 0) = "000111": Bcolumn$(1, 1) = "      ": Bcolumn$(1, 2) = "0 0 0 ": Bcolumn$(1, 3) = "   0  ": Bcolumn$(1, 4) = " 00   "
@@ -1340,145 +1340,145 @@ Sub TitleSequence ()
     Bcolumn$(5, 0) = "000100": Bcolumn$(5, 1) = "0000  ": Bcolumn$(5, 2) = "00000 ": Bcolumn$(5, 3) = " 000  ": Bcolumn$(5, 4) = "      "
     Bcolumn$(6, 0) = "000000": Bcolumn$(6, 1) = "      ": Bcolumn$(6, 2) = "   0  ": Bcolumn$(6, 3) = " 0000 ": Bcolumn$(6, 4) = "      "
 
-    Screen _NewImage(700, 700, 32) '                                               700x700x32bit screen
-    _ScreenMove _Middle '                                                          move the screen to the middle of desktop
+    SCREEN _NEWIMAGE(700, 700, 32) '                                               700x700x32bit screen
+    _SCREENMOVE _MIDDLE '                                                          move the screen to the middle of desktop
     DrawBoard '                                                                    draw the game board
-    _Title "Welcome to Four in a Row!" '                                           title the window
+    _TITLE "Welcome to Four in a Row!" '                                           title the window
     DropCount% = 0 '                                                               reset checker drop counter
     ShrinkingChecker%(0) = SPRITENEW(CheckerSheet%, 1, SAVE) '                     create the black shrinking checker sprite side 1
     ShrinkingChecker%(1) = SPRITENEW(CheckerSheet%, 19, SAVE) '                    create the black shrinking checker sprite side 2
     ShrinkingChecker%(2) = SPRITENEW(CheckerSheet%, 37, SAVE)
-    Randomize Timer '                                                              seed the random number generator
-    If MusicOption% Then '                                                         is music allowed?
-        _SndPlay TitleMusic& '                                                     yes, start the funky title music
-        _SndVol TitleMusic&, 1 '                                                   set the volume to highest value
-    End If
-    Do
-        Column% = Int(Rnd(1) * 7) '                                                choose a random column
+    RANDOMIZE TIMER '                                                              seed the random number generator
+    IF MusicOption% THEN '                                                         is music allowed?
+        _SNDPLAY TitleMusic& '                                                     yes, start the funky title music
+        _SNDVOL TitleMusic&, 1 '                                                   set the volume to highest value
+    END IF
+    DO
+        Column% = INT(RND(1) * 7) '                                                choose a random column
         CellCount% = 1 '                                                           start counting at bottom cell of column
         Dropped% = FALSE '                                                         reset the checker dropped flag
-        If Bcolumn$(Column%, 0) <> "      " Then '                                 is this column full of checkers?
-            Do '                                                                   no
-                If Mid$(Bcolumn$(Column%, 0), CellCount%, 1) <> " " Then '         is there a checker in this position?
-                    Dummy% = DropChecker%(Column%, Val(Mid$(Bcolumn$(Column%, 0), CellCount%, 1)), Int(Rnd(1) * 2)) ' no, drop a checker
-                    Mid$(Bcolumn$(Column%, 0), CellCount%, 1) = " " '              mark this cell as used by a checker
+        IF Bcolumn$(Column%, 0) <> "      " THEN '                                 is this column full of checkers?
+            DO '                                                                   no
+                IF MID$(Bcolumn$(Column%, 0), CellCount%, 1) <> " " THEN '         is there a checker in this position?
+                    Dummy% = DropChecker%(Column%, VAL(MID$(Bcolumn$(Column%, 0), CellCount%, 1)), INT(RND(1) * 2)) ' no, drop a checker
+                    MID$(Bcolumn$(Column%, 0), CellCount%, 1) = " " '              mark this cell as used by a checker
                     DropCount% = DropCount% + 1 '                                  increment the checker drop counter
                     Dropped% = TRUE '                                              set the dropped checker flag
-                Else '                                                             there is a checker in this position
+                ELSE '                                                             there is a checker in this position
                     CellCount% = CellCount% + 1 '                                  increment cell counter to try next cell
-                End If
-            Loop Until Dropped% '                                                  keep looping until a checker is dropped
-        End If
-    Loop Until DropCount% = 42 '                                                   keep looping until all checkers have been dropped
+                END IF
+            LOOP UNTIL Dropped% '                                                  keep looping until a checker is dropped
+        END IF
+    LOOP UNTIL DropCount% = 42 '                                                   keep looping until all checkers have been dropped
     TitleMode% = TRUE '                                                            set the title mode flag
     MoveChecker RED, 1 '                                                           move a spinning red checker into the scene
     TitleMode% = FALSE '                                                           remove the title mode flag
-    Line (0, 100)-(699, 699), _RGB32(0, 0, 254), BF '                              remove the board and chckers, leave top red checker
-    For Column% = 0 To 6 '                                                         cycle through all the columns
-        For Row% = 0 To 5 '                                                        cycle through all the rows
+    LINE (0, 100)-(699, 699), _RGB32(0, 0, 254), BF '                              remove the board and chckers, leave top red checker
+    FOR Column% = 0 TO 6 '                                                         cycle through all the columns
+        FOR Row% = 0 TO 5 '                                                        cycle through all the rows
             SPRITESTAMP Cell(Column%, Row%).x, Cell(Column%, Row%).y, Checker%(Cell(Column%, Row%).c, Cell(Column%, Row%).f) ' draw only checkers
-        Next Row%
-    Next Column%
-    _Display '                                                                     update the screen with changes
-    For Zoom% = 100 To 1 Step -1 '                                                 zoom black checkers from 100% to 1%
-        _Limit 100 '                                                               take one second to zoom black checkers out
+        NEXT Row%
+    NEXT Column%
+    _DISPLAY '                                                                     update the screen with changes
+    FOR Zoom% = 100 TO 1 STEP -1 '                                                 zoom black checkers from 100% to 1%
+        _LIMIT 100 '                                                               take one second to zoom black checkers out
         SPRITEZOOM ShrinkingChecker%(0), Zoom% '                                   set the zoom level of black checker face 1
         SPRITEZOOM ShrinkingChecker%(1), Zoom% '                                   set the zoom level of black checker face 2
-        For Column% = 0 To 6 '                                                     cycle through all the columns
-            For Row% = 0 To 5 '                                                    cycle through all the rows
-                If Cell(Column%, Row%).c = 0 Then '                                does this cell contain a black checker?
+        FOR Column% = 0 TO 6 '                                                     cycle through all the columns
+            FOR Row% = 0 TO 5 '                                                    cycle through all the rows
+                IF Cell(Column%, Row%).c = 0 THEN '                                does this cell contain a black checker?
                     SPRITESTAMP Cell(Column%, Row%).x, Cell(Column%, Row%).y, CellBlank% ' yes, clear the cell
                     SPRITESTAMP Cell(Column%, Row%).x, Cell(Column%, Row%).y, ShrinkingChecker%(Cell(Column%, Row%).f) ' place the zoomed checker
-                End If
-            Next Row%
-        Next Column%
-        _Display '                                                                 update the screen with changes
-    Next Zoom%
-    FourImage& = _CopyImage(0) '                                                   save the red 4 that is left on the screen
+                END IF
+            NEXT Row%
+        NEXT Column%
+        _DISPLAY '                                                                 update the screen with changes
+    NEXT Zoom%
+    FourImage& = _COPYIMAGE(0) '                                                   save the red 4 that is left on the screen
     SPRITEPUT -100, -100, SpinChecker%(1)
-    For Zoom% = 699 To 139 Step -10 '                                              shrink the red 4 image by 80%
-        Line (0, 0)-(Zoom% + 30, Zoom% + 50), _RGB32(0, 0, 254), BF '              clear the last red 4 image drawn
-        _PutImage (20, 40)-(Zoom% + 20, Zoom% + 40), FourImage& '                  place the newly sized red 4 on the screen
-        _Display '                                                                 update the screen with changes
-    Next Zoom%
-    If SoundOption% Then _SndPlayCopy Drop& '                                      play checker drop noise when 4 finished shrinking
-    TempImage& = _NewImage(700, 700, 32) '                                         create a new temporary image
-    For Count% = 1 To 4 '                                                          cycle through the remaining four array elements
-        _Dest TempImage& '                                                         drawing will be done on the temporary image
-        Line (0, 0)-(699, 699), _RGB32(0, 0, 254), BF '                            fill the temp image with blue
-        For Column% = 0 To 6 '                                                     cycle through all the columns
-            For Row% = 0 To 5 '                                                    cycle through all the rows
-                If Mid$(Bcolumn$(Column%, Count%), Row% + 1, 1) = "0" Then '           does this string position in array contain 0?
-                    If Count% = 2 And Column% < 5 Then '                           yes, are we currently drawing the "a"?
+    FOR Zoom% = 699 TO 139 STEP -10 '                                              shrink the red 4 image by 80%
+        LINE (0, 0)-(Zoom% + 30, Zoom% + 50), _RGB32(0, 0, 254), BF '              clear the last red 4 image drawn
+        _PUTIMAGE (20, 40)-(Zoom% + 20, Zoom% + 40), FourImage& '                  place the newly sized red 4 on the screen
+        _DISPLAY '                                                                 update the screen with changes
+    NEXT Zoom%
+    IF SoundOption% THEN _SNDPLAYCOPY Drop& '                                      play checker drop noise when 4 finished shrinking
+    TempImage& = _NEWIMAGE(700, 700, 32) '                                         create a new temporary image
+    FOR Count% = 1 TO 4 '                                                          cycle through the remaining four array elements
+        _DEST TempImage& '                                                         drawing will be done on the temporary image
+        LINE (0, 0)-(699, 699), _RGB32(0, 0, 254), BF '                            fill the temp image with blue
+        FOR Column% = 0 TO 6 '                                                     cycle through all the columns
+            FOR Row% = 0 TO 5 '                                                    cycle through all the rows
+                IF MID$(Bcolumn$(Column%, Count%), Row% + 1, 1) = "0" THEN '           does this string position in array contain 0?
+                    IF Count% = 2 AND Column% < 5 THEN '                           yes, are we currently drawing the "a"?
                         Cell(Column%, Row%).c = 1 '                                yes, set this position to be a red checker
-                    Else '                                                         we are not currently drawing the "a"
+                    ELSE '                                                         we are not currently drawing the "a"
                         Cell(Column%, Row%).c = 0 '                                set this position to be a black checker
-                    End If
-                    Cell(Column%, Row%).f = Int(Rnd(1) * 2) '                      create a random face for the checker
-                Else '                                                             this position does not contain a 0
+                    END IF
+                    Cell(Column%, Row%).f = INT(RND(1) * 2) '                      create a random face for the checker
+                ELSE '                                                             this position does not contain a 0
                     Cell(Column%, Row%).c = 2 '                                    set this position to contain no checker
-                End If
+                END IF
                 SPRITESTAMP Cell(Column%, Row%).x, Cell(Column%, Row%).y, Checker%(Cell(Column%, Row%).c, Cell(Column%, Row%).f) ' draw the positon
-            Next Row%
-        Next Column%
-        _Dest 0 '                                                                  drawing will be done on the screen
-        For DropCount% = -150 To 20 '                                              drop the remaining words in from the top of screen
-            Line (20 + Count% * 140, 0)-(149 + Count% * 140, 149), _RGB32(0, 0, 254), BF ' clear the position where words will drop in from
-            _PutImage (20 + Count% * 140, DropCount%)-(159 + Count% * 140, DropCount% + 139), TempImage& ' place temporary image shrunk on screen
-            _Display '                                                             update the screen with changes
-        Next DropCount%
-        If SoundOption% Then _SndPlayCopy Drop& '                                  play checker drop noise when words in place
-    Next Count%
+            NEXT Row%
+        NEXT Column%
+        _DEST 0 '                                                                  drawing will be done on the screen
+        FOR DropCount% = -150 TO 20 '                                              drop the remaining words in from the top of screen
+            LINE (20 + Count% * 140, 0)-(149 + Count% * 140, 149), _RGB32(0, 0, 254), BF ' clear the position where words will drop in from
+            _PUTIMAGE (20 + Count% * 140, DropCount%)-(159 + Count% * 140, DropCount% + 139), TempImage& ' place temporary image shrunk on screen
+            _DISPLAY '                                                             update the screen with changes
+        NEXT DropCount%
+        IF SoundOption% THEN _SNDPLAYCOPY Drop& '                                  play checker drop noise when words in place
+    NEXT Count%
     Row% = 1 '                                                                     start with menu row 1
     Mcount% = 0 '                                                                  reset marquee counter
-    For Count% = 300 To 645 Step 115 '                                             step through menu entry Y positions
+    FOR Count% = 300 TO 645 STEP 115 '                                             step through menu entry Y positions
         MenuY%(Row%) = Count% '                                                    save this Y position
-        For Zoom% = 1 To 100 '                                                     cycle from 1 to 100
-            _Limit 128 '                                                           limit FOR statement to 128 FPS
+        FOR Zoom% = 1 TO 100 '                                                     cycle from 1 to 100
+            _LIMIT 128 '                                                           limit FOR statement to 128 FPS
             SPRITEZOOM Menu%(Row%, 0), Zoom% '                                     set zoom level of menu entry
             SPRITESTAMP 349, Count%, Menu%(Row%, 0) '                              place menu entry on screen
             Mcount% = Mcount% + 1 '                                                increment marquee counter
-            If Mcount% = 32 Then '                                                 1/4 second gone by?
+            IF Mcount% = 32 THEN '                                                 1/4 second gone by?
                 Mcount% = 1 '                                                      yes, reset marquee counter
                 Marquee '                                                          update the marquee
-            End If
-            _Display '                                                             display changes to the screen
-        Next Zoom%
-        If SoundOption% Then _SndPlayCopy Drop& '                                  play sound when menu entry zoomed in
+            END IF
+            _DISPLAY '                                                             display changes to the screen
+        NEXT Zoom%
+        IF SoundOption% THEN _SNDPLAYCOPY Drop& '                                  play sound when menu entry zoomed in
         Row% = Row% + 1 '                                                          increment menu row counter
-    Next Count%
+    NEXT Count%
     SPRITESTAMP 349, MenuY%(1), Menu%(1, 1) '                                      highlight first menu entry
-    MenuImage& = _CopyImage(0) '                                                   save a copy of the screen
-    For Zoom% = 1 To 100 '                                                         cycle from 1 to 100
-        _Limit 128 '                                                               limit FOR statement to 128 FPS
+    MenuImage& = _COPYIMAGE(0) '                                                   save a copy of the screen
+    FOR Zoom% = 1 TO 100 '                                                         cycle from 1 to 100
+        _LIMIT 128 '                                                               limit FOR statement to 128 FPS
         SPRITEZOOM ShrinkingChecker%(0), Zoom% '                                   set zoom level of black checker
         SPRITEZOOM ShrinkingChecker%(2), Zoom% '                                   set zoom level of red checker
         SPRITEPUT 62, MenuY%(1), ShrinkingChecker%(2) '                            place red checker on screen
         SPRITEPUT 636, MenuY%(1), ShrinkingChecker%(0) '                           place black checker on screen
         Mcount% = Mcount% + 1 '                                                    incrememnt marquee counter
-        If Mcount% = 32 Then '                                                     1/4 second gone by?
+        IF Mcount% = 32 THEN '                                                     1/4 second gone by?
             Mcount% = 1 '                                                          yes, reset marquee counter
             Marquee '                                                              update the marquee
-        End If
-        _Display '                                                                 display changes to the screen
-    Next Zoom%
-    Do
-        _Limit 4 '                                                                 limit loop to 4 FPS
+        END IF
+        _DISPLAY '                                                                 display changes to the screen
+    NEXT Zoom%
+    DO
+        _LIMIT 4 '                                                                 limit loop to 4 FPS
         Marquee '                                                                  update the marquee
-        _Display '                                                                 display changes to the screen
-    Loop Until Not _SndPlaying(TitleMusic&) '                                      keep looping until music done
-    If MusicOption% Then '                                                         is music allowed?
-        _SndVol TitleMusic&, 0 '                                                   yes, set music volume to 0  \
-        _SndPlay TitleMusic& '                                                     play music again             \  this is a workaround for a QB64
-        _Delay .1 '                                                                delay for 10th of second      - MMIDI bug that crashes program
-        _SndStop TitleMusic& '                                                     stop music                   /
-        _SndClose TitleMusic& '                                                    close music                 /
-    End If
+        _DISPLAY '                                                                 display changes to the screen
+    LOOP UNTIL NOT _SNDPLAYING(TitleMusic&) '                                      keep looping until music done
+    IF MusicOption% THEN '                                                         is music allowed?
+        _SNDVOL TitleMusic&, 0 '                                                   yes, set music volume to 0  \
+        _SNDPLAY TitleMusic& '                                                     play music again             \  this is a workaround for a QB64
+        _DELAY .1 '                                                                delay for 10th of second      - MMIDI bug that crashes program
+        _SNDSTOP TitleMusic& '                                                     stop music                   /
+        _SNDCLOSE TitleMusic& '                                                    close music                 /
+    END IF
 
     '******************************************************************************
-End Sub
+END SUB
 
-Function AllExist% ()
+FUNCTION AllExist% ()
     '******************************************************************************
     '*                                                                            *
     '* Returns TRUE if all support files exist, FALSE otherwise.                  *
@@ -1486,24 +1486,24 @@ Function AllExist% ()
     '******************************************************************************
 
     AllExist% = FALSE '                                                            assume a file(s) is missing
-    If Not _FileExists("checkers.png") Then Exit Function '                        if any file is missing return FALSE
-    If Not _FileExists("4iaricon.bmp") Then Exit Function
-    If Not _FileExists("click.wav") Then Exit Function
-    If Not _FileExists("firstdrop.wav") Then Exit Function
-    If Not _FileExists("slide.wav") Then Exit Function
-    If Not _FileExists("title.mid") Then Exit Function
-    If Not _FileExists("music.ogg") Then Exit Function
-    If Not _FileExists("menu.png") Then Exit Function
-    If Not _FileExists("menu.ogg") Then Exit Function
-    If Not _FileExists("win1.ogg") Then Exit Function
-    If Not _FileExists("win2.ogg") Then Exit Function
-    If Not _FileExists("lose.ogg") Then Exit Function
+    IF NOT _FILEEXISTS("checkers.png") THEN EXIT FUNCTION '                        if any file is missing return FALSE
+    IF NOT _FILEEXISTS("4iaricon.bmp") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("click.wav") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("firstdrop.wav") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("slide.wav") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("title.mid") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("music.ogg") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("menu.png") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("menu.ogg") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("win1.ogg") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("win2.ogg") THEN EXIT FUNCTION
+    IF NOT _FILEEXISTS("lose.ogg") THEN EXIT FUNCTION
     AllExist% = TRUE '                                                             made it this far then all exist
 
     '******************************************************************************
-End Function
+END FUNCTION
 
-Sub CreateAssets ()
+SUB CreateAssets ()
     '******************************************************************************
     '*                                                                            *
     '* Prepares graphics and sounds for game play.                                *
@@ -1514,51 +1514,51 @@ Sub CreateAssets ()
     '*                                                                            *
     '******************************************************************************
 
-    Dim icon& '                                                                    handle that holds window icon image
+    DIM icon& '                                                                    handle that holds window icon image
 
-    Shared CheckerSheet% '
-    Shared MenuSheet%
-    Shared SpinChecker%() '
-    Shared Checker%() '
-    Shared Menu%()
-    Shared board& '
-    Shared CellImage% '
-    Shared CellBlank% '
-    Shared Click& '
-    Shared Drop& '
-    Shared Slide& '
-    Shared TitleMusic&
-    Shared MarqueeChecker%()
-    Shared Options%()
-    Shared GameLevel%
-    Shared SoundOption%
-    Shared MusicOption%
-    Shared GameMusic&
-    Shared MenuMusic&
-    Shared Win&()
-    Shared Lose&
-    Shared Winner%()
-    Shared WinSpin%()
+    SHARED CheckerSheet% '
+    SHARED MenuSheet%
+    SHARED SpinChecker%() '
+    SHARED Checker%() '
+    SHARED Menu%()
+    SHARED board& '
+    SHARED CellImage% '
+    SHARED CellBlank% '
+    SHARED Click& '
+    SHARED Drop& '
+    SHARED Slide& '
+    SHARED TitleMusic&
+    SHARED MarqueeChecker%()
+    SHARED Options%()
+    SHARED GameLevel%
+    SHARED SoundOption%
+    SHARED MusicOption%
+    SHARED GameMusic&
+    SHARED MenuMusic&
+    SHARED Win&()
+    SHARED Lose&
+    SHARED Winner%()
+    SHARED WinSpin%()
 
-    If Not AllExist% Then '                                                        do all support files exist?
-        Print '                                                                    no, inform user
-        Print "     Four in a Row"
-        Print "          by"
-        Print "     Terry Ritchie"
-        Print "terry.ritchie@gmail.com"
-        Print
-        Print "ERROR: One or more support files are missing."
-        Print "       Please reinstall the game."
-        Print
-        Print "Press any key to return to Windows."
-        Beep '                                                                     get user's attention
-        Do: Loop Until InKey$ = "" '                                               clear keyboard buffer
-        Do: Loop Until InKey$ <> "" '                                              wait for a key press
-        System '                                                                   return to Windows
-    End If
-    icon& = _LoadImage("4iaricon.bmp", 32) '                                       load the window icon image
-    _Icon icon& '                                                                  set the window icon image
-    _FreeImage icon& '                                                             remove the icon image from memory
+    IF NOT AllExist% THEN '                                                        do all support files exist?
+        PRINT '                                                                    no, inform user
+        PRINT "     Four in a Row"
+        PRINT "          by"
+        PRINT "     Terry Ritchie"
+        PRINT "terry.ritchie@gmail.com"
+        PRINT
+        PRINT "ERROR: One or more support files are missing."
+        PRINT "       Please reinstall the game."
+        PRINT
+        PRINT "Press any key to return to Windows."
+        BEEP '                                                                     get user's attention
+        DO: LOOP UNTIL INKEY$ = "" '                                               clear keyboard buffer
+        DO: LOOP UNTIL INKEY$ <> "" '                                              wait for a key press
+        SYSTEM '                                                                   return to Windows
+    END IF
+    icon& = _LOADIMAGE("4iaricon.bmp", 32) '                                       load the window icon image
+    _ICON icon& '                                                                  set the window icon image
+    _FREEIMAGE icon& '                                                             remove the icon image from memory
     CheckerSheet% = SPRITESHEETLOAD("checkers.png", 100, 100, _RGB32(0, 0, 255)) ' load the checkers sprite sheet into memory
     MenuSheet% = SPRITESHEETLOAD("menu.png", 700, 100, NOTRANSPARENCY) '           sprite sheet containing menu and options entries
     Checker%(0, 0) = SPRITENEW(CheckerSheet%, 1, SAVE) '                           create the black checker sprite side 1
@@ -1628,34 +1628,34 @@ Sub CreateAssets ()
     CellBlank% = SPRITENEW(CheckerSheet%, 74, DONTSAVE) '                          create sprite containing blank background
     MarqueeChecker%(0) = SPRITENEW(CheckerSheet%, 1, DONTSAVE) '                   black checker for use in marquee
     MarqueeChecker%(1) = SPRITENEW(CheckerSheet%, 37, DONTSAVE) '                  red checker for use in marquee
-    Click& = _SndOpen("click.wav", "VOL,SYNC") '                                   sound of checker hitting another checker
-    Drop& = _SndOpen("firstdrop.wav", "VOL,SYNC") '                                sound of checker hitting game board rack
-    Slide& = _SndOpen("slide.wav", "VOL,SYNC") '                                   sound of checker sliding down game board rack
-    TitleMusic& = _SndOpen("title.mid", "VOL") '                                   music that plays during title sequence
-    GameMusic& = _SndOpen("music.ogg", "VOL,SYNC") '                               music that plays during game
-    MenuMusic& = _SndOpen("menu.ogg", "VOL,SYNC") '                                music that plays during menu
-    Win&(0) = _SndOpen("win1.ogg", "VOL,SYNC") '                                   audience applause sound 1
-    Win&(1) = _SndOpen("win2.ogg", "VOL,SYNC") '                                   audience applause sound 2
-    Lose& = _SndOpen("lose.ogg", "VOL,SYNC") '                                     audience not happy sound
-    _SndVol GameMusic&, .5 '                                                       set game music volume to 50%
+    Click& = _SNDOPEN("click.wav", "VOL,SYNC") '                                   sound of checker hitting another checker
+    Drop& = _SNDOPEN("firstdrop.wav", "VOL,SYNC") '                                sound of checker hitting game board rack
+    Slide& = _SNDOPEN("slide.wav", "VOL,SYNC") '                                   sound of checker sliding down game board rack
+    TitleMusic& = _SNDOPEN("title.mid", "VOL") '                                   music that plays during title sequence
+    GameMusic& = _SNDOPEN("music.ogg", "VOL,SYNC") '                               music that plays during game
+    MenuMusic& = _SNDOPEN("menu.ogg", "VOL,SYNC") '                                music that plays during menu
+    Win&(0) = _SNDOPEN("win1.ogg", "VOL,SYNC") '                                   audience applause sound 1
+    Win&(1) = _SNDOPEN("win2.ogg", "VOL,SYNC") '                                   audience applause sound 2
+    Lose& = _SNDOPEN("lose.ogg", "VOL,SYNC") '                                     audience not happy sound
+    _SNDVOL GameMusic&, .5 '                                                       set game music volume to 50%
     SPRITEZOOM MarqueeChecker%(0), 20 '                                            zoom black checker out 80%
     SPRITEZOOM MarqueeChecker%(1), 20 '                                            zoom red checker out 80%
-    If _FileExists("options.4ir") Then '                                           does the options file exist?
-        Open "options.4ir" For Input As #1 '                                       yes, open it
-        Input #1, GameLevel% '                                                     get save game level
-        Input #1, SoundOption% '                                                   get saved sound option
-        Input #1, MusicOption% '                                                   get saved music option
-        Close #1 '                                                                 close the options file
-    Else '                                                                         no
-        Open "options.4ir" For Output As #1 '                                      create the options file
-        Print #1, 2 '                                                              set level of game play to 2
-        Print #1, TRUE '                                                           set sounds to on
-        Print #1, TRUE '                                                           set music to on
-        Close #1
-    End If
+    IF _FILEEXISTS("options.4ir") THEN '                                           does the options file exist?
+        OPEN "options.4ir" FOR INPUT AS #1 '                                       yes, open it
+        INPUT #1, GameLevel% '                                                     get save game level
+        INPUT #1, SoundOption% '                                                   get saved sound option
+        INPUT #1, MusicOption% '                                                   get saved music option
+        CLOSE #1 '                                                                 close the options file
+    ELSE '                                                                         no
+        OPEN "options.4ir" FOR OUTPUT AS #1 '                                      create the options file
+        PRINT #1, 2 '                                                              set level of game play to 2
+        PRINT #1, TRUE '                                                           set sounds to on
+        PRINT #1, TRUE '                                                           set music to on
+        CLOSE #1
+    END IF
 
     '******************************************************************************
-End Sub
+END SUB
 
 '******************************************************************************
 '* The game utilizes my sprite library                                        *
@@ -1663,4 +1663,3 @@ End Sub
 '$INCLUDE:'sprite.bi'
 '*                                                                            *
 '******************************************************************************
-

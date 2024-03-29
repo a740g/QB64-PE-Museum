@@ -1,11 +1,17 @@
 'QB64 Sprite Library by Terry Ritchie (terry.ritchie@gmail.com)
 '
-'SPRITETOP.BI - place this file at the very top of your code with an INCLUDE$ metacommand
+'SPRITETOP.BI - place this file at the very top of your code with an $INCLUDE metacommand
 '
-'SPRITE.BI - place at the very bottom of your code with an INCLUDE$ metacommand.
+'SPRITE.BI - place at the very bottom of your code with an $INCLUDE metacommand.
 '
 'Version A0.1  07/18/2011
-'Version A0.11 08/01/2011 (Current version)
+'Version A0.11 08/01/2011
+'  - minor bug fixes
+'Version 0.2   10/27/2012 (Current version)
+'  - updated error handling routines
+'      - all errors will now be forced to a true text screen (screen 0)
+'  - added SPRITEERROR function to handle errors reported by subs/functions
+'  - removed SPRITEFILEEXISTS function and replaced with QB64 _FILEEXISTS command
 '
 'COMMANDS FINISHED
 '
@@ -67,126 +73,122 @@
 'ZOOM only x or y (scale) http://www.qb64.net/forum/index.php?topic=3956.0
 '-------------------------------------------------------------------------
 
-$If SPRITETOP_BI = UNDEFINED Then
-    $Let SPRITETOP_BI = TRUE
+$INCLUDEONCE
 
-    '*
-    '* GLOBAL constants
-    '*
-    Const NOVALUE = -32767 '      variables with no value assigned
-    '*
-    '* SPRITEFLIP constants
-    '*
-    Const NONE = 0 '              no sprite flipping
-    Const HORIZONTAL = 1 '        flip sprite horizontal
-    Const VERTICAL = 2 '          flip sprite vertical
-    Const BOTH = 3 '              flip both horiz/vertical
-    '*
-    '* SPRITENEW constants
-    '*
-    Const SAVE = -1 '             save background image
-    Const DONTSAVE = 0 '          don't save background image
-    '*
-    '* SPRITESHEETLOAD constants
-    '*
-    Const NOTRANSPARENCY = -1 '  sheet has no transparency
-    Const AUTOTRANSPARENCY = -2 'automatically discover transparency
-    '*
-    '* SPRITEANIMATION constants
-    '*
-    Const ANIMATE = -1
-    Const NOANIMATE = 0
-    Const FORWARDLOOP = 0
-    Const BACKWARDLOOP = 1
-    Const BACKFORTHLOOP = 2
-    '*
-    '* SPRITEMOUSE constants
-    '*
-    Const NOMOUSE = 0 '          no current mouse interaction
-    Const MOUSELEFT = 1 '        left button clicked on sprite
-    Const MOUSERIGHT = 2 '       right button clicked on sprite
-    Const MOUSEHOVER = 3 '       mouse hovering over sprite
-    '*
-    '* SPRITECOLLIDETYPE constants
-    '*
-    Const NODETECT = 0 '         do not detect collisions
-    Const BOXDETECT = 1 '        use rectangular detection
-    Const PIXELDETECT = 2 '      use pixel accurate detection
-    '*
-    '* SPRITECOLLIDE constants
-    '*
-    Const ALLSPRITES = -1 '      check all sprites for collision
-    '*
-    '* SPRITEMOTION constants
-    '*
-    Const MOVE = -1 '            enable automotion
-    Const DONTMOVE = 0 '         disable automotion
+'*
+'* GLOBAL constants
+'*
+CONST NOVALUE = -32767 '      variables with no value assigned
+'*
+'* SPRITEFLIP constants
+'*
+CONST NONE = 0 '              no sprite flipping
+CONST HORIZONTAL = 1 '        flip sprite horizontal
+CONST VERTICAL = 2 '          flip sprite vertical
+CONST BOTH = 3 '              flip both horiz/vertical
+'*
+'* SPRITENEW constants
+'*
+CONST SAVE = -1 '             save background image
+CONST DONTSAVE = 0 '          don't save background image
+'*
+'* SPRITESHEETLOAD constants
+'*
+CONST NOTRANSPARENCY = -1 '  sheet has no transparency
+CONST AUTOTRANSPARENCY = -2 'automatically discover transparency
+'*
+'* SPRITEANIMATION constants
+'*
+CONST ANIMATE = -1
+CONST NOANIMATE = 0
+CONST FORWARDLOOP = 0
+CONST BACKWARDLOOP = 1
+CONST BACKFORTHLOOP = 2
+'*
+'* SPRITEMOUSE constants
+'*
+CONST NOMOUSE = 0 '          no current mouse interaction
+CONST MOUSELEFT = 1 '        left button clicked on sprite
+CONST MOUSERIGHT = 2 '       right button clicked on sprite
+CONST MOUSEHOVER = 3 '       mouse hovering over sprite
+'*
+'* SPRITECOLLIDETYPE constants
+'*
+CONST NODETECT = 0 '         do not detect collisions
+CONST BOXDETECT = 1 '        use rectangular detection
+CONST PIXELDETECT = 2 '      use pixel accurate detection
+'*
+'* SPRITECOLLIDE constants
+'*
+CONST ALLSPRITES = -1 '      check all sprites for collision
+'*
+'* SPRITEMOTION constants
+'*
+CONST MOVE = -1 '            enable automotion
+CONST DONTMOVE = 0 '         disable automotion
 
-    Type SPRITE
-        inuse As Integer '        sprite is in use             (true / false)
-        sheet As Integer '        what sheet is sprite on
-        onscreen As Integer '     sprite showing on screen     (true / false)
-        visible As Integer '      sprite hidden/showing        (true / false)
-        currentwidth As Integer ' current width of sprite      (width after zoom/rotate)
-        currentheight As Integer 'current height of sprite     (height after zoom/rotate)
-        restore As Integer '      sprite restores background   (true / false)
-        image As Double '         current image on screen      (use for pixel accurate detection)
-        background As Double '    sprite background image
-        currentcell As Integer '  current animation cell       (1 to cells)
-        flip As Integer '         flip vertical/horizonatal    (0 = none, 1 = horizontal, 2 = vertical, 3 = both)
-        animation As Integer '    automatic sprite animation   (true / false)
-        animtype As Integer '     automatic animation type     (0 = acsending loop, 1 = descending loop, 2 = forward/backward loop
-        animdir As Integer '      forward/backward loop dir    (1 = forward, -1 = backward)
-        animstart As Integer '    animation sequence start     (=> 1 to <= animend)
-        animend As Integer '      animation sequence end       (=> animstart to <= cells)
-        transparent As Double '   transparent color            (-1 = none, 0 and higher = color)
-        zoom As Integer '         zoom level in percentage     (1 to x%)
-        rotation As Single '      rotation in degrees          (0 to 359.9999 degrees)
-        motion As Integer '       sprite auto motion           (true / false)
-        speed As Single '         sprite auto motion speed     (any numeric value)
-        direction As Single '     sprite auto motion angle     (0 to 359.9999 degrees)
-        xdir As Single '          x vector for automotion
-        ydir As Single '          y vector for automotion
-        spindir As Single '       spin direction for automotion
-        actualx As Single '       actual x location
-        actualy As Single '       actual y location
-        currentx As Integer '     current x location on screen (INT(actualx))
-        currenty As Integer '     current y location on screen (INT(actualy))
-        backx As Integer '        x location of background image
-        backy As Integer '        y location of background image
-        screenx1 As Integer '     upper left x of sprite
-        screeny1 As Integer '     upper left y of sprite
-        screenx2 As Integer '     lower right x of sprite
-        screeny2 As Integer '     lower right y of sprite
-        layer As Integer '        layer the sprite resides on (1 to x, lower sprite layers drawn first)
-        detect As Integer '       collision detection          (true / false)
-        detecttype As Integer '   the type of detection use    (0 = do not detect collisions, 1 = box, 2 = pixel accurate)
-        collx1 As Integer '       upper left x collision area  (pixel accurate = x location of hit, box = upper left x)
-        colly1 As Integer '       upper left y collision area  (pixel accurate = y location of hit, box = upper left x)
-        collx2 As Integer '       lower right x collision area
-        colly2 As Integer '       lower right y collision area
-        collsprite As Integer '   sprite number colliding with (0 = none, 1 to x = sprite colliding with)
-        pointer As Integer '      mouse pointer interaction    (0 none, 1 left button, 2 right button, 3 hovering)
-        mouseax As Integer '      actual x location of pointer (x = 0 to screen width)
-        mouseay As Integer '      actual y location of pointer (y = 0 to screen height)
-        mousecx As Integer '      x location pointer on sprite (x = 0 to sprite width)
-        mousecy As Integer '      y location pointer on sprite (y = 0 to sprite height)
-        score As Single '         sprite score value for games
-    End Type
+TYPE SPRITE
+    inuse AS INTEGER '        sprite is in use             (true / false)
+    sheet AS INTEGER '        what sheet is sprite on
+    onscreen AS INTEGER '     sprite showing on screen     (true / false)
+    visible AS INTEGER '      sprite hidden/showing        (true / false)
+    currentwidth AS INTEGER ' current width of sprite      (width after zoom/rotate)
+    currentheight AS INTEGER 'current height of sprite     (height after zoom/rotate)
+    restore AS INTEGER '      sprite restores background   (true / false)
+    image AS DOUBLE '         current image on screen      (use for pixel accurate detection)
+    background AS DOUBLE '    sprite background image
+    currentcell AS INTEGER '  current animation cell       (1 to cells)
+    flip AS INTEGER '         flip vertical/horizonatal    (0 = none, 1 = horizontal, 2 = vertical, 3 = both)
+    animation AS INTEGER '    automatic sprite animation   (true / false)
+    animtype AS INTEGER '     automatic animation type     (0 = acsending loop, 1 = descending loop, 2 = forward/backward loop
+    animdir AS INTEGER '      forward/backward loop dir    (1 = forward, -1 = backward)
+    animstart AS INTEGER '    animation sequence start     (=> 1 to <= animend)
+    animend AS INTEGER '      animation sequence end       (=> animstart to <= cells)
+    transparent AS DOUBLE '   transparent color            (-1 = none, 0 and higher = color)
+    zoom AS INTEGER '         zoom level in percentage     (1 to x%)
+    rotation AS SINGLE '      rotation in degrees          (0 to 359.9999 degrees)
+    motion AS INTEGER '       sprite auto motion           (true / false)
+    speed AS SINGLE '         sprite auto motion speed     (any numeric value)
+    direction AS SINGLE '     sprite auto motion angle     (0 to 359.9999 degrees)
+    xdir AS SINGLE '          x vector for automotion
+    ydir AS SINGLE '          y vector for automotion
+    spindir AS SINGLE '       spin direction for automotion
+    actualx AS SINGLE '       actual x location
+    actualy AS SINGLE '       actual y location
+    currentx AS INTEGER '     current x location on screen (INT(actualx))
+    currenty AS INTEGER '     current y location on screen (INT(actualy))
+    backx AS INTEGER '        x location of background image
+    backy AS INTEGER '        y location of background image
+    screenx1 AS INTEGER '     upper left x of sprite
+    screeny1 AS INTEGER '     upper left y of sprite
+    screenx2 AS INTEGER '     lower right x of sprite
+    screeny2 AS INTEGER '     lower right y of sprite
+    layer AS INTEGER '        layer the sprite resides on (1 to x, lower sprite layers drawn first)
+    detect AS INTEGER '       collision detection          (true / false)
+    detecttype AS INTEGER '   the type of detection use    (0 = do not detect collisions, 1 = box, 2 = pixel accurate)
+    collx1 AS INTEGER '       upper left x collision area  (pixel accurate = x location of hit, box = upper left x)
+    colly1 AS INTEGER '       upper left y collision area  (pixel accurate = y location of hit, box = upper left x)
+    collx2 AS INTEGER '       lower right x collision area
+    colly2 AS INTEGER '       lower right y collision area
+    collsprite AS INTEGER '   sprite number colliding with (0 = none, 1 to x = sprite colliding with)
+    pointer AS INTEGER '      mouse pointer interaction    (0 none, 1 left button, 2 right button, 3 hovering)
+    mouseax AS INTEGER '      actual x location of pointer (x = 0 to screen width)
+    mouseay AS INTEGER '      actual y location of pointer (y = 0 to screen height)
+    mousecx AS INTEGER '      x location pointer on sprite (x = 0 to sprite width)
+    mousecy AS INTEGER '      y location pointer on sprite (y = 0 to sprite height)
+    score AS SINGLE '         sprite score value for games
+END TYPE
 
-    Type SHEET
-        inuse As Integer '        sheet is in use              (true / false)
-        sheetimage As Double '    image handle of sheet
-        sheetwidth As Integer '   width of sheet
-        sheetheight As Integer '  height of sheet
-        spritewidth As Integer '  width of each sprite
-        spriteheight As Integer ' height of each sprite
-        transparent As Double '   transparent color on sheet   (negative = none, 0 and greater = color)
-        columns As Integer '      number of sprite columns
-    End Type
+TYPE SHEET
+    inuse AS INTEGER '        sheet is in use              (true / false)
+    sheetimage AS DOUBLE '    image handle of sheet
+    sheetwidth AS INTEGER '   width of sheet
+    sheetheight AS INTEGER '  height of sheet
+    spritewidth AS INTEGER '  width of each sprite
+    spriteheight AS INTEGER ' height of each sprite
+    transparent AS DOUBLE '   transparent color on sheet   (negative = none, 0 and greater = color)
+    columns AS INTEGER '      number of sprite columns
+END TYPE
 
-    ReDim sprite(1) As SPRITE
-    ReDim sheet(1) As SHEET
-
-$End If
-
+REDIM sprite(1) AS SPRITE
+REDIM sheet(1) AS SHEET
