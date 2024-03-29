@@ -5,3 +5,4 @@
 *.dylib
 .vscode
 *.command
+.DS_Store
