@@ -10,11 +10,11 @@ Sam
  65 
 Sam
  32 
+a740g
+ 18 
+a740g
+ 14 
 Sam
  9 
-Sam
- 3 
-Sam
- 2 
-Sam
- 2 
+a740g
+ 6 
