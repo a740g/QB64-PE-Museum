@@ -10,13 +10,8 @@
 '-----------------------------------------------------------------------------------------------------
 ' These are some metacommands and compiler options for QB64 to write modern type-strict code
 '-----------------------------------------------------------------------------------------------------
-$NOPREFIX
-DEFLNG A-Z
-OPTION EXPLICIT
-OPTION EXPLICITARRAY
-OPTION BASE 1
-'$STATIC
 $CONSOLE:ONLY
+$NOPREFIX
 $VERSIONINFO:CompanyName='Samuel Gomes'
 $VERSIONINFO:FileDescription='Condense executable'
 $VERSIONINFO:InternalName='condense'
@@ -27,6 +22,8 @@ $VERSIONINFO:Web='https://github.com/a740g'
 $VERSIONINFO:Comments='https://github.com/a740g'
 $VERSIONINFO:FILEVERSION#=5,0,0,2
 $VERSIONINFO:PRODUCTVERSION#=5,0,0,2
+DEFINE A-Z AS LONG
+OPTION EXPLICIT
 '-----------------------------------------------------------------------------------------------------
 
 CONSOLETITLE "Text File Condenser"
