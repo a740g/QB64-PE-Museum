@@ -1,12 +1,12 @@
 '============
-'XE.BAS v1.12
+'XE.BAS v1.14
 '============
 'A simple File editor/viewer.
-'Coded by Dav, NOV/2021 with QB64-GL v2
+'Coded by Dav, SEP/2023 with QB64-PE v3.8.0
 '
-' * FIXED: Fixed FileSelect box to work correctly under Linux.
-' * ADDED: Uses a resizable Code Page FONT to allow a larger SCREEN 0.
-'          (FONT is extracted/created temporarily then deleted after use)
+' * ADDED: Now loads internal FONT resource from string memory.
+'          No longer need to Extract/KILL a seperate font file on the OS.
+' * FIXED: Changed _OPENFILEDIALOG to work in MacOS (thanks, grymmjack).
 '
 '==========================================================================
 '* * * *          USE THIS PROGRAM AT YOUR OWN RISK ONLY!!          * * * *
@@ -97,235 +97,232 @@
 'SETUP SCREEN MODE
 '=================
 
-Screen Pete: Width 80, 25 'Use Screen mode 0, aka the Pete...
+SCREEN Pete: WIDTH 80, 25 'Use Screen mode 0, aka the Pete (Come back Pete!)
 
 'Font size based on desktop resolution - it expands SCREEN 0 nicely.
 'You may have to adjust it a bit to look the best on your screen res
-FONT (Int(_DesktopHeight / 25) * .88)
+BIGFONT (INT(_DESKTOPHEIGHT / 25) * .85)
 
-_Delay .25 'Be sure window exists before calling _TITLE
-_ControlChr Off 'Printing all 255 characters on screen, so this is needed.
+_DELAY .25 'Be sure window exists before calling _TITLE
+_CONTROLCHR OFF 'Printing all 255 characters on screen, so this is needed.
 
-_Title "XE v1.12" 'Everything has a name
+_TITLE "XE v1.14" 'Everything has a name
 
 
 '==========================================================================
 'LOAD FILE
 '=========
 
-Cls , 1: Color 1, 15
-Locate 1, 1: Print String$(80, 32);
-Locate 1, 1: Print " Load file...";
 
-If Command$ = "" Then
-    File$ = FileSelect$(5, 10, 15, 55, "*.*")
-    If File$ = "" Then
-        Print "No file selected."
-        End
-    End If
-Else
-    File$ = Command$
-End If
+PRINT "XE v1.14 - Binary file editor."
+PRINT
 
-If _FileExists(File$) = 0 Then
-    Color 7, 0: Cls
-    Print "XE v1.12 - Binary file editor."
-    Print
-    Print File$; " not found!"
-    End
-End If
+IF COMMAND$ = "" THEN
+    PRINT "Selecting file..."
+    File$ = _OPENFILEDIALOG$("Select File for XE to Open...", , , "Files", 0)
+    IF File$ = "" THEN
+        PRINT "ERROR: No file selected."
+        SYSTEM
+    END IF
+ELSE
+    File$ = COMMAND$
+    IF _FILEEXISTS(File$) = 0 THEN
+        PRINT File$; " not found!"
+        END
+    END IF
+END IF
 
-File$ = LTrim$(RTrim$(File$)) 'trim off any spaces is any...
+File$ = LTRIM$(RTRIM$(File$)) 'trim off any spaces, if any...
 FullFileName$ = File$ 'make a copy For TITLE/OPEN to use...
 
 'If filename+path too long for display, strip off path
-If Len(File$) > 70 Then
+IF LEN(File$) > 70 THEN
     ts$ = ""
-    For q = Len(File$) To 1 Step -1
-        t$ = Mid$(File$, q, 1)
-        If t$ = "/" Or t$ = "\" Then Exit For
+    FOR q = LEN(File$) TO 1 STEP -1
+        t$ = MID$(File$, q, 1)
+        IF t$ = "/" OR t$ = "\" THEN EXIT FOR
         ts$ = t$ + ts$
-    Next
+    NEXT
     File$ = ts$
     'If filename too long, shorten it for display
-    If Len(File$) > 70 Then
-        File$ = Mid$(File$, 1, 67) + "..."
-    End If
-End If
+    IF LEN(File$) > 70 THEN
+        File$ = MID$(File$, 1, 67) + "..."
+    END IF
+END IF
 
 '==========================================================================
 'OPEN FILE
 '=========
 
-Open FullFileName$ For Binary As 7
+OPEN FullFileName$ FOR BINARY AS 7
 
-_Title "XE v1.12 - " + FullFileName$
+_TITLE "XE: " + FullFileName$
 
 DisplayView% = 1 'Default to 2-PANE view
 
 ByteLocation& = 1
-If DisplayView% = 1 Then
+IF DisplayView% = 1 THEN
     BufferSize% = (16 * 23)
-Else
+ELSE
     BufferSize% = (79 * 23)
-End If
-If BufferSize% > LOF(7) Then BufferSize% = LOF(7)
+END IF
+IF BufferSize% > LOF(7) THEN BufferSize% = LOF(7)
 
 
 '==========================================================================
 'DISPLAY FILE
 '============
 
-Color 15, 1: Cls: Locate 1, 1, 0
+COLOR 15, 1: CLS: LOCATE 1, 1, 0
 
-Do
-    Seek #7, ByteLocation&
+DO
+    SEEK #7, ByteLocation&
 
-    PageOfData$ = Input$(BufferSize%, 7)
+    PageOfData$ = INPUT$(BufferSize%, 7)
 
     'If dual pane mode....
-    If DisplayView% = 1 Then
-        If Len(PageOfData$) < (16 * 23) Then
-            PageFlag% = 1: PageLimit% = Len(PageOfData$)
-            PageOfData$ = PageOfData$ + String$(16 * 23 - Len(PageOfData$), Chr$(0))
-        End If
+    IF DisplayView% = 1 THEN
+        IF LEN(PageOfData$) < (16 * 23) THEN
+            PageFlag% = 1: PageLimit% = LEN(PageOfData$)
+            PageOfData$ = PageOfData$ + STRING$(16 * 23 - LEN(PageOfData$), CHR$(0))
+        END IF
         'show right side
         y% = 3: x% = 63
-        For c% = 1 To Len(PageOfData$)
-            CurrentByte% = Asc(Mid$(PageOfData$, c%, 1))
+        FOR c% = 1 TO LEN(PageOfData$)
+            CurrentByte% = ASC(MID$(PageOfData$, c%, 1))
             'show a . instead of a null (looks better to me)
-            If CurrentByte% = 0 Then CurrentByte% = 46
-            If Filter% = 1 Then
-                Select Case CurrentByte%
-                    Case 0 To 31, 123 To 255: CurrentByte% = 32
-                End Select
-            End If
-            Locate y%, x%: Print Chr$(CurrentByte%);
-            x% = x% + 1: If x% = 79 Then x% = 63: y% = y% + 1
-        Next
+            IF CurrentByte% = 0 THEN CurrentByte% = 46
+            IF Filter% = 1 THEN
+                SELECT CASE CurrentByte%
+                    CASE 0 TO 31, 123 TO 255: CurrentByte% = 32
+                END SELECT
+            END IF
+            LOCATE y%, x%: PRINT CHR$(CurrentByte%);
+            x% = x% + 1: IF x% = 79 THEN x% = 63: y% = y% + 1
+        NEXT
         'show left side
         y% = 3: x% = 15
-        For c% = 1 To Len(PageOfData$)
-            CurrentByte% = Asc(Mid$(PageOfData$, c%, 1))
-            CurrentByte$ = Hex$(CurrentByte%): If Len(CurrentByte$) = 1 Then CurrentByte$ = "0" + CurrentByte$
-            Locate y%, x%: Print CurrentByte$; " ";
-            x% = x% + 3: If x% >= 62 Then x% = 15: y% = y% + 1
-        Next
-    Else
+        FOR c% = 1 TO LEN(PageOfData$)
+            CurrentByte% = ASC(MID$(PageOfData$, c%, 1))
+            CurrentByte$ = HEX$(CurrentByte%): IF LEN(CurrentByte$) = 1 THEN CurrentByte$ = "0" + CurrentByte$
+            LOCATE y%, x%: PRINT CurrentByte$; " ";
+            x% = x% + 3: IF x% >= 62 THEN x% = 15: y% = y% + 1
+        NEXT
+    ELSE
         'One page display, Full view
         'Adjust data size used
-        If Len(PageOfData$) < (79 * 23) Then 'Enough to fill screen?
-            PageFlag% = 1: PageLimit% = Len(PageOfData$) 'No? Mark this and pad
-            PageOfData$ = PageOfData$ + Space$(79 * 23 - Len(PageOfData$)) 'data with spaces.
-        End If
+        IF LEN(PageOfData$) < (79 * 23) THEN 'Enough to fill screen?
+            PageFlag% = 1: PageLimit% = LEN(PageOfData$) 'No? Mark this and pad
+            PageOfData$ = PageOfData$ + SPACE$(79 * 23 - LEN(PageOfData$)) 'data with spaces.
+        END IF
         y% = 3: x% = 1 'Screen location where data begins displaying
-        For c% = 1 To Len(PageOfData$) 'Show all the bytes.
-            CurrentByte% = Asc(Mid$(PageOfData$, c%, 1)) 'Check the ASCII value.
-            If Filter% = 1 Then 'If Filter is turned on,
-                Select Case CurrentByte% 'changes these values to spaces
-                    Case 0 To 32, 123 To 255: CurrentByte% = 32
-                End Select
-            End If
-            Locate y%, x%: Print Chr$(CurrentByte%);
+        FOR c% = 1 TO LEN(PageOfData$) 'Show all the bytes.
+            CurrentByte% = ASC(MID$(PageOfData$, c%, 1)) 'Check the ASCII value.
+            IF Filter% = 1 THEN 'If Filter is turned on,
+                SELECT CASE CurrentByte% 'changes these values to spaces
+                    CASE 0 TO 32, 123 TO 255: CurrentByte% = 32
+                END SELECT
+            END IF
+            LOCATE y%, x%: PRINT CHR$(CurrentByte%);
             'This line calculates when to go to next row.
-            x% = x% + 1: If x% = 80 Then x% = 1: y% = y% + 1
-        Next
-    End If
+            x% = x% + 1: IF x% = 80 THEN x% = 1: y% = y% + 1
+        NEXT
+    END IF
 
-    GoSub DrawTopBar 'update viewing info at top
+    GOSUB DrawTopBar 'update viewing info at top
 
     'Get user input
-    Do
+    DO
 
-        Do Until L$ <> "": L$ = InKey$: Loop
+        DO UNTIL L$ <> "": L$ = INKEY$: LOOP
         K$ = L$: L$ = ""
 
-        GoSub DrawTopBar
-        Select Case UCase$(K$)
-            Case Chr$(27): Exit Do
-            Case "M": GoSub Menu:
-            Case "N"
-                If s$ <> "" Then
-                    GoSub Search
-                    GoSub DrawTopBar
-                End If
-            Case "E"
-                If DisplayView% = 1 Then
-                    GoSub EditRightSide
-                Else
-                    GoSub EditFullView
-                End If
-                GoSub DrawTopBar
-            Case "F"
-                If Filter% = 0 Then Filter% = 1 Else Filter% = 0
-            Case "G"
-                Locate 1, 1: Print String$(80 * 3, 32);
-                Locate 1, 3: Print "TOTAL BYTES>"; LOF(7)
-                Input "  GOTO BYTE# > ", GotoByte$
-                If GotoByte$ <> "" Then
+        GOSUB DrawTopBar
+        SELECT CASE UCASE$(K$)
+            CASE CHR$(27): EXIT DO
+            CASE "M": GOSUB Menu:
+            CASE "N"
+                IF s$ <> "" THEN
+                    GOSUB Search
+                    GOSUB DrawTopBar
+                END IF
+            CASE "E"
+                IF DisplayView% = 1 THEN
+                    GOSUB EditRightSide
+                ELSE
+                    GOSUB EditFullView
+                END IF
+                GOSUB DrawTopBar
+            CASE "F"
+                IF Filter% = 0 THEN Filter% = 1 ELSE Filter% = 0
+            CASE "G"
+                LOCATE 1, 1: PRINT STRING$(80 * 3, 32);
+                LOCATE 1, 3: PRINT "TOTAL BYTES>"; LOF(7)
+                INPUT "  GOTO BYTE# > ", GotoByte$
+                IF GotoByte$ <> "" THEN
                     TMP$ = ""
-                    For m% = 1 To Len(GotoByte$)
-                        G$ = Mid$(GotoByte$, m%, 1) 'to numerical vales
-                        Select Case Asc(G$)
-                            Case 48 To 57: TMP$ = TMP$ + G$
-                        End Select
-                    Next: GotoByte$ = TMP$
-                    If Val(GotoByte$) < 1 Then GotoByte$ = "1"
-                    If Val(GotoByte$) > LOF(7) Then GotoByte$ = Str$(LOF(7))
-                    If GotoByte$ <> "" Then ByteLocation& = 0 + Val(GotoByte$)
-                End If
-            Case "L"
-                Locate 1, 1: Print String$(80 * 3, 32);
-                Locate 1, 3: 'PRINT "TOTAL BYTES>"; LOF(7)
-                Input "  GOTO HEX LOCATION-> ", GotoByte$
-                If GotoByte$ <> "" Then
+                    FOR m% = 1 TO LEN(GotoByte$)
+                        G$ = MID$(GotoByte$, m%, 1) 'to numerical vales
+                        SELECT CASE ASC(G$)
+                            CASE 48 TO 57: TMP$ = TMP$ + G$
+                        END SELECT
+                    NEXT: GotoByte$ = TMP$
+                    IF VAL(GotoByte$) < 1 THEN GotoByte$ = "1"
+                    IF VAL(GotoByte$) > LOF(7) THEN GotoByte$ = STR$(LOF(7))
+                    IF GotoByte$ <> "" THEN ByteLocation& = 0 + VAL(GotoByte$)
+                END IF
+            CASE "L"
+                LOCATE 1, 1: PRINT STRING$(80 * 3, 32);
+                LOCATE 1, 3: 'PRINT "TOTAL BYTES>"; LOF(7)
+                INPUT "  GOTO HEX LOCATION-> ", GotoByte$
+                IF GotoByte$ <> "" THEN
                     GotoByte$ = "&H" + GotoByte$
-                    If Val(GotoByte$) < 1 Then GotoByte$ = "1"
-                    If Val(GotoByte$) > LOF(7) Then GotoByte$ = Str$(LOF(7))
-                    If GotoByte$ <> "" Then ByteLocation& = 0 + Val(GotoByte$)
-                End If
-            Case "S": s$ = ""
-                Locate 1, 1: Print String$(80 * 3, 32);
-                Locate 1, 3: Input "Search for> ", s$
-                If s$ <> "" Then
-                    Print "  CASE sensitive (Y/N)? ";
-                    I$ = Input$(1): I$ = UCase$(I$)
-                    If I$ = "Y" Then CaseOn% = 1 Else CaseOn% = 0
-                    GoSub Search
-                End If
-                GoSub DrawTopBar
-            Case Chr$(13)
-                If DisplayView% = 1 Then
+                    IF VAL(GotoByte$) < 1 THEN GotoByte$ = "1"
+                    IF VAL(GotoByte$) > LOF(7) THEN GotoByte$ = STR$(LOF(7))
+                    IF GotoByte$ <> "" THEN ByteLocation& = 0 + VAL(GotoByte$)
+                END IF
+            CASE "S": s$ = ""
+                LOCATE 1, 1: PRINT STRING$(80 * 3, 32);
+                LOCATE 1, 3: INPUT "Search for> ", s$
+                IF s$ <> "" THEN
+                    PRINT "  CASE sensitive (Y/N)? ";
+                    I$ = INPUT$(1): I$ = UCASE$(I$)
+                    IF I$ = "Y" THEN CaseOn% = 1 ELSE CaseOn% = 0
+                    GOSUB Search
+                END IF
+                GOSUB DrawTopBar
+            CASE CHR$(13)
+                IF DisplayView% = 1 THEN
                     DisplayView% = 0
                     BufferSize% = (79 * 23)
-                Else
+                ELSE
                     DisplayView% = 1
                     BufferSize% = (16 * 23)
-                End If
-                GoSub DrawTopBar
-            Case Chr$(0) + Chr$(72)
-                If DisplayView% = 1 Then
-                    If ByteLocation& > 15 Then ByteLocation& = ByteLocation& - 16
-                Else
-                    If ByteLocation& > 78 Then ByteLocation& = ByteLocation& - 79
-                End If
-            Case Chr$(0) + Chr$(80)
-                If DisplayView% = 1 Then
-                    If ByteLocation& < LOF(7) - 15 Then ByteLocation& = ByteLocation& + 16
-                Else
-                    If ByteLocation& < LOF(7) - 78 Then ByteLocation& = ByteLocation& + 79
-                End If
-            Case Chr$(0) + Chr$(73): ByteLocation& = ByteLocation& - BufferSize%: If ByteLocation& < 1 Then ByteLocation& = 1
-            Case Chr$(0) + Chr$(81): If ByteLocation& < LOF(7) - BufferSize% Then ByteLocation& = ByteLocation& + BufferSize%
-            Case Chr$(0) + Chr$(71): ByteLocation& = 1
-            Case Chr$(0) + Chr$(79): If Not EOF(7) Then ByteLocation& = LOF(7) - BufferSize%
-        End Select
-    Loop Until K$ <> ""
-Loop Until K$ = Chr$(27)
+                END IF
+                GOSUB DrawTopBar
+            CASE CHR$(0) + CHR$(72)
+                IF DisplayView% = 1 THEN
+                    IF ByteLocation& > 15 THEN ByteLocation& = ByteLocation& - 16
+                ELSE
+                    IF ByteLocation& > 78 THEN ByteLocation& = ByteLocation& - 79
+                END IF
+            CASE CHR$(0) + CHR$(80)
+                IF DisplayView% = 1 THEN
+                    IF ByteLocation& < LOF(7) - 15 THEN ByteLocation& = ByteLocation& + 16
+                ELSE
+                    IF ByteLocation& < LOF(7) - 78 THEN ByteLocation& = ByteLocation& + 79
+                END IF
+            CASE CHR$(0) + CHR$(73): ByteLocation& = ByteLocation& - BufferSize%: IF ByteLocation& < 1 THEN ByteLocation& = 1
+            CASE CHR$(0) + CHR$(81): IF ByteLocation& < LOF(7) - BufferSize% THEN ByteLocation& = ByteLocation& + BufferSize%
+            CASE CHR$(0) + CHR$(71): ByteLocation& = 1
+            CASE CHR$(0) + CHR$(79): IF NOT EOF(7) THEN ByteLocation& = LOF(7) - BufferSize%
+        END SELECT
+    LOOP UNTIL K$ <> ""
+LOOP UNTIL K$ = CHR$(27)
 
-Close 7
+CLOSE 7
 
-System
+SYSTEM
 
 '==========================================================================
 '                              GOSUB ROUTINES
@@ -336,17 +333,17 @@ System
 Search:
 '======
 
-If Not EOF(7) Then
-    Do
-        B$ = Input$(BufferSize%, 7): ByteLocation& = ByteLocation& + BufferSize%
-        If CaseOn% = 0 Then B$ = UCase$(B$): s$ = UCase$(s$)
-        d$ = InKey$: If d$ <> "" Then Exit Do
-        If InStr(1, B$, s$) Then Sound 4000, .5: Exit Do
-    Loop Until InStr(1, B$, s$) Or EOF(7)
-    If EOF(7) Then Sound 2000, 1: Sound 1000, 1
-    ByteLocation& = ByteLocation& - Len(s$)
-End If
-Return
+IF NOT EOF(7) THEN
+    DO
+        B$ = INPUT$(BufferSize%, 7): ByteLocation& = ByteLocation& + BufferSize%
+        IF CaseOn% = 0 THEN B$ = UCASE$(B$): s$ = UCASE$(s$)
+        d$ = INKEY$: IF d$ <> "" THEN EXIT DO
+        IF INSTR(1, B$, s$) THEN SOUND 4000, .5: EXIT DO
+    LOOP UNTIL INSTR(1, B$, s$) OR EOF(7)
+    IF EOF(7) THEN SOUND 2000, 1: SOUND 1000, 1
+    ByteLocation& = ByteLocation& - LEN(s$)
+END IF
+RETURN
 
 
 '==========================================================================
@@ -355,598 +352,357 @@ EditRightSide: 'Editing Right side info in dual pane mode
 
 Pane% = 1
 
-x% = 63: If rightx% Then y% = CsrLin Else y% = 3
+x% = 63: IF rightx% THEN y% = CSRLIN ELSE y% = 3
 leftx% = 15
 
-test% = Pos(0)
+test% = POS(0)
 
-If test% = 15 Or test% = 16 Then x% = 63: leftx% = 15
-If test% = 18 Or test% = 19 Then x% = 64: leftx% = 18
-If test% = 21 Or test% = 22 Then x% = 65: leftx% = 21
-If test% = 24 Or test% = 25 Then x% = 66: leftx% = 24
-If test% = 27 Or test% = 28 Then x% = 67: leftx% = 27
-If test% = 30 Or test% = 31 Then x% = 68: leftx% = 30
-If test% = 33 Or test% = 34 Then x% = 69: leftx% = 33
-If test% = 36 Or test% = 37 Then x% = 70: leftx% = 36
-If test% = 39 Or test% = 40 Then x% = 71: leftx% = 39
-If test% = 42 Or test% = 43 Then x% = 72: leftx% = 42
-If test% = 45 Or test% = 46 Then x% = 73: leftx% = 45
-If test% = 48 Or test% = 49 Then x% = 74: leftx% = 48
-If test% = 51 Or test% = 52 Then x% = 75: leftx% = 51
-If test% = 54 Or test% = 55 Then x% = 76: leftx% = 54
-If test% = 57 Or test% = 58 Then x% = 77: leftx% = 57
-If test% = 60 Or test% = 61 Then x% = 78: leftx% = 60
+IF test% = 15 OR test% = 16 THEN x% = 63: leftx% = 15
+IF test% = 18 OR test% = 19 THEN x% = 64: leftx% = 18
+IF test% = 21 OR test% = 22 THEN x% = 65: leftx% = 21
+IF test% = 24 OR test% = 25 THEN x% = 66: leftx% = 24
+IF test% = 27 OR test% = 28 THEN x% = 67: leftx% = 27
+IF test% = 30 OR test% = 31 THEN x% = 68: leftx% = 30
+IF test% = 33 OR test% = 34 THEN x% = 69: leftx% = 33
+IF test% = 36 OR test% = 37 THEN x% = 70: leftx% = 36
+IF test% = 39 OR test% = 40 THEN x% = 71: leftx% = 39
+IF test% = 42 OR test% = 43 THEN x% = 72: leftx% = 42
+IF test% = 45 OR test% = 46 THEN x% = 73: leftx% = 45
+IF test% = 48 OR test% = 49 THEN x% = 74: leftx% = 48
+IF test% = 51 OR test% = 52 THEN x% = 75: leftx% = 51
+IF test% = 54 OR test% = 55 THEN x% = 76: leftx% = 54
+IF test% = 57 OR test% = 58 THEN x% = 77: leftx% = 57
+IF test% = 60 OR test% = 61 THEN x% = 78: leftx% = 60
 
-GoSub DrawEditBar:
+GOSUB DrawEditBar:
 
-Locate y%, x%, 1, 1, 30
+LOCATE y%, x%, 1, 1, 30
 
-Do
-    Do
-        E$ = InKey$
-        If E$ <> "" Then
-            Select Case E$
-                Case Chr$(9)
-                    If Pane% = 1 Then
-                        Pane% = 2: GoTo EditLeftSide
-                    Else
-                        Pane% = 1: GoTo EditRightSide
-                    End If
-                Case Chr$(27): Exit Do
-                Case Chr$(0) + Chr$(72): If y% > 3 Then y% = y% - 1
-                Case Chr$(0) + Chr$(80): If y% < 25 Then y% = y% + 1
-                Case Chr$(0) + Chr$(75): If x% > 63 Then x% = x% - 1: leftx% = leftx% - 3
-                Case Chr$(0) + Chr$(77): If x% < 78 Then x% = x% + 1: leftx% = leftx% + 3
-                Case Chr$(0) + Chr$(73), Chr$(0) + Chr$(71): y% = 3
-                Case Chr$(0) + Chr$(81), Chr$(0) + Chr$(79): y% = 25
-                Case Else
-                    If (ByteLocation& + ((y% - 3) * 16 + x% - 1) - 62) <= LOF(7) And E$ <> Chr$(8) Then
+DO
+    DO
+        E$ = INKEY$
+        IF E$ <> "" THEN
+            SELECT CASE E$
+                CASE CHR$(9)
+                    IF Pane% = 1 THEN
+                        Pane% = 2: GOTO EditLeftSide
+                    ELSE
+                        Pane% = 1: GOTO EditRightSide
+                    END IF
+                CASE CHR$(27): EXIT DO
+                CASE CHR$(0) + CHR$(72): IF y% > 3 THEN y% = y% - 1
+                CASE CHR$(0) + CHR$(80): IF y% < 25 THEN y% = y% + 1
+                CASE CHR$(0) + CHR$(75): IF x% > 63 THEN x% = x% - 1: leftx% = leftx% - 3
+                CASE CHR$(0) + CHR$(77): IF x% < 78 THEN x% = x% + 1: leftx% = leftx% + 3
+                CASE CHR$(0) + CHR$(73), CHR$(0) + CHR$(71): y% = 3
+                CASE CHR$(0) + CHR$(81), CHR$(0) + CHR$(79): y% = 25
+                CASE ELSE
+                    IF (ByteLocation& + ((y% - 3) * 16 + x% - 1) - 62) <= LOF(7) AND E$ <> CHR$(8) THEN
                         changes% = 1
                         'new color for changed bytes...
-                        Color 1, 15: Locate y%, x%: Print " ";
-                        Locate y%, leftx%
-                        CurrentByte$ = Hex$(Asc(E$)): If Len(CurrentByte$) = 1 Then CurrentByte$ = "0" + CurrentByte$
-                        Print CurrentByte$;
-                        Locate y%, x%: Print E$;
-                        Mid$(PageOfData$, ((y% - 3) * 16 + x% * 1) - 62) = E$
-                        If x% < 78 Then x% = x% + 1: leftx% = leftx% + 3 'skip space
-                    End If
-            End Select
-        End If
-    Loop Until E$ <> ""
-    Locate y%, x%
-Loop Until E$ = Chr$(27)
+                        COLOR 1, 15: LOCATE y%, x%: PRINT " ";
+                        LOCATE y%, leftx%
+                        CurrentByte$ = HEX$(ASC(E$)): IF LEN(CurrentByte$) = 1 THEN CurrentByte$ = "0" + CurrentByte$
+                        PRINT CurrentByte$;
+                        LOCATE y%, x%: PRINT E$;
+                        MID$(PageOfData$, ((y% - 3) * 16 + x% * 1) - 62) = E$
+                        IF x% < 78 THEN x% = x% + 1: leftx% = leftx% + 3 'skip space
+                    END IF
+            END SELECT
+        END IF
+    LOOP UNTIL E$ <> ""
+    LOCATE y%, x%
+LOOP UNTIL E$ = CHR$(27)
 
 '==========================================================================
 SaveChanges:
 '===========
 
-If changes% = 1 Then
-    Sound 4500, .2: Color 15, 4: Locate , , 0
-    Locate 10, 29: Print Chr$(201); String$(21, 205); Chr$(187);
-    Locate 11, 29: Print Chr$(186); " Save Changes (Y/N)? "; Chr$(186);
-    Locate 12, 29: Print Chr$(200); String$(21, 205); Chr$(188);
-    N$ = Input$(1): Color 15, 1
-    If UCase$(N$) = "Y" Then
-        If PageFlag% = 1 Then PageOfData$ = Left$(PageOfData$, PageLimit%)
-        Put #7, ByteLocation&, PageOfData$:
-    End If
-End If
-Color 15, 1: Cls: Locate 1, 1, 0
-Return
+IF changes% = 1 THEN
+    SOUND 4500, .2: COLOR 15, 4: LOCATE , , 0
+    LOCATE 10, 29: PRINT CHR$(201); STRING$(21, 205); CHR$(187);
+    LOCATE 11, 29: PRINT CHR$(186); " Save Changes (Y/N)? "; CHR$(186);
+    LOCATE 12, 29: PRINT CHR$(200); STRING$(21, 205); CHR$(188);
+    N$ = INPUT$(1): COLOR 15, 1
+    IF UCASE$(N$) = "Y" THEN
+        IF PageFlag% = 1 THEN PageOfData$ = LEFT$(PageOfData$, PageLimit%)
+        PUT #7, ByteLocation&, PageOfData$:
+    END IF
+END IF
+COLOR 15, 1: CLS: LOCATE 1, 1, 0
+RETURN
 
 
 '==========================================================================
 EditLeftSide: 'Editing Left side info in dual pane mode
 '===========
 
-Color 1, 7
+COLOR 1, 7
 x% = 15: 'y% = 3
 rightx% = 63
 
-test% = Pos(0)
-If test% = 63 Then x% = 15: rightx% = 63
-If test% = 64 Then x% = 18: rightx% = 64
-If test% = 65 Then x% = 21: rightx% = 65
-If test% = 66 Then x% = 24: rightx% = 66
-If test% = 67 Then x% = 27: rightx% = 67
-If test% = 68 Then x% = 30: rightx% = 68
-If test% = 69 Then x% = 33: rightx% = 69
-If test% = 70 Then x% = 36: rightx% = 70
-If test% = 71 Then x% = 39: rightx% = 71
-If test% = 72 Then x% = 42: rightx% = 72
-If test% = 73 Then x% = 45: rightx% = 73
-If test% = 74 Then x% = 48: rightx% = 74
-If test% = 75 Then x% = 51: rightx% = 75
-If test% = 76 Then x% = 54: rightx% = 76
-If test% = 77 Then x% = 57: rightx% = 77
-If test% = 78 Then x% = 60: rightx% = 78
+test% = POS(0)
+IF test% = 63 THEN x% = 15: rightx% = 63
+IF test% = 64 THEN x% = 18: rightx% = 64
+IF test% = 65 THEN x% = 21: rightx% = 65
+IF test% = 66 THEN x% = 24: rightx% = 66
+IF test% = 67 THEN x% = 27: rightx% = 67
+IF test% = 68 THEN x% = 30: rightx% = 68
+IF test% = 69 THEN x% = 33: rightx% = 69
+IF test% = 70 THEN x% = 36: rightx% = 70
+IF test% = 71 THEN x% = 39: rightx% = 71
+IF test% = 72 THEN x% = 42: rightx% = 72
+IF test% = 73 THEN x% = 45: rightx% = 73
+IF test% = 74 THEN x% = 48: rightx% = 74
+IF test% = 75 THEN x% = 51: rightx% = 75
+IF test% = 76 THEN x% = 54: rightx% = 76
+IF test% = 77 THEN x% = 57: rightx% = 77
+IF test% = 78 THEN x% = 60: rightx% = 78
 
-GoSub DrawEditBar:
+GOSUB DrawEditBar:
 
-Locate y%, x%, 1, 1, 30
+LOCATE y%, x%, 1, 1, 30
 
-Do
-    Do
-        E$ = InKey$
-        If E$ <> "" Then
-            Select Case E$
-                Case Chr$(9)
-                    If Pane% = 1 Then
-                        Pane% = 2: GoTo EditLeftSide
-                    Else
-                        Pane% = 1: GoTo EditRightSide
-                    End If
-                Case Chr$(27): Exit Do
-                Case Chr$(0) + Chr$(72): If y% > 3 Then y% = y% - 1
-                Case Chr$(0) + Chr$(80): If y% < 25 Then y% = y% + 1
-                Case Chr$(0) + Chr$(75) 'right arrow....
-                    If x% > 15 Then
-                        Select Case x%
-                            Case 17, 18, 20, 21, 23, 24, 26, 27, 29, 30, 32, 33, 35, 36, 38, 39, 41, 42, 44, 45, 47, 48, 50, 51, 53, 54, 56, 57, 59, 60, 62, 63
+DO
+    DO
+        E$ = INKEY$
+        IF E$ <> "" THEN
+            SELECT CASE E$
+                CASE CHR$(9)
+                    IF Pane% = 1 THEN
+                        Pane% = 2: GOTO EditLeftSide
+                    ELSE
+                        Pane% = 1: GOTO EditRightSide
+                    END IF
+                CASE CHR$(27): EXIT DO
+                CASE CHR$(0) + CHR$(72): IF y% > 3 THEN y% = y% - 1
+                CASE CHR$(0) + CHR$(80): IF y% < 25 THEN y% = y% + 1
+                CASE CHR$(0) + CHR$(75) 'right arrow....
+                    IF x% > 15 THEN
+                        SELECT CASE x%
+                            CASE 17, 18, 20, 21, 23, 24, 26, 27, 29, 30, 32, 33, 35, 36, 38, 39, 41, 42, 44, 45, 47, 48, 50, 51, 53, 54, 56, 57, 59, 60, 62, 63
                                 x% = x% - 2
                                 rightx% = rightx% - 1
-                            Case Else: x% = x% - 1
-                        End Select
-                    End If
+                            CASE ELSE: x% = x% - 1
+                        END SELECT
+                    END IF
 
-                Case Chr$(0) + Chr$(77)
-                    If x% < 61 Then
-                        Select Case x%
-                            Case 16, 17, 19, 20, 22, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 44, 46, 47, 49, 50, 52, 53, 55, 56, 58, 59, 61, 62
+                CASE CHR$(0) + CHR$(77)
+                    IF x% < 61 THEN
+                        SELECT CASE x%
+                            CASE 16, 17, 19, 20, 22, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 44, 46, 47, 49, 50, 52, 53, 55, 56, 58, 59, 61, 62
                                 x% = x% + 2
                                 rightx% = rightx% + 1
-                            Case Else: x% = x% + 1
-                        End Select
-                    End If
+                            CASE ELSE: x% = x% + 1
+                        END SELECT
+                    END IF
 
-                Case Chr$(0) + Chr$(73), Chr$(0) + Chr$(71): y% = 3
-                Case Chr$(0) + Chr$(81), Chr$(0) + Chr$(79): y% = 25
-                Case Else
-                    If (ByteLocation& + ((y% - 3) * 16 + rightx% - 1) - 62) <= LOF(7) And E$ <> Chr$(8) Then
-                        Select Case UCase$(E$)
-                            Case "A", "B", "C", "D", "E", "F", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"
-                                E$ = UCase$(E$)
+                CASE CHR$(0) + CHR$(73), CHR$(0) + CHR$(71): y% = 3
+                CASE CHR$(0) + CHR$(81), CHR$(0) + CHR$(79): y% = 25
+                CASE ELSE
+                    IF (ByteLocation& + ((y% - 3) * 16 + rightx% - 1) - 62) <= LOF(7) AND E$ <> CHR$(8) THEN
+                        SELECT CASE UCASE$(E$)
+                            CASE "A", "B", "C", "D", "E", "F", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"
+                                E$ = UCASE$(E$)
                                 changes% = 1
-                                Color 1, 15: Locate y%, x%: Print " ";
-                                Locate y%, x%: Print E$;
-                                If x% < 62 Then
+                                COLOR 1, 15: LOCATE y%, x%: PRINT " ";
+                                LOCATE y%, x%: PRINT E$;
+                                IF x% < 62 THEN
 
-                                    Select Case x%
-                                        Case 16, 17, 19, 20, 22, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 44, 46, 47, 49, 50, 52, 53, 55, 56, 58, 59, 61, 62
-                                            e2$ = Chr$(Val("&H" + Chr$(Screen(y%, x% - 1)) + Chr$(Screen(y%, x%))))
+                                    SELECT CASE x%
+                                        CASE 16, 17, 19, 20, 22, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 44, 46, 47, 49, 50, 52, 53, 55, 56, 58, 59, 61, 62
+                                            e2$ = CHR$(VAL("&H" + CHR$(SCREEN(y%, x% - 1)) + CHR$(SCREEN(y%, x%))))
                                             'reflect changes on right panel
-                                            Color 1, 15: Locate y%, rightx%: Print " ";
-                                            Locate y%, rightx%: Print e2$;
-                                            Mid$(PageOfData$, ((y% - 3) * 16 + rightx% * 1) - 62) = e2$
+                                            COLOR 1, 15: LOCATE y%, rightx%: PRINT " ";
+                                            LOCATE y%, rightx%: PRINT e2$;
+                                            MID$(PageOfData$, ((y% - 3) * 16 + rightx% * 1) - 62) = e2$
                                             'dont advance cursor if at last place
-                                            If x% < 61 Then
+                                            IF x% < 61 THEN
                                                 rightx% = rightx% + 1
                                                 x% = x% + 2
-                                            End If
-                                        Case Else: x% = x% + 1
-                                    End Select
-                                End If
-                        End Select
+                                            END IF
+                                        CASE ELSE: x% = x% + 1
+                                    END SELECT
+                                END IF
+                        END SELECT
 
-                    End If
-            End Select
-        End If
-    Loop Until E$ <> ""
-    Locate y%, x%
-Loop Until E$ = Chr$(27)
+                    END IF
+            END SELECT
+        END IF
+    LOOP UNTIL E$ <> ""
+    LOCATE y%, x%
+LOOP UNTIL E$ = CHR$(27)
 
-GoTo SaveChanges:
+GOTO SaveChanges:
 
 
 '==========================================================================
 EditFullView: 'Editing file in full display mode (one pane)
 '===========
 
-Color 1, 7
+COLOR 1, 7
 x% = 1: y% = 3
 changes% = 0
 
-GoSub DrawEditBar
+GOSUB DrawEditBar
 
-Locate 3, 1, 1, 1, 30
+LOCATE 3, 1, 1, 1, 30
 
-Do
-    Do
-        E$ = InKey$
-        If E$ <> "" Then
-            Select Case E$
-                Case Chr$(27): Exit Do
-                Case Chr$(0) + Chr$(72): If y% > 3 Then y% = y% - 1
-                Case Chr$(0) + Chr$(80): If y% < 25 Then y% = y% + 1
-                Case Chr$(0) + Chr$(75): If x% > 1 Then x% = x% - 1
-                Case Chr$(0) + Chr$(77): If x% < 79 Then x% = x% + 1
-                Case Chr$(0) + Chr$(73), Chr$(0) + Chr$(71): y% = 3
-                Case Chr$(0) + Chr$(81), Chr$(0) + Chr$(79): y% = 25
-                Case Else
-                    If (ByteLocation& + (y% - 3) * 79 + x% - 1) <= LOF(7) And E$ <> Chr$(8) Then
+DO
+    DO
+        E$ = INKEY$
+        IF E$ <> "" THEN
+            SELECT CASE E$
+                CASE CHR$(27): EXIT DO
+                CASE CHR$(0) + CHR$(72): IF y% > 3 THEN y% = y% - 1
+                CASE CHR$(0) + CHR$(80): IF y% < 25 THEN y% = y% + 1
+                CASE CHR$(0) + CHR$(75): IF x% > 1 THEN x% = x% - 1
+                CASE CHR$(0) + CHR$(77): IF x% < 79 THEN x% = x% + 1
+                CASE CHR$(0) + CHR$(73), CHR$(0) + CHR$(71): y% = 3
+                CASE CHR$(0) + CHR$(81), CHR$(0) + CHR$(79): y% = 25
+                CASE ELSE
+                    IF (ByteLocation& + (y% - 3) * 79 + x% - 1) <= LOF(7) AND E$ <> CHR$(8) THEN
                         changes% = 1
                         'new color for changed bytes
-                        Color 1, 15: Locate y%, x%: Print " ";
-                        Locate y%, x%: Print E$;
-                        Mid$(PageOfData$, (y% - 3) * 79 + x% * 1) = E$
-                        If x% < 79 Then x% = x% + 1
-                    End If
-            End Select
-        End If
-    Loop Until E$ <> ""
-    GoSub DrawEditBar
-    Locate y%, x%
-Loop Until E$ = Chr$(27)
+                        COLOR 1, 15: LOCATE y%, x%: PRINT " ";
+                        LOCATE y%, x%: PRINT E$;
+                        MID$(PageOfData$, (y% - 3) * 79 + x% * 1) = E$
+                        IF x% < 79 THEN x% = x% + 1
+                    END IF
+            END SELECT
+        END IF
+    LOOP UNTIL E$ <> ""
+    GOSUB DrawEditBar
+    LOCATE y%, x%
+LOOP UNTIL E$ = CHR$(27)
 
-GoTo SaveChanges:
+GOTO SaveChanges:
 
 '==========================================================================
 DrawEditBar:
 '===========
 
-If DisplayView% = 1 Then
-    Locate 1, 1:
-    Color 31, 4: Print "  EDIT MODE: ";
-    Color 15, 4
-    Print " Press TAB to switch editing sides "; Chr$(179); " Arrows move cursor "; Chr$(179); " ESC=Exit ";
-Else
-    Locate 1, 1
-    Color 31, 4: Print " EDIT MODE ";
-    Color 15, 4
-    Print Chr$(179); " Arrows move cursor "; Chr$(179); " ESC=Exit "; Chr$(179);
-    Locate 1, 45: Print String$(35, " ");
+IF DisplayView% = 1 THEN
+    LOCATE 1, 1:
+    COLOR 31, 4: PRINT "  EDIT MODE: ";
+    COLOR 15, 4
+    PRINT " Press TAB to switch editing sides "; CHR$(179); " Arrows move cursor "; CHR$(179); " ESC=Exit ";
+ELSE
+    LOCATE 1, 1
+    COLOR 31, 4: PRINT " EDIT MODE ";
+    COLOR 15, 4
+    PRINT CHR$(179); " Arrows move cursor "; CHR$(179); " ESC=Exit "; CHR$(179);
+    LOCATE 1, 45: PRINT STRING$(35, " ");
 
-    Locate 1, 46
+    LOCATE 1, 46
     CurrentByte& = ByteLocation& + (y% - 3) * 79 + x% - 1
-    CurrentValue% = Asc(Mid$(PageOfData$, (y% - 3) * 79 + x% * 1, 1))
-    If CurrentByte& > LOF(7) Then
-        Print Space$(9); "PAST END OF FILE";
-    Else
-        Print "Byte:"; LTrim$(Str$(CurrentByte&));
-        Print ", ASC:"; LTrim$(Str$(CurrentValue%));
-        Print ", HEX:"; RTrim$(Hex$(CurrentValue%));
-    End If
-End If
-Return
+    CurrentValue% = ASC(MID$(PageOfData$, (y% - 3) * 79 + x% * 1, 1))
+    IF CurrentByte& > LOF(7) THEN
+        PRINT SPACE$(9); "PAST END OF FILE";
+    ELSE
+        PRINT "Byte:"; LTRIM$(STR$(CurrentByte&));
+        PRINT ", ASC:"; LTRIM$(STR$(CurrentValue%));
+        PRINT ", HEX:"; RTRIM$(HEX$(CurrentValue%));
+    END IF
+END IF
+RETURN
 
 '==========================================================================
 DrawTopBar:
 '============
 
-Color 1, 15
-Locate 1, 1: Print String$(80, 32);
-Locate 2, 1: Print String$(80, 32);
+COLOR 1, 15
+LOCATE 1, 1: PRINT STRING$(80, 32);
+LOCATE 2, 1: PRINT STRING$(80, 32);
 
-Locate 1, 1
-If Filter% = 1 Then
-    Color 30, 4: Print "F";: Color 1, 15
-Else
-    Print " ";
-End If
+LOCATE 1, 1
+IF Filter% = 1 THEN
+    COLOR 30, 4: PRINT "F";: COLOR 1, 15
+ELSE
+    PRINT " ";
+END IF
 
-Print "FILE: "; File$;
+PRINT "FILE: "; File$;
 
-Locate 2, 2:
-Print "Total Bytes:"; LOF(7);
-EC& = ByteLocation& + BufferSize%: If EC& > LOF(7) Then EC& = LOF(7)
-Print Chr$(179); " Viewing Bytes:"; RTrim$(Str$(ByteLocation&)); "-"; LTrim$(Str$(EC&));
-Locate 1, 71: Print " M = Menu";
-Color 15, 1
+LOCATE 2, 2:
+PRINT "Total Bytes:"; LOF(7);
+EC& = ByteLocation& + BufferSize%: IF EC& > LOF(7) THEN EC& = LOF(7)
+PRINT CHR$(179); " Viewing Bytes:"; RTRIM$(STR$(ByteLocation&)); "-"; LTRIM$(STR$(EC&));
+LOCATE 1, 71: PRINT " M = Menu";
+COLOR 15, 1
 'Draw bar on right side of screen
-For d% = 3 To 25
-    Locate d%, 80: Print Chr$(176);
-Next
+FOR d% = 3 TO 25
+    LOCATE d%, 80: PRINT CHR$(176);
+NEXT
 
-If DisplayView% = 1 Then
+IF DisplayView% = 1 THEN
     'Draw lines down screen
-    For d% = 3 To 25
-        Locate d%, 79: Print Chr$(179);
-        Locate d%, 62: Print Chr$(179);
+    FOR d% = 3 TO 25
+        LOCATE d%, 79: PRINT CHR$(179);
+        LOCATE d%, 62: PRINT CHR$(179);
         'add space around numbers...
         '(full screen messes it...)
-        Locate d%, 13: Print " " + Chr$(179);
-        Locate d%, 1: Print Chr$(179) + " ";
-    Next
+        LOCATE d%, 13: PRINT " " + CHR$(179);
+        LOCATE d%, 1: PRINT CHR$(179) + " ";
+    NEXT
 
     'Draw location
-    For d% = 3 To 25
-        Locate d%, 3
-        nm$ = Hex$(ByteLocation& - 32 + (d% * 16))
-        If Len(nm$) = 9 Then nm$ = "0" + nm$
-        If Len(nm$) = 8 Then nm$ = "00" + nm$
-        If Len(nm$) = 7 Then nm$ = "000" + nm$
-        If Len(nm$) = 6 Then nm$ = "0000" + nm$
-        If Len(nm$) = 5 Then nm$ = "00000" + nm$
-        If Len(nm$) = 4 Then nm$ = "000000" + nm$
-        If Len(nm$) = 3 Then nm$ = "0000000" + nm$
-        If Len(nm$) = 2 Then nm$ = "00000000" + nm$
-        If Len(nm$) = 1 Then nm$ = "000000000" + nm$
-        Print nm$;
-    Next
-End If
+    FOR d% = 3 TO 25
+        LOCATE d%, 3
+        nm$ = HEX$(ByteLocation& - 32 + (d% * 16))
+        IF LEN(nm$) = 9 THEN nm$ = "0" + nm$
+        IF LEN(nm$) = 8 THEN nm$ = "00" + nm$
+        IF LEN(nm$) = 7 THEN nm$ = "000" + nm$
+        IF LEN(nm$) = 6 THEN nm$ = "0000" + nm$
+        IF LEN(nm$) = 5 THEN nm$ = "00000" + nm$
+        IF LEN(nm$) = 4 THEN nm$ = "000000" + nm$
+        IF LEN(nm$) = 3 THEN nm$ = "0000000" + nm$
+        IF LEN(nm$) = 2 THEN nm$ = "00000000" + nm$
+        IF LEN(nm$) = 1 THEN nm$ = "000000000" + nm$
+        PRINT nm$;
+    NEXT
+END IF
 
-Marker% = CInt(ByteLocation& / LOF(7) * 22)
-Locate Marker% + 3, 80: Print Chr$(178);
-Return
+Marker% = CINT(ByteLocation& / LOF(7) * 22)
+LOCATE Marker% + 3, 80: PRINT CHR$(178);
+RETURN
 
 '==========================================================================
 Menu:
 '========
 
-Sound 4500, .2: Color 15, 0: Locate , , 0
-Locate 5, 24: Print Chr$(201); String$(34, 205); Chr$(187);
-For m = 6 To 20
-    Locate m, 24: Print Chr$(186); Space$(34); Chr$(186);
-Next
-Locate 21, 24: Print Chr$(200); String$(34, 205); Chr$(188);
+SOUND 4500, .2: COLOR 15, 0: LOCATE , , 0
+LOCATE 5, 24: PRINT CHR$(201); STRING$(34, 205); CHR$(187);
+FOR m = 6 TO 20
+    LOCATE m, 24: PRINT CHR$(186); SPACE$(34); CHR$(186);
+NEXT
+LOCATE 21, 24: PRINT CHR$(200); STRING$(34, 205); CHR$(188);
 
-Locate 6, 26: Print "Use the arrow keys, page up/down";
-Locate 7, 26: Print "and Home/End keys to navigate.";
-Locate 9, 26: Print "E = Enter into file editing mode";
-Locate 10, 26: Print "F = Toggles the filter ON or OFF";
-Locate 11, 26: Print "G = Goto a certain byte position";
-Locate 12, 26: Print "L = Goto a certain HEX location";
-Locate 13, 26: Print "S = Searches for string in file";
-Locate 14, 26: Print "N = Find next match after search";
-Locate 16, 26: Print "ENTER = Toggle HEX/ASCII modes";
-Locate 17, 26: Print "TAB   = switch window (HEX mode)";
-Locate 18, 26: Print "ESC   = EXITS this program";
-Locate 20, 26: Print "ALT+ENTER for full screen window";
-Pause$ = Input$(1)
-Color 15, 1: Cls: Locate 1, 1, 0
-Return
+LOCATE 6, 26: PRINT "Use the arrow keys, page up/down";
+LOCATE 7, 26: PRINT "and Home/End keys to navigate.";
+LOCATE 9, 26: PRINT "E = Enter into file editing mode";
+LOCATE 10, 26: PRINT "F = Toggles the filter ON or OFF";
+LOCATE 11, 26: PRINT "G = Goto a certain byte position";
+LOCATE 12, 26: PRINT "L = Goto a certain HEX location";
+LOCATE 13, 26: PRINT "S = Searches for string in file";
+LOCATE 14, 26: PRINT "N = Find next match after search";
+LOCATE 16, 26: PRINT "ENTER = Toggle HEX/ASCII modes";
+LOCATE 17, 26: PRINT "TAB   = switch window (HEX mode)";
+LOCATE 18, 26: PRINT "ESC   = EXITS this program";
+LOCATE 20, 26: PRINT "ALT+ENTER for full screen window";
+Pause$ = INPUT$(1)
+COLOR 15, 1: CLS: LOCATE 1, 1, 0
+RETURN
 
 
 '==========================================================================
 '                           FUNCTIONS/SUBS
 '==========================================================================
 
-Function FileSelect$ (y, x, y2, x2, Filespec$)
 
-
-    '=== save original place of cursor
-    origy = CsrLin
-    origx = Pos(1)
-
-    '=== save colors
-    fg& = _DefaultColor
-    bg& = _BackgroundColor
-
-    '=== Save whole screen
-    Dim scr1 As _MEM, scr2 As _MEM
-    scr1 = _MemImage(0): scr2 = _MemNew(scr1.SIZE)
-    _MemCopy scr1, scr1.OFFSET, scr1.SIZE To scr2, scr2.OFFSET
-
-    '=== Generate a unique temp filename to use based on date + timer
-    tmp$ = "_qb64_" + Date$ + "_" + LTrim$(Str$(Int(Timer))) + ".tmp"
-    If InStr(_OS$, "LINUX") Then tmp$ = "/tmp/" + tmp$
-
-    loadagain:
-
-    top = 0
-    selection = 0
-
-    '=== list directories
-    If InStr(_OS$, "LINUX") Then
-        Shell _Hide "find . -maxdepth 1 -type d > " + tmp$
-    Else
-        Shell _Hide "dir /b /A:D > " + tmp$
-    End If
-
-    '=== make room for names
-    ReDim FileNames$(10000) 'space for 10000 filenames
-
-    '=== only show the ".." when not at root dir
-    If Len(_CWD$) <> 3 Then
-        FileNames$(0) = ".."
-        LineCount = 1
-    Else
-        LineCount = 0
-    End If
-
-    '=== Open temp file
-    FF = FreeFile
-    Open tmp$ For Input As #FF
-
-    While ((LineCount < UBound(FileNames$)) And (Not EOF(FF)))
-        Line Input #FF, rl$
-
-        '=== load, ignoring the . entry added under Linux
-        If rl$ <> "." Then
-
-            'also remove the ./ added at the beginning when under linux
-            If InStr(_OS$, "LINUX") Then
-                If Left$(rl$, 2) = "./" Then
-                    rl$ = Right$(rl$, Len(rl$) - 2)
-                End If
-            End If
-
-            FileNames$(LineCount) = "[" + rl$ + "]"
-            LineCount = LineCount + 1
-
-        End If
-    Wend
-
-    Close #FF
-
-    '=== now grab list of files...
-    If InStr(_OS$, "LINUX") Then
-        Shell _Hide "rm " + tmp$
-        If Filespec$ = "*.*" Then Filespec$ = ""
-        Shell _Hide "find -maxdepth 1 -type f -name '" + Filespec$ + "*' > " + tmp$
-    Else
-        Shell _Hide "del " + tmp$
-        Shell _Hide "dir /b /A:-D " + Filespec$ + " > " + tmp$
-    End If
-
-    '=== open temp file
-    FF = FreeFile
-    Open tmp$ For Input As #FF
-
-    While ((LineCount < UBound(FileNames$)) And (Not EOF(FF)))
-
-        Line Input #FF, rl$
-
-        '=== load, ignoring the generated temp file...
-        If rl$ <> tmp$ Then
-
-            'also remove the ./ added at the beginning when under linux
-            If InStr(_OS$, "LINUX") Then
-                If Left$(rl$, 2) = "./" Then
-                    rl$ = Right$(rl$, Len(rl$) - 2)
-                End If
-            End If
-
-            FileNames$(LineCount) = rl$
-            LineCount = LineCount + 1
-        End If
-
-    Wend
-    Close #FF
-
-    '=== Remove the temp file created
-    If InStr(_OS$, "LINUX") Then
-        Shell _Hide "rm " + tmp$
-    Else
-        Shell _Hide "del " + tmp$
-    End If
-
-
-    '=== draw a box
-    Color _RGB(100, 100, 255)
-    For l = 0 To y2 + 1
-        Locate y + l, x: Print String$(x2 + 4, Chr$(219));
-    Next
-
-    '=== show current working dir at top
-    Color _RGB(255, 255, 255), _RGB(100, 100, 255)
-    CurDir$ = _CWD$
-    '=== Shorten it is too long, for display purposes
-    If Len(CurDir$) > x2 - x Then
-        CurDir$ = Mid$(CurDir$, 1, x2 - x - 3) + "..."
-    End If
-    Locate y, x + 2: Print CurDir$;
-
-    '=== scroll through list...
-    Do
-
-        For l = 0 To (y2 - 1)
-
-            Locate (y + 1) + l, (x + 2)
-            If l + top = selection Then
-                Color _RGB(0, 0, 64), _RGB(255, 255, 255) 'selected line
-            Else
-                Color _RGB(255, 255, 255), _RGB(0, 0, 64) 'regular
-                '=== directories get a different color...
-                If Mid$(FileNames$(top + l), 1, 1) = "[" Then
-                    Color _RGB(255, 255, 0), _RGB(0, 0, 64)
-                End If
-            End If
-
-            Print Left$(FileNames$(top + l) + String$(x2, " "), x2);
-
-        Next
-
-        '=== Get user input
-
-        k$ = InKey$
-        Select Case k$
-
-            Case Is = Chr$(0) + Chr$(72) 'Up arrow
-                If selection > 0 Then selection = selection - 1
-                If selection < top Then top = selection
-
-            Case Is = Chr$(0) + Chr$(80) 'Down Arrow
-                If selection < (LineCount - 1) Then selection = selection + 1
-                If selection > (top + (y2 - 2)) Then top = selection - y2 + 1
-
-            Case Is = Chr$(0) + Chr$(73) 'Page up
-                top = top - y2
-                selection = selection - y2
-                If top < 0 Then top = 0
-                If selection < 0 Then selection = 0
-
-            Case Is = Chr$(0) + Chr$(81) 'Page Down
-                top = top + y2
-                selection = selection + y2
-                If top >= LineCount - y2 Then top = LineCount - y2
-                If top < 0 Then top = 0
-                If selection >= LineCount Then selection = LineCount - 1
-
-            Case Is = Chr$(0) + Chr$(71) 'Home
-                top = 0: selection = 0
-
-            Case Is = Chr$(0) + Chr$(79) 'End
-                selection = LineCount - 1
-                top = selection - y2 + 1
-                If top < 0 Then top = 0
-
-            Case Is = Chr$(27) ' ESC cancels
-                FileSelect$ = ""
-                Exit Do
-
-            Case Is = Chr$(13) 'Enter
-                '=== if .. then go up one dir
-                If RTrim$(FileNames$(selection)) = ".." Then
-                    cd$ = _CWD$
-                    If InStr(_OS$, "LINUX") Then
-                        cd$ = Left$(cd$, _InStrRev(cd$, "/"))
-                    Else
-                        cd$ = Left$(cd$, _InStrRev(cd$, "\"))
-                    End If
-                    ChDir cd$
-                    Erase FileNames$
-                    GoTo loadagain
-                End If
-
-                'see if directory
-                test$ = RTrim$(FileNames$(selection))
-                If Left$(test$, 1) = "[" Then
-                    test$ = Mid$(test$, 2, Len(test$) - 2)
-                    ChDir test$
-                    Erase FileNames$
-                    GoTo loadagain
-                Else
-                    If InStr(_OS$, "LINUX") Then
-                        If Right$(_CWD$, 1) = "/" Then
-                            C$ = _CWD$
-                        Else
-                            C$ = _CWD$ + "/"
-                        End If
-                    Else
-                        If Right$(_CWD$, 1) = "\" Then
-                            C$ = _CWD$
-                        Else
-                            C$ = _CWD$ + "\"
-                        End If
-                    End If
-
-                    FileSelect$ = C$ + RTrim$(FileNames$(selection))
-                    Exit Do
-
-                End If
-
-        End Select
-
-    Loop
-
-    _KeyClear
-
-    '=== Restore the whole screen
-    _MemCopy scr2, scr2.OFFSET, scr2.SIZE To scr1, scr1.OFFSET
-    _MemFree scr1: _MemFree scr2
-
-    '=== restore original y,x and color
-    Locate origy, origx
-
-    Color fg&, bg&
-
-
-End Function
-
-Sub FONT (size)
-    'load/set built-in CP437 font
+SUB BIGFONT (size)
+    'loads a custom size CP437 font (like QB64's built-in one)'
+    'You can make/use any size now.
     A$ = ""
     A$ = A$ + "haIgm]0MLEMMXkS^ST\\T]lHiaboe<Nl8c71HYa3f0VPiWa9H07n5a_0bn:K"
     A$ = A$ + ";#FB8;c773hBD8T42E_#C:=QBC39PSQB=DB2UhdhVBB^9=_D2EQ#Ala?JFmi"
@@ -1155,30 +911,18 @@ Sub FONT (size)
     A$ = A$ + "Og>fNGXlH7K^CD0jVLG4\SMfCEKYc]SR#YXoDi>j37lDK^kM^Y:gFWMP3AHG"
     A$ = A$ + "M\mNk9\f]_cMX2EM>C_cAIOa=ehScNbHoGSl3nVg6Mdooo4noEAM%%h1"
     btemp$ = ""
-    For i& = 1 To Len(A$) Step 4: B$ = Mid$(A$, i&, 4)
-        If InStr(1, B$, "%") Then
-            For C% = 1 To Len(B$): F$ = Mid$(B$, C%, 1)
-                If F$ <> "%" Then C$ = C$ + F$
-            Next: B$ = C$: End If: For j = 1 To Len(B$)
-            If Mid$(B$, j, 1) = "#" Then
-        Mid$(B$, j) = "@": End If: Next
-        For t% = Len(B$) To 1 Step -1
-            B& = B& * 64 + Asc(Mid$(B$, t%)) - 48
-            Next: X$ = "": For t% = 1 To Len(B$) - 1
-            X$ = X$ + Chr$(B& And 255): B& = B& \ 256
-    Next: btemp$ = btemp$ + X$: Next
-    BASFILE$ = _Inflate$(btemp$): btemp$ = ""
-
-    '=== Generate a unique font name to use based on date + timer
-    fontname$ = "_cp437_" + Date$ + "_" + LTrim$(Str$(Int(Timer))) + ".ttf"
-    If InStr(_OS$, "LINUX") Then tmp$ = "/tmp/" + tmp$
-    '=== Make font file
-    FFF = FreeFile: Open fontname$ For Output As #FFF
-    Print #FFF, BASFILE$;: Close #FFF
-    '=== Load then kill it after loading it into memory
-    fnt& = _LoadFont(fontname$, size, "monospace"): _Font fnt&
-    Kill fontname$
-
-End Sub
-
-
+    FOR i& = 1 TO LEN(A$) STEP 4: B$ = MID$(A$, i&, 4)
+        IF INSTR(1, B$, "%") THEN
+            FOR C% = 1 TO LEN(B$): F$ = MID$(B$, C%, 1)
+                IF F$ <> "%" THEN C$ = C$ + F$
+            NEXT: B$ = C$: END IF: FOR j = 1 TO LEN(B$)
+            IF MID$(B$, j, 1) = "#" THEN
+        MID$(B$, j) = "@": END IF: NEXT
+        FOR t% = LEN(B$) TO 1 STEP -1
+            B& = B& * 64 + ASC(MID$(B$, t%)) - 48
+            NEXT: X$ = "": FOR t% = 1 TO LEN(B$) - 1
+            X$ = X$ + CHR$(B& AND 255): B& = B& \ 256
+    NEXT: btemp$ = btemp$ + X$: NEXT
+    BASFILE$ = _INFLATE$(btemp$, 25152): btemp$ = ""
+    _FONT _LOADFONT(BASFILE$, size, "memory, monospace")
+END SUB
