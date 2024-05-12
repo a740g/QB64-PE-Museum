@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file gtprefs.bin
 // ---------------------------------------------------------------------
-static const unsigned int32 PresetsL0[] = {
+static const uint32_t PresetsL0[] = {
     152,
     0x69489E46,0x00024B02,0x14A45000,0x09054231,0x12242911,0x07433802,0x66329C8E,0x9310B8E6,
     0x90880DC6,0x1C924722,0x90E29149,0x80A84529,0x08F09008,0xC262379B,0xE43171B0,0x73394C4D,
@@ -28,11 +28,22 @@ static const unsigned int32 PresetsL0[] = {
     0xCBAAE9B5,0xF6276FA6,0x64184528,0xAD86F1A4,0xE7315121,0x8194751C,0x5AFDBAEE,0x004263BB
 };
 
-static const unsigned int8 PresetsB[] = {
+static const uint8_t PresetsB[] = {
     18,
     0x01,0x00,0x51,0x42,0x36,0x34,0x4C,0x5A,0x57,0x31,0xB8,0x12,0x00,0x00,0x75,0xD0,
     0x30,0x05
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadPresetsData(char *Buffer)
+{
+    memcpy(Buffer, &PresetsL0[1], PresetsL0[0] << 2);
+    Buffer += (PresetsL0[0] << 2);
+
+    memcpy(Buffer, &PresetsB[1], PresetsB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -52,10 +63,10 @@ void KillPresetsData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WritePresetsData(const char *FileName, int16 AutoClean)
+const char *WritePresetsData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(PresetsName, FileName, 8192)) return "";

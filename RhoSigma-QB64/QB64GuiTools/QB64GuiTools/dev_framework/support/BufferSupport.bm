@@ -11,7 +11,7 @@
 '| === BufferSupport.bm ===                                          |
 '|                                                                   |
 '| == This include file is part of the GuiTools Framework Project.   |
-'| == It provides the SUBs and FUNCTIONs of the String Buffer API.   |
+'| == It provides the SUBs and FUNCTIONs of the Simplebuffer API.    |
 '|                                                                   |
 '+-------------------------------------------------------------------+
 '| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
@@ -28,13 +28,13 @@ buf& = 0: CreateBuf% = SBE_NoMoreBuffers
 WHILE buf& < aub&
     IF simplebuffer_array$(buf& + 1) = "" THEN EXIT WHILE
     buf& = buf& + 106
-    IF buf& >= 3473408 THEN EXIT FUNCTION '=> allow max. 32768 buffers
+    IF buf& >= 3473090 THEN EXIT FUNCTION '=> allow max. 32765 buffers
 WEND
 '--- expand array, if necessary ---
-IF aub& < buf& + 105 THEN REDIM _PRESERVE simplebuffer_array$(0 TO buf& + 105)
+IF aub& < buf& + 105 THEN REDIM _PRESERVE simplebuffer_array$(0 TO buf& + 1059) '=> add 10 more buffers
 '--- init buffer ---
-simplebuffer_array$(buf& + 0) = "" '                                   => the actual buffer
-simplebuffer_array$(buf& + 1) = MKL$(1) + MKL$(0) + "EolU" + MKL$(-1) '=> cursor position + buffer length + EOL mode + changed state
+simplebuffer_array$(buf& + 0) = SPACE$(16384) '                        => the actual buffer (will grow as needed)
+simplebuffer_array$(buf& + 1) = MKL$(1) + MKL$(0) + "EolU" + MKL$(-1) '=> cursor position + buffer length + EOL mode + change state
 simplebuffer_array$(buf& + 2) = "BM|" + SPACE$(404) '                  => space for 100 +1 bookmarks
 simplebuffer_array$(buf& + 3) = "FP|" + SPACE$(404) '                  => space for 100 +1 found at positions
 simplebuffer_array$(buf& + 4) = "FL|" + SPACE$(404) '                  => space for 100 +1 find data lenghts
@@ -52,20 +52,21 @@ END FUNCTION
 '---------------------------------------------------------------------
 SUB DisposeBuf (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- erase buffer data ---
 FOR idx% = 0 TO 105
     simplebuffer_array$(buf& + idx%) = ""
 NEXT idx%
-'--- shrink array, if possible ---
-aub& = UBOUND(simplebuffer_array$)
+'--- shrink array, if worth 10+ buffers ---
+aub& = UBOUND(simplebuffer_array$): oub& = aub&
 buf& = aub& - 105
-WHILE buf& > 0
+WHILE buf& >= 1060
     IF simplebuffer_array$(buf& + 1) <> "" THEN EXIT WHILE
     buf& = buf& - 106
 WEND
-IF aub& > buf& + 105 THEN REDIM _PRESERVE simplebuffer_array$(0 TO buf& + 105)
+WHILE aub& - 1059 > buf& + 105: aub& = aub& - 1060: WEND
+IF aub& < oub& THEN REDIM _PRESERVE simplebuffer_array$(0 TO aub&)
 END SUB
 
 '--- docs\doc_BufferSupport.bm\FileToBuf.html
@@ -78,17 +79,20 @@ buf& = han% * 106
 IF han% >= 0 THEN
     ff% = FREEFILE
     OPEN fileSpec$ FOR BINARY LOCK WRITE AS ff%
-    fl&& = LOF(ff%)
+    fl&& = LOF(ff%): ext& = fl&& MOD 16384
     '--- check file length ---
-    IF fl&& > &H7FFFFFFE&& THEN
-        ERROR 7 'buffer full (file too big)
+    IF fl&& > &H40000000&& THEN
+        ERROR 7 'buffer overflow (file too big, >1GiB)
         'If the program is continued from here regardless of the error,
-        'then the returned buffer will be empty.
+        'then the returned buffer will be empty, but ready to use.
     ELSE
-        '--- load file into buffer ---
+        '--- load file into buffer & adjust length ---
         simplebuffer_array$(buf& + 0) = SPACE$(fl&&)
         GET ff%, , simplebuffer_array$(buf& + 0)
-        '--- set cursor, buffer length & state ---
+        IF ext& > 0 THEN
+            simplebuffer_array$(buf& + 0) = simplebuffer_array$(buf& + 0) + SPACE$(16384 - ext&)
+        END IF
+        '--- set cursor, buffer length & change state ---
         MID$(simplebuffer_array$(buf& + 1), 1, 4) = MKL$(1)
         MID$(simplebuffer_array$(buf& + 1), 5, 4) = MKL$(fl&&)
         MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(0)
@@ -103,15 +107,15 @@ END FUNCTION
 '---------------------------------------------------------------------
 SUB BufToFile (handle%, fileSpec$)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- write file (overwrite existing !!!) ---
-ff% = FREEFILE
+ff% = FREEFILE: dat$ = LEFT$(simplebuffer_array$(buf& + 0), GetBufLen&(handle%))
 OPEN fileSpec$ FOR OUTPUT LOCK WRITE AS ff%: CLOSE ff%
 OPEN fileSpec$ FOR BINARY LOCK WRITE AS ff%
-PUT ff%, , simplebuffer_array$(buf& + 0)
+PUT ff%, , dat$
 CLOSE ff%
-'--- set state ---
+'--- reset change state ---
 MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(0)
 END SUB
 
@@ -119,7 +123,7 @@ END SUB
 '---------------------------------------------------------------------
 FUNCTION CloneBuf% (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- create a new buffer ---
 dhan% = CreateBuf%
@@ -138,38 +142,39 @@ END FUNCTION
 '---------------------------------------------------------------------
 SUB BufInsertFile (handle%, fileSpec$)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 '--- load file into a temp buffer ---
 than% = FileToBuf%(fileSpec$)
 '--- on success, insert into buffer ---
-IF than% >= 0 THEN BufInsertBuf handle%, than%
-'--- dispose temp buffer ---
-DisposeBuf than%
+IF than% >= 0 THEN
+    BufInsertBuf handle%, than%
+    DisposeBuf than%
+END IF
 END SUB
 
 '--- docs\doc_BufferSupport.bm\BufInsertBuf.html
 '---------------------------------------------------------------------
 SUB BufInsertBuf (handle%, fromHandle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
-IF NOT CheckHandle%(fromHandle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid fromHandle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
+IF NOT CheckHandle%(fromHandle%) THEN ERROR 258: STOP 'invalid fromHandle
 fbuf& = fromHandle% * 106
 '--- insert data of another buffer ---
-WriteBufRawData handle%, simplebuffer_array$(fbuf& + 0)
+WriteBufRawData handle%, LEFT$(simplebuffer_array$(fbuf& + 0), GetBufLen&(fromHandle%))
 END SUB
 
 '--- docs\doc_BufferSupport.bm\ReadBufLine.html
 '---------------------------------------------------------------------
 FUNCTION ReadBufLine$ (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- prepare values ---
-cur& = GetBufPos&(handle%)
+cur& = GetBufPos&(handle%): cbl&& = GetBufLen&(handle%)
 brc$ = BufEolSeq$(handle%): brl% = LEN(brc$)
 '--- find next line break ---
 eol& = INSTR(cur&, simplebuffer_array$(buf& + 0), brc$)
-IF eol& = 0 THEN eol& = GetBufLen&(handle%) + 1: brl% = 0
+IF eol& = 0 OR eol& > cbl&& THEN eol& = cbl&& + 1: brl% = 0
 '--- read from buffer ---
 ReadBufLine$ = MID$(simplebuffer_array$(buf& + 0), cur&, eol& - cur&)
 MID$(simplebuffer_array$(buf& + 1), 1, 4) = MKL$(eol& + brl%)
@@ -179,22 +184,34 @@ END FUNCTION
 '---------------------------------------------------------------------
 SUB WriteBufLine (handle%, text$)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- prepare values ---
 cur& = GetBufPos&(handle%): txl& = LEN(text$)
 brc$ = BufEolSeq$(handle%): brl% = LEN(brc$)
 cbl&& = GetBufLen&(handle%): chg& = txl& + brl%
 '--- check buffer length ---
-IF cbl&& + chg& > &H7FFFFFFE&& THEN
-    ERROR 7 'buffer full (text$ too long)
+IF cbl&& + chg& > &H40000000&& THEN
+    ERROR 7 'buffer overflow (text$ too long)
     'If the program is continued from here regardless of the error,
     'then the given text was not written into the buffer.
 ELSE
+    '--- adjust buffer length ---
+    bsz& = LEN(simplebuffer_array$(buf& + 0)): ext& = 0
+    WHILE cbl&& + chg& > bsz& + ext&: ext& = ext& + 16384: WEND
+    IF ext& > 0 THEN
+        simplebuffer_array$(buf& + 0) = simplebuffer_array$(buf& + 0) + SPACE$(ext&)
+    END IF
     '--- write into buffer ---
-    simplebuffer_array$(buf& + 0) = LEFT$(simplebuffer_array$(buf& + 0), cur& - 1) + text$ + brc$ + MID$(simplebuffer_array$(buf& + 0), cur&)
+    MID$(simplebuffer_array$(buf& + 0), cur&) = text$ + brc$ + MID$(simplebuffer_array$(buf& + 0), cur&, cbl&& - cur& + 1)
     MID$(simplebuffer_array$(buf& + 1), 1, 4) = MKL$(cur& + chg&)
     MID$(simplebuffer_array$(buf& + 1), 5, 4) = MKL$(cbl&& + chg&)
+    IF txl& > 0 THEN
+        IF (INSTR(text$, CHR$(10)) > 0) OR (INSTR(text$, CHR$(13)) > 0) THEN
+            'this buffer write could compromise the defined EOL mode
+            MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolU" 'reset to unknown
+        END IF
+    END IF
     MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(-1)
     '--- adjust bookmarks & find positions ---
     RecalcMarks handle%, cur&, chg&
@@ -206,19 +223,27 @@ END SUB
 '---------------------------------------------------------------------
 SUB DeleteBufLine (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- prepare values ---
-cur& = GetBufPos&(handle%): eob& = GetBufLen&(handle%) + 1
+cur& = GetBufPos&(handle%): cbl&& = GetBufLen&(handle%)
 brc$ = BufEolSeq$(handle%): brl% = LEN(brc$)
 '--- find next line break ---
 eol& = INSTR(cur&, simplebuffer_array$(buf& + 0), brc$)
-IF eol& = 0 THEN eol& = eob&: brl% = 0
+IF eol& = 0 OR eol& > cbl&& THEN eol& = cbl&& + 1: brl% = 0
 chg& = (eol& + brl%) - cur&
 '--- delete from buffer ---
-simplebuffer_array$(buf& + 0) = LEFT$(simplebuffer_array$(buf& + 0), cur& - 1) + MID$(simplebuffer_array$(buf& + 0), eol& + brl%)
-MID$(simplebuffer_array$(buf& + 1), 5, 4) = MKL$((eob& - 1) - chg&)
-IF chg& > 0 THEN MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(-1)
+MID$(simplebuffer_array$(buf& + 0), cur&) = MID$(simplebuffer_array$(buf& + 0), eol& + brl%, cbl&& - (eol& + brl%) + 1)
+MID$(simplebuffer_array$(buf& + 1), 5, 4) = MKL$(cbl&& - chg&)
+IF chg& > 0 THEN
+    MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(-1)
+    '--- shrink buffer, if worth 1/4th+ ---
+    ext& = (((cbl&& - chg& + 1) + 16383) AND -16384) '+1 = avoid zero case
+    fsz& = LEN(simplebuffer_array$(buf& + 0)) - ext&
+    IF fsz& >= LEN(simplebuffer_array$(buf& + 0)) \ 4 THEN
+        simplebuffer_array$(buf& + 0) = LEFT$(simplebuffer_array$(buf& + 0), ext&)
+    END IF
+END IF
 '--- adjust bookmarks & find positions ---
 RecalcMarks handle%, cur&, -chg&
 RecalcFinds handle%, cur&, -chg&
@@ -228,7 +253,7 @@ END SUB
 '---------------------------------------------------------------------
 FUNCTION ReadBufRawData$ (handle%, size&) 'size change intended
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- prepare values ---
 cur& = GetBufPos&(handle%): eob& = GetBufLen&(handle%) + 1
@@ -242,23 +267,32 @@ END FUNCTION
 '---------------------------------------------------------------------
 SUB WriteBufRawData (handle%, rawData$)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- prepare values ---
 cur& = GetBufPos&(handle%): rdl& = LEN(rawData$)
 cbl&& = GetBufLen&(handle%)
 '--- check buffer length ---
-IF cbl&& + rdl& > &H7FFFFFFE&& THEN
-    ERROR 7 'buffer full (rawData$ too long)
+IF cbl&& + rdl& > &H40000000&& THEN
+    ERROR 7 'buffer overflow (rawData$ too long)
     'If the program is continued from here regardless of the error,
     'then the given raw data were not written into the buffer.
 ELSE
+    '--- adjust buffer length ---
+    bsz& = LEN(simplebuffer_array$(buf& + 0)): ext& = 0
+    WHILE cbl&& + rdl& > bsz& + ext&: ext& = ext& + 16384: WEND
+    IF ext& > 0 THEN
+        simplebuffer_array$(buf& + 0) = simplebuffer_array$(buf& + 0) + SPACE$(ext&)
+    END IF
     '--- write into buffer ---
-    simplebuffer_array$(buf& + 0) = LEFT$(simplebuffer_array$(buf& + 0), cur& - 1) + rawData$ + MID$(simplebuffer_array$(buf& + 0), cur&)
+    MID$(simplebuffer_array$(buf& + 0), cur&) = rawData$ + MID$(simplebuffer_array$(buf& + 0), cur&, cbl&& - cur& + 1)
     MID$(simplebuffer_array$(buf& + 1), 1, 4) = MKL$(cur& + rdl&)
     MID$(simplebuffer_array$(buf& + 1), 5, 4) = MKL$(cbl&& + rdl&)
     IF rdl& > 0 THEN
-        MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolU"
+        IF (INSTR(rawData$, CHR$(10)) > 0) OR (INSTR(rawData$, CHR$(13)) > 0) THEN
+            'this buffer write could compromise the defined EOL mode
+            MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolU" 'reset to unknown
+        END IF
         MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(-1)
     END IF
     '--- adjust bookmarks & find positions ---
@@ -271,15 +305,24 @@ END SUB
 '---------------------------------------------------------------------
 SUB DeleteBufRawData (handle%, size&) 'size change intended
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- prepare values ---
-cur& = GetBufPos&(handle%): eob& = GetBufLen&(handle%) + 1
+cur& = GetBufPos&(handle%)
+cbl&& = GetBufLen&(handle%): eob& = cbl&& + 1
 IF size& > eob& - cur& THEN size& = eob& - cur&
 '--- delete from buffer ---
-simplebuffer_array$(buf& + 0) = LEFT$(simplebuffer_array$(buf& + 0), cur& - 1) + MID$(simplebuffer_array$(buf& + 0), cur& + size&)
-MID$(simplebuffer_array$(buf& + 1), 5, 4) = MKL$((eob& - 1) - size&)
-IF size& > 0 THEN MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(-1)
+MID$(simplebuffer_array$(buf& + 0), cur&) = MID$(simplebuffer_array$(buf& + 0), cur& + size&, cbl&& - (cur& + size&) + 1)
+MID$(simplebuffer_array$(buf& + 1), 5, 4) = MKL$(cbl&& - size&)
+IF size& > 0 THEN
+    MID$(simplebuffer_array$(buf& + 1), 13, 4) = MKL$(-1)
+    '--- shrink buffer, if worth 1/4th+ ---
+    ext& = (((cbl&& - size& + 1) + 16383) AND -16384) '+1 = avoid zero case
+    fsz& = LEN(simplebuffer_array$(buf& + 0)) - ext&
+    IF fsz& >= LEN(simplebuffer_array$(buf& + 0)) \ 4 THEN
+        simplebuffer_array$(buf& + 0) = LEFT$(simplebuffer_array$(buf& + 0), ext&)
+    END IF
+END IF
 '--- adjust bookmarks & find positions ---
 RecalcMarks handle%, cur&, -size&
 RecalcFinds handle%, cur&, -size&
@@ -289,7 +332,7 @@ END SUB
 '---------------------------------------------------------------------
 SUB GetBufMemData (handle%, memData AS _MEM)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 '--- get memory data size ---
 DIM sizeRef AS _MEM
 sizeRef = _MEM(memData.SIZE)
@@ -310,7 +353,7 @@ END SUB
 '---------------------------------------------------------------------
 SUB PutBufMemData (handle%, memData AS _MEM)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 '--- get memory data size ---
 DIM sizeRef AS _MEM
 sizeRef = _MEM(memData.SIZE)
@@ -332,7 +375,7 @@ END SUB
 '---------------------------------------------------------------------
 FUNCTION SetBufMark% (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- get new ID, set bookmark on success ---
 fid% = FreeID%(handle%, 2)
@@ -345,7 +388,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION RemoveBufMark% (handle%, markID%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check ID range ---
 RemoveBufMark% = SBE_BadIDNumber
@@ -359,7 +402,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION GetBufMark& (handle%, markID%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check ID range ---
 GetBufMark& = SBE_BadIDNumber
@@ -377,7 +420,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION GotoBufMark% (handle%, markID%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- goto bookmark, if valid ---
 markPos& = GetBufMark&(handle%, markID%)
@@ -393,7 +436,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION SetBufFind% (handle%, find$)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check search criteria ---
 SetBufFind% = SBE_EmptyFind: IF find$ = "" THEN EXIT FUNCTION
@@ -411,7 +454,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION RemoveBufFind% (handle%, findID%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check ID range ---
 RemoveBufFind% = SBE_BadIDNumber
@@ -427,7 +470,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION FindBufFwd& (handle%, findID%, method%, treat%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check ID range ---
 FindBufFwd& = SBE_BadIDNumber
@@ -443,35 +486,46 @@ IF treat% = 0 THEN
     find$ = simplebuffer_array$(buf& + findID% + 4)
     WHILE cPos& < eob&
         SELECT CASE method%
-            CASE IS < 0: IF INSTR(find$, MID$(simplebuffer_array$(buf& + 0), cPos&, 1)) = 0 THEN EXIT WHILE
-            CASE IS > 0: IF INSTR(find$, MID$(simplebuffer_array$(buf& + 0), cPos&, 1)) > 0 THEN EXIT WHILE
-            CASE ELSE: IF MID$(simplebuffer_array$(buf& + 0), cPos&, fLen&) = find$ THEN EXIT WHILE
+            CASE IS < 0: IF INSTR(find$, CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&))) = 0 THEN EXIT WHILE
+            CASE IS > 0: IF INSTR(find$, CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&))) > 0 THEN EXIT WHILE
+            CASE ELSE
+                FOR ch& = 1 TO fLen&
+                    bPos& = cPos& + ch& - 1: IF bPos& >= eob& THEN EXIT FOR
+                    IF ASC(simplebuffer_array$(buf& + 0), bPos&) <> ASC(find$, ch&) THEN EXIT FOR
+                NEXT ch&
+                IF ch& > fLen& THEN EXIT WHILE
         END SELECT
         cPos& = cPos& + 1
     WEND
 ELSE
-    temp$ = UCASE$(simplebuffer_array$(buf& + 0))
     find$ = UCASE$(simplebuffer_array$(buf& + findID% + 4))
     WHILE cPos& < eob&
         SELECT CASE method%
-            CASE IS < 0: IF INSTR(find$, MID$(temp$, cPos&, 1)) = 0 THEN EXIT WHILE
-            CASE IS > 0: IF INSTR(find$, MID$(temp$, cPos&, 1)) > 0 THEN EXIT WHILE
-            CASE ELSE: IF MID$(temp$, cPos&, fLen&) = find$ THEN EXIT WHILE
+            CASE IS < 0: IF INSTR(find$, UCASE$(CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&)))) = 0 THEN EXIT WHILE
+            CASE IS > 0: IF INSTR(find$, UCASE$(CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&)))) > 0 THEN EXIT WHILE
+            CASE ELSE
+                FOR ch& = 1 TO fLen&
+                    bPos& = cPos& + ch& - 1: IF bPos& >= eob& THEN EXIT FOR
+                    chv% = ASC(simplebuffer_array$(buf& + 0), bPos&)
+                    IF chv% >= 97 AND chv% <= 122 THEN chv% = chv% - 32
+                    IF chv% <> ASC(find$, ch&) THEN EXIT FOR
+                NEXT ch&
+                IF ch& > fLen& THEN EXIT WHILE
         END SELECT
         cPos& = cPos& + 1
     WEND
 END IF
 '--- set & return result ---
-IF cPos& < eob& THEN MID$(simplebuffer_array$(buf& + 1), 1, 4) = MKL$(cPos&)
+IF cPos& < eob& THEN MID$(simplebuffer_array$(buf& + 1), 1, 4) = MKL$(cPos&): ELSE cPos& = 0
 MID$(simplebuffer_array$(buf& + 3), findID% * 4, 4) = MKL$(cPos&)
-FindBufFwd& = -(cPos& * (NOT cPos& = eob&))
+FindBufFwd& = cPos&
 END FUNCTION
 
 '--- docs\doc_BufferSupport.bm\FindBufFR.html
 '---------------------------------------------------------------------
 FUNCTION FindBufRev& (handle%, findID%, method%, treat%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check ID range ---
 FindBufRev& = SBE_BadIDNumber
@@ -487,20 +541,31 @@ IF treat% = 0 THEN
     find$ = simplebuffer_array$(buf& + findID% + 4)
     WHILE cPos& > 0
         SELECT CASE method%
-            CASE IS < 0: IF INSTR(find$, MID$(simplebuffer_array$(buf& + 0), cPos&, 1)) = 0 THEN EXIT WHILE
-            CASE IS > 0: IF INSTR(find$, MID$(simplebuffer_array$(buf& + 0), cPos&, 1)) > 0 THEN EXIT WHILE
-            CASE ELSE: IF MID$(simplebuffer_array$(buf& + 0), cPos&, fLen&) = find$ THEN EXIT WHILE
+            CASE IS < 0: IF INSTR(find$, CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&))) = 0 THEN EXIT WHILE
+            CASE IS > 0: IF INSTR(find$, CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&))) > 0 THEN EXIT WHILE
+            CASE ELSE
+                FOR ch& = 1 TO fLen&
+                    bPos& = cPos& + ch& - 1: IF bPos& >= eob& THEN EXIT FOR
+                    IF ASC(simplebuffer_array$(buf& + 0), bPos&) <> ASC(find$, ch&) THEN EXIT FOR
+                NEXT ch&
+                IF ch& > fLen& THEN EXIT WHILE
         END SELECT
         cPos& = cPos& - 1
     WEND
 ELSE
-    temp$ = UCASE$(simplebuffer_array$(buf& + 0))
     find$ = UCASE$(simplebuffer_array$(buf& + findID% + 4))
     WHILE cPos& > 0
         SELECT CASE method%
-            CASE IS < 0: IF INSTR(find$, MID$(temp$, cPos&, 1)) = 0 THEN EXIT WHILE
-            CASE IS > 0: IF INSTR(find$, MID$(temp$, cPos&, 1)) > 0 THEN EXIT WHILE
-            CASE ELSE: IF MID$(temp$, cPos&, fLen&) = find$ THEN EXIT WHILE
+            CASE IS < 0: IF INSTR(find$, UCASE$(CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&)))) = 0 THEN EXIT WHILE
+            CASE IS > 0: IF INSTR(find$, UCASE$(CHR$(ASC(simplebuffer_array$(buf& + 0), cPos&)))) > 0 THEN EXIT WHILE
+            CASE ELSE
+                FOR ch& = 1 TO fLen&
+                    bPos& = cPos& + ch& - 1: IF bPos& >= eob& THEN EXIT FOR
+                    chv% = ASC(simplebuffer_array$(buf& + 0), bPos&)
+                    IF chv% >= 97 AND chv% <= 122 THEN chv% = chv% - 32
+                    IF chv% <> ASC(find$, ch&) THEN EXIT FOR
+                NEXT ch&
+                IF ch& > fLen& THEN EXIT WHILE
         END SELECT
         cPos& = cPos& - 1
     WEND
@@ -515,7 +580,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION CopyBufBlock% (handle%, bound&)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- get & check positions ---
 CopyBufBlock% = SBE_OutOfBounds
@@ -531,7 +596,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION CutBufBlock% (handle%, bound&)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- get & check positions ---
 CutBufBlock% = SBE_OutOfBounds
@@ -550,7 +615,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION PasteBufBlock% (handle%, bound&)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 '--- replace check ---
 IF bound& <> 0 THEN
     '--- get & check positions ---
@@ -571,7 +636,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION SeekBuf& (handle%, displace&, mode%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- prepare values ---
 cur& = GetBufPos&(handle%): eob& = GetBufLen&(handle%) + 1
@@ -618,7 +683,7 @@ IF newPos& < 1 OR newPos& > eob& THEN
     SeekBuf& = SBE_OutOfBounds
 ELSE
     MID$(simplebuffer_array$(buf& + 1), 1, 4) = MKL$(newPos&)
-    SeekBuf& = cur&
+    SeekBuf& = cur& 'return old position
 END IF
 END FUNCTION
 
@@ -626,7 +691,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION GetBufPos& (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- return cursor position in buffer ---
 GetBufPos& = CVL(MID$(simplebuffer_array$(buf& + 1), 1, 4))
@@ -636,7 +701,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION GetBufLen& (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- return actual buffer length ---
 GetBufLen& = CVL(MID$(simplebuffer_array$(buf& + 1), 5, 4))
@@ -646,7 +711,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION EndOfBuf% (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 '--- return EndOfBuffer condition ---
 EndOfBuf% = (GetBufPos&(handle%) > GetBufLen&(handle%))
 END FUNCTION
@@ -655,7 +720,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION IsBufChanged% (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- return BufChanged condition ---
 IsBufChanged% = CVL(MID$(simplebuffer_array$(buf& + 1), 13, 4))
@@ -665,11 +730,11 @@ END FUNCTION
 '---------------------------------------------------------------------
 FUNCTION BufEolSeq$ (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- return buffer specific EndOfLine sequence ---
 SELECT CASE MID$(simplebuffer_array$(buf& + 1), 9, 4)
-    CASE "EolU", "EolN" 'OS native mode
+    CASE "EolU", "EolN" 'unknown (maybe mixed) or OS-native EOL mode
         BufEolSeq$ = CHR$(13) + CHR$(10) 'default is Windows
         IF INSTR(_OS$, "[LINUX]") > 0 THEN BufEolSeq$ = CHR$(10) 'true for MacOSX too
     CASE "EolL" 'forced Linux/MacOSX
@@ -683,7 +748,7 @@ END FUNCTION
 '---------------------------------------------------------------------
 SUB ConvBufToNativeEol (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- convert buffer to OS native EndOfLine sequence ---
 IF INSTR(_OS$, "[LINUX]") > 0 THEN 'true for MacOSX too
@@ -698,7 +763,7 @@ END SUB
 '---------------------------------------------------------------------
 SUB ConvBufToLnxMacEol (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check current EndOfLine sequence ---
 IF MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolL" THEN EXIT SUB
@@ -728,12 +793,12 @@ END SUB
 '---------------------------------------------------------------------
 SUB ConvBufToWinEol (handle%)
 '--- check handle ---
-IF NOT CheckHandle%(handle%) THEN ERROR 258: DO: ERROR 17: LOOP 'invalid handle
+IF NOT CheckHandle%(handle%) THEN ERROR 258: STOP 'invalid handle
 buf& = handle% * 106
 '--- check current EndOfLine sequence ---
 IF MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolW" THEN EXIT SUB
 IF MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolN" AND LEN(BufEolSeq$(handle%)) = 2 THEN EXIT SUB
-IF MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolU" THEN ConvBufToLnxMacEol handle% 'safety measure
+IF MID$(simplebuffer_array$(buf& + 1), 9, 4) = "EolU" THEN ConvBufToLnxMacEol handle% 'safety measure for unknown (maybe mixed) EOL mode
 '--- prepare values ---
 simplebuffer_array$(buf& + 1) = simplebuffer_array$(buf& + 1) + CHR$(16)
 MID$(simplebuffer_array$(buf& + 2), 101 * 4, 4) = MID$(simplebuffer_array$(buf& + 1), 1, 4) 'SetBufMark 101
@@ -759,9 +824,10 @@ END SUB
 '---------------------------------------------------------------------
 FUNCTION CheckHandle% (handle%)
 '--- check handle ---
-buf& = handle% * 106: CheckHandle% = -1
-IF buf& < 0 OR buf& > UBOUND(simplebuffer_array$) THEN CheckHandle% = 0
-IF simplebuffer_array$(buf& + 1) = "" THEN CheckHandle% = 0
+buf& = handle% * 106: CheckHandle% = 0
+IF buf& < 0 OR buf& > UBOUND(simplebuffer_array$) THEN EXIT FUNCTION
+IF simplebuffer_array$(buf& + 1) = "" THEN EXIT FUNCTION
+CheckHandle% = -1
 END FUNCTION
 
 '--- undocumented - for internal use only

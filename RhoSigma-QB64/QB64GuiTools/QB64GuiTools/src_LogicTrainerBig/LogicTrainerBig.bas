@@ -1,10 +1,10 @@
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bi'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bi'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bi'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bi'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bi'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bi'
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bi'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bi'
 '*****************************************************
 
 '+---------------+---------------------------------------------------+
@@ -629,22 +629,27 @@ RETURN
 CONST ShowErrSwitch$ = "ON" 'ON or OFF
 '-----
 FUNCTION ShowErr$ (tagString$)
-ShowErr$ = tagString$
-IF UCASE$(ShowErrSwitch$) = "ON" THEN
-    IF ValidateTags%(tagString$, "ERROR", -1) THEN
+    ShowErr$ = tagString$
+    IF UCASE$(ShowErrSwitch$) = "ON" THEN
+        IF ValidateTags%(tagString$, "ERROR", -1) THEN
         dummy$ = MessageBox$("Error16px.png", "Error Tag",_
                              GetTagData$(tagString$, "ERROR", "empty"),_
                              "{IMG Error16px.png 39}Ok, got it...")
-    ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
+        ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
         dummy$ = MessageBox$("Problem16px.png", "Warning Tag",_
                              GetTagData$(tagString$, "WARNING", "empty"),_
                              "{IMG Problem16px.png 39}Ok, got it...")
+        END IF
     END IF
-END IF
+END FUNCTION
+'--- Function to define/return the program's version string.
+'-----
+FUNCTION VersionLogicTrainerBig$
+    VersionLogicTrainerBig$ = MID$("$VER: LogicTrainerBig 1.0 (16-Sep-2019) by RhoSigma :END$", 7, 45)
 END FUNCTION
 '-----
 FUNCTION RangeRand% (low%, high%)
-RangeRand% = INT(RND(1) * (high% - low% + 1)) + low%
+    RangeRand% = INT(RND(1) * (high% - low% + 1)) + low%
 END FUNCTION
 '~~~~~
 '=====================================================================
@@ -677,40 +682,40 @@ END FUNCTION
 '    or to move it to the last known (if any) window position (0).
 '---------------------------------------------------------------------
 SUB SetupScreen (wid%, hei%, mid%)
-'--- create the screen ---
-appScreen& = _NEWIMAGE(wid%, hei%, 256)
-IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
-IF appGLVComp% THEN _SCREENSHOW
-SCREEN appScreen&
-'--- setup screen palette ---
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppPalette.bm'
-ApplyPrefs "Global.Colors", ""
-'--- set default font ---
-'uncomment and adjust the _LOADFONT line below to load/use a custom font,
-'otherwise QB64's inbuilt default _FONT 16 is used
-appFont& = _LOADFONT("C:\Windows\Fonts\courbd.ttf", 24)
-IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
-'--- set default icon ---
-'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
-'otherwise the GuiTools Framework's default icon is used as embedded via
-'the GuiAppIcon.h/.bm files located in the dev_framework folder
-appIcon& = _LOADIMAGE(RhoSigmaImgName$, 32)
-IF appIcon& < -1 THEN _ICON appIcon&
-'if you rather use $EXEICON then comment out the IF appIcon& ... line above
-'and uncomment and adjust the $EXEICON line below as you need instead, but
-'note it's QB64-GL only then, QB64-SDL will throw an error on $EXEICON
-'$EXEICON:'QB64GuiTools\images\icons\Default.ico'
-'--- make screen visible ---
-_DELAY 0.025
-IF mid% THEN
-    desktop& = _SCREENIMAGE
-    _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
-    _FREEIMAGE desktop&
-ELSE
-    LastPosUpdate 0 'load last known win pos
-END IF
-_DELAY 0.025: _SCREENSHOW
-IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
+    '--- create the screen ---
+    appScreen& = _NEWIMAGE(wid%, hei%, 256)
+    IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
+    IF appGLVComp% THEN _SCREENSHOW
+    SCREEN appScreen&
+    '--- setup screen palette ---
+    '$INCLUDE: '..\dev_framework\GuiAppPalette.bm'
+    ApplyPrefs "Global.Colors", ""
+    '--- set default font ---
+    'uncomment and adjust the _LOADFONT line below to load/use a custom font,
+    'otherwise QB64's inbuilt default _FONT 16 is used
+    appFont& = _LOADFONT("C:\Windows\Fonts\courbd.ttf", 24)
+    IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
+    '--- set default icon ---
+    'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
+    'otherwise the GuiTools Framework's default icon is used as embedded via
+    'the GuiAppIcon.h/.bm files located in the dev_framework folder
+    appIcon& = _LOADIMAGE(RhoSigmaImgName$, 32)
+    IF appIcon& < -1 THEN _ICON appIcon&
+    'if you rather use $EXEICON then comment out the IF appIcon& ... line above
+    'and uncomment and adjust the $EXEICON line below as you need instead, but
+    'note it's QB64 v1.1+ then, older versions will throw an error on $EXEICON
+    '$EXEICON:'..\images\icons\Default.ico'
+    '--- make screen visible ---
+    _DELAY 0.025
+    IF mid% THEN
+        desktop& = _SCREENIMAGE
+        _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
+        _FREEIMAGE desktop&
+    ELSE
+        LastPosUpdate 0 'load last known win pos
+    END IF
+    _DELAY 0.025: _SCREENSHOW
+    IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
 END SUB
 
 '-------------------
@@ -725,51 +730,51 @@ END SUB
 '   CloseScreen
 '---------------------------------------------------------------------
 SUB CloseScreen
-'--- make screen invisible ---
-_SCREENHIDE
-'--- free the icon (if any) and invalidate its handle ---
-IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
-'--- free the font (if any) and invalidate its handle ---
-_FONT 16
-IF appFont& > 0 THEN _FREEFONT appFont&: appFont& = 0
-'--- free the screen and invalidate its handle ---
-SCREEN 0
-IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
+    '--- make screen invisible ---
+    _SCREENHIDE
+    '--- free the icon (if any) and invalidate its handle ---
+    IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
+    '--- free the font (if any) and invalidate its handle ---
+    _FONT 16
+    IF appFont& > 0 AND guiPGVCount% = 0 THEN _FREEFONT appFont&: appFont& = 0
+    '--- free the screen and invalidate its handle ---
+    SCREEN 0
+    IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
 END SUB
 '~~~~~
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bm'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bm'
 '*****************************************************
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ConvertSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ImageSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PackSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PolygonSupport.bm'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ConvertSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ImageSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PackSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PolygonSupport.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bm'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bm'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GenericClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ModelClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ImageClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SymbolClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RulerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\FrameClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\StringClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\TextClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ProgressClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\PagerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ButtonClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CheckboxClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CycleClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RadioClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListviewClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SliderClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ScrollerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ColorwheelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\GenericClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ModelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ImageClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SymbolClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RulerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\FrameClass.bm'
+'$INCLUDE: '..\dev_framework\classes\StringClass.bm'
+'$INCLUDE: '..\dev_framework\classes\TextClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ProgressClass.bm'
+'$INCLUDE: '..\dev_framework\classes\PagerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ButtonClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CheckboxClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CycleClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RadioClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListviewClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SliderClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ScrollerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ColorwheelClass.bm'
 
 '$INCLUDE: 'inline\RhoSigmaImg.bm'
 '$INCLUDE: 'inline\NiceGrayImg.bm'

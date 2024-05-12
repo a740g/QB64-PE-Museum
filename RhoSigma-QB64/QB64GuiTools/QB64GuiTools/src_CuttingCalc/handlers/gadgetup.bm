@@ -12,13 +12,13 @@
         '--- language changed ---
         IF ThisObject%(CycleLanguage$, mess$, "GADGETUP") THEN
             '--- get actual input field values, if any ---
-            d$ = GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
-            z$ = GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
-            fz$ = GetTagData$(GenC$("GET", StringPerTooth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
-            fn$ = GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
-            vc$ = GetTagData$(GenC$("GET", StringCutSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
-            n$ = GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
-            vf$ = GetTagData$(GenC$("GET", StringFeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
+            d$ = GetObjTagData$(StringDiameter$, "TEXT", "0")
+            z$ = GetObjTagData$(StringTeeth$, "TEXT", "0")
+            fz$ = GetObjTagData$(StringPerTooth$, "TEXT", "0")
+            fn$ = GetObjTagData$(StringPerRev$, "TEXT", "0")
+            vc$ = GetObjTagData$(StringCutSpeed$, "TEXT", "0")
+            n$ = GetObjTagData$(StringSpeed$, "TEXT", "0")
+            vf$ = GetObjTagData$(StringFeed$, "TEXT", "0")
             '--- get changed language index ---
             r$ = GenC$("GET", CycleLanguage$ + NewTag$("TAGNAMES", "ACTUAL"))
             langIdx% = VAL(GetTagData$(r$, "ACTUAL", ""))
@@ -28,10 +28,10 @@
         '--- unit system changed ---
         IF ThisObject%(CycleSystem$, mess$, "GADGETUP") THEN
             '--- get actual input field values, if any ---
-            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            fz# = VAL(GetTagData$(GenC$("GET", StringPerTooth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            vc# = VAL(GetTagData$(GenC$("GET", StringCutSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            d# = VAL(GetObjTagData$(StringDiameter$, "TEXT", "0"))
+            z% = VAL(GetObjTagData$(StringTeeth$, "TEXT", "0"))
+            fz# = VAL(GetObjTagData$(StringPerTooth$, "TEXT", "0"))
+            vc# = VAL(GetObjTagData$(StringCutSpeed$, "TEXT", "0"))
             '--- get changed unit system index ---
             r$ = GenC$("GET", CycleSystem$ + NewTag$("TAGNAMES", "ACTUAL"))
             systIdx% = VAL(GetTagData$(r$, "ACTUAL", ""))
@@ -59,51 +59,51 @@
         '--- contents is validated to follow the desired formatting.      ---
         '--- tool diameter ---
         IF ThisObject%(StringDiameter$, mess$, "GADGETUP") THEN
-            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            d# = VAL(GetObjTagData$(StringDiameter$, "TEXT", "0"))
             d$ = LTRIM$(IndexFormat$(numFmt$, STR$(d#), "|"))
             r$ = GenC$("SET", StringDiameter$ + NewTag$("TEXT", d$))
         END IF
         '--- number of teeth ---
         IF ThisObject%(StringTeeth$, mess$, "GADGETUP") THEN
-            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            z% = VAL(GetObjTagData$(StringTeeth$, "TEXT", "0"))
             r$ = GenC$("SET", StringTeeth$ + NewTag$("TEXT", LTRIM$(STR$(z%))))
         END IF
         '--- feed per tooth ---
         IF ThisObject%(StringPerTooth$, mess$, "GADGETUP") THEN
-            fz# = VAL(GetTagData$(GenC$("GET", StringPerTooth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fz# = VAL(GetObjTagData$(StringPerTooth$, "TEXT", "0"))
             fz$ = LTRIM$(IndexFormat$(numFmt$, STR$(fz#), "|"))
             r$ = GenC$("SET", StringPerTooth$ + NewTag$("TEXT", fz$))
         END IF
         '--- feed per revolution ---
         IF ThisObject%(StringPerRev$, mess$, "GADGETUP") THEN
-            fn# = VAL(GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            fn# = VAL(GetObjTagData$(StringPerRev$, "TEXT", "0"))
             fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))
             r$ = GenC$("SET", StringPerRev$ + NewTag$("TEXT", fn$))
         END IF
         '--- cutting speed ---
         IF ThisObject%(StringCutSpeed$, mess$, "GADGETUP") THEN
-            vc# = VAL(GetTagData$(GenC$("GET", StringCutSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            vc# = VAL(GetObjTagData$(StringCutSpeed$, "TEXT", "0"))
             vc$ = LTRIM$(IndexFormat$(numFmt$, STR$(vc#), "|"))
             r$ = GenC$("SET", StringCutSpeed$ + NewTag$("TEXT", vc$))
         END IF
         '--- spindle speed ---
         IF ThisObject%(StringSpeed$, mess$, "GADGETUP") THEN
-            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            n& = VAL(GetObjTagData$(StringSpeed$, "TEXT", "0"))
             r$ = GenC$("SET", StringSpeed$ + NewTag$("TEXT", LTRIM$(STR$(n&))))
         END IF
         '--- feed rate ---
         IF ThisObject%(StringFeed$, mess$, "GADGETUP") THEN
-            vf& = VAL(GetTagData$(GenC$("GET", StringFeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            vf& = VAL(GetObjTagData$(StringFeed$, "TEXT", "0"))
             r$ = GenC$("SET", StringFeed$ + NewTag$("TEXT", LTRIM$(STR$(vf&))))
         END IF
         IF ThisObject%(ButtonCopy$, mess$, "GADGETUP") THEN
             '--- copy speed and feed to clipboard ---
-            n$ = GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
-            vf$ = GetTagData$(GenC$("GET", StringFeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0")
+            n$ = GetObjTagData$(StringSpeed$, "TEXT", "0")
+            vf$ = GetObjTagData$(StringFeed$, "TEXT", "0")
             _CLIPBOARD$ = "S" + n$ + " F" + vf$ + " "
         END IF
         IF ThisObject%(ButtonHelp$, mess$, "GADGETUP") THEN
-            r$ = MessageBox$("Help32px.png", appExeName$ + " - " +_
+            r$ = MessageBox$("Help32px.png", FileNamePart$(appExeName$) + " - " +_
                              GetTagData$(ListC$("SEARCH", ListLanguages$ + NewTag$("DATA", "HLP_TIT_Help")), lang$, ""),_
                              GetTagData$(ListC$("SEARCH", ListLanguages$ + NewTag$("DATA", "HLP_TXT_Help")), lang$, ""),_
                              GetTagData$(ListC$("SEARCH", ListLanguages$ + NewTag$("DATA", "BUT_TXT_Quit")), lang$, ""))

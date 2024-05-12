@@ -1,10 +1,10 @@
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bi'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bi'
+'$Include: '..\dev_framework\classes\GuiClasses.bi'
+'$Include: '..\dev_framework\support\TagSupport.bi'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bi'
+'$Include: '..\dev_framework\support\BufferSupport.bi'
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bi'
+'$Include: '..\dev_framework\GuiAppFrame.bi'
 '*****************************************************
 
 '+---------------+---------------------------------------------------+
@@ -54,19 +54,19 @@ UserInitHandler:
 'written files in order for a correct cleanup in error/crash cases.
 '=====================================================================
 '--- the next 3 blocks should always be kept ---
-DIM SHARED Info16Img$, Info32Img$ 'for Info MsgBoxes
+Dim Shared Info16Img$, Info32Img$ 'for Info MsgBoxes
 Info16Img$ = WriteInfo16ImgData$(appTempDir$ + "Info16px.png")
 Info32Img$ = WriteInfo32ImgData$(appTempDir$ + "Info32px.png")
 TempLog Info16Img$, "": TempLog Info32Img$, ""
-DIM SHARED Problem16Img$, Problem32Img$ 'for warning/problem MsgBoxes
+Dim Shared Problem16Img$, Problem32Img$ 'for warning/problem MsgBoxes
 Problem16Img$ = WriteProblem16ImgData$(appTempDir$ + "Problem16px.png")
 Problem32Img$ = WriteProblem32ImgData$(appTempDir$ + "Problem32px.png")
 TempLog Problem16Img$, "": TempLog Problem32Img$, ""
-DIM SHARED Error16Img$, Error32Img$ 'for error MsgBoxes
+Dim Shared Error16Img$, Error32Img$ 'for error MsgBoxes
 Error16Img$ = WriteError16ImgData$(appTempDir$ + "Error16px.png")
 Error32Img$ = WriteError32ImgData$(appTempDir$ + "Error32px.png")
 TempLog Error16Img$, "": TempLog Error32Img$, ""
-RETURN
+Return
 '=====================================================================
 '===================== END OF USER INIT HANDLER ======================
 '=====================================================================
@@ -86,10 +86,10 @@ UserExitHandler:
 'your program's runtime. That's another reason why I recommended the use
 'of appTempDir$ for the file writeback, it's a known absolut path.
 '=====================================================================
-KILL Error32Img$: KILL Error16Img$
-KILL Problem32Img$: KILL Problem16Img$
-KILL Info32Img$: KILL Info16Img$
-RETURN
+Kill Error32Img$: Kill Error16Img$
+Kill Problem32Img$: Kill Problem16Img$
+Kill Info32Img$: Kill Info16Img$
+Return
 '=====================================================================
 '===================== END OF USER EXIT HANDLER ======================
 '=====================================================================
@@ -125,27 +125,27 @@ UserErrorHandler:
 'really need all error trapping off, then set the CONST to "DISABLED",
 'but be aware that it may even affect some GuiTools internal behavior.
 '=====================================================================
-CONST ErrorHandlerSwitch$ = "ON" 'ON, OFF or DISABLED
-CONST uehRETRY% = 1, uehNEXT% = 2, uehEXIT% = 3
+Const ErrorHandlerSwitch$ = "ON" 'ON, OFF or DISABLED
+Const uehRETRY% = 1, uehNEXT% = 2, uehEXIT% = 3
 '-----
-appLastErr% = ERR
-IF appLastErr% = 1000 THEN RESUME emergencyExit 'immediate exit request
+appLastErr% = Err
+If appLastErr% = 1000 Then Resume emergencyExit 'immediate exit request
 
-IF appErrCnt% >= appErrMax% THEN
+If appErrCnt% >= appErrMax% Then
     dummy$ = MessageBox$("Error16px.png", appExeName$,_
                          "Error handler reports too many|" +_
                          "recursive Errors !!|~" +_
                          "Program will cleanup and terminate|" +_
                          "via internal emergency exit.",_
                          "{IMG Error16px.png 39}Ok, got it...")
-    RESUME emergencyExit
-END IF
+    Resume emergencyExit
+End If
 
 appErrCnt% = appErrCnt% + 1
 appErrorArr%(appErrCnt%, 0) = appLastErr%
-appErrorArr%(appErrCnt%, 1) = _ERRORLINE
+appErrorArr%(appErrCnt%, 1) = _ErrorLine
 QB64ErrorOff
-SELECT CASE appLastErr%
+Select Case appLastErr%
     'CASE 24 'device timeout
     '    uehResType% = uehEXIT%
     'CASE 25 'device fault
@@ -176,23 +176,23 @@ SELECT CASE appLastErr%
     '    uehResType% = uehEXIT%
     'CASE 76 'path not found
     '    uehResType% = uehEXIT%
-    CASE ELSE
-        uehText$ = "Unhandled Runtime Error" + STR$(appErrorArr%(appErrCnt%, 0))
-        uehText$ = uehText$ + " occurred|in source file line" + STR$(appErrorArr%(appErrCnt%, 1))
+    Case Else
+        uehText$ = "Unhandled Runtime Error" + Str$(appErrorArr%(appErrCnt%, 0))
+        uehText$ = uehText$ + " occurred|in source file line" + Str$(appErrorArr%(appErrCnt%, 1))
         uehText$ = uehText$ + " !!|~Program will cleanup and terminate|via internal emergency exit."
         dummy$ = MessageBox$("Error16px.png", appExeName$, uehText$,_
                              "{IMG Error16px.png 39}Ok, got it...")
         uehResType% = uehEXIT%
-END SELECT
+End Select
 QB64ErrorOn
-IF uehResType% = uehEXIT% THEN 'resume type EXIT
+If uehResType% = uehEXIT% Then 'resume type EXIT
     appErrCnt% = 0
-    RESUME emergencyExit
-END IF
+    Resume emergencyExit
+End If
 appErrCnt% = appErrCnt% - 1
-IF _EXIT THEN RESUME emergencyExit 'last chance for a clean abort if caught in endless ERROR/RESUME retry loop (don't delete this line)
-IF uehResType% = uehNEXT% THEN RESUME NEXT 'resume type NEXT
-RESUME 'resume type RETRY
+If _Exit Then Resume emergencyExit 'last chance for a clean abort if caught in endless ERROR/RESUME retry loop (don't delete this line)
+If uehResType% = uehNEXT% Then Resume Next 'resume type NEXT
+Resume 'resume type RETRY
 '=====================================================================
 '==================== END OF USER ERROR HANDLER ======================
 '=====================================================================
@@ -212,8 +212,8 @@ UserMain:
 '=====================================================================
 
 SetupScreen 1024, 768, 0
-appCR$ = "The GuiTools Framework v0.15, Done by RhoSigma, Roland Heyder"
-_TITLE appExeName$ + " - [" + appPCName$ + "] - " + appCR$
+appCR$ = "The GuiTools Framework v0.17, Done by RhoSigma, Roland Heyder"
+_Title appExeName$ + " - [" + appPCName$ + "] - " + appCR$
 
 '------------------------------
 '--- Early required Globals ---
@@ -225,7 +225,7 @@ _TITLE appExeName$ + " - [" + appPCName$ + "] - " + appCR$
 '--- for image remapping, so you can change its RGB values without making
 '--- any remapped images looking ugly. The pens are reserved at the end
 '--- of the palette (eg. 1 reserved = pen 255, 2 reserved = pens 254-255)
-CONST guiReservedPens% = 1 'reserved for "Color Gauge" (see Demo Page5)
+Const guiReservedPens% = 1 'reserved for "Color Gauge" (see Demo Page5)
 '-----
 btxt$ = "Other Button ON" 'initial text for OnOffButton object
 disa$ = "true" 'initial disabled state for FrameSwitch button object
@@ -506,12 +506,12 @@ EndingCycler$ = CycleC$("INIT",_
         NewTag$("SHORTCUT", MakeShortcut$("t", 0, 0, 0)) +_
         NewTag$("AREA", "true") +_
         NewTag$("IMAGEFILE", "UglyGray.jpg"))
-gradient& = _NEWIMAGE(400, 25, 32)
-_DEST gradient&
-FOR x% = 0 TO 395
-    HSBtoRGB CLNG((395 - x%) * (21845 / 395)) + 21845, 45875, 52428, re&, gr&, bl&
-    LINE (x% + 2, 2)-(x% + 2, 22), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
-NEXT x%
+gradient& = _NewImage(400, 25, 32)
+_Dest gradient&
+For x% = 0 To 395
+    HSBtoRGB CLng((395 - x%) * (21845 / 395)) + 21845, 45875, 52428, re&, gr&, bl&
+    Line (x% + 2, 2)-(x% + 2, 22), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+Next x%
 EndingGauge$ = ProgressC$("INIT",_
         PagerTag$(Page3$) +_
         NewTag$("LEFT", "600") +_
@@ -763,38 +763,38 @@ PalSliderCommonProps$ =_
         NewTag$("LABELHIGH", "true") +_
         NewTag$("LABELPLACE", "below")
 'make a Hue gradient image for the respective slider
-gradient& = _NEWIMAGE(41, 215, 32)
-_DEST gradient&
-FOR y% = 0 TO 210
-    HSBtoRGB CLNG((210 - y%) * (65535 / 210)), 65535, 65535, re&, gr&, bl&
-    LINE (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
-NEXT y%
+gradient& = _NewImage(41, 215, 32)
+_Dest gradient&
+For y% = 0 To 210
+    HSBtoRGB CLng((210 - y%) * (65535 / 210)), 65535, 65535, re&, gr&, bl&
+    Line (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+Next y%
 PalHSBSliderH$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LEFT", "603") +_
         NewTag$("MAXIMUM", "359") +_
         NewTag$("LABEL", "H") +_
         NewTag$("IMAGEHANDLE", LTRIM$(STR$(gradient&))))
 'make a Saturation gradient image for the respective slider
-gradient& = _NEWIMAGE(41, 215, 32)
-_DEST gradient&
-FOR x% = 0 TO 36
-    FOR y% = 0 TO 210
-        HSBtoRGB CLNG(x% * (65535 / 36)), CLNG((210 - y%) * (65535 / 210)), 65535, re&, gr&, bl&
-        PSET (x% + 2, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
-    NEXT y%
-NEXT x%
+gradient& = _NewImage(41, 215, 32)
+_Dest gradient&
+For x% = 0 To 36
+    For y% = 0 To 210
+        HSBtoRGB CLng(x% * (65535 / 36)), CLng((210 - y%) * (65535 / 210)), 65535, re&, gr&, bl&
+        PSet (x% + 2, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+    Next y%
+Next x%
 PalHSBSliderS$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LEFT", "664") +_
         NewTag$("MAXIMUM", "100") +_
         NewTag$("LABEL", "S") +_
         NewTag$("IMAGEHANDLE", LTRIM$(STR$(gradient&))))
 'make a Brightness gradient image for the respective slider
-gradient& = _NEWIMAGE(41, 215, 32)
-_DEST gradient&
-FOR y% = 0 TO 210
-    HSBtoRGB 0, 0, CLNG((210 - y%) * (65535 / 210)), re&, gr&, bl&
-    LINE (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
-NEXT y%
+gradient& = _NewImage(41, 215, 32)
+_Dest gradient&
+For y% = 0 To 210
+    HSBtoRGB 0, 0, CLng((210 - y%) * (65535 / 210)), re&, gr&, bl&
+    Line (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+Next y%
 PalHSBSliderB$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LEFT", "725") +_
         NewTag$("MAXIMUM", "100") +_
@@ -802,12 +802,12 @@ PalHSBSliderB$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LABEL", "B") +_
         NewTag$("IMAGEHANDLE", LTRIM$(STR$(gradient&))))
 'make a Red gradient image for the respective slider
-gradient& = _NEWIMAGE(41, 215, 32)
-_DEST gradient&
-FOR y% = 0 TO 210
-    HSBtoRGB 0, 65535, CLNG((210 - y%) * (65535 / 210)), re&, gr&, bl&
-    LINE (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
-NEXT y%
+gradient& = _NewImage(41, 215, 32)
+_Dest gradient&
+For y% = 0 To 210
+    HSBtoRGB 0, 65535, CLng((210 - y%) * (65535 / 210)), re&, gr&, bl&
+    Line (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+Next y%
 PalRGBSliderR$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LEFT", "811") +_
         NewTag$("MAXIMUM", "255") +_
@@ -815,12 +815,12 @@ PalRGBSliderR$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LABEL", "R") +_
         NewTag$("IMAGEHANDLE", LTRIM$(STR$(gradient&))))
 'make a Green gradient image for the respective slider
-gradient& = _NEWIMAGE(41, 215, 32)
-_DEST gradient&
-FOR y% = 0 TO 210
-    HSBtoRGB 21845, 65535, CLNG((210 - y%) * (65535 / 210)), re&, gr&, bl&
-    LINE (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
-NEXT y%
+gradient& = _NewImage(41, 215, 32)
+_Dest gradient&
+For y% = 0 To 210
+    HSBtoRGB 21845, 65535, CLng((210 - y%) * (65535 / 210)), re&, gr&, bl&
+    Line (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+Next y%
 PalRGBSliderG$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LEFT", "872") +_
         NewTag$("MAXIMUM", "255") +_
@@ -828,12 +828,12 @@ PalRGBSliderG$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LABEL", "G") +_
         NewTag$("IMAGEHANDLE", LTRIM$(STR$(gradient&))))
 'make a Blue gradient image for the respective slider
-gradient& = _NEWIMAGE(41, 215, 32)
-_DEST gradient&
-FOR y% = 0 TO 210
-    HSBtoRGB 43690, 65535, CLNG((210 - y%) * (65535 / 210)), re&, gr&, bl&
-    LINE (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
-NEXT y%
+gradient& = _NewImage(41, 215, 32)
+_Dest gradient&
+For y% = 0 To 210
+    HSBtoRGB 43690, 65535, CLng((210 - y%) * (65535 / 210)), re&, gr&, bl&
+    Line (2, y% + 2)-(38, y% + 2), _RGB32(re& \ 256, gr& \ 256, bl& \ 256)
+Next y%
 PalRGBSliderB$ = SliderC$("INIT", PalSliderCommonProps$ +_
         NewTag$("LEFT", "933") +_
         NewTag$("MAXIMUM", "255") +_
@@ -1340,13 +1340,13 @@ BackImage$ = ImageC$("INIT",_
 '-----
 done% = 0 'our main loop continuation boolean
 subClicks% = 1 'try to find out, what this is used for :)
-IF _FILEEXISTS("qb64.exe") THEN
-    'FileSelect$() initial drawer (if compiled to QB64 folder)
+If _FileExists("qb64.exe") Or _FileExists("qb64pe.exe") Then
+    'FileSelect$() initial drawer (if compiled to qb64 folder)
     fsStartDir$ = "QB64GuiTools\images"
-ELSE
+Else
     'FileSelect$() initial drawer (if compiled to source folder)
     fsStartDir$ = "..\images"
-END IF
+End If
 
 '~~~ My Main Loop
 '---------------------------------
@@ -1355,9 +1355,9 @@ END IF
 '--- This is simply done by placing a GetGUIMsg$() call within our main
 '--- loop and then take actions according to the received messages.
 '-----
-_MOUSESHOW
-WHILE NOT done%
-    _LIMIT 50
+_MouseShow
+While Not done%
+    _Limit 50
     '-----------------------------------------------------------------
     'Here comes the almighty call, it's a very complex operation going
     'on here. First the keyboard and mouse inputs are collected and run
@@ -1396,17 +1396,17 @@ WHILE NOT done%
     'current mouse position and mousebutton states. (see KnownTags.txt)
     'Look into the handler include files for detailed descriptions of the
     'respective event types.
-    '$INCLUDE: 'handlers\guirefresh.bm'
-    '$INCLUDE: 'handlers\userbreak.bm'
-    '$INCLUDE: 'handlers\keypress.bm'
-    '$INCLUDE: 'handlers\mouselbdown.bm'
-    '$INCLUDE: 'handlers\mouselbup.bm'
-    '$INCLUDE: 'handlers\mouserbdown.bm'
-    '$INCLUDE: 'handlers\mouserbup.bm'
-    '$INCLUDE: 'handlers\mousembdown.bm'
-    '$INCLUDE: 'handlers\mousembup.bm'
-    '$INCLUDE: 'handlers\mousescroll.bm'
-    '$INCLUDE: 'handlers\mousemove.bm'
+    '$Include: 'handlers\guirefresh.bm'
+    '$Include: 'handlers\userbreak.bm'
+    '$Include: 'handlers\keypress.bm'
+    '$Include: 'handlers\mouselbdown.bm'
+    '$Include: 'handlers\mouselbup.bm'
+    '$Include: 'handlers\mouserbdown.bm'
+    '$Include: 'handlers\mouserbup.bm'
+    '$Include: 'handlers\mousembdown.bm'
+    '$Include: 'handlers\mousembup.bm'
+    '$Include: 'handlers\mousescroll.bm'
+    '$Include: 'handlers\mousemove.bm'
     '-----
     'The next five event types are not simply true or false (boolean),
     'but its value reflects the index of the respective object responsible
@@ -1415,11 +1415,11 @@ WHILE NOT done%
     'via keyboard shortcuts, it may happen that the mousepointer is over
     'one object, while another object is selected via shortcut.
     '-----
-    '$INCLUDE: 'handlers\mousein.bm'
-    '$INCLUDE: 'handlers\mouseout.bm'
-    '$INCLUDE: 'handlers\mouseover.bm'
-    '$INCLUDE: 'handlers\gadgetdown.bm'
-    '$INCLUDE: 'handlers\gadgetup.bm'
+    '$Include: 'handlers\mousein.bm'
+    '$Include: 'handlers\mouseout.bm'
+    '$Include: 'handlers\mouseover.bm'
+    '$Include: 'handlers\gadgetdown.bm'
+    '$Include: 'handlers\gadgetup.bm'
     '---------------- END OF EVENT HANDLER ----------------
     '
     '-----------------------------------------------------------------
@@ -1432,7 +1432,7 @@ WHILE NOT done%
     dummy$ = GenC$("SET", MouseMiddle$ + NewTag$("TEXT", GetTag$(mess$, "MOUSEMB")))
     dummy$ = GenC$("SET", MouseRight$ + NewTag$("TEXT", GetTag$(mess$, "MOUSERB")))
     RemTags mess$, "MOUSEX,MOUSEY,MOUSELB,MOUSERB,MOUSEMB"
-    IF mess$ <> "" THEN dummy$ = GenC$("SET", LastMessage$ + NewTag$("TEXT", mess$))
+    If mess$ <> "" Then dummy$ = GenC$("SET", LastMessage$ + NewTag$("TEXT", mess$))
     '-----------------------------------------------------------------
     'Some more outputs just for your enjoyment, it will display the flags
     'of some buttons, so you can see, how things change, when a button is
@@ -1441,27 +1441,27 @@ WHILE NOT done%
     dummy$ = GenC$("SET", OnOffState$ + NewTag$("TEXT", result$ + " "))
     result$ = GenC$("GET", FrameSwitch$ + NewTag$("TAGNAMES", "DISABLED,FOCUS,SELECTED"))
     dummy$ = GenC$("SET", FrameSwitchState$ + NewTag$("TEXT", result$ + " "))
-    IF QuitButton$ <> "" AND NOT ThisObject%(EndingButton1$, mess$, "GADGETUP") THEN
+    If QuitButton$ <> "" And Not ThisObject%(EndingButton1$, mess$, "GADGETUP") Then
         result$ = GenC$("GET", QuitButton$ + NewTag$("TAGNAMES", "DISABLED,FOCUS,SELECTED"))
         dummy$ = GenC$("SET", QuitState$ + NewTag$("TEXT", result$ + " "))
-    END IF
-WEND
+    End If
+Wend
 '~~~~~
 
 '--- Who did it? ---
-IF BoolTagTrue%(abou$, "CHECKED") THEN
+If BoolTagTrue%(abou$, "CHECKED") Then
     dummy$ = MessageBox$("", "About",_
-                         "The GuiTools Framework v0.15|" +_
+                         "The GuiTools Framework v0.17|" +_
                          "Done by RhoSigma, Roland Heyder|~" +_
                          "Thanx for your interest in my work.",_
                          "{SYM RhoSigma * 10 * 2}It's been a pleasure!")
-END IF
+End If
 
 '---------------------
 '--- Final Cleanup ---
 '---------------------
 CloseScreen
-RETURN 'return to the GuiTools Framework init/cleanup procedure
+Return 'return to the GuiTools Framework init/cleanup procedure
 '=====================================================================
 '===================== END OF USER MAIN ROUTINE ======================
 '=====================================================================
@@ -1480,7 +1480,7 @@ RETURN 'return to the GuiTools Framework init/cleanup procedure
 'times in several places.
 '=====================================================================
 ChangePagerStatesPage1:
-subClicks% = (subClicks% OR 16) 'avoid any further updates
+subClicks% = (subClicks% Or 16) 'avoid any further updates
 dummy$ = GenC$("SET", KillTestButton1$ + NewTag$("DISABLED", "false"))
 dummy$ = GenC$("SET", Page2$ + SymbolTag$(GreenCheckSym$))
 dummy$ = GenC$("SET", Page3$ + SymbolTag$(GreenCheckSym$))
@@ -1489,50 +1489,50 @@ dummy$ = GenC$("SET", Page5$ + SymbolTag$(GreenCheckSym$))
 dummy$ = GenC$("SET", Page6$ + SymbolTag$(GreenCheckSym$))
 dummy$ = GenC$("SET", Page7$ + SymbolTag$(GreenCheckSym$))
 dummy$ = GenC$("KILL", RedCrossSym$) 'no longer needed
-RETURN
+Return
 '----------
 RefreshSizeGaugePage3:
-widt% = VAL(GetTagData$(GenC$("GET", EndingSlider1$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "250"))
-heig% = VAL(GetTagData$(GenC$("GET", EndingSlider2$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "175"))
+widt% = Val(GetObjTagData$(EndingSlider1$, "LEVEL", "250"))
+heig% = Val(GetObjTagData$(EndingSlider2$, "LEVEL", "175"))
 perc% = 100 / (250 * 175) * (widt% * heig%)
-dummy$ = GenC$("SET", EndingGauge$ + NewTag$("LEVEL", LTRIM$(STR$(perc%))))
-RETURN
+dummy$ = GenC$("SET", EndingGauge$ + NewTag$("LEVEL", LTrim$(Str$(perc%))))
+Return
 '----------
 RefreshColorGaugePage5:
-pRed% = VAL(GetTagData$(GenC$("GET", PalRGBSliderR$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0"))
-pGre% = VAL(GetTagData$(GenC$("GET", PalRGBSliderG$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0"))
-pBlu% = VAL(GetTagData$(GenC$("GET", PalRGBSliderB$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0"))
-_PALETTECOLOR 255, _RGB32(pRed%, pGre%, pBlu%)
-RETURN
+pRed% = Val(GetObjTagData$(PalRGBSliderR$, "LEVEL", "0"))
+pGre% = Val(GetObjTagData$(PalRGBSliderG$, "LEVEL", "0"))
+pBlu% = Val(GetObjTagData$(PalRGBSliderB$, "LEVEL", "0"))
+_PaletteColor 255, _RGB32(pRed%, pGre%, pBlu%)
+Return
 '----------
 RefreshScrollImagePage6:
-IF BoolTagTrue%(GenC$("GET", Page6$ + NewTag$("TAGNAMES", "ACTIVE")), "ACTIVE") THEN
-    IF guiViews$(0) = "" THEN
-        COLOR guiTextPen%, guiBackPen%
-        _PRINTSTRING (620, 615), "+---------------------------------+"
-        _PRINTSTRING (620, 631), "| No background image selected !! |"
-        _PRINTSTRING (620, 647), "+---------------------------------+"
+If BoolTagTrue%(GenC$("GET", Page6$), "ACTIVE") Then
+    If guiViews$(0) = "" Then
+        Color guiTextPen%, guiBackPen%
+        _PrintString (620, 615), "+---------------------------------+"
+        _PrintString (620, 631), "| No background image selected !! |"
+        _PrintString (620, 647), "+---------------------------------+"
         dummy$ = GenC$("SET", ScrImgScrollerH$ + NewTag$("TOTALNUM", "0"))
         dummy$ = GenC$("SET", ScrImgScrollerV$ + NewTag$("TOTALNUM", "0"))
-    ELSE
-        imag& = VAL(GetTagData$(GenC$("GET", ObjectTag$(guiViews$(0), "BGIMG") + NewTag$("TAGNAMES", "RHANDLE")), "RHANDLE", "-1"))
-        dummy$ = GenC$("SET", ScrImgScrollerH$ + NewTag$("TOTALNUM", LTRIM$(STR$(_WIDTH(imag&)))))
-        dummy$ = GenC$("SET", ScrImgScrollerV$ + NewTag$("TOTALNUM", LTRIM$(STR$(_HEIGHT(imag&)))))
-        htop% = VAL(GetTagData$(GenC$("GET", ScrImgScrollerH$ + NewTag$("TAGNAMES", "TOPNUM")), "TOPNUM", "0"))
-        vtop% = VAL(GetTagData$(GenC$("GET", ScrImgScrollerV$ + NewTag$("TAGNAMES", "TOPNUM")), "TOPNUM", "0"))
-        _PUTIMAGE (548, 559), imag&, _DEST, (htop%, vtop%)-(419 + htop% - 1, 164 + vtop% - 1)
-    END IF
-END IF
-RETURN
+    Else
+        imag& = Val(GetObjTagData$(ObjectTag$(guiViews$(0), "BGIMG"), "RHANDLE", "-1"))
+        dummy$ = GenC$("SET", ScrImgScrollerH$ + NewTag$("TOTALNUM", LTrim$(Str$(_Width(imag&)))))
+        dummy$ = GenC$("SET", ScrImgScrollerV$ + NewTag$("TOTALNUM", LTrim$(Str$(_Height(imag&)))))
+        htop% = Val(GetObjTagData$(ScrImgScrollerH$, "TOPNUM", "0"))
+        vtop% = Val(GetObjTagData$(ScrImgScrollerV$, "TOPNUM", "0"))
+        _PutImage (548, 559), imag&, _Dest, (htop%, vtop%)-(419 + htop% - 1, 164 + vtop% - 1)
+    End If
+End If
+Return
 '----------
 RefreshSelectionDisplaysPage7:
-lv1$ = GetTagData$(GenC$("GET", MultiLVwithIMG$ + NewTag$("TAGNAMES", "DATA")), "DATA", "")
-lv2$ = GetTagData$(GenC$("GET", MultiLVPlain$ + NewTag$("TAGNAMES", "DATA")), "DATA", "")
-ra1$ = GetTagData$(GenC$("GET", MultiRadio1$ + NewTag$("TAGNAMES", "DATA")), "DATA", "")
+lv1$ = GetObjTagData$(MultiLVwithIMG$, "DATA", "")
+lv2$ = GetObjTagData$(MultiLVPlain$, "DATA", "")
+ra1$ = GetObjTagData$(MultiRadio1$, "DATA", "")
 dummy$ = GenC$("SET", MultiTextLVI$ + NewTag$("TEXT", lv1$))
 dummy$ = GenC$("SET", MultiTextLVP$ + NewTag$("TEXT", lv2$))
 dummy$ = GenC$("SET", MultiTextRAD$ + NewTag$("TEXT", ra1$))
-RETURN
+Return
 '~~~~~
 '---------------------------------------------------------------------
 '~~~ My SUBs/FUNCs
@@ -1547,22 +1547,27 @@ RETURN
 'method calls do work properly without errors/warnings, or at least set
 'the CONST ShowErrSwitch$ right below to "OFF".
 '=====================================================================
-CONST ShowErrSwitch$ = "ON" 'ON or OFF
+Const ShowErrSwitch$ = "ON" 'ON or OFF
 '-----
-FUNCTION ShowErr$ (tagString$)
-ShowErr$ = tagString$
-IF UCASE$(ShowErrSwitch$) = "ON" THEN
-    IF ValidateTags%(tagString$, "ERROR", -1) THEN
+Function ShowErr$ (tagString$)
+    ShowErr$ = tagString$
+    If UCase$(ShowErrSwitch$) = "ON" Then
+        If ValidateTags%(tagString$, "ERROR", -1) Then
         dummy$ = MessageBox$("Error16px.png", "Error Tag",_
                              GetTagData$(tagString$, "ERROR", "empty"),_
                              "{IMG Error16px.png 39}Ok, got it...")
-    ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
+        ElseIf ValidateTags%(tagString$, "WARNING", -1) Then
         dummy$ = MessageBox$("Problem16px.png", "Warning Tag",_
                              GetTagData$(tagString$, "WARNING", "empty"),_
                              "{IMG Problem16px.png 39}Ok, got it...")
-    END IF
-END IF
-END FUNCTION
+        End If
+    End If
+End Function
+'--- Function to define/return the program's version string.
+'-----
+Function VersionGuiAppDemo$
+    VersionGuiAppDemo$ = Mid$("$VER: GuiAppDemo 4.0 (06-Apr-2018) by RhoSigma :END$", 7, 40)
+End Function
 '~~~~~
 '=====================================================================
 '=============== END OF USER GOSUB/SUB/FUNCTION AREA =================
@@ -1593,42 +1598,42 @@ END FUNCTION
 '    This flag defines whether to middle the window on the desktop (-1)
 '    or to move it to the last known (if any) window position (0).
 '---------------------------------------------------------------------
-SUB SetupScreen (wid%, hei%, mid%)
-'--- create the screen ---
-appScreen& = _NEWIMAGE(wid%, hei%, 256)
-IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
-IF appGLVComp% THEN _SCREENSHOW
-SCREEN appScreen&
-'--- setup screen palette ---
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppPalette.bm'
-ApplyPrefs "Global.Colors", ""
-'--- set default font ---
-'uncomment and adjust the _LOADFONT line below to load/use a custom font,
-'otherwise QB64's inbuilt default _FONT 16 is used
-'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
-IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
-'--- set default icon ---
-'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
-'otherwise the GuiTools Framework's default icon is used as embedded via
-'the GuiAppIcon.h/.bm files located in the dev_framework folder
-'appIcon& = _LOADIMAGE("QB64GuiTools\images\icons\RhoSigma32px.png", 32)
-IF appIcon& < -1 THEN _ICON appIcon&
-'if you rather use $EXEICON then comment out the IF appIcon& ... line above
-'and uncomment and adjust the $EXEICON line below as you need instead, but
-'note it's QB64-GL only then, QB64-SDL will throw an error on $EXEICON
-'$EXEICON:'QB64GuiTools\images\icons\Default.ico'
-'--- make screen visible ---
-_DELAY 0.025
-IF mid% THEN
-    desktop& = _SCREENIMAGE
-    _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
-    _FREEIMAGE desktop&
-ELSE
-    LastPosUpdate 0 'load last known win pos
-END IF
-_DELAY 0.025: _SCREENSHOW
-IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
-END SUB
+Sub SetupScreen (wid%, hei%, mid%)
+    '--- create the screen ---
+    appScreen& = _NewImage(wid%, hei%, 256)
+    If appScreen& >= -1 Then Error 1000 'can't create main screen
+    If appGLVComp% Then _ScreenShow
+    Screen appScreen&
+    '--- setup screen palette ---
+    '$Include: '..\dev_framework\GuiAppPalette.bm'
+    ApplyPrefs "Global.Colors", ""
+    '--- set default font ---
+    'uncomment and adjust the _LOADFONT line below to load/use a custom font,
+    'otherwise QB64's inbuilt default _FONT 16 is used
+    'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
+    If appFont& > 0 Then _Font appFont&: Else _Font 16
+    '--- set default icon ---
+    'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
+    'otherwise the GuiTools Framework's default icon is used as embedded via
+    'the GuiAppIcon.h/.bm files located in the dev_framework folder
+    'appIcon& = _LOADIMAGE("QB64GuiTools\images\icons\RhoSigma32px.png", 32)
+    If appIcon& < -1 Then _Icon appIcon&
+    'if you rather use $EXEICON then comment out the IF appIcon& ... line above
+    'and uncomment and adjust the $EXEICON line below as you need instead, but
+    'note it's QB64 v1.1+ then, older versions will throw an error on $EXEICON
+    '$EXEICON:'QB64GuiTools\images\icons\Default.ico'
+    '--- make screen visible ---
+    _Delay 0.025
+    If mid% Then
+        desktop& = _ScreenImage
+        _ScreenMove (_Width(desktop&) - wid%) / 2 - 4, (_Height(desktop&) - hei%) / 2 - 20
+        _FreeImage desktop&
+    Else
+        LastPosUpdate 0 'load last known win pos
+    End If
+    _Delay 0.025: _ScreenShow
+    If appGLVComp% Then _Delay 0.05: UntitledToTop
+End Sub
 
 '-------------------
 '--- CloseScreen ---
@@ -1641,52 +1646,52 @@ END SUB
 ' SYNTAX:
 '   CloseScreen
 '---------------------------------------------------------------------
-SUB CloseScreen
-'--- make screen invisible ---
-_SCREENHIDE
-'--- free the icon (if any) and invalidate its handle ---
-IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
-'--- free the font (if any) and invalidate its handle ---
-_FONT 16
-IF appFont& > 0 THEN _FREEFONT appFont&: appFont& = 0
-'--- free the screen and invalidate its handle ---
-SCREEN 0
-IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
-END SUB
+Sub CloseScreen
+    '--- make screen invisible ---
+    _ScreenHide
+    '--- free the icon (if any) and invalidate its handle ---
+    If appIcon& < -1 Then _FreeImage appIcon&: appIcon& = -1
+    '--- free the font (if any) and invalidate its handle ---
+    _Font 16
+    If appFont& > 0 And guiPGVCount% = 0 Then _FreeFont appFont&: appFont& = 0
+    '--- free the screen and invalidate its handle ---
+    Screen 0
+    If appScreen& < -1 Then _FreeImage appScreen&: appScreen& = -1
+End Sub
 '~~~~~
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bm'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bm'
 '*****************************************************
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ConvertSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ImageSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PackSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PolygonSupport.bm'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ConvertSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ImageSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PackSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PolygonSupport.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bm'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bm'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GenericClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ModelClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ImageClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SymbolClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RulerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\FrameClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\StringClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\TextClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ProgressClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\PagerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ButtonClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CheckboxClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CycleClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RadioClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListviewClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SliderClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ScrollerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ColorwheelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\GenericClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ModelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ImageClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SymbolClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RulerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\FrameClass.bm'
+'$INCLUDE: '..\dev_framework\classes\StringClass.bm'
+'$INCLUDE: '..\dev_framework\classes\TextClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ProgressClass.bm'
+'$INCLUDE: '..\dev_framework\classes\PagerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ButtonClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CheckboxClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CycleClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RadioClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListviewClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SliderClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ScrollerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ColorwheelClass.bm'
 
 '$INCLUDE: 'inline\Info16Img.bm'
 '$INCLUDE: 'inline\Info32Img.bm'

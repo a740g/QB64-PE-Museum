@@ -14,7 +14,7 @@
         ' eg. IF ThisObject%(myObj$, message$, "GADGETDOWN") THEN ...
         IF ThisObject%(HOvrOpt$, mess$, "GADGETDOWN") THEN
             IF section$ = "PagerC.WallPen" THEN
-                pen$ = GetTagData$(GenC$("GET", HOvrOpt$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "-1")
+                pen$ = GetObjTagData$(HOvrOpt$, "LEVEL", "-1")
                 options.csetHOVR = VAL(pen$)
                 SetPrefs section$, options
                 res$ = GenC$("SET", PreObjBlank$ + NewTag$("WALLPEN", pen$) + NewTag$("PREVIEW", "yes"))

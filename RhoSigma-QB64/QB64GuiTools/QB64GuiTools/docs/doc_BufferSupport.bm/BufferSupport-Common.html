@@ -12,7 +12,7 @@
 <p><em><a href="_BufferSupport_Contents.html">back to Table of Contents</a></em></p>
 <hr />
 <h2>Informations &amp; Critical Conditions</h2>
-<p>The Simplebuffer system identifies its distinct buffers by using unique
+<p>The Simplebuffer System identifies its distinct buffers by using unique
 handles. You already know this from images, sounds and fonts. The handles
 are returned by all functions which create a new buffer, but as failure
 is possible at any time, make sure to check the returned values. Valid
@@ -24,11 +24,11 @@ handles is considered critical and the buffer system will break the program
 execution with an &quot;Invalid handle&quot; error (#258). You cannot continue the
 program from this point, as an invalid handle indicates a generic bug in
 your program flow logic, which must be solved through bug fixing.</p>
-<p>The Simplebuffer system can issue a maximum of 32768 handles, so that
+<p>The Simplebuffer System can issue a maximum of 32765 handles, so that
 would also be the amount of buffers, which can be active at the same time.
 Disposing unused buffers will save memory and make its handles available
 for reuse.</p>
-<p>Each single buffer can hold a maximum data size of 2GiB. If this size is
+<p>Each single buffer can hold a maximum data size of 1GiB. If this size is
 exceeded during operation, then the buffer system will break the program
 execution with an &quot;Out of memory&quot; error (#7). However, you may continue
 the program from here, but note that the load, insert or write operation
@@ -59,7 +59,7 @@ filesystem errors.</p>
 <h4>SBE_NoMoreBuffers</h4>
 <ul>
 <li>Is returned by the functions <a href="CreateBuf.html">CreateBuf()</a>, <a href="FileToBuf.html">FileToBuf()</a> and <a href="CloneBuf.html">CloneBuf()</a>,
-it means there are no more buffers available (max. 32768). You should always
+it means there are no more buffers available (max. 32765). You should always
 dispose no longer needed buffers to make its handles available for reuse
 (see <a href="DisposeBuf.html">DisposeBuf()</a>).</li>
 </ul>

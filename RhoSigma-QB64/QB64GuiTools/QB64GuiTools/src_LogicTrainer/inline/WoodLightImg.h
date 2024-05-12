@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file WoodLight.jpg
 // ---------------------------------------------------------------------
-static const unsigned int32 WoodLightImgL0[] = {
+static const uint32_t WoodLightImgL0[] = {
     808,
     0xE0FFD8FF,0x464A1000,0x01004649,0x01000001,0x00000100,0x4300DBFF,0x02020300,0x03020203,
     0x04030303,0x05040303,0x04050508,0x070A0504,0x0C080607,0x0B0C0C0A,0x0D0B0B0A,0x0D10120E,
@@ -110,11 +110,22 @@ static const unsigned int32 WoodLightImgL0[] = {
     0xB200FFD9,0x2C6B573A,0xECC69236,0x3646D2AE,0xBF71CFA7,0xBFCFFD0D,0xA2BBD65C,0xCBF6C8DB
 };
 
-static const unsigned int8 WoodLightImgB[] = {
+static const uint8_t WoodLightImgB[] = {
     17,
     0x6D,0x65,0x24,0xA9,0xBD,0x3E,0xE3,0xBE,0xFA,0xB8,0xCD,0xB7,0xA1,0x49,0x23,0xFF,
     0xD9
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadWoodLightImgData(char *Buffer)
+{
+    memcpy(Buffer, &WoodLightImgL0[1], WoodLightImgL0[0] << 2);
+    Buffer += (WoodLightImgL0[0] << 2);
+
+    memcpy(Buffer, &WoodLightImgB[1], WoodLightImgB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -134,10 +145,10 @@ void KillWoodLightImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteWoodLightImgData(const char *FileName, int16 AutoClean)
+const char *WriteWoodLightImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(WoodLightImgName, FileName, 8192)) return "";

@@ -208,7 +208,11 @@ meGet:
 IF ValidObject%(this&, thisTag$, ColorwheelRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
-    IF temp$ <> "n/a" THEN ColorwheelRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    IF temp$ <> "n/a" THEN
+        ColorwheelRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    ELSE
+        ColorwheelRes$ = GetTags$(guiObjects$(objData%, this&), guiInitTags$)
+    END IF
 END IF
 RETURN
 '---------------------------------------------------------------------

@@ -158,7 +158,11 @@ meGet:
 IF ValidObject%(this&, thisTag$, TextRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
-    IF temp$ <> "n/a" THEN TextRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    IF temp$ <> "n/a" THEN
+        TextRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    ELSE
+        TextRes$ = GetTags$(guiObjects$(objData%, this&), guiInitTags$)
+    END IF
 END IF
 RETURN
 '---------------------------------------------------------------------

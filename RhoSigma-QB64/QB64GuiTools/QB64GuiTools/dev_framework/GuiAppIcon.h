@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file Default32px.png
 // ---------------------------------------------------------------------
-static const unsigned int32 GuiAppIconL0[] = {
+static const uint32_t GuiAppIconL0[] = {
     584,
     0x474E5089,0x0A1A0A0D,0x0D000000,0x52444849,0x20000000,0x20000000,0x00000608,0x7A7A7300,
     0x000000F4,0x59487009,0x0B000073,0x0B000013,0x9A000113,0x0000189C,0x4449E808,0xC3585441,
@@ -82,11 +82,22 @@ static const unsigned int32 GuiAppIconL0[] = {
     0x225295A8,0x44E696CC,0xD0A2B8DA,0xF74AF0C1,0x72581A2F,0x85E7562A,0xF1CB818A,0x70A38618
 };
 
-static const unsigned int8 GuiAppIconB[] = {
+static const uint8_t GuiAppIconB[] = {
     22,
     0xE8,0xBF,0x71,0xD0,0x64,0x19,0x12,0xBF,0x51,0xF8,0x00,0x00,0x00,0x00,0x49,0x45,
     0x4E,0x44,0xAE,0x42,0x60,0x82
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadGuiAppIconData(char *Buffer)
+{
+    memcpy(Buffer, &GuiAppIconL0[1], GuiAppIconL0[0] << 2);
+    Buffer += (GuiAppIconL0[0] << 2);
+
+    memcpy(Buffer, &GuiAppIconB[1], GuiAppIconB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -106,10 +117,10 @@ void KillGuiAppIconData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteGuiAppIconData(const char *FileName, int16 AutoClean)
+const char *WriteGuiAppIconData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(GuiAppIconName, FileName, 8192)) return "";

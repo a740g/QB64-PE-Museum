@@ -16,9 +16,9 @@
         '--- immediately recalculate values upon any inputs ---
         '--- tool diameter ---
         IF ThisObject%(StringDiameter$, mess$, "GADGETDOWN") THEN
-            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            fn# = VAL(GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            vc# = VAL(GetTagData$(GenC$("GET", StringCutSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            d# = VAL(GetObjTagData$(StringDiameter$, "TEXT", "0"))
+            fn# = VAL(GetObjTagData$(StringPerRev$, "TEXT", "0"))
+            vc# = VAL(GetObjTagData$(StringCutSpeed$, "TEXT", "0"))
             IF d# <> 0 THEN
                 n& = ((vc# * extFac%) / d#) / 3.141592653589793: vf& = fn# * n&
                 r$ = GenC$("SET", StringSpeed$ + NewTag$("TEXT", LTRIM$(STR$(n&))))
@@ -27,9 +27,9 @@
         END IF
         '--- number of teeth ---
         IF ThisObject%(StringTeeth$, mess$, "GADGETDOWN") THEN
-            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            fz# = VAL(GetTagData$(GenC$("GET", StringPerTooth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            z% = VAL(GetObjTagData$(StringTeeth$, "TEXT", "0"))
+            fz# = VAL(GetObjTagData$(StringPerTooth$, "TEXT", "0"))
+            n& = VAL(GetObjTagData$(StringSpeed$, "TEXT", "0"))
             fn# = z% * fz#: vf& = fn# * n&
             fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))
             r$ = GenC$("SET", StringPerRev$ + NewTag$("TEXT", fn$))
@@ -37,9 +37,9 @@
         END IF
         '--- feed per tooth ---
         IF ThisObject%(StringPerTooth$, mess$, "GADGETDOWN") THEN
-            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            fz# = VAL(GetTagData$(GenC$("GET", StringPerTooth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            z% = VAL(GetObjTagData$(StringTeeth$, "TEXT", "0"))
+            fz# = VAL(GetObjTagData$(StringPerTooth$, "TEXT", "0"))
+            n& = VAL(GetObjTagData$(StringSpeed$, "TEXT", "0"))
             fn# = z% * fz#: vf& = fn# * n&
             fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))
             r$ = GenC$("SET", StringPerRev$ + NewTag$("TEXT", fn$))
@@ -47,9 +47,9 @@
         END IF
         '--- feed per revolution ---
         IF ThisObject%(StringPerRev$, mess$, "GADGETDOWN") THEN
-            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            fn# = VAL(GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            z% = VAL(GetObjTagData$(StringTeeth$, "TEXT", "0"))
+            fn# = VAL(GetObjTagData$(StringPerRev$, "TEXT", "0"))
+            n& = VAL(GetObjTagData$(StringSpeed$, "TEXT", "0"))
             IF z% <> 0 THEN
                 fz# = fn# / z%: vf& = fn# * n&
                 fz$ = LTRIM$(IndexFormat$(numFmt$, STR$(fz#), "|"))
@@ -59,9 +59,9 @@
         END IF
         '--- cutting speed ---
         IF ThisObject%(StringCutSpeed$, mess$, "GADGETDOWN") THEN
-            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            fn# = VAL(GetTagData$(GenC$("GET", StringPerRev$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            vc# = VAL(GetTagData$(GenC$("GET", StringCutSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            d# = VAL(GetObjTagData$(StringDiameter$, "TEXT", "0"))
+            fn# = VAL(GetObjTagData$(StringPerRev$, "TEXT", "0"))
+            vc# = VAL(GetObjTagData$(StringCutSpeed$, "TEXT", "0"))
             IF d# <> 0 THEN
                 n& = ((vc# * extFac%) / d#) / 3.141592653589793: vf& = fn# * n&
                 r$ = GenC$("SET", StringSpeed$ + NewTag$("TEXT", LTRIM$(STR$(n&))))
@@ -70,10 +70,10 @@
         END IF
         '--- spindle speed ---
         IF ThisObject%(StringSpeed$, mess$, "GADGETDOWN") THEN
-            d# = VAL(GetTagData$(GenC$("GET", StringDiameter$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            vf& = VAL(GetTagData$(GenC$("GET", StringFeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            d# = VAL(GetObjTagData$(StringDiameter$, "TEXT", "0"))
+            z% = VAL(GetObjTagData$(StringTeeth$, "TEXT", "0"))
+            n& = VAL(GetObjTagData$(StringSpeed$, "TEXT", "0"))
+            vf& = VAL(GetObjTagData$(StringFeed$, "TEXT", "0"))
             IF n& <> 0 AND z% <> 0 THEN
                 vc# = (3.141592653589793 * d# * n&) / extFac%: fn# = vf& / n&: fz# = fn# / z%
                 vc$ = LTRIM$(IndexFormat$(numFmt$, STR$(vc#), "|"))
@@ -86,9 +86,9 @@
         END IF
         '--- feed rate ---
         IF ThisObject%(StringFeed$, mess$, "GADGETDOWN") THEN
-            z% = VAL(GetTagData$(GenC$("GET", StringTeeth$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            n& = VAL(GetTagData$(GenC$("GET", StringSpeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
-            vf& = VAL(GetTagData$(GenC$("GET", StringFeed$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "0"))
+            z% = VAL(GetObjTagData$(StringTeeth$, "TEXT", "0"))
+            n& = VAL(GetObjTagData$(StringSpeed$, "TEXT", "0"))
+            vf& = VAL(GetObjTagData$(StringFeed$, "TEXT", "0"))
             IF n& <> 0 AND z% <> 0 THEN
                 fn# = vf& / n&: fz# = fn# / z%
                 fn$ = LTRIM$(IndexFormat$(numFmt$, STR$(fn#), "|"))

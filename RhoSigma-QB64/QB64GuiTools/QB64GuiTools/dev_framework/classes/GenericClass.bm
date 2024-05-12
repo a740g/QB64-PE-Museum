@@ -32,7 +32,7 @@
 'METHODS:
 '   In general it does not hurt to use the generic class for all method
 '   calls, the tagString$ argument must provide the tags for the called
-'   object method, just for the INIT method the aditional tag CLASSNAME
+'   object method, just for the INIT method the additional tag CLASSNAME
 '   is required, as the object does not exist yet to extract its type.
 '    However, as not all object classes do support all methods, be
 '   prepared for ERROR/WARNING tag results. Check for these, if needed.

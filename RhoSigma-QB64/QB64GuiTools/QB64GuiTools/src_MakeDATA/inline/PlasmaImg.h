@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file Plasma.jpg
 // ---------------------------------------------------------------------
-static const unsigned int32 PlasmaImgL0[] = {
+static const uint32_t PlasmaImgL0[] = {
     280,
     0xE0FFD8FF,0x464A1000,0x01004649,0x01000001,0x00000100,0x4300DBFF,0x02020300,0x03020203,
     0x04030303,0x05040303,0x04050508,0x070A0504,0x0C080607,0x0B0C0C0A,0x0D0B0B0A,0x0D10120E,
@@ -44,10 +44,21 @@ static const unsigned int32 PlasmaImgL0[] = {
     0x8A43C7DF,0xB1F9C83E,0x108F0811,0xA760ABFB,0xAC923573,0x705C0E7A,0x63F42AF2,0x07CD6CF5
 };
 
-static const unsigned int8 PlasmaImgB[] = {
+static const uint8_t PlasmaImgB[] = {
     7,
     0x3F,0x0F,0xBE,0x08,0xB0,0xFF,0xD9
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadPlasmaImgData(char *Buffer)
+{
+    memcpy(Buffer, &PlasmaImgL0[1], PlasmaImgL0[0] << 2);
+    Buffer += (PlasmaImgL0[0] << 2);
+
+    memcpy(Buffer, &PlasmaImgB[1], PlasmaImgB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -67,10 +78,10 @@ void KillPlasmaImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WritePlasmaImgData(const char *FileName, int16 AutoClean)
+const char *WritePlasmaImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(PlasmaImgName, FileName, 8192)) return "";

@@ -1,10 +1,10 @@
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bi'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bi'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bi'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bi'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bi'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bi'
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bi'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bi'
 '*****************************************************
 
 '+---------------+---------------------------------------------------+
@@ -1073,16 +1073,16 @@ res$ = GenC$("KILL", SectLView$): SectLView$ = ""
 RETURN
 '----------------------------------
 ChangePalette:
-col% = VAL(GetTagData$(GenC$("GET", PalColor$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0"))
-red% = VAL(GetTagData$(GenC$("GET", PalRGBSliderR$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0"))
-gre% = VAL(GetTagData$(GenC$("GET", PalRGBSliderG$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0"))
-blu% = VAL(GetTagData$(GenC$("GET", PalRGBSliderB$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0"))
+col% = VAL(GetObjTagData$(PalColor$, "LEVEL", "0"))
+red% = VAL(GetObjTagData$(PalRGBSliderR$, "LEVEL", "0"))
+gre% = VAL(GetObjTagData$(PalRGBSliderG$, "LEVEL", "0"))
+blu% = VAL(GetObjTagData$(PalRGBSliderB$, "LEVEL", "0"))
 _PALETTECOLOR col%, _RGB32(red%, gre%, blu%)
 RETURN
 '----------------------------------
 UpdatePaletteTool:
 IF section$ = "Global.Colors" THEN
-    pen$ = GetTagData$(GenC$("GET", PalColor$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "0")
+    pen$ = GetObjTagData$(PalColor$, "LEVEL", "0")
     res$ = GenC$("SET", PalGauge$ + NewTag$("SHINEPEN", pen$)): actCol% = VAL(pen$)
     res$ = GenC$("SET", PalRGBSliderR$ + NewTag$("LEVEL", LTRIM$(STR$(_RED(VAL(pen$))))))
     res$ = GenC$("SET", PalRGBSliderG$ + NewTag$("LEVEL", LTRIM$(STR$(_GREEN(VAL(pen$))))))
@@ -1104,7 +1104,7 @@ IF section$ <> "Global.Colors" THEN
             fsDir$ = LEFT$(fsDir$, sPo% - 1)
         ELSE
             fsFile$ = fsDir$
-            IF _FILEEXISTS("qb64.exe") THEN
+            IF _FILEEXISTS("qb64.exe") OR _FILEEXISTS("qb64pe.exe") THEN
                 fsDir$ = "QB64GuiTools\images\patterns"
             ELSE
                 fsDir$ = "..\images\patterns"
@@ -1146,118 +1146,123 @@ RETURN
 CONST ShowErrSwitch$ = "ON" 'ON or OFF
 '-----
 FUNCTION ShowErr$ (tagString$)
-ShowErr$ = tagString$
-IF UCASE$(ShowErrSwitch$) = "ON" THEN
-    IF ValidateTags%(tagString$, "ERROR", -1) THEN
+    ShowErr$ = tagString$
+    IF UCASE$(ShowErrSwitch$) = "ON" THEN
+        IF ValidateTags%(tagString$, "ERROR", -1) THEN
         dummy$ = MessageBox$("Error16px.png", "Error Tag",_
                              GetTagData$(tagString$, "ERROR", "empty"),_
                              "{IMG Error16px.png 39}Ok, got it...")
-    ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
+        ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
         dummy$ = MessageBox$("Problem16px.png", "Warning Tag",_
                              GetTagData$(tagString$, "WARNING", "empty"),_
                              "{IMG Problem16px.png 39}Ok, got it...")
+        END IF
     END IF
-END IF
+END FUNCTION
+'--- Function to define/return the program's version string.
+'-----
+FUNCTION VersionGTPrefsEditor$
+    VersionGTPrefsEditor$ = MID$("$VER: GTPrefsEditor 1.0 (15-Nov-2018) by RhoSigma :END$", 7, 43)
 END FUNCTION
 '----------------------------------
 SUB GetPrefs (sect$, opts AS ChunkCSET)
-'--- exclusivly search prefs ---
-mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-gtprefs.bin" + CHR$(0))
-iff% = SafeOpenFile%("B", appLocalDir$ + "gtprefs.bin")
-found% = 0
-IF SeekChunk&(iff%, 1, CHcsetID$) > 0 THEN
-    WHILE NOT EOF(iff%)
-        GET iff%, , opts
-        IF RStrip$(stmFIXED%, opts.csetCLASS) = sect$ THEN
-            found% = -1
-            EXIT WHILE
-        END IF
-    WEND
-END IF
-'--- found = ok, missed = init defaults ---
-IF found% THEN
-    IF sect$ = "Global.Colors" THEN SetColors opts.csetIMAGE
-ELSE
-    opts.csetSTDC.chunkID = CHcsetID$
-    opts.csetSTDC.chunkLEN = CHcsetLEN%
-    opts.csetCLASS = sect$
-    opts.csetIMAGE = "": opts.csetTILE = 0
-    opts.csetHOVR = -1: opts.csetFOVR = -1: opts.csetPMOD = 0
-    IF sect$ = "Global.Colors" THEN
-        opts.csetIMAGE = StdColors$
-        opts.csetHOVR = 0: opts.csetFOVR = 0
-        SetColors opts.csetIMAGE
+    '--- exclusivly search prefs ---
+    mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-gtprefs.bin" + CHR$(0))
+    iff% = SafeOpenFile%("B", appLocalDir$ + "gtprefs.bin")
+    found% = 0
+    IF SeekChunk&(iff%, 1, CHcsetID$) > 0 THEN
+        WHILE NOT EOF(iff%)
+            GET iff%, , opts
+            IF RStrip$(stmFIXED%, opts.csetCLASS) = sect$ THEN
+                found% = -1
+                EXIT WHILE
+            END IF
+        WEND
     END IF
-    PUT iff%, LOF(iff%) + 1, opts
-    SizeUpdate iff%, csetSIZEOF%
-END IF
-'--- cleanup ---
-CLOSE iff%
-UnlockMutex mtx%&
+    '--- found = ok, missed = init defaults ---
+    IF found% THEN
+        IF sect$ = "Global.Colors" THEN SetColors opts.csetIMAGE
+    ELSE
+        opts.csetSTDC.chunkID = CHcsetID$
+        opts.csetSTDC.chunkLEN = CHcsetLEN%
+        opts.csetCLASS = sect$
+        opts.csetIMAGE = "": opts.csetTILE = 0
+        opts.csetHOVR = -1: opts.csetFOVR = -1: opts.csetPMOD = 0
+        IF sect$ = "Global.Colors" THEN
+            opts.csetIMAGE = StdColors$
+            opts.csetHOVR = 0: opts.csetFOVR = 0
+            SetColors opts.csetIMAGE
+        END IF
+        PUT iff%, LOF(iff%) + 1, opts
+        SizeUpdate iff%, csetSIZEOF%
+    END IF
+    '--- cleanup ---
+    CLOSE iff%
+    UnlockMutex mtx%&
 END SUB
 '----------------------------------
 SUB SetPrefs (sect$, opts AS ChunkCSET)
-'--- exclusivly search prefs ---
-mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-gtprefs.bin" + CHR$(0))
-iff% = SafeOpenFile%("B", appLocalDir$ + "gtprefs.bin")
-IF SeekChunk&(iff%, 1, CHcsetID$) > 0 THEN
-    REDIM temp(0) AS ChunkCSET
-    WHILE NOT EOF(iff%)
-        ptr& = SEEK(iff%)
-        GET iff%, , temp(0)
-        IF RStrip$(stmFIXED%, temp(0).csetCLASS) = sect$ THEN EXIT WHILE
-    WEND
-    ERASE temp
-END IF
-'--- write ---
-IF sect$ = "Global.Colors" THEN
-    prefs$ = ""
-    FOR i% = 0 TO 23
-        prefs$ = prefs$ + CHR$(_RED(i%)) + CHR$(_GREEN(i%)) + CHR$(_BLUE(i%))
-    NEXT i%
-    prefs$ = prefs$ + SPACE$(177)
-    prefs$ = prefs$ + CHR$(guiMediaFile%) + CHR$(guiMediaDrawer%) + CHR$(guiMediaDisk%) + CHR$(guiSaveBack%) + CHR$(guiLoadBack%)
-    prefs$ = prefs$ + CHR$(guiRedPen%) + CHR$(guiGreenPen%) + CHR$(guiSolidPen%) + CHR$(guiShadowPen%) + CHR$(guiShinePen%)
-    prefs$ = prefs$ + CHR$(guiFillTextPen%) + CHR$(guiFillPen%) + CHR$(guiHighPen%) + CHR$(guiTextPen%) + CHR$(guiBackPen%)
-    opts.csetIMAGE = prefs$: opts.csetTILE = 0
-    opts.csetHOVR = 0: opts.csetFOVR = 0: opts.csetPMOD = 0
-END IF
-PUT iff%, ptr&, opts
-'--- cleanup ---
-CLOSE iff%
-UnlockMutex mtx%&
+    '--- exclusivly search prefs ---
+    mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-gtprefs.bin" + CHR$(0))
+    iff% = SafeOpenFile%("B", appLocalDir$ + "gtprefs.bin")
+    IF SeekChunk&(iff%, 1, CHcsetID$) > 0 THEN
+        REDIM temp(0) AS ChunkCSET
+        WHILE NOT EOF(iff%)
+            ptr& = SEEK(iff%)
+            GET iff%, , temp(0)
+            IF RStrip$(stmFIXED%, temp(0).csetCLASS) = sect$ THEN EXIT WHILE
+        WEND
+        ERASE temp
+    END IF
+    '--- write ---
+    IF sect$ = "Global.Colors" THEN
+        prefs$ = ""
+        FOR i% = 0 TO 23
+            prefs$ = prefs$ + CHR$(_RED(i%)) + CHR$(_GREEN(i%)) + CHR$(_BLUE(i%))
+        NEXT i%
+        prefs$ = prefs$ + SPACE$(177)
+        prefs$ = prefs$ + CHR$(guiMediaFile%) + CHR$(guiMediaDrawer%) + CHR$(guiMediaDisk%) + CHR$(guiSaveBack%) + CHR$(guiLoadBack%)
+        prefs$ = prefs$ + CHR$(guiRedPen%) + CHR$(guiGreenPen%) + CHR$(guiSolidPen%) + CHR$(guiShadowPen%) + CHR$(guiShinePen%)
+        prefs$ = prefs$ + CHR$(guiFillTextPen%) + CHR$(guiFillPen%) + CHR$(guiHighPen%) + CHR$(guiTextPen%) + CHR$(guiBackPen%)
+        opts.csetIMAGE = prefs$: opts.csetTILE = 0
+        opts.csetHOVR = 0: opts.csetFOVR = 0: opts.csetPMOD = 0
+    END IF
+    PUT iff%, ptr&, opts
+    '--- cleanup ---
+    CLOSE iff%
+    UnlockMutex mtx%&
 END SUB
 '----------------------------------
 SUB SetColors (prefs$)
-FOR i% = 0 TO 23
-    _PALETTECOLOR i%, _RGB32(ASC(prefs$, (i% * 3) + 1), ASC(prefs$, (i% * 3) + 2), ASC(prefs$, (i% * 3) + 3))
-NEXT i%
-guiBackPen% = ASC(prefs$, 264): guiTextPen% = ASC(prefs$, 263): guiHighPen% = ASC(prefs$, 262)
-guiFillPen% = ASC(prefs$, 261): guiFillTextPen% = ASC(prefs$, 260)
-guiShinePen% = ASC(prefs$, 259): guiShadowPen% = ASC(prefs$, 258): guiSolidPen% = ASC(prefs$, 257)
-guiGreenPen% = ASC(prefs$, 256): guiRedPen% = ASC(prefs$, 255)
-guiLoadBack% = ASC(prefs$, 254): guiSaveBack% = ASC(prefs$, 253)
-guiMediaDisk% = ASC(prefs$, 252): guiMediaDrawer% = ASC(prefs$, 251): guiMediaFile% = ASC(prefs$, 250)
+    FOR i% = 0 TO 23
+        _PALETTECOLOR i%, _RGB32(ASC(prefs$, (i% * 3) + 1), ASC(prefs$, (i% * 3) + 2), ASC(prefs$, (i% * 3) + 3))
+    NEXT i%
+    guiBackPen% = ASC(prefs$, 264): guiTextPen% = ASC(prefs$, 263): guiHighPen% = ASC(prefs$, 262)
+    guiFillPen% = ASC(prefs$, 261): guiFillTextPen% = ASC(prefs$, 260)
+    guiShinePen% = ASC(prefs$, 259): guiShadowPen% = ASC(prefs$, 258): guiSolidPen% = ASC(prefs$, 257)
+    guiGreenPen% = ASC(prefs$, 256): guiRedPen% = ASC(prefs$, 255)
+    guiLoadBack% = ASC(prefs$, 254): guiSaveBack% = ASC(prefs$, 253)
+    guiMediaDisk% = ASC(prefs$, 252): guiMediaDrawer% = ASC(prefs$, 251): guiMediaFile% = ASC(prefs$, 250)
 END SUB
 '----------------------------------
 FUNCTION StdColors$
-temp$ = CHR$(136) + CHR$(136) + CHR$(136) + CHR$(0) + CHR$(0) + CHR$(0)
-temp$ = temp$ + CHR$(51) + CHR$(51) + CHR$(51) + CHR$(238) + CHR$(238) + CHR$(238)
-temp$ = temp$ + CHR$(170) + CHR$(34) + CHR$(0) + CHR$(221) + CHR$(85) + CHR$(0)
-temp$ = temp$ + CHR$(238) + CHR$(187) + CHR$(0) + CHR$(0) + CHR$(136) + CHR$(0)
-temp$ = temp$ + CHR$(102) + CHR$(187) + CHR$(0) + CHR$(102) + CHR$(136) + CHR$(102)
-temp$ = temp$ + CHR$(85) + CHR$(187) + CHR$(204) + CHR$(51) + CHR$(102) + CHR$(119)
-temp$ = temp$ + CHR$(0) + CHR$(119) + CHR$(187) + CHR$(136) + CHR$(34) + CHR$(0)
-temp$ = temp$ + CHR$(238) + CHR$(136) + CHR$(136) + CHR$(187) + CHR$(85) + CHR$(85)
-temp$ = temp$ + CHR$(238) + CHR$(119) + CHR$(34) + CHR$(221) + CHR$(136) + CHR$(68)
-temp$ = temp$ + CHR$(68) + CHR$(170) + CHR$(119) + CHR$(17) + CHR$(119) + CHR$(85)
-temp$ = temp$ + CHR$(153) + CHR$(0) + CHR$(255) + CHR$(102) + CHR$(0) + CHR$(204)
-temp$ = temp$ + CHR$(187) + CHR$(119) + CHR$(0) + CHR$(153) + CHR$(85) + CHR$(0)
-temp$ = temp$ + SPACE$(177)
-temp$ = temp$ + CHR$(18) + CHR$(22) + CHR$(12) + CHR$(13) + CHR$(11)
-temp$ = temp$ + CHR$(4) + CHR$(7) + CHR$(0) + CHR$(2) + CHR$(3)
-temp$ = temp$ + CHR$(13) + CHR$(17) + CHR$(6) + CHR$(1) + CHR$(9)
-StdColors$ = temp$
+    temp$ = CHR$(136) + CHR$(136) + CHR$(136) + CHR$(0) + CHR$(0) + CHR$(0)
+    temp$ = temp$ + CHR$(51) + CHR$(51) + CHR$(51) + CHR$(238) + CHR$(238) + CHR$(238)
+    temp$ = temp$ + CHR$(170) + CHR$(34) + CHR$(0) + CHR$(221) + CHR$(85) + CHR$(0)
+    temp$ = temp$ + CHR$(238) + CHR$(187) + CHR$(0) + CHR$(0) + CHR$(136) + CHR$(0)
+    temp$ = temp$ + CHR$(102) + CHR$(187) + CHR$(0) + CHR$(102) + CHR$(136) + CHR$(102)
+    temp$ = temp$ + CHR$(85) + CHR$(187) + CHR$(204) + CHR$(51) + CHR$(102) + CHR$(119)
+    temp$ = temp$ + CHR$(0) + CHR$(119) + CHR$(187) + CHR$(136) + CHR$(34) + CHR$(0)
+    temp$ = temp$ + CHR$(238) + CHR$(136) + CHR$(136) + CHR$(187) + CHR$(85) + CHR$(85)
+    temp$ = temp$ + CHR$(238) + CHR$(119) + CHR$(34) + CHR$(221) + CHR$(136) + CHR$(68)
+    temp$ = temp$ + CHR$(68) + CHR$(170) + CHR$(119) + CHR$(17) + CHR$(119) + CHR$(85)
+    temp$ = temp$ + CHR$(153) + CHR$(0) + CHR$(255) + CHR$(102) + CHR$(0) + CHR$(204)
+    temp$ = temp$ + CHR$(187) + CHR$(119) + CHR$(0) + CHR$(153) + CHR$(85) + CHR$(0)
+    temp$ = temp$ + SPACE$(177)
+    temp$ = temp$ + CHR$(18) + CHR$(22) + CHR$(12) + CHR$(13) + CHR$(11)
+    temp$ = temp$ + CHR$(4) + CHR$(7) + CHR$(0) + CHR$(2) + CHR$(3)
+    temp$ = temp$ + CHR$(13) + CHR$(17) + CHR$(6) + CHR$(1) + CHR$(9)
+    StdColors$ = temp$
 END FUNCTION
 '~~~~~
 '=====================================================================
@@ -1290,40 +1295,40 @@ END FUNCTION
 '    or to move it to the last known (if any) window position (0).
 '---------------------------------------------------------------------
 SUB SetupScreen (wid%, hei%, mid%)
-'--- create the screen ---
-appScreen& = _NEWIMAGE(wid%, hei%, 256)
-IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
-IF appGLVComp% THEN _SCREENSHOW
-SCREEN appScreen&
-'--- setup screen palette ---
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppPalette.bm'
-ApplyPrefs "Global.Colors", ""
-'--- set default font ---
-'uncomment and adjust the _LOADFONT line below to load/use a custom font,
-'otherwise QB64's inbuilt default _FONT 16 is used
-'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
-IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
-'--- set default icon ---
-'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
-'otherwise the GuiTools Framework's default icon is used as embedded via
-'the GuiAppIcon.h/.bm files located in the dev_framework folder
-'appIcon& = _LOADIMAGE("QB64GuiTools\images\icons\RhoSigma32px.png", 32)
-IF appIcon& < -1 THEN _ICON appIcon&
-'if you rather use $EXEICON then comment out the IF appIcon& ... line above
-'and uncomment and adjust the $EXEICON line below as you need instead, but
-'note it's QB64-GL only then, QB64-SDL will throw an error on $EXEICON
-'$EXEICON:'QB64GuiTools\images\icons\Default.ico'
-'--- make screen visible ---
-_DELAY 0.025
-IF mid% THEN
-    desktop& = _SCREENIMAGE
-    _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
-    _FREEIMAGE desktop&
-ELSE
-    LastPosUpdate 0 'load last known win pos
-END IF
-_DELAY 0.025: _SCREENSHOW
-IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
+    '--- create the screen ---
+    appScreen& = _NEWIMAGE(wid%, hei%, 256)
+    IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
+    IF appGLVComp% THEN _SCREENSHOW
+    SCREEN appScreen&
+    '--- setup screen palette ---
+    '$INCLUDE: '..\dev_framework\GuiAppPalette.bm'
+    ApplyPrefs "Global.Colors", ""
+    '--- set default font ---
+    'uncomment and adjust the _LOADFONT line below to load/use a custom font,
+    'otherwise QB64's inbuilt default _FONT 16 is used
+    'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
+    IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
+    '--- set default icon ---
+    'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
+    'otherwise the GuiTools Framework's default icon is used as embedded via
+    'the GuiAppIcon.h/.bm files located in the dev_framework folder
+    'appIcon& = _LOADIMAGE("..\images\icons\RhoSigma32px.png", 32)
+    IF appIcon& < -1 THEN _ICON appIcon&
+    'if you rather use $EXEICON then comment out the IF appIcon& ... line above
+    'and uncomment and adjust the $EXEICON line below as you need instead, but
+    'note it's QB64 v1.1+ then, older versions will throw an error on $EXEICON
+    '$EXEICON:'..\images\icons\Default.ico'
+    '--- make screen visible ---
+    _DELAY 0.025
+    IF mid% THEN
+        desktop& = _SCREENIMAGE
+        _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
+        _FREEIMAGE desktop&
+    ELSE
+        LastPosUpdate 0 'load last known win pos
+    END IF
+    _DELAY 0.025: _SCREENSHOW
+    IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
 END SUB
 
 '-------------------
@@ -1338,51 +1343,51 @@ END SUB
 '   CloseScreen
 '---------------------------------------------------------------------
 SUB CloseScreen
-'--- make screen invisible ---
-_SCREENHIDE
-'--- free the icon (if any) and invalidate its handle ---
-IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
-'--- free the font (if any) and invalidate its handle ---
-_FONT 16
-IF appFont& > 0 THEN _FREEFONT appFont&: appFont& = 0
-'--- free the screen and invalidate its handle ---
-SCREEN 0
-IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
+    '--- make screen invisible ---
+    _SCREENHIDE
+    '--- free the icon (if any) and invalidate its handle ---
+    IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
+    '--- free the font (if any) and invalidate its handle ---
+    _FONT 16
+    IF appFont& > 0 AND guiPGVCount% = 0 THEN _FREEFONT appFont&: appFont& = 0
+    '--- free the screen and invalidate its handle ---
+    SCREEN 0
+    IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
 END SUB
 '~~~~~
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bm'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bm'
 '*****************************************************
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ConvertSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ImageSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PackSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PolygonSupport.bm'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ConvertSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ImageSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PackSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PolygonSupport.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bm'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bm'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GenericClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ModelClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ImageClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SymbolClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RulerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\FrameClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\StringClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\TextClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ProgressClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\PagerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ButtonClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CheckboxClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CycleClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RadioClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListviewClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SliderClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ScrollerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ColorwheelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\GenericClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ModelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ImageClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SymbolClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RulerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\FrameClass.bm'
+'$INCLUDE: '..\dev_framework\classes\StringClass.bm'
+'$INCLUDE: '..\dev_framework\classes\TextClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ProgressClass.bm'
+'$INCLUDE: '..\dev_framework\classes\PagerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ButtonClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CheckboxClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CycleClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RadioClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListviewClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SliderClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ScrollerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ColorwheelClass.bm'
 
 '$INCLUDE: 'inline\Info16Img.bm'
 '$INCLUDE: 'inline\Info32Img.bm'

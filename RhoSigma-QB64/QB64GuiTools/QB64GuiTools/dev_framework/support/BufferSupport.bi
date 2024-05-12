@@ -11,7 +11,7 @@
 '| === BufferSupport.bi ===                                          |
 '|                                                                   |
 '| == This include file is part of the GuiTools Framework Project.   |
-'| == It provides some constants needed for the String Buffers API.  |
+'| == It provides some constants needed for the Simplebuffer API.    |
 '|                                                                   |
 '+-------------------------------------------------------------------+
 '| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
@@ -21,8 +21,8 @@
 
 '--- The internal array for data storage
 '-----
-'never access this directly, use functions in simplebuffer.bm
-REDIM SHARED simplebuffer_array$(0 TO 105)
+'never access this directly, use functions in BufferSupport.bm
+REDIM SHARED simplebuffer_array$(0 TO 1059)
 
 '--- Simplebuffer Errors (most FUNCTIONs)
 '-----

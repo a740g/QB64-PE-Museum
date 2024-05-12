@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file uk20px.gif
 // ---------------------------------------------------------------------
-static const unsigned int32 UkFlagImgL0[] = {
+static const uint32_t UkFlagImgL0[] = {
     304,
     0x38464947,0x00206139,0x00F70014,0x00000000,0xE3FFFFFF,0x6ABB8280,0x9796E86B,0xF784839E,
     0x8DE1DBDA,0x837FC792,0x459F9BE4,0xBEF03231,0x8987AAC1,0xF4CFCDF3,0xDCF0D6D4,0xBAB6EEDD,
@@ -47,11 +47,22 @@ static const unsigned int32 UkFlagImgL0[] = {
     0xE9343116,0x44872CA4,0x4E2C8879,0x1BC5093A,0x489028B3,0x305A4522,0xC8122208,0x640C8401
 };
 
-static const unsigned int8 UkFlagImgB[] = {
+static const uint8_t UkFlagImgB[] = {
     29,
     0x96,0x69,0xCB,0x96,0x5B,0xDA,0x52,0x66,0x99,0x33,0x5C,0x11,0x02,0x1D,0x9D,0x70,
     0x59,0xE4,0x9C,0x74,0xD6,0x69,0xE7,0x9D,0x75,0x06,0x04,0x00,0x3B
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadUkFlagImgData(char *Buffer)
+{
+    memcpy(Buffer, &UkFlagImgL0[1], UkFlagImgL0[0] << 2);
+    Buffer += (UkFlagImgL0[0] << 2);
+
+    memcpy(Buffer, &UkFlagImgB[1], UkFlagImgB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -71,10 +82,10 @@ void KillUkFlagImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteUkFlagImgData(const char *FileName, int16 AutoClean)
+const char *WriteUkFlagImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(UkFlagImgName, FileName, 8192)) return "";

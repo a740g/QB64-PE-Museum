@@ -259,11 +259,13 @@ RETURN
 meGet:
 IF ValidObject%(this&, thisTag$, ListviewRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
+    reco$ = ListC$("READ", ObjectTag$(guiObjects$(objData%, this&), "LISTOBJECT") + NewTag$("REFOBJ", LTRIM$(STR$(this&))) + NewTag$("HOLD", "true") + GetTag$(guiObjects$(objData%, this&), "ACTUAL"))
+    IF ValidateTags%(reco$, "ERROR", 0) THEN reco$ = ""
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
     IF temp$ <> "n/a" THEN
-        reco$ = ListC$("READ", ObjectTag$(guiObjects$(objData%, this&), "LISTOBJECT") + NewTag$("REFOBJ", LTRIM$(STR$(this&))) + NewTag$("HOLD", "true") + GetTag$(guiObjects$(objData%, this&), "ACTUAL"))
-        IF ValidateTags%(reco$, "ERROR", 0) THEN reco$ = ""
         ListviewRes$ = GetTags$(guiObjects$(objData%, this&) + reco$, temp$)
+    ELSE
+        ListviewRes$ = GetTags$(guiObjects$(objData%, this&) + reco$, guiInitTags$)
     END IF
 END IF
 RETURN
@@ -326,6 +328,7 @@ IF ValidObject%(this&, thisTag$, ListviewRes$, classID$, methodID$, tagsID$) THE
     tObL$ = NewTag$("OBJECT", LTRIM$(STR$(tObL&)))
     resu$ = ListC$("SET", tObL$ + NewTag$("ACTUAL", "1"))
     '--- draw object ----
+    IF VAL(GetTagData$(guiATTProps$, "TOBJ", "0")) = this& THEN PrintObjectTooltip 0
     FillRectColor left%, topp%, widt%, heig%, guiBackPen%
     resu$ = ImageC$("DRAW", ObjectTag$(guiObjects$(objData%, this&), "BGIMG"))
     '--- image/symbol/frame object ---
@@ -366,10 +369,13 @@ IF ValidObject%(this&, thisTag$, ListviewRes$, classID$, methodID$, tagsID$) THE
             END IF
         END IF
         IF _PRINTWIDTH(text$) > twid% THEN
+            SetTag guiObjects$(objData%, tobj&), "TOOLTIP", text$
             WHILE _PRINTWIDTH(text$ + "...") > twid%
                 text$ = LEFT$(text$, LEN(text$) - 1)
             WEND
             text$ = text$ + "..."
+        ELSE
+            RemTag guiObjects$(objData%, tobj&), "TOOLTIP"
         END IF
         SetTag guiObjects$(objData%, tobj&), "TEXT", text$
         sele$ = "": focu% = guiHighPen%
@@ -378,6 +384,7 @@ IF ValidObject%(this&, thisTag$, ListviewRes$, classID$, methodID$, tagsID$) THE
         IF i% = VAL(GetTagData$(guiObjects$(objData%, this&), "FOCUS", "0")) THEN
             LINE (tlft%, ttop%)-(tlft% + twid% - 1, ttop% + thei% - 1), focu%, B
             BrightenObjectBG this&, tlft%, ttop%, twid%, thei%
+            IF ValidateTags%(guiObjects$(objData%, tobj&), "TOOLTIP", -1) THEN j& = tobj&: ELSE j& = 0
         END IF
     NEXT i%
     '--- label output ---
@@ -385,6 +392,12 @@ IF ValidObject%(this&, thisTag$, ListviewRes$, classID$, methodID$, tagsID$) THE
     '--- check on/off state ---
     IF BoolTagTrue%(guiObjects$(objData%, this&), "DISABLED") THEN
         FillRectRaster left%, topp%, widt%, heig%, guiFillPen%
+    ELSE
+        IF j& > 0 THEN
+            RemTag guiObjects$(objData%, this&), "MITIM"
+            PrintObjectTooltip j&
+            SetTag guiATTProps$, "TOBJ", LTRIM$(STR$(this&))
+        END IF
     END IF
 END IF
 RETURN

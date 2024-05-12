@@ -1,0 +1,103 @@
+# Auto detect text files and perform LF normalization
+# ---------------------------------------------------
+* text=auto
+
+# Special cases
+# -------------
+.git* binary
+FileTypesRoot binary
+FileTypesUser binary
+
+# Completely ignore
+# -----------------
+*.bak binary
+*.Bak binary
+*.BAK binary
+*.tmp binary
+*.Tmp binary
+*.TMP binary
+
+# Batch & Scripting
+# -----------------
+*.bat text eol=crlf
+*.Bat text eol=crlf
+*.BAT text eol=crlf
+*.js text eol=crlf
+*.Js text eol=crlf
+*.JS text eol=crlf
+*.php text eol=crlf
+*.Php text eol=crlf
+*.PHP text eol=crlf
+*.vbs text eol=crlf
+*.Vbs text eol=crlf
+*.VBS text eol=crlf
+
+# QB64 sources
+# ------------
+*.bas text eol=crlf
+*.Bas text eol=crlf
+*.BAS text eol=crlf
+*.bi text eol=crlf
+*.Bi text eol=crlf
+*.BI text eol=crlf
+*.bm text eol=crlf
+*.Bm text eol=crlf
+*.BM text eol=crlf
+
+# C & C++ sources
+# ---------------
+*.c text eol=crlf
+*.C text eol=crlf
+*.h text eol=crlf
+*.H text eol=crlf
+*.cpp text eol=crlf
+*.Cpp text eol=crlf
+*.CPP text eol=crlf
+*.hpp text eol=crlf
+*.Hpp text eol=crlf
+*.HPP text eol=crlf
+
+# Text & Documentation
+# --------------------
+*.css text eol=crlf
+*.Css text eol=crlf
+*.CSS text eol=crlf
+*.htm -text
+*.Htm -text
+*.HTM -text
+*.html -text
+*.Html -text
+*.HTML -text
+*.md text eol=crlf
+*.Md text eol=crlf
+*.MD text eol=crlf
+*.pdf binary
+*.Pdf binary
+*.PDF binary
+*.txt text eol=crlf
+*.Txt text eol=crlf
+*.TXT text eol=crlf
+*.xml text eol=crlf
+*.Xml text eol=crlf
+*.XML text eol=crlf
+
+# Datafile formats
+# ----------------
+*.agf text eol=crlf
+*.Agf text eol=crlf
+*.AGF text eol=crlf
+*.bdf text eol=crlf
+*.Bdf text eol=crlf
+*.BDF text eol=crlf
+*.fsd text eol=crlf
+*.Fsd text eol=crlf
+*.FSD text eol=crlf
+*.ini text eol=crlf
+*.Ini text eol=crlf
+*.INI text eol=crlf
+*.iso text eol=crlf
+*.Iso text eol=crlf
+*.ISO text eol=crlf
+*.prc text eol=crlf
+*.Prc text eol=crlf
+*.PRC text eol=crlf

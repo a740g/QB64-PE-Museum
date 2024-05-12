@@ -28,7 +28,7 @@
             GOTO BuildGUI
         END IF
         IF ThisObject%(PenLView$, mess$, "GADGETUP") THEN
-            actPen% = VAL(GetTagData$(GenC$("GET", PenLView$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "1"))
+            actPen% = VAL(GetObjTagData$(PenLView$, "ACTUAL", "1"))
             SELECT CASE actPen%
                 CASE 1: col% = guiBackPen%
                 CASE 2: col% = guiTextPen%
@@ -51,7 +51,7 @@
             GOSUB UpdatePaletteTool
         END IF
         IF ThisObject%(ColorLView$, mess$, "GADGETUP") THEN
-            col% = VAL(GetTagData$(GenC$("GET", ColorLView$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "1")) - 1
+            col% = VAL(GetObjTagData$(ColorLView$, "ACTUAL", "1")) - 1
             SELECT CASE actPen%
                 CASE 1: guiBackPen% = col%
                 CASE 2: guiTextPen% = col%
@@ -76,7 +76,7 @@
             GOTO BuildGUI
         END IF
         IF ThisObject%(ImageOpt$, mess$, "GADGETUP") THEN
-            options.csetIMAGE = GetTagData$(GenC$("GET", ImageOpt$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            options.csetIMAGE = GetObjTagData$(ImageOpt$, "TEXT", "")
             SetPrefs section$, options
             oldSect$ = section$
             GOTO BuildGUI
@@ -91,33 +91,33 @@
             END IF
         END IF
         IF ThisObject%(TileOpt$, mess$, "GADGETUP") THEN
-            options.csetTILE = VAL(GetTagData$(GenC$("GET", TileOpt$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "")) - 2
+            options.csetTILE = VAL(GetObjTagData$(TileOpt$, "ACTUAL", "")) - 2
             SetPrefs section$, options
             oldSect$ = section$
             GOTO BuildGUI
         END IF
         IF ThisObject%(HOvrOpt$, mess$, "GADGETUP") THEN
             IF section$ = "PagerC.WallPen" THEN
-                pen$ = GetTagData$(GenC$("GET", HOvrOpt$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "-1")
+                pen$ = GetObjTagData$(HOvrOpt$, "LEVEL", "-1")
                 options.csetHOVR = VAL(pen$)
                 SetPrefs section$, options
                 res$ = GenC$("SET", PreObjBlank$ + NewTag$("WALLPEN", pen$) + NewTag$("PREVIEW", "yes"))
                 res$ = GenC$("SET", PreObjPen$ + NewTag$("WALLPEN", pen$) + NewTag$("PREVIEW", "yes"))
             ELSE
-                options.csetHOVR = BoolTagTrue%(GenC$("GET", HOvrOpt$ + NewTag$("TAGNAMES", "CHECKED")), "CHECKED")
+                options.csetHOVR = BoolTagTrue%(GenC$("GET", HOvrOpt$), "CHECKED")
             END IF
             SetPrefs section$, options
             oldSect$ = section$
             GOTO BuildGUI
         END IF
         IF ThisObject%(FOvrOpt$, mess$, "GADGETUP") THEN
-            options.csetFOVR = BoolTagTrue%(GenC$("GET", FOvrOpt$ + NewTag$("TAGNAMES", "CHECKED")), "CHECKED")
+            options.csetFOVR = BoolTagTrue%(GenC$("GET", FOvrOpt$), "CHECKED")
             SetPrefs section$, options
             oldSect$ = section$
             GOTO BuildGUI
         END IF
         IF ThisObject%(PModOpt$, mess$, "GADGETUP") THEN
-            options.csetPMOD = VAL(GetTagData$(GenC$("GET", PModOpt$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "")) - 2
+            options.csetPMOD = VAL(GetObjTagData$(PModOpt$, "ACTUAL", "")) - 2
             SetPrefs section$, options
             oldSect$ = section$
             GOTO BuildGUI

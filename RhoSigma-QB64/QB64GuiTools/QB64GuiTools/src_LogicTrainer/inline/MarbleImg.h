@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file Marble.jpg
 // ---------------------------------------------------------------------
-static const unsigned int32 MarbleImgL0[] = {
+static const uint32_t MarbleImgL0[] = {
     3664,
     0xE0FFD8FF,0x464A1000,0x01004649,0x01000001,0x00000100,0x4300DBFF,0x02020300,0x03020203,
     0x04030303,0x05040303,0x04050508,0x070A0504,0x0C080607,0x0B0C0C0A,0x0D0B0B0A,0x0D10120E,
@@ -467,10 +467,21 @@ static const unsigned int32 MarbleImgL0[] = {
     0xBD72B0DB,0x6915A245,0x4C06D4BA,0xB1B435B4,0x231FB016,0x7D1CECB6,0x35C4A335,0x89958831
 };
 
-static const unsigned int8 MarbleImgB[] = {
+static const uint8_t MarbleImgB[] = {
     10,
     0x24,0xDB,0x2D,0x36,0xF5,0x3D,0xB7,0x60,0xFF,0xD9
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadMarbleImgData(char *Buffer)
+{
+    memcpy(Buffer, &MarbleImgL0[1], MarbleImgL0[0] << 2);
+    Buffer += (MarbleImgL0[0] << 2);
+
+    memcpy(Buffer, &MarbleImgB[1], MarbleImgB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -490,10 +501,10 @@ void KillMarbleImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteMarbleImgData(const char *FileName, int16 AutoClean)
+const char *WriteMarbleImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(MarbleImgName, FileName, 8192)) return "";

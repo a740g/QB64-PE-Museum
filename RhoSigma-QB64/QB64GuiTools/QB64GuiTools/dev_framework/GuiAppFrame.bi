@@ -20,22 +20,22 @@
 '+-------------------------------------------------------------------+
 
 '--- no Screen until init is done ---
-$SCREENHIDE
+$ScreenHide
 
 '---------------------------------------------
 '--- Public Application wide SHARED values ---
 '---------------------------------------------
-DIM SHARED appProgID$ 'unique ID of this program (every running GuiTools based program will get its own)
+Dim Shared appProgID$ 'unique ID of this program (every running GuiTools based program will get its own)
 
-DIM SHARED appHomeDrive$ 'this program's home drive, ie. where the executable is located (eg. "C:\")
-DIM SHARED appHomePath$ 'this program's home directory, ie. where the executable is located (eg. "C:\qb64\")
-DIM SHARED appFullExe$ 'full path/name of this program's executable file (eg. "C:\qb64\GuiApp.exe")
-DIM SHARED appExeName$ 'name only of this program's executable file (eg. "GuiApp.exe")
+Dim Shared appHomeDrive$ 'this program's home drive, ie. where the executable is located (eg. "C:\")
+Dim Shared appHomePath$ 'this program's home directory, ie. where the executable is located (eg. "C:\qb64\")
+Dim Shared appFullExe$ 'full path/name of this program's executable file (eg. "C:\qb64\GuiApp.exe")
+Dim Shared appExeName$ 'name only of this program's executable file (eg. "GuiApp.exe")
 
-DIM SHARED appPCName$ 'this computer's name from environment set (eg. "My Computer")
-DIM SHARED appLocalDir$ 'the local appdata folder from environment set (eg. "C:\Users\RhoSigma\AppData\Local\")
-DIM SHARED appTempDir$ 'the temporary folder from environment set (eg. "C:\Users\RhoSigma\AppData\Local\temp\")
-DIM SHARED appLastErr% 'the last occurred runtime error number (if any)
+Dim Shared appPCName$ 'this computer's name from environment set (eg. "My Computer")
+Dim Shared appLocalDir$ 'the local appdata folder from environment set (eg. "C:\Users\RhoSigma\AppData\Local\")
+Dim Shared appTempDir$ 'the temporary folder from environment set (eg. "C:\Users\RhoSigma\AppData\Local\temp\")
+Dim Shared appLastErr% 'the last occurred runtime error number (if any)
 
 '---------------------------
 '--- Public CONST values ---
@@ -43,27 +43,27 @@ DIM SHARED appLastErr% 'the last occurred runtime error number (if any)
 '--- print modes for SetPrintMode() ---
 '--- according to the results of the _PRINTMODE function ---
 '--- see docs\doc_GuiAppframe.bm\SetPrintMode.html ---
-CONST pmKEEP% = 1
-CONST pmONLY% = 2
-CONST pmFILL% = 3
+Const pmKEEP% = 1
+Const pmONLY% = 2
+Const pmFILL% = 3
 
 '--- strip modes for LStrip$() and RStrip$() ---
 '--- see docs\doc_GuiAppframe.bm\LRStrip.html ---
-CONST stmZERO% = 1
-CONST stmCTRL% = 2
-CONST stmBLANK% = 3
-CONST stmWHITE% = 4
-CONST stmQUOTE% = 5
+Const stmZERO% = 1
+Const stmCTRL% = 2
+Const stmBLANK% = 3
+Const stmWHITE% = 4
+Const stmQUOTE% = 5
 '--- special modes ---
-CONST stmFIXED% = 6
-CONST stmTEXT% = 7
-CONST stmVALUE% = 8
+Const stmFIXED% = 6
+Const stmTEXT% = 7
+Const stmVALUE% = 8
 
 '--- operation modes for FileSelect$() ---
 '--- see docs\doc_GuiAppframe.bm\FileSelect.html ---
-CONST fsmLOAD% = 1
-CONST fsmSAVE% = 2
-CONST fsmDIRS% = 3
+Const fsmLOAD% = 1
+Const fsmSAVE% = 2
+Const fsmDIRS% = 3
 
 '-------------------------------
 '--- Public TYPE definitions ---
@@ -73,135 +73,135 @@ CONST fsmDIRS% = 3
 '--- of Electronic Arts. These are the basic building blocks of those
 '--- files. See https://1fish2.github.io/IFF/ for the full specification.
 '-----
-TYPE Chunk 'general IFF chunk define
-    chunkID AS STRING * 4 'the four character ID of this chunk
-    chunkLEN AS LONG 'the bytesize of the content following after chunkLEN (ie. excl. chunkSIZEOF%)
-END TYPE
-CONST chunkSIZEOF% = 4 + 4
-CONST CHfreeID$ = "FREE" 'indicates an unused chunk entry for recycling
+Type Chunk 'general IFF chunk define
+    chunkID As String * 4 'the four character ID of this chunk
+    chunkLEN As Long 'the bytesize of the content following after chunkLEN (ie. excl. chunkSIZEOF%)
+End Type
+Const chunkSIZEOF% = 4 + 4
+Const CHfreeID$ = "FREE" 'indicates an unused chunk entry for recycling
 
-TYPE ChunkFORM 'IFF filetype introducer (always the 1st chunk in any IFF file)
-    formSTDC AS Chunk 'standard chunk (chunkLEN = file length - chunkSIZEOF%)
-    formTYPE AS STRING * 4 'the four character type ID of this file
-END TYPE
-CONST CHformID$ = "FORM"
-CONST CHformLEN% = 4
-CONST formSIZEOF% = chunkSIZEOF% + CHformLEN%
-CONST CHformTYPEpref$ = "PREF" 'global GuiTools preferences file
-CONST CHformTYPEwinb$ = "WINB" 'global window positions brain file
-CONST CHformTYPEuvar$ = "UVAR" 'GetUniqueID$() source file
-CONST CHformTYPEtmpl$ = "TMPL" 'TempLog() record file
+Type ChunkFORM 'IFF filetype introducer (always the 1st chunk in any IFF file)
+    formSTDC As Chunk 'standard chunk (chunkLEN = file length - chunkSIZEOF%)
+    formTYPE As String * 4 'the four character type ID of this file
+End Type
+Const CHformID$ = "FORM"
+Const CHformLEN% = 4
+Const formSIZEOF% = chunkSIZEOF% + CHformLEN%
+Const CHformTYPEpref$ = "PREF" 'global GuiTools preferences file
+Const CHformTYPEwinb$ = "WINB" 'global window positions brain file
+Const CHformTYPEuvar$ = "UVAR" 'GetUniqueID$() source file
+Const CHformTYPEtmpl$ = "TMPL" 'TempLog() record file
 
-TYPE ChunkTHDR 'header chunk for any global .tmp files
-    thdrSTDC AS Chunk 'standard chunk
-    thdrNAME AS STRING * 30 'the name of this global .tmp file (max. 30 chars)
-    thdrACCESSORS AS INTEGER 'that many GuiTools based programs are currently running and hence using this file
-    thdrUNUSED AS LONG 'the file contains that many unused chunk entries for recycling
-END TYPE
-CONST CHthdrID$ = "THDR"
-CONST CHthdrLEN% = 30 + 2 + 4
-CONST thdrSIZEOF% = chunkSIZEOF% + CHthdrLEN%
+Type ChunkTHDR 'header chunk for any global .tmp files
+    thdrSTDC As Chunk 'standard chunk
+    thdrNAME As String * 30 'the name of this global .tmp file (max. 30 chars)
+    thdrACCESSORS As Integer 'that many GuiTools based programs are currently running and hence using this file
+    thdrUNUSED As Long 'the file contains that many unused chunk entries for recycling
+End Type
+Const CHthdrID$ = "THDR"
+Const CHthdrLEN% = 30 + 2 + 4
+Const thdrSIZEOF% = chunkSIZEOF% + CHthdrLEN%
 
-TYPE ChunkCSET 'holds preferred settings of one specific GUI object class
-    csetSTDC AS Chunk 'standard chunk
-    csetCLASS AS STRING * 16 'the class ID
-    csetIMAGE AS STRING * 264 'path/name of default backimage file
-    csetTILE AS INTEGER 'flag: scale(0) to fit or tile(-1) the image
-    csetHOVR AS INTEGER 'flag: allow(-1) app override with handle?
-    csetFOVR AS INTEGER 'flag: allow(-1) app override with file?
-    csetPMOD AS INTEGER 'flag: paint mode overpaint(-1) or keep blank(0)
-END TYPE
-CONST CHcsetID$ = "CSET"
-CONST CHcsetLEN% = 16 + 264 + 2 + 2 + 2 + 2
-CONST csetSIZEOF% = chunkSIZEOF% + CHcsetLEN%
+Type ChunkCSET 'holds preferred settings of one specific GUI object class
+    csetSTDC As Chunk 'standard chunk
+    csetCLASS As String * 16 'the class ID
+    csetIMAGE As String * 264 'path/name of default backimage file
+    csetTILE As Integer 'flag: scale(0) to fit or tile(-1) the image
+    csetHOVR As Integer 'flag: allow(-1) app override with handle?
+    csetFOVR As Integer 'flag: allow(-1) app override with file?
+    csetPMOD As Integer 'flag: paint mode overpaint(-1) or keep blank(0)
+End Type
+Const CHcsetID$ = "CSET"
+Const CHcsetLEN% = 16 + 264 + 2 + 2 + 2 + 2
+Const csetSIZEOF% = chunkSIZEOF% + CHcsetLEN%
 
-TYPE ChunkWPOS 'holds the last window position of a named application
-    wposSTDC AS Chunk 'standard chunk
-    wposNAME AS STRING * 30 'application's EXE name
-    wposXPOS AS INTEGER 'window's left position
-    wposYPOS AS INTEGER 'window's top position
-END TYPE
-CONST CHwposID$ = "WPOS"
-CONST CHwposLEN% = 30 + 2 + 2
-CONST wposSIZEOF% = chunkSIZEOF% + CHwposLEN%
+Type ChunkWPOS 'holds the last window position of a named application
+    wposSTDC As Chunk 'standard chunk
+    wposNAME As String * 30 'application's EXE name
+    wposXPOS As Integer 'window's left position
+    wposYPOS As Integer 'window's top position
+End Type
+Const CHwposID$ = "WPOS"
+Const CHwposLEN% = 30 + 2 + 2
+Const wposSIZEOF% = chunkSIZEOF% + CHwposLEN%
 
-TYPE ChunkVARS 'holds the source values for GetUniqueID$()
-    varsSTDC AS Chunk 'standard chunk
-    varsFID AS LONG 'the front/name ID counter
-    varsEID AS INTEGER 'the extension ID counter
-    varsIDF AS INTEGER 'the restart flag
-END TYPE
-CONST CHvarsID$ = "VARS"
-CONST CHvarsLEN% = 4 + 2 + 2
-CONST varsSIZEOF% = chunkSIZEOF% + CHvarsLEN%
+Type ChunkVARS 'holds the source values for GetUniqueID$()
+    varsSTDC As Chunk 'standard chunk
+    varsFID As Long 'the front/name ID counter
+    varsEID As Integer 'the extension ID counter
+    varsIDF As Integer 'the restart flag
+End Type
+Const CHvarsID$ = "VARS"
+Const CHvarsLEN% = 4 + 2 + 2
+Const varsSIZEOF% = chunkSIZEOF% + CHvarsLEN%
 
-TYPE ChunkTLOG 'holds a .tmp file record for TempLog()
-    tlogSTDC AS Chunk 'standard chunk
-    tlogNAME AS STRING * 30 'the name of the logged .tmp file
-    tlogACCESSOR AS STRING * 12 'appProgID$ of the program, which created the .tmp file
-    tlogCOMMENT AS STRING * 80 'optional comment for the .tmp file (purpose, contents etc.)
-END TYPE
-CONST CHtlogID$ = "TLOG"
-CONST CHtlogLEN% = 30 + 12 + 80
-CONST tlogSIZEOF% = chunkSIZEOF% + CHtlogLEN%
+Type ChunkTLOG 'holds a .tmp file record for TempLog()
+    tlogSTDC As Chunk 'standard chunk
+    tlogNAME As String * 30 'the name of the logged .tmp file
+    tlogACCESSOR As String * 12 'appProgID$ of the program, which created the .tmp file
+    tlogCOMMENT As String * 80 'optional comment for the .tmp file (purpose, contents etc.)
+End Type
+Const CHtlogID$ = "TLOG"
+Const CHtlogLEN% = 30 + 12 + 80
+Const tlogSIZEOF% = chunkSIZEOF% + CHtlogLEN%
 
 '--------------------------------------------
 '--- Various (internal) LIBRARY functions ---
 '--------------------------------------------
-DECLARE LIBRARY
-    FUNCTION GetModuleFileNameA& (BYVAL module&, buffer$, BYVAL bufSize&)
+Declare Library
+    Function GetModuleFileNameA& (ByVal module&, buffer$, Byval bufSize&)
     'Used during program init to setup the SHARED variables
     'appHomeDrive$, appHomePath$, appFullExe$ and appExeName$.
-    FUNCTION GetLogicalDrives& ()
+    Function GetLogicalDrives& ()
     'Used in the dev_framework\GuiAppFrame.bm function CurrDrives$().
-    FUNCTION GetCurrentDirectoryA& (BYVAL bufSize&, buffer$)
+    Function GetCurrentDirectoryA& (ByVal bufSize&, buffer$)
     'Used in the dev_framework\GuiAppFrame.bm function CurrDIR$().
-    FUNCTION GetKeyboardLayout&& (BYVAL thread&)
+    Function GetKeyboardLayout&& (ByVal thread&)
     'Used during program init to setup some internal input flags.
-END DECLARE
-DECLARE LIBRARY "QB64GuiTools\dev_framework\GuiAppFrame" 'Do not add .h here !!
-    SUB QB64ErrorOff ()
-    SUB QB64ErrorOn ()
+End Declare
+Declare Library "..\dev_framework\GuiAppFrame" 'Do not add .h here !!
+    Sub QB64ErrorOff ()
+    Sub QB64ErrorOn ()
     'Two tiny routines to cheat QB64's error handling logic to allow for
     'nested error handling abilities, used in the UserErrorHandler, don't
     'mess with these, consider it as internal only.
-    FUNCTION LockMutex%& (mtxName$) 'add CHR$(0) to name
-    SUB UnlockMutex (BYVAL mtxHandle%&)
+    Function LockMutex%& (mtxName$) 'add CHR$(0) to name
+    Sub UnlockMutex (ByVal mtxHandle%&)
     'These two functions can be used to synchronize access to any globally
     'shared resources in such a way, that only one program at a time is
     'allowed to access the protected resource.
-    FUNCTION PlantMutex%& (mtxName$) 'add CHR$(0) to name
-    SUB RemoveMutex (BYVAL mtxHandle%&)
-    FUNCTION CheckMutex% (mtxName$) 'add CHR$(0) to name
+    Function PlantMutex%& (mtxName$) 'add CHR$(0) to name
+    Sub RemoveMutex (ByVal mtxHandle%&)
+    Function CheckMutex% (mtxName$) 'add CHR$(0) to name
     'Some more functions for mutual exclusion handling, but these will not
     'lock access, but can be used to flag/check unique condition states.
-    FUNCTION BeginDirRead%& (pathName$) 'add CHR$(0) to name
-    FUNCTION GetDirEntry$ (BYVAL dirHandle%&)
-    SUB EndDirRead (BYVAL dirHandle%&)
+    Function BeginDirRead%& (pathName$) 'add CHR$(0) to name
+    Function GetDirEntry$ (ByVal dirHandle%&)
+    Sub EndDirRead (ByVal dirHandle%&)
     'These three can be used to read the entries of a given directory.
-    FUNCTION RegexMatch% (qbStr$, qbRegex$) 'add CHR$(0) to both
-    FUNCTION RegexError$ (BYVAL errCode%)
-    FUNCTION RegexIsActive% ()
+    Function RegexMatch% (qbStr$, qbRegex$) 'add CHR$(0) to both
+    Function RegexError$ (ByVal errCode%)
+    Function RegexIsActive% ()
     'Regular expression matching must be explicitly enabled in the file
     'GuiAppFrame.h (dev_framework). Carfully read the notes given there.
-    SUB UntitledToTop ()
+    Sub UntitledToTop ()
     'Bring the still untitled window to the top of the Z-Order.
-    FUNCTION FindColor& (BYVAL r&, BYVAL g&, BYVAL b&, BYVAL i&, BYVAL mi&, BYVAL ma&)
+    Function FindColor& (ByVal r&, Byval g&, Byval b&, Byval i&, Byval mi&, Byval ma&)
     'This is a replacement for the _RGB function. It works for up to 8-bit
     '(256 colors) images only and needs a valid image. It can limit the
     'number of pens to search and uses a better color matching algorithm.
-    FUNCTION CreateSMObject%& (smName$, BYVAL smSize&) 'add CHR$(0) to name
-    SUB RemoveSMObject (BYVAL smObj%&)
-    FUNCTION OpenSMObject%& (smName$, BYVAL smSize&) 'add CHR$(0) to name
-    SUB CloseSMObject (BYVAL smObj%&)
+    Function CreateSMObject%& (smName$, Byval smSize&) 'add CHR$(0) to name
+    Sub RemoveSMObject (ByVal smObj%&)
+    Function OpenSMObject%& (smName$, Byval smSize&) 'add CHR$(0) to name
+    Sub CloseSMObject (ByVal smObj%&)
     'Four routines to establish shared memory for IPC purposes, the master
     'process must use create/remove, slaves use open/close.
-    SUB PutSMString (BYVAL smObj%&, qbStr$) 'add CHR$(0) to string
-    FUNCTION GetSMString$ (BYVAL smObj%&)
-    SUB ImageToSM (BYVAL smObj%&, BYVAL i&)
-    SUB SMToImage (BYVAL smObj%&, BYVAL i&)
+    Sub PutSMString (ByVal smObj%&, qbStr$) 'add CHR$(0) to string
+    Function GetSMString$ (ByVal smObj%&)
+    Sub ImageToSM (ByVal smObj%&, Byval i&)
+    Sub SMToImage (ByVal smObj%&, Byval i&)
     'Some routines for IPC data exchange through shared memory (internal).
-END DECLARE
+End Declare
 
 '*********************************************************************
 '*** Here comes the sensitive part of the GuiTools Framework its   ***
@@ -211,15 +211,15 @@ END DECLARE
 '*** exactly understand, how the init procedure works with all its ***
 '*** scattered GOSUB calls and Mutex locks.                        ***
 '*********************************************************************
-dummy% = _EXIT 'take over exit handling
+dummy% = _Exit 'take over exit handling
 
 '--- create/init some internally required arrays and variables ---
 '--- stack setup ---
-REDIM SHARED appStackArr$(0)
+ReDim Shared appStackArr$(0)
 appStackArr$(0) = "*** RhoSigma-Stack-Bottom ***"
 '--- error handler ---
 appErrCnt% = 0: appErrMax% = 5
-REDIM appErrorArr%(1 TO appErrMax%, 1)
+ReDim appErrorArr%(1 To appErrMax%, 1)
 UserErrHandler
 '--- flow control ---
 DIM SHARED appGLVComp% 'compiled with QB64-GL yes(-1), no(0) = QB64-SDL
@@ -234,6 +234,8 @@ DIM SHARED appFont& 'default font handle
 REDIM SHARED guiViews$(0)
 DIM SHARED guiAGVIndex& 'active GuiView index
 guiAGVIndex& = 0
+DIM SHARED guiPGVCount% 'pending GuiViews counter
+guiPGVCount% = 0
 DIM SHARED guiWinX%, guiWinY% 'current window (GuiView) position
 '--- colorspace (ImageClass) ---
 'This array must be cleared, if the screen palette changes during runtime.
@@ -262,7 +264,7 @@ temp$ = COMMAND$
 IF INSTR(temp$, "IUGNEPO") = 0 AND INSTR(temp$, "XOBEGASSEM") = 0 AND INSTR(temp$, "TCELESELIF") = 0 AND INSTR(temp$, "WEIVEDIUG") = 0 THEN
     'NOTE: GuiTools internal command names are spelled in reverse order to
     '      avoid faulty detection in regular command lines given by the user.
-    temp$ = "REGULAR" 'regular user given command line
+    temp$ = "NWONKNU" 'regular user given command line
 END IF
 REDIM cmdArgs$(0)
 dummy% = ParseLine&(temp$, MKI$(&H0920), "'", cmdArgs$(), 5)
@@ -282,6 +284,7 @@ IF appGLVComp% THEN
     i% = INSTR(",1030,1031,1033,1034,1036,1040,1043,1044,1053,2055,2057,2058,2060,2070,4108,6153,", temp$)
     IF i% > 0 THEN appKBLIdent% = kbli%
 END IF
+temp$ = "" 'erase temp data
 
 '--- init global GuiApps management ---
 GOSUB CreateGlobalTemps
@@ -305,7 +308,7 @@ GOSUB UserInitHandler
 SELECT CASE cmdArgs$(0)
     CASE "IUGNEPO"
         '====================================================================
-        'Every program can have several independed GuiViews which appear in
+        'Every program can have several independent GuiViews which appear in
         'its own detached windows (see SUB OpenGuiView()). The program simply
         'calls itself given the appropriate command line options.
         '--------------------------------------------------------------------
@@ -353,11 +356,12 @@ CLOSE
 '--- cleanup views & shared memory ---
 FOR i& = 1 TO UBOUND(guiViews$)
     temp& = VAL(GetTagData$(guiViews$(i&), "IHANDLE", "-1"))
-    IF temp& < -1 THEN _FREEIMAGE temp&
+    IF temp& < -1 THEN _FONT 16, temp&: _FREEIMAGE temp&
     RemoveSMObject VAL(GetTagData$(guiViews$(i&), "SMOBJ", "0"))
     RemoveMutex VAL(GetTagData$(guiViews$(i&), "ISOPEN", "0"))
 NEXT i&
 RemoveSMObject appSMObj%&
+IF appFont& > 0 THEN _FREEFONT appFont&
 
 '--- cleanup temporary data ---
 InternalErrHandler

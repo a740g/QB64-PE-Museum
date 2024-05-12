@@ -54,14 +54,14 @@ END FUNCTION
 '--- docs\doc_ConvertSupport.bm\MovePointXY.html
 '---------------------------------------------------------------------
 FUNCTION MovePointX% (xPos%, yPos%, ang!, dist!)
-tmpY% = yPos% 'avoid unused warning in QB64-GL v1.2 and up
+tmpY% = yPos% 'avoid unused warning in QB64 v1.2 and up
 MovePointX% = xPos% + PolToCartX%(ang!, dist!)
 END FUNCTION
 
 '--- docs\doc_ConvertSupport.bm\MovePointXY.html
 '---------------------------------------------------------------------
 FUNCTION MovePointY% (xPos%, yPos%, ang!, dist!)
-tmpX% = xPos% 'avoid unused warning in QB64-GL v1.2 and up
+tmpX% = xPos% 'avoid unused warning in QB64 v1.2 and up
 MovePointY% = yPos% + PolToCartY%(ang!, dist!)
 END FUNCTION
 

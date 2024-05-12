@@ -167,7 +167,11 @@ meGet:
 IF ValidObject%(this&, thisTag$, SymbolRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
-    IF temp$ <> "n/a" THEN SymbolRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    IF temp$ <> "n/a" THEN
+        SymbolRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    ELSE
+        SymbolRes$ = GetTags$(guiObjects$(objData%, this&), guiInitTags$)
+    END IF
 END IF
 RETURN
 '---------------------------------------------------------------------

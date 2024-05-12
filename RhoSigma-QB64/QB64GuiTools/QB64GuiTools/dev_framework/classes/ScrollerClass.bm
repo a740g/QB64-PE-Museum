@@ -222,7 +222,11 @@ meGet:
 IF ValidObject%(this&, thisTag$, ScrollerRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
-    IF temp$ <> "n/a" THEN ScrollerRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    IF temp$ <> "n/a" THEN
+        ScrollerRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    ELSE
+        ScrollerRes$ = GetTags$(guiObjects$(objData%, this&), guiInitTags$)
+    END IF
 END IF
 RETURN
 '---------------------------------------------------------------------

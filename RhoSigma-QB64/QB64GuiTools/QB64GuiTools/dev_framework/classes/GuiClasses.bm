@@ -83,7 +83,9 @@ ELSE
     SetTag guiObjects$(0, 0), "SMINP", "true"
 END IF
 '--- check new input ---
-IF mi% <> 0 OR ik$ <> "" OR mwl% <> 0 THEN PrintObjectTooltip 0
+IF mi% <> 0 OR ik$ <> "" OR mwl% <> 0 THEN
+    IF NOT BoolTagTrue%(guiATTProps$, "TOBJ") THEN PrintObjectTooltip 0
+END IF
 IF mi% <> 0 OR ik$ <> "" OR BoolTagTrue%(guiObjects$(0, 0), "EGRFLAG") _
                          OR BoolTagTrue%(guiObjects$(0, 0), "IMMFLAG") THEN
     IF BoolTagTrue%(guiObjects$(0, 0), "SMINP") GOTO update
@@ -306,6 +308,21 @@ IF INSTR("MOUSEIN,MOUSEOUT,MOUSEOVER,GADGETDOWN,GADGETUP", UCASE$(eventID$)) THE
         IF this& = that& THEN ThisObject% = -1
     END IF
 END IF
+END FUNCTION
+
+'---------------------------------------------------------------------
+'This support function does the same as GetTagData$() in TagSupport.bm,
+'but takes an object handle instead of an tag string as source. Hence,
+'it will first retrieve the given tag from the given object and then
+'extracting its data. It's a simple convenience function to save typing.
+'---------------------------------------------------------------------
+'objectID$ = your object's handle as returned by its INIT method call
+'tagName$  = the name of the tag to retrieve the data from
+'defData$  = the default data to return, if the tag does not exist or
+'            contains no valid data
+'---------------------------------------------------------------------
+FUNCTION GetObjTagData$ (objectID$, tagName$, defData$)
+GetObjTagData$ = GetTagData$(GenC$("GET", objectID$ + NewTag$("TAGNAMES", tagName$)), tagName$, defData$)
 END FUNCTION
 
 '---------------------------------------------------------------------
@@ -552,9 +569,11 @@ vix& = 0
 imag& = _NEWIMAGE(viewWidth%, viewHeight%, 256)
 IF imag& >= -1 GOTO cgvSetResultAndExit
 _COPYPALETTE appScreen&, imag&
+IF appFont& > 0 THEN _FONT appFont&, imag&: ELSE _FONT 16, imag&
 viewID$ = GetUniqueID$
 smo%& = CreateSMObject%&("RhoSigma-GuiApp-ViewImgSM-" + viewID$ + CHR$(0), viewWidth% * viewHeight% + 1024)
 IF smo%& = 0 THEN _FREEIMAGE imag&: GOTO cgvSetResultAndExit
+guiPGVCount% = guiPGVCount% + 1
 '--- get new view index ---
 lb& = LBOUND(guiViews$)
 ub& = UBOUND(guiViews$)
@@ -606,7 +625,8 @@ FOR oix& = 1 TO UBOUND(guiObjects$, 2)
     END IF
 NEXT oix&
 imag& = VAL(GetTagData$(guiViews$(vix&), "IHANDLE", "-1"))
-IF imag& < -1 THEN _FREEIMAGE imag&
+IF imag& < -1 THEN _FONT 16, imag&: _FREEIMAGE imag&
+guiPGVCount% = guiPGVCount% - 1
 RemoveSMObject VAL(GetTagData$(guiViews$(vix&), "SMOBJ", "0"))
 guiViews$(vix&) = ""
 END SUB
@@ -658,7 +678,7 @@ ELSE
     wid% = VAL(GetTagData$(tags$, "WIDTH", "0")): hei% = VAL(GetTagData$(tags$, "HEIGHT", "0"))
     SetupScreen wid%, hei%, 0
     winImg$ = ImageC$("INIT", NewTag$("IMAGEFILE", winIcon$) + NewTag$("LEFT", "0") + NewTag$("TOP", "0"))
-    winIco& = VAL(GetTagData$(ImageC$("GET", winImg$ + NewTag$("TAGNAMES", "IHANDLE")), "IHANDLE", "0"))
+    winIco& = VAL(GetObjTagData$(winImg$, "IHANDLE", "0"))
     IF winIco& < -1 THEN _ICON winIco&
     resu$ = ImageC$("KILL", winImg$)
     _TITLE GetTagData$(tags$, "TITLE", "")
@@ -810,8 +830,8 @@ END SUB
 '---------------------------------------------------------------------
 'This routine will close the given GuiView window progamaticly. Note that
 'the user may also close any GuiView windows at any time, you may use the
-'SUB GuiViewIsOpen%() to find out whether a specific GuiView window is
-'currently open or not.
+'FUNCTION GuiViewIsOpen%() to find out whether a specific GuiView window
+'is currently open or not.
 '---------------------------------------------------------------------
 'vix& = the GuiView index returned by FUNCTION CreateGuiView() above
 '---------------------------------------------------------------------
@@ -1119,7 +1139,7 @@ END FUNCTION
 '--- InkeyHit ---
 '----------------
 ' This alternative INKEY$ function is made for use with western european
-' languages (Cp1252 based) and any QB64-GL versions (>= 1.000). It will
+' languages (Cp1252 based) and any QB64 versions >= 1.000. It will
 ' directly map the inputs to the chars available in Cp437, hence you don't
 ' need to setup a custom unicode font and _MAPUNICODE table, you can stay
 ' with QB64's built-in fonts and standard codepage 437.

@@ -349,9 +349,10 @@ proof, ie. "ThisName" = "THISNAME" = "This NAME" = "  T   h I s    n  Am E   ".
                              image, which is pen 39 in GuiTools its palette.
 (BOOL) BACKFILL         pub: If true, then the image is installed as background
                              for the program screen/window. Note there can be
-                             only one background image at a time, ie. INITing
-                             a new one will automatically dispose the current
-                             background image object (if any).
+                             only one background image (per GUIVIEW) at a time,
+                             ie. INITing a new one will automatically dispose
+                             the current background image object (if any) of
+                             the respective GUIVIEW.
 
 (LONG) SYMBOLOBJECT     pub: If a preselected symbol object shall be assigned
                              to another object type, then this must be the
@@ -414,11 +415,13 @@ proof, ie. "ThisName" = "THISNAME" = "This NAME" = "  T   h I s    n  Am E   ".
 (TEXT) ALTMAX           pub: Alternative level output, if a slider is on its
                              maximum level.
 (BOOL) NOSHOW           pub: Set true to suppress the level output in the
-                             slider's knob. You may use a ModelC Forwarder
+       - SliderC             slider's knob. You may use a ModelC Forwarder
                              object to route the actual level to another
                              display object instead. You may also use a
                              ModelC Ratio object instead to implement a
                              floating point slider (see GuiToolsFramework.pdf).
+       - StringC             Set true to replace the input with askerisks
+                             like in a password field.
 
 (WORD) VISIBLENUM       pub: ScrollerC needs the number of visible lines/columns
                              of the view it is connected to (represented by the

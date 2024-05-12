@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file Copy32px.png
 // ---------------------------------------------------------------------
-static const unsigned int32 CopyImgL0[] = {
+static const uint32_t CopyImgL0[] = {
     320,
     0x474E5089,0x0A1A0A0D,0x0D000000,0x52444849,0x20000000,0x20000000,0x00000608,0x7A7A7300,
     0x040000F4,0x414449CA,0xADDA7854,0x544C6997,0xFFC71457,0x36520C53,0x6356C45B,0xD2450FD2,
@@ -49,10 +49,21 @@ static const unsigned int32 CopyImgL0[] = {
     0xB001E540,0x29AA7241,0x69796EF9,0x773FFCD7,0xA13F33E4,0x00307C96,0x49000000,0xAE444E45
 };
 
-static const unsigned int8 CopyImgB[] = {
+static const uint8_t CopyImgB[] = {
     3,
     0x42,0x60,0x82
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadCopyImgData(char *Buffer)
+{
+    memcpy(Buffer, &CopyImgL0[1], CopyImgL0[0] << 2);
+    Buffer += (CopyImgL0[0] << 2);
+
+    memcpy(Buffer, &CopyImgB[1], CopyImgB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -72,10 +83,10 @@ void KillCopyImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteCopyImgData(const char *FileName, int16 AutoClean)
+const char *WriteCopyImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(CopyImgName, FileName, 8192)) return "";

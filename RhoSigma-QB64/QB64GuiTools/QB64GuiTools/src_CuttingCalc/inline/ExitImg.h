@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file Exit32px.png
 // ---------------------------------------------------------------------
-static const unsigned int32 ExitImgL0[] = {
+static const uint32_t ExitImgL0[] = {
     416,
     0x474E5089,0x0A1A0A0D,0x0D000000,0x52444849,0x20000000,0x20000000,0x00000608,0x7A7A7300,
     0x060000F4,0x4144494F,0xA5DA7854,0x534C7B97,0xBFC71C57,0x54B140B7,0x539E4141,0x82C281F0,
@@ -61,10 +61,21 @@ static const unsigned int32 ExitImgL0[] = {
     0xF0C36002,0x9D0E6746,0x9157D2EE,0xF1BA20B3,0x0BFCE359,0x4EFA973E,0xF2B5FE07,0x00000000
 };
 
-static const unsigned int8 ExitImgB[] = {
+static const uint8_t ExitImgB[] = {
     8,
     0x49,0x45,0x4E,0x44,0xAE,0x42,0x60,0x82
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadExitImgData(char *Buffer)
+{
+    memcpy(Buffer, &ExitImgL0[1], ExitImgL0[0] << 2);
+    Buffer += (ExitImgL0[0] << 2);
+
+    memcpy(Buffer, &ExitImgB[1], ExitImgB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -84,10 +95,10 @@ void KillExitImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteExitImgData(const char *FileName, int16 AutoClean)
+const char *WriteExitImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(ExitImgName, FileName, 8192)) return "";

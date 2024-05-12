@@ -9,7 +9,7 @@
         'object with a given object to easily build handling blocks for your
         'objects: eg. IF ThisObject%(myObj$, message$, "GADGETUP") THEN ...
         IF ThisObject%(InputSource$, mess$, "GADGETUP") THEN
-            tmp$ = GetTagData$(GenC$("GET", InputSource$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            tmp$ = GetObjTagData$(InputSource$, "TEXT", "")
             srcPath$ = PathPart$(tmp$): src$ = FilePart$(tmp$): tmp$ = ""
             IF src$ <> "" THEN
                 IF tar$ = "" THEN
@@ -54,7 +54,7 @@
         IF ThisObject%(InputTarget$, mess$, "GADGETUP") OR _
            ThisObject%(InputSource$, mess$, "GADGETUP") OR _
            ThisObject%(GetSource$, mess$, "GADGETUP") THEN
-            tmp$ = GetTagData$(GenC$("GET", InputTarget$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            tmp$ = GetObjTagData$(InputTarget$, "TEXT", "")
             tarPath$ = PathPart$(tmp$): tar$ = FilePart$(tmp$): tmp$ = ""
             tarName$ = FileNamePart$(tar$)
         END IF
@@ -69,7 +69,7 @@
         IF ThisObject%(InputHeader$, mess$, "GADGETUP") OR _
            ThisObject%(InputSource$, mess$, "GADGETUP") OR _
            ThisObject%(GetSource$, mess$, "GADGETUP") THEN
-            tmp$ = GetTagData$(GenC$("GET", InputHeader$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            tmp$ = GetObjTagData$(InputHeader$, "TEXT", "")
             hdrPath$ = PathPart$(tmp$): hdr$ = FilePart$(tmp$): tmp$ = ""
             hdrName$ = FileNamePart$(hdr$)
         END IF
@@ -82,14 +82,14 @@
             END IF
         END IF
         IF ThisObject%(UseLzw$, mess$, "GADGETUP") THEN
-            IF BoolTagTrue%(GenC$("GET", UseLzw$ + NewTag$("TAGNAMES", "CHECKED")), "CHECKED") THEN
+            IF BoolTagTrue%(GenC$("GET", UseLzw$), "CHECKED") THEN
                 res$ = GenC$("SET", InputRatio$ + NewTag$("DISABLED", "no")): use% = -1
             ELSE
                 res$ = GenC$("SET", InputRatio$ + NewTag$("DISABLED", "yes")): use% = 0
             END IF
         END IF
         IF ThisObject%(Start$, mess$, "GADGETUP") THEN
-            rat% = VAL(GetTagData$(GenC$("GET", InputRatio$ + NewTag$("TAGNAMES", "LEVEL")), "LEVEL", "20"))
+            rat% = VAL(GetObjTagData$(InputRatio$, "LEVEL", "20"))
             IF ConvertFile% THEN
                 res$ = GenC$("SET", InputSource$ + NewTag$("TEXT", ""))
                 srcPath$ = "": src$ = ""

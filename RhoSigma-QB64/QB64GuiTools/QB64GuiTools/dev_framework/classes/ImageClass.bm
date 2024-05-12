@@ -42,7 +42,7 @@
 '   you may omit the path, if the image file is located within the
 '   ImageClass's internal search tree, ie. the following locations are
 '   searched incl. all its sub-folders:
-'    1.) the GuiTools images folder in your qb64 folder (QB64GuiTools\images)
+'    1.) the GuiTools images folder in your QB64 folder (QB64GuiTools\images)
 '        - centralize your images here while you develop your applications
 '    2.) the current user's temp folder (appTempDir$)
 '        - this is preferred for embedded files write back
@@ -172,9 +172,9 @@ ELSE
             IF NOT ValidateTags%(tagsID$, "TOOLTIP", 0) THEN SetTag tagsID$, "TOOLTIP", ifil$
             '--- on failure try to load from some predefined locations ---
             IF ihan& >= -1 AND ifil$ <> "" THEN
-                '--- the GuiTools images folder in the qb64 folder (if EXEs saved in qb64 folder) ---
+                '--- the GuiTools images folder in the QB64 folder (if EXEs saved in qb64 folder) ---
                 IF ihan& >= -1 THEN ihan& = _LOADIMAGE(SearchFile$("QB64GuiTools\images\", imus$, ifil$), 32)
-                '--- the GuiTools images folder in your qb64 folder (if EXEs saved in source folder) ---
+                '--- the GuiTools images folder in your QB64 folder (if EXEs saved in source folder) ---
                 IF ihan& >= -1 THEN ihan& = _LOADIMAGE(SearchFile$("..\images\", imus$, ifil$), 32)
                 '--- the current user's temp folder (preferred for embedded files write back) ---
                 IF ihan& >= -1 THEN ihan& = _LOADIMAGE(SearchFile$(appTempDir$, imus$, ifil$), 32)
@@ -275,7 +275,11 @@ meGet:
 IF ValidObject%(this&, thisTag$, ImageRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
-    IF temp$ <> "n/a" THEN ImageRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    IF temp$ <> "n/a" THEN
+        ImageRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    ELSE
+        ImageRes$ = GetTags$(guiObjects$(objData%, this&), guiInitTags$)
+    END IF
 END IF
 RETURN
 '---------------------------------------------------------------------

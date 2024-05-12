@@ -1,10 +1,10 @@
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bi'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bi'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bi'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bi'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bi'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bi'
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bi'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bi'
 '*****************************************************
 
 '+---------------+---------------------------------------------------+
@@ -20,14 +20,15 @@
 '| === MakeCARR.bas ===                                              |
 '|                                                                   |
 '| == Create a C/C++ array out of the given file, so you can embed   |
-'| == it in your program and write it back when needed.              |
+'| == it into your program and read it or write it back when needed. |
 '|                                                                   |
 '| == Two files are created, the .h file, which contains the array(s)|
 '| == and some functions, and a respective .bm file which needs to   |
-'| == be $INCLUDEd with your program and does provide the FUNCTION   |
-'| == to write back the array(s) into any file. All used functions   |
-'| == are standard library calls, no API calls are involved, so the  |
-'| == writeback should work on all QB64 supported platforms.         |
+'| == be $INCLUDEd with your program and does provide the FUNCTIONs  |
+'| == to read the array(s) into a string or write them back into any |
+'| == file. All used functions are standard library calls, no API    |
+'| == calls are involved, so the read and writeback should work on   |
+'| == all QB64 supported platforms.                                  |
 '|                                                                   |
 '| == Make sure to adjust the path for the .h file for your personal |
 '| == needs in the created .bm files (DECLARE LIBRARY), if required. |
@@ -223,7 +224,7 @@ UserMain:
 '=====================================================================
 
 SetupScreen 480, 313, 0
-appCR$ = "Convert File to C-Array v1.1, Done by RhoSigma, Roland Heyder"
+appCR$ = "Convert File to C-Array v2.0, Done by RhoSigma, Roland Heyder"
 _TITLE appExeName$ + " - " + appCR$
 
 '------------------------------
@@ -352,7 +353,7 @@ InputRatio$ = SliderC$("INIT",_
         NewTag$("IMAGEFILE", "PaperGray.jpg") +_
         NewTag$("AREA", "on") +_
         NewTag$("DISABLED", LTRIM$(STR$(NOT use%))) +_
-        NewTag$("TOOLTIP", "If packing gives less ratio than this, then|convert it unpacked and rather save the|time required for unpacking at writeback."))
+        NewTag$("TOOLTIP", "If packing gives less ratio than this,|then convert it unpacked, so you can|rather save the time for unpacking."))
 UseLzw$ = CheckboxC$("INIT",_
         NewTag$("LEFT", "434") +_
         NewTag$("TOP", "150") +_
@@ -521,356 +522,412 @@ RETURN
 CONST ShowErrSwitch$ = "ON" 'ON or OFF
 '-----
 FUNCTION ShowErr$ (tagString$)
-ShowErr$ = tagString$
-IF UCASE$(ShowErrSwitch$) = "ON" THEN
-    IF ValidateTags%(tagString$, "ERROR", -1) THEN
+    ShowErr$ = tagString$
+    IF UCASE$(ShowErrSwitch$) = "ON" THEN
+        IF ValidateTags%(tagString$, "ERROR", -1) THEN
         dummy$ = MessageBox$("Error16px.png", "Error Tag",_
                              GetTagData$(tagString$, "ERROR", "empty"),_
                              "{IMG Error16px.png 39}Ok, got it...")
-    ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
+        ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
         dummy$ = MessageBox$("Problem16px.png", "Warning Tag",_
                              GetTagData$(tagString$, "WARNING", "empty"),_
                              "{IMG Problem16px.png 39}Ok, got it...")
+        END IF
     END IF
-END IF
+END FUNCTION
+'--- Function to define/return the program's version string.
+'-----
+FUNCTION VersionMakeCARR$
+    VersionMakeCARR$ = MID$("$VER: MakeCARR 2.0 (26-Oct-2023) by RhoSigma :END$", 7, 38)
 END FUNCTION
 '---------------------------------------------------------------------
 'Convert the selected file into a C-Array, the return value indicates
 'whether to auto-reset the file input fields after the call or not.
 '---------------------------------------------------------------------
 FUNCTION ConvertFile%
-SHARED srcPath$, src$, tarPath$, tar$, tarName$, hdrPath$, hdr$, hdrName$, rat%, use%
-SHARED OutputState$, OutputProgress$
-ConvertFile% = 0
-'--- strip invalid chars for labels ---
-tmp$ = tarName$: tarName$ = ""
-FOR i% = 1 TO LEN(tmp$)
-    a% = ASC(tmp$, i%)
-    SELECT CASE a%
-        CASE 48 TO 57, 65 TO 90, 97 TO 122 'keep only 0-9, Aa-Zz
-            tarName$ = tarName$ + CHR$(a%)
-    END SELECT
-NEXT i%
-MID$(tarName$, 1, 1) = UCASE$(MID$(tarName$, 1, 1)) 'capitalize 1st letter
-tmp$ = hdrName$: hdrName$ = ""
-FOR i% = 1 TO LEN(tmp$)
-    a% = ASC(tmp$, i%)
-    SELECT CASE a%
-        CASE 48 TO 57, 65 TO 90, 97 TO 122 'keep only 0-9, Aa-Zz
-            hdrName$ = hdrName$ + CHR$(a%)
-    END SELECT
-NEXT i%
-MID$(hdrName$, 1, 1) = UCASE$(MID$(hdrName$, 1, 1)) 'capitalize 1st letter
-'--- check files ---
-IF LCASE$(FileExtension$(hdr$)) <> ".h" THEN
+    SHARED srcPath$, src$, tarPath$, tar$, tarName$, hdrPath$, hdr$, hdrName$, rat%, use%
+    SHARED OutputState$, OutputProgress$
+    ConvertFile% = 0
+    '--- strip invalid chars for labels ---
+    tmp$ = tarName$: tarName$ = ""
+    FOR i% = 1 TO LEN(tmp$)
+        a% = ASC(tmp$, i%)
+        SELECT CASE a%
+            CASE 48 TO 57, 65 TO 90, 97 TO 122 'keep only 0-9, Aa-Zz
+                tarName$ = tarName$ + CHR$(a%)
+        END SELECT
+    NEXT i%
+    MID$(tarName$, 1, 1) = UCASE$(MID$(tarName$, 1, 1)) 'capitalize 1st letter
+    tmp$ = hdrName$: hdrName$ = ""
+    FOR i% = 1 TO LEN(tmp$)
+        a% = ASC(tmp$, i%)
+        SELECT CASE a%
+            CASE 48 TO 57, 65 TO 90, 97 TO 122 'keep only 0-9, Aa-Zz
+                hdrName$ = hdrName$ + CHR$(a%)
+        END SELECT
+    NEXT i%
+    MID$(hdrName$, 1, 1) = UCASE$(MID$(hdrName$, 1, 1)) 'capitalize 1st letter
+    '--- check files ---
+    IF LCASE$(FileExtension$(hdr$)) <> ".h" THEN
     res$ = MessageBox$("Error16px.png", "Error !!",_
            "Header file must have .h extension!", "{IMG Error16px.png 39}I'll check")
-    EXIT FUNCTION
-END IF
-IF (srcPath$ + src$) = (tarPath$ + tar$) THEN
+        EXIT FUNCTION
+    END IF
+    IF (srcPath$ + src$) = (tarPath$ + tar$) THEN
     res$ = MessageBox$("Error16px.png", "Error !!",_
            "Source and Target files are the same!", "{IMG Error16px.png 39}I'll check")
-    EXIT FUNCTION
-END IF
-IF (srcPath$ + src$) = (hdrPath$ + hdr$) THEN
+        EXIT FUNCTION
+    END IF
+    IF (srcPath$ + src$) = (hdrPath$ + hdr$) THEN
     res$ = MessageBox$("Error16px.png", "Error !!",_
            "Source and Header files are the same!", "{IMG Error16px.png 39}I'll check")
-    EXIT FUNCTION
-END IF
-IF (tarPath$ + tar$) = (hdrPath$ + hdr$) THEN
+        EXIT FUNCTION
+    END IF
+    IF (tarPath$ + tar$) = (hdrPath$ + hdr$) THEN
     res$ = MessageBox$("Error16px.png", "Error !!",_
            "Target and Header files are the same!", "{IMG Error16px.png 39}I'll check")
-    EXIT FUNCTION
-END IF
-IF _FILEEXISTS(tarPath$ + tar$) THEN
+        EXIT FUNCTION
+    END IF
+    IF _FILEEXISTS(tarPath$ + tar$) THEN
     res$ = MessageBox$("Problem16px.png", "Attention !!",_
            "Target file already exists,|do you want to overwrite?",_
            "{SYM Checkmark * * * *}Yes||{SYM Cross * * * *}No")
-    IF res$ = "No" OR res$ = "" THEN EXIT FUNCTION
-END IF
-IF _FILEEXISTS(hdrPath$ + hdr$) THEN
+        IF res$ = "No" OR res$ = "" THEN EXIT FUNCTION
+    END IF
+    IF _FILEEXISTS(hdrPath$ + hdr$) THEN
     res$ = MessageBox$("Problem16px.png", "Attention !!",_
            "Header file already exists,|do you want to overwrite?",_
            "{SYM Checkmark * * * *}Yes||{SYM Cross * * * *}No")
-    IF res$ = "No" OR res$ = "" THEN EXIT FUNCTION
-END IF
-sff% = SafeOpenFile%("I", srcPath$ + src$)
+        IF res$ = "No" OR res$ = "" THEN EXIT FUNCTION
+    END IF
+    sff% = SafeOpenFile%("I", srcPath$ + src$)
 IF sff% THEN CLOSE sff%: ELSE res$ = MessageBox$("Error16px.png", "Error !!",_
                                    "Can't open/access source file!", "{IMG Error16px.png 39}I'll check")
-tff% = SafeOpenFile%("O", tarPath$ + tar$)
+    tff% = SafeOpenFile%("O", tarPath$ + tar$)
 IF tff% THEN CLOSE tff%: ELSE res$ = MessageBox$("Error16px.png", "Error !!",_
                                    "Can't open/access target file!", "{IMG Error16px.png 39}I'll check")
-hff% = SafeOpenFile%("O", hdrPath$ + hdr$)
+    hff% = SafeOpenFile%("O", hdrPath$ + hdr$)
 IF hff% THEN CLOSE hff%: ELSE res$ = MessageBox$("Error16px.png", "Error !!",_
                                    "Can't open/access header file!", "{IMG Error16px.png 39}I'll check")
-IF sff% = 0 OR tff% = 0 OR hff% = 0 THEN EXIT FUNCTION
-'--- init converter ---
-IF use% THEN 'packing requested?
-    OPEN "B", #1, srcPath$ + src$
-    filedata$ = SPACE$(LOF(1))
-    GET #1, , filedata$
-    CLOSE #1
-    res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "packing"))
-    lzwProgress$ = OutputProgress$ 'set progress indicator for LzwPack$()
-    rawdata$ = LzwPack$(filedata$, rat%)
-    IF rawdata$ <> "" THEN
-        tmpLzw$ = appTempDir$ + GetUniqueID$
-        TempLog tmpLzw$, "MODULE: MakeCARR CONTENTS: Temporary compressed file data."
-        OPEN "O", #1, tmpLzw$: CLOSE #1
-        OPEN "B", #1, tmpLzw$: PUT #1, , rawdata$: CLOSE #1
-        packed% = -1
-        OPEN "B", #1, tmpLzw$
+    IF sff% = 0 OR tff% = 0 OR hff% = 0 THEN EXIT FUNCTION
+    '--- init converter ---
+    IF use% THEN 'packing requested?
+        OPEN "B", #1, srcPath$ + src$
+        filedata$ = SPACE$(LOF(1))
+        GET #1, , filedata$
+        CLOSE #1
+        res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "packing"))
+        lzwProgress$ = OutputProgress$ 'set progress indicator for LzwPack$()
+        rawdata$ = LzwPack$(filedata$, rat%)
+        IF rawdata$ <> "" THEN
+            tmpLzw$ = appTempDir$ + GetUniqueID$
+            TempLog tmpLzw$, "MODULE: MakeCARR CONTENTS: Temporary compressed file data."
+            OPEN "O", #1, tmpLzw$: CLOSE #1
+            OPEN "B", #1, tmpLzw$: PUT #1, , rawdata$: CLOSE #1
+            packed% = -1
+            OPEN "B", #1, tmpLzw$
+        ELSE
+            packed% = 0
+            OPEN "B", #1, srcPath$ + src$
+        END IF
     ELSE
         packed% = 0
         OPEN "B", #1, srcPath$ + src$
     END IF
-ELSE
-    packed% = 0
-    OPEN "B", #1, srcPath$ + src$
-END IF
-res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "converting"))
-fl& = LOF(1)
-cntL& = INT(fl& / 32)
-cntV& = INT(cntL& / 8180)
-cntB& = (fl& - (cntL& * 32))
+    res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "converting"))
+    fl& = LOF(1)
+    cntL& = INT(fl& / 32)
+    cntV& = INT(cntL& / 8180)
+    cntB& = (fl& - (cntL& * 32))
 
-'--- .h include file ---
-OPEN "O", #2, hdrPath$ + hdr$
-PRINT #2, "// ============================================================"
-PRINT #2, "// === This file was created with MakeCARR.bas by RhoSigma, ==="
-PRINT #2, "// === use it in conjunction with its respective .bm file.  ==="
-PRINT #2, "// ============================================================"
-PRINT #2, ""
-PRINT #2, "// --- Array(s) representing the contents of file "; src$
-PRINT #2, "// ---------------------------------------------------------------------"
-'--- read LONGs ---
-_DISPLAY: stim# = TIMER(0.001)
-tmpI$ = SPACE$(32)
-FOR vc& = 0 TO cntV&
-    IF vc& = cntV& THEN numL& = (cntL& MOD 8180): ELSE numL& = 8180
-    PRINT #2, "static const unsigned int32 "; hdrName$; "L"; LTRIM$(STR$(vc&)); "[] = {"
-    PRINT #2, "    "; LTRIM$(STR$(numL& * 8)); ","
-    FOR z& = 1 TO numL&
-        GET #1, , tmpI$: offI% = 1
-        tmpO$ = "    " + STRING$(88, ","): offO% = 5
-        DO
-            tmpL& = CVL(MID$(tmpI$, offI%, 4)): offI% = offI% + 4
-            MID$(tmpO$, offO%, 10) = "0x" + RIGHT$("00000000" + HEX$(tmpL&), 8)
-            offO% = offO% + 11
-        LOOP UNTIL offO% > 92
-        IF z& < numL& THEN PRINT #2, tmpO$: ELSE PRINT #2, LEFT$(tmpO$, 91)
-        etim# = TIMER(0.001) - stim#
-        IF etim# < 0 THEN etim# = etim# + 86400 'midnight fix
-        IF etim# >= 0.04 THEN
-            res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", LTRIM$(STR$(CINT(100 / cntL& * ((vc& * 8180) + z&))))))
-            _DISPLAY: stim# = TIMER(0.001)
-        END IF
-    NEXT z&
-    PRINT #2, "};"
+    '--- .h include file ---
+    OPEN "O", #2, hdrPath$ + hdr$
+    PRINT #2, "// ============================================================"
+    PRINT #2, "// === This file was created with MakeCARR.bas by RhoSigma, ==="
+    PRINT #2, "// === use it in conjunction with its respective .bm file.  ==="
+    PRINT #2, "// ============================================================"
     PRINT #2, ""
-NEXT vc&
-res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", "100"))
-_AUTODISPLAY
-'--- read remaining BYTEs ---
-IF cntB& > 0 THEN
-    PRINT #2, "static const unsigned int8 "; hdrName$; "B[] = {"
-    PRINT #2, "    "; LTRIM$(STR$(cntB&)); ","
-    PRINT #2, "    ";
-    FOR x% = 1 TO cntB&
-        GET #1, , tmpB%%
-        PRINT #2, "0x" + RIGHT$("00" + HEX$(tmpB%%), 2);
-        IF x% <> 16 THEN
-            IF x% <> cntB& THEN PRINT #2, ",";
-        ELSE
-            IF x% <> cntB& THEN
-                PRINT #2, ","
-                PRINT #2, "    ";
+    PRINT #2, "// --- Array(s) representing the contents of file "; src$
+    PRINT #2, "// ---------------------------------------------------------------------"
+    '--- read LONGs ---
+    _DISPLAY: stim# = TIMER(0.001)
+    tmpI$ = SPACE$(32)
+    FOR vc& = 0 TO cntV&
+        IF vc& = cntV& THEN numL& = (cntL& MOD 8180): ELSE numL& = 8180
+        PRINT #2, "static const uint32_t "; hdrName$; "L"; LTRIM$(STR$(vc&)); "[] = {"
+        PRINT #2, "    "; LTRIM$(STR$(numL& * 8)); ","
+        FOR z& = 1 TO numL&
+            GET #1, , tmpI$: offI% = 1
+            tmpO$ = "    " + STRING$(88, ","): offO% = 5
+            DO
+                tmpL& = CVL(MID$(tmpI$, offI%, 4)): offI% = offI% + 4
+                MID$(tmpO$, offO%, 10) = "0x" + RIGHT$("00000000" + HEX$(tmpL&), 8)
+                offO% = offO% + 11
+            LOOP UNTIL offO% > 92
+            IF z& < numL& THEN PRINT #2, tmpO$: ELSE PRINT #2, LEFT$(tmpO$, 91)
+            etim# = TIMER(0.001) - stim#
+            IF etim# < 0 THEN etim# = etim# + 86400 'midnight fix
+            IF etim# >= 0.04 THEN
+                res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", LTRIM$(STR$(CINT(100 / cntL& * ((vc& * 8180) + z&))))))
+                _DISPLAY: stim# = TIMER(0.001)
             END IF
+        NEXT z&
+        PRINT #2, "};"
+        PRINT #2, ""
+    NEXT vc&
+    res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", "100"))
+    _AUTODISPLAY
+    '--- read remaining BYTEs ---
+    IF cntB& > 0 THEN
+        PRINT #2, "static const uint8_t "; hdrName$; "B[] = {"
+        PRINT #2, "    "; LTRIM$(STR$(cntB&)); ","
+        PRINT #2, "    ";
+        FOR x% = 1 TO cntB&
+            GET #1, , tmpB%%
+            PRINT #2, "0x" + RIGHT$("00" + HEX$(tmpB%%), 2);
+            IF x% <> 16 THEN
+                IF x% <> cntB& THEN PRINT #2, ",";
+            ELSE
+                IF x% <> cntB& THEN
+                    PRINT #2, ","
+                    PRINT #2, "    ";
+                END IF
+            END IF
+        NEXT x%
+        PRINT #2, ""
+        PRINT #2, "};"
+        PRINT #2, ""
+    END IF
+    '--- some functions ---
+    PRINT #2, "// --- Function to copy the array(s) into the provided string buffer."
+    PRINT #2, "// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient."
+    PRINT #2, "// ---------------------------------------------------------------------"
+    PRINT #2, "void Read"; hdrName$; "Data(char *Buffer)"
+    PRINT #2, "{"
+    FOR vc& = 0 TO cntV&
+        PRINT #2, "    memcpy(Buffer, &"; hdrName$; "L"; LTRIM$(STR$(vc&)); "[1], "; hdrName$; "L"; LTRIM$(STR$(vc&)); "[0] << 2);"
+        IF vc& < cntV& OR cntB& > 0 THEN
+            PRINT #2, "    Buffer += ("; hdrName$; "L"; LTRIM$(STR$(vc&)); "[0] << 2);"
+            PRINT #2, ""
         END IF
-    NEXT x%
+    NEXT vc&
+    IF cntB& > 0 THEN
+        PRINT #2, "    memcpy(Buffer, &"; hdrName$; "B[1], "; hdrName$; "B[0]);"
+    END IF
+    PRINT #2, "}"
     PRINT #2, ""
-    PRINT #2, "};"
+    PRINT #2, "// --- Saved full qualified output path and filename, so we've no troubles"
+    PRINT #2, "// --- when cleaning up, even if the current working folder was changed"
+    PRINT #2, "// --- during program runtime."
+    PRINT #2, "// ---------------------------------------------------------------------"
+    PRINT #2, "char "; hdrName$; "Name[8192]; // it's a safe size for any current OS"
     PRINT #2, ""
-END IF
-'--- some functions ---
-PRINT #2, "// --- Saved full qualified output path and filename, so we've no troubles"
-PRINT #2, "// --- when cleaning up, even if the current working folder was changed"
-PRINT #2, "// --- during program runtime."
-PRINT #2, "// ---------------------------------------------------------------------"
-PRINT #2, "char "; hdrName$; "Name[8192]; // it's a safe size for any current OS"
-PRINT #2, ""
-PRINT #2, "// --- Cleanup function to delete the written file, called by the atexit()"
-PRINT #2, "// --- handler at program termination time, if requested by user."
-PRINT #2, "// ---------------------------------------------------------------------"
-PRINT #2, "void Kill"; hdrName$; "Data(void)"
-PRINT #2, "{"
-PRINT #2, "    remove("; hdrName$; "Name);"
-PRINT #2, "}"
-PRINT #2, ""
-PRINT #2, "// --- Function to write the array(s) back into a file, will return the"
-PRINT #2, "// --- full qualified output path and filename on success, otherwise an"
-PRINT #2, "// --- empty string is returned (access/write errors, file truncated)."
-PRINT #2, "// ---------------------------------------------------------------------"
-PRINT #2, "const char *Write"; hdrName$; "Data(const char *FileName, int16 AutoClean)"
-PRINT #2, "{"
-PRINT #2, "    FILE *han = NULL; // file handle"
-PRINT #2, "    int32 num = NULL; // written elements"
-PRINT #2, ""
-PRINT #2, "    #ifdef QB64_WINDOWS"
-PRINT #2, "    if (!_fullpath("; hdrName$; "Name, FileName, 8192)) return "; CHR$(34); CHR$(34); ";"
-PRINT #2, "    #else"
-PRINT #2, "    if (!realpath(FileName, "; hdrName$; "Name)) return "; CHR$(34); CHR$(34); ";"
-PRINT #2, "    #endif"
-PRINT #2, ""
-PRINT #2, "    if (!(han = fopen("; hdrName$; "Name, "; CHR$(34); "wb"; CHR$(34); "))) return "; CHR$(34); CHR$(34); ";"
-PRINT #2, "    if (AutoClean) atexit(Kill"; hdrName$; "Data);"
-PRINT #2, ""
-FOR vc& = 0 TO cntV&
-    PRINT #2, "    num = fwrite(&"; hdrName$; "L"; LTRIM$(STR$(vc&)); "[1], 4, "; hdrName$; "L"; LTRIM$(STR$(vc&)); "[0], han);"
-    PRINT #2, "    if (num != "; hdrName$; "L"; LTRIM$(STR$(vc&)); "[0]) {fclose(han); return "; CHR$(34); CHR$(34); ";}"
+    PRINT #2, "// --- Cleanup function to delete the written file, called by the atexit()"
+    PRINT #2, "// --- handler at program termination time, if requested by user."
+    PRINT #2, "// ---------------------------------------------------------------------"
+    PRINT #2, "void Kill"; hdrName$; "Data(void)"
+    PRINT #2, "{"
+    PRINT #2, "    remove("; hdrName$; "Name);"
+    PRINT #2, "}"
     PRINT #2, ""
-NEXT vc&
-IF cntB& > 0 THEN
-    PRINT #2, "    num = fwrite(&"; hdrName$; "B[1], 1, "; hdrName$; "B[0], han);"
-    PRINT #2, "    if (num != "; hdrName$; "B[0]) {fclose(han); return "; CHR$(34); CHR$(34); ";}"
+    PRINT #2, "// --- Function to write the array(s) back into a file, will return the"
+    PRINT #2, "// --- full qualified output path and filename on success, otherwise an"
+    PRINT #2, "// --- empty string is returned (access/write errors, file truncated)."
+    PRINT #2, "// ---------------------------------------------------------------------"
+    PRINT #2, "const char *Write"; hdrName$; "Data(const char *FileName, int16_t AutoClean)"
+    PRINT #2, "{"
+    PRINT #2, "    FILE   *han = NULL; // file handle"
+    PRINT #2, "    int32_t num = NULL; // written elements"
     PRINT #2, ""
-END IF
-PRINT #2, "    fclose(han);"
-PRINT #2, "    return "; hdrName$; "Name;"
-PRINT #2, "}"
-PRINT #2, ""
-'--- ending ---
-CLOSE #2
-CLOSE #1
+    PRINT #2, "    #ifdef QB64_WINDOWS"
+    PRINT #2, "    if (!_fullpath("; hdrName$; "Name, FileName, 8192)) return "; CHR$(34); CHR$(34); ";"
+    PRINT #2, "    #else"
+    PRINT #2, "    if (!realpath(FileName, "; hdrName$; "Name)) return "; CHR$(34); CHR$(34); ";"
+    PRINT #2, "    #endif"
+    PRINT #2, ""
+    PRINT #2, "    if (!(han = fopen("; hdrName$; "Name, "; CHR$(34); "wb"; CHR$(34); "))) return "; CHR$(34); CHR$(34); ";"
+    PRINT #2, "    if (AutoClean) atexit(Kill"; hdrName$; "Data);"
+    PRINT #2, ""
+    FOR vc& = 0 TO cntV&
+        PRINT #2, "    num = fwrite(&"; hdrName$; "L"; LTRIM$(STR$(vc&)); "[1], 4, "; hdrName$; "L"; LTRIM$(STR$(vc&)); "[0], han);"
+        PRINT #2, "    if (num != "; hdrName$; "L"; LTRIM$(STR$(vc&)); "[0]) {fclose(han); return "; CHR$(34); CHR$(34); ";}"
+        PRINT #2, ""
+    NEXT vc&
+    IF cntB& > 0 THEN
+        PRINT #2, "    num = fwrite(&"; hdrName$; "B[1], 1, "; hdrName$; "B[0], han);"
+        PRINT #2, "    if (num != "; hdrName$; "B[0]) {fclose(han); return "; CHR$(34); CHR$(34); ";}"
+        PRINT #2, ""
+    END IF
+    PRINT #2, "    fclose(han);"
+    PRINT #2, "    return "; hdrName$; "Name;"
+    PRINT #2, "}"
+    PRINT #2, ""
+    '--- ending ---
+    CLOSE #2
+    CLOSE #1
 
-'--- .bm include file ---
-OPEN "O", #2, tarPath$ + tar$
-PRINT #2, "'============================================================"
-PRINT #2, "'=== This file was created with MakeCARR.bas by RhoSigma, ==="
-PRINT #2, "'=== you must $INCLUDE this at the end of your program.   ==="
-IF packed% THEN
-    PRINT #2, "'=== ---------------------------------------------------- ==="
-    PRINT #2, "'=== If your program is NOT a GuiTools based application, ==="
-    PRINT #2, "'=== then it must also $INCLUDE: 'lzwpacker.bm' available ==="
-    PRINT #2, "'=== from the Libraries Collection here:                  ==="
-    PRINT #2, "'=== http://qb64phoenix.com/forum/forumdisplay.php?fid=23 ==="
-END IF
-PRINT #2, "'============================================================"
-PRINT #2, ""
-PRINT #2, "'-----------------"
-PRINT #2, "'--- Important ---"
-PRINT #2, "'-----------------"
-PRINT #2, "' If you need to move around this .bm file and its respective .h file"
-PRINT #2, "' to fit in your project, then make sure the path in the DECLARE LIBRARY"
-PRINT #2, "' statement below does match the actual .h file location. It's best to"
-PRINT #2, "' specify a relative path assuming your QB64 installation folder as root."
-PRINT #2, "'---------------------------------------------------------------------"
-PRINT #2, ""
-'--- writeback function ---
-PRINT #2, "'"; STRING$(LEN(tarName$) + 19, "-")
-PRINT #2, "'--- Write"; tarName$; "Array$ ---"
-PRINT #2, "'"; STRING$(LEN(tarName$) + 19, "-")
-PRINT #2, "' This function will write the array(s) you've created with MakeCARR.bas"
-PRINT #2, "' back to disk and so it rebuilds the original file."
-PRINT #2, "'"
-PRINT #2, "' After the writeback call, only use the returned realFile$ to access the"
-PRINT #2, "' written file. It's the full qualified absolute path and filename, which"
-PRINT #2, "' is made by expanding your maybe given relative path and an maybe altered"
-PRINT #2, "' filename (number added) in order to avoid the overwriting of an already"
-PRINT #2, "' existing file with the same name in the given location. By this means"
-PRINT #2, "' you'll always have safe access to the file, no matter how your current"
-PRINT #2, "' working folder changes during runtime."
-PRINT #2, "'"
-PRINT #2, "' If you wish, the written file can automatically be deleted for you when"
-PRINT #2, "' your program will end, so you don't need to do the cleanup yourself."
-PRINT #2, "'----------"
-PRINT #2, "' SYNTAX:"
-PRINT #2, "'   realFile$ = Write"; tarName$; "Array$ (wantFile$, autoDel%)"
-PRINT #2, "'----------"
-PRINT #2, "' INPUTS:"
-PRINT #2, "'   --- wantFile$ ---"
-PRINT #2, "'    The filename you would like to write the array(s) to, can contain"
-PRINT #2, "'    a full or relative path."
-PRINT #2, "'   --- autoDel% ---"
-PRINT #2, "'    Shows whether you want the auto cleanup (see description above) at"
-PRINT #2, "'    the program end or not (-1 = delete file, 0 = don't delete file)."
-PRINT #2, "'----------"
-PRINT #2, "' RESULT:"
-PRINT #2, "'   --- realFile$ ---"
-PRINT #2, "'    - On success this is the full qualified path and filename finally"
-PRINT #2, "'      used after all applied checks, use only this returned filename"
-PRINT #2, "'      to access the written file."
-PRINT #2, "'    - On failure (write/access) this will be an empty string, so you"
-PRINT #2, "'      should check for this before trying to access/open the file."
-PRINT #2, "'---------------------------------------------------------------------"
-PRINT #2, "FUNCTION Write"; tarName$; "Array$ (file$, clean%)"
-PRINT #2, "'--- declare C/C++ function ---"
-tmp$ = hdrPath$ + FileNamePart$(hdr$)
-IF _FILEEXISTS("qb64.exe") THEN
-    IF LEFT$(tmp$, LEN(CurrDIR$)) = CurrDIR$ THEN tmp$ = MID$(tmp$, LEN(CurrDIR$) + 2)
-END IF
-PRINT #2, "DECLARE LIBRARY "; CHR$(34); tmp$; CHR$(34); " 'Do not add .h here !!"
-PRINT #2, "    FUNCTION Write"; hdrName$; "Data$ (FileName$, BYVAL AutoClean%)"
-PRINT #2, "END DECLARE"
-PRINT #2, "'--- option _explicit requirements ---"
-PRINT #2, "DIM po%, body$, ext$, num%";
-IF packed% THEN PRINT #2, ", real$, ff%, rawdata$, filedata$": ELSE PRINT #2, ""
-PRINT #2, "'--- separate filename body & extension ---"
-PRINT #2, "FOR po% = LEN(file$) TO 1 STEP -1"
-PRINT #2, "    IF MID$(file$, po%, 1) = "; CHR$(34); "."; CHR$(34); " THEN"
-PRINT #2, "        body$ = LEFT$(file$, po% - 1)"
-PRINT #2, "        ext$ = MID$(file$, po%)"
-PRINT #2, "        EXIT FOR"
-PRINT #2, "    ELSEIF MID$(file$, po%, 1) = "; CHR$(34); "\"; CHR$(34); " OR MID$(file$, po%, 1) = "; CHR$(34); "/"; CHR$(34); " OR po% = 1 THEN"
-PRINT #2, "        body$ = file$"
-PRINT #2, "        ext$ = "; CHR$(34); CHR$(34)
-PRINT #2, "        EXIT FOR"
-PRINT #2, "    END IF"
-PRINT #2, "NEXT po%"
-PRINT #2, "'--- avoid overwriting of existing files ---"
-PRINT #2, "num% = 1"
-PRINT #2, "WHILE _FILEEXISTS(file$)"
-PRINT #2, "    file$ = body$ + "; CHR$(34); "("; CHR$(34); " + LTRIM$(STR$(num%)) + "; CHR$(34); ")"; CHR$(34); " + ext$"
-PRINT #2, "    num% = num% + 1"
-PRINT #2, "WEND"
-PRINT #2, "'--- write array & set result ---"
-IF NOT packed% THEN
-    PRINT #2, "Write"; tarName$; "Array$ = Write"; hdrName$; "Data$(file$ + CHR$(0), clean%)"
-ELSE
-    PRINT #2, "real$ = Write"; hdrName$; "Data$(file$ + CHR$(0), clean%)"
-    PRINT #2, "IF real$ <> "; CHR$(34); CHR$(34); " THEN"
-    PRINT #2, "    ff% = FREEFILE"
-    PRINT #2, "    OPEN real$ FOR BINARY AS ff%"
-    PRINT #2, "    rawdata$ = SPACE$(LOF(ff%))"
-    PRINT #2, "    GET #ff%, , rawdata$"
-    PRINT #2, "    filedata$ = LzwUnpack$(rawdata$)"
-    PRINT #2, "    PUT #ff%, 1, filedata$"
-    PRINT #2, "    CLOSE ff%"
-    PRINT #2, "END IF"
-    PRINT #2, "Write"; tarName$; "Array$ = real$"
-END IF
-PRINT #2, "END FUNCTION"
-PRINT #2, ""
-'--- ending ---
-CLOSE #2
+    '--- .bm include file ---
+    OPEN "O", #2, tarPath$ + tar$
+    PRINT #2, "'============================================================"
+    PRINT #2, "'=== This file was created with MakeCARR.bas by RhoSigma, ==="
+    PRINT #2, "'=== you must $INCLUDE this at the end of your program.   ==="
+    IF packed% THEN
+        PRINT #2, "'=== ---------------------------------------------------- ==="
+        PRINT #2, "'=== If your program is NOT a GuiTools based application, ==="
+        PRINT #2, "'=== then it must also $INCLUDE: 'lzwpacker.bm' available ==="
+        PRINT #2, "'=== from the Libraries Collection here:                  ==="
+        PRINT #2, "'=== http://qb64phoenix.com/forum/forumdisplay.php?fid=23 ==="
+    END IF
+    PRINT #2, "'============================================================"
+    PRINT #2, ""
+    PRINT #2, "'-----------------"
+    PRINT #2, "'--- Important ---"
+    PRINT #2, "'-----------------"
+    PRINT #2, "' If you need to move around this .bm file and its respective .h file"
+    PRINT #2, "' to fit in your project, then make sure the path in the DECLARE LIBRARY"
+    PRINT #2, "' statement below does match the actual .h file location. It's best to"
+    PRINT #2, "' specify a relative path assuming your QB64 installation folder as root."
+    PRINT #2, "'---------------------------------------------------------------------"
+    PRINT #2, ""
+    PRINT #2, "'--- declare C/C++ functions ---"
+    tmp$ = hdrPath$ + FileNamePart$(hdr$)
+    IF _FILEEXISTS("qb64.exe") OR _FILEEXISTS("qb64pe.exe") THEN
+        IF LEFT$(tmp$, LEN(CurrDIR$)) = CurrDIR$ THEN tmp$ = MID$(tmp$, LEN(CurrDIR$) + 2)
+    END IF
+    PRINT #2, "DECLARE LIBRARY "; CHR$(34); tmp$; CHR$(34); " 'Do not add .h here !!"
+    PRINT #2, "    SUB Read"; hdrName$; "Data (StrBuf$)"
+    PRINT #2, "    FUNCTION Write"; hdrName$; "Data$ (FileName$, BYVAL AutoClean%)"
+    PRINT #2, "END DECLARE"
+    PRINT #2, ""
+    '--- read function ---
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 18, "-")
+    PRINT #2, "'--- Read"; tarName$; "Array$ ---"
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 18, "-")
+    PRINT #2, "' This function will read the array(s) you've created with MakeCARR.bas"
+    PRINT #2, "' into a string, no data will be written to disk. If you rather wanna"
+    PRINT #2, "' rebuild the original file on disk, then use the write function below."
+    PRINT #2, "'"
+    PRINT #2, "' You may directly pass the returned string to _SNDOPEN, _LOADIMAGE or"
+    PRINT #2, "' _LOADFONT when using the memory load capabilities of these commands."
+    PRINT #2, "'----------"
+    PRINT #2, "' SYNTAX:"
+    PRINT #2, "'   arrData$ = Read"; tarName$; "Array$"
+    PRINT #2, "'----------"
+    PRINT #2, "' RESULT:"
+    PRINT #2, "'   --- arrData$ ---"
+    PRINT #2, "'    The data of the embedded file. This is in fact the same as if you"
+    PRINT #2, "'    had opend the file and read its entire content into a single string."
+    PRINT #2, "'---------------------------------------------------------------------"
+    PRINT #2, "FUNCTION Read"; tarName$; "Array$"
+    PRINT #2, "'--- option _explicit requirements ---"
+    PRINT #2, "DIM temp$"
+    PRINT #2, "'--- get array & set result ---"
+    PRINT #2, "temp$ = SPACE$("; LTRIM$(STR$(fl&)); ") 'Do not change this number !!"
+    PRINT #2, "Read"; hdrName$; "Data temp$"
+    IF NOT packed% THEN
+        PRINT #2, "Read"; tarName$; "Array$ = temp$"
+    ELSE
+        PRINT #2, "Read"; tarName$; "Array$ = LzwUnpack$(temp$)"
+    END IF
+    PRINT #2, "END FUNCTION"
+    PRINT #2, ""
+    '--- writeback function ---
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 19, "-")
+    PRINT #2, "'--- Write"; tarName$; "Array$ ---"
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 19, "-")
+    PRINT #2, "' This function will write the array(s) you've created with MakeCARR.bas"
+    PRINT #2, "' back to disk and so it rebuilds the original file."
+    PRINT #2, "'"
+    PRINT #2, "' After the writeback call, only use the returned realFile$ to access the"
+    PRINT #2, "' written file. It's the full qualified absolute path and filename, which"
+    PRINT #2, "' is made by expanding your maybe given relative path and an maybe altered"
+    PRINT #2, "' filename (number added) in order to avoid the overwriting of an already"
+    PRINT #2, "' existing file with the same name in the given location. By this means"
+    PRINT #2, "' you'll always have safe access to the file, no matter how your current"
+    PRINT #2, "' working folder changes during runtime."
+    PRINT #2, "'"
+    PRINT #2, "' If you wish, the written file can automatically be deleted for you when"
+    PRINT #2, "' your program will end, so you don't need to do the cleanup yourself."
+    PRINT #2, "'----------"
+    PRINT #2, "' SYNTAX:"
+    PRINT #2, "'   realFile$ = Write"; tarName$; "Array$ (wantFile$, autoDel%)"
+    PRINT #2, "'----------"
+    PRINT #2, "' INPUTS:"
+    PRINT #2, "'   --- wantFile$ ---"
+    PRINT #2, "'    The filename you would like to write the array(s) to, can contain"
+    PRINT #2, "'    a full or relative path."
+    PRINT #2, "'   --- autoDel% ---"
+    PRINT #2, "'    Shows whether you want the auto cleanup (see description above) at"
+    PRINT #2, "'    the program end or not (-1 = delete file, 0 = don't delete file)."
+    PRINT #2, "'----------"
+    PRINT #2, "' RESULT:"
+    PRINT #2, "'   --- realFile$ ---"
+    PRINT #2, "'    - On success this is the full qualified path and filename finally"
+    PRINT #2, "'      used after all applied checks, use only this returned filename"
+    PRINT #2, "'      to access the written file."
+    PRINT #2, "'    - On failure (write/access) this will be an empty string, so you"
+    PRINT #2, "'      should check for this before trying to access/open the file."
+    PRINT #2, "'---------------------------------------------------------------------"
+    PRINT #2, "FUNCTION Write"; tarName$; "Array$ (file$, clean%)"
+    PRINT #2, "'--- option _explicit requirements ---"
+    PRINT #2, "DIM po%, body$, ext$, num%";
+    IF packed% THEN PRINT #2, ", real$, ff%, rawdata$, filedata$": ELSE PRINT #2, ""
+    PRINT #2, "'--- separate filename body & extension ---"
+    PRINT #2, "FOR po% = LEN(file$) TO 1 STEP -1"
+    PRINT #2, "    IF MID$(file$, po%, 1) = "; CHR$(34); "."; CHR$(34); " THEN"
+    PRINT #2, "        body$ = LEFT$(file$, po% - 1)"
+    PRINT #2, "        ext$ = MID$(file$, po%)"
+    PRINT #2, "        EXIT FOR"
+    PRINT #2, "    ELSEIF MID$(file$, po%, 1) = "; CHR$(34); "\"; CHR$(34); " OR MID$(file$, po%, 1) = "; CHR$(34); "/"; CHR$(34); " OR po% = 1 THEN"
+    PRINT #2, "        body$ = file$"
+    PRINT #2, "        ext$ = "; CHR$(34); CHR$(34)
+    PRINT #2, "        EXIT FOR"
+    PRINT #2, "    END IF"
+    PRINT #2, "NEXT po%"
+    PRINT #2, "'--- avoid overwriting of existing files ---"
+    PRINT #2, "num% = 1"
+    PRINT #2, "WHILE _FILEEXISTS(file$)"
+    PRINT #2, "    file$ = body$ + "; CHR$(34); "("; CHR$(34); " + LTRIM$(STR$(num%)) + "; CHR$(34); ")"; CHR$(34); " + ext$"
+    PRINT #2, "    num% = num% + 1"
+    PRINT #2, "WEND"
+    PRINT #2, "'--- write array & set result ---"
+    IF NOT packed% THEN
+        PRINT #2, "Write"; tarName$; "Array$ = Write"; hdrName$; "Data$(file$ + CHR$(0), clean%)"
+    ELSE
+        PRINT #2, "real$ = Write"; hdrName$; "Data$(file$ + CHR$(0), clean%)"
+        PRINT #2, "IF real$ <> "; CHR$(34); CHR$(34); " THEN"
+        PRINT #2, "    ff% = FREEFILE"
+        PRINT #2, "    OPEN real$ FOR BINARY AS ff%"
+        PRINT #2, "    rawdata$ = SPACE$(LOF(ff%))"
+        PRINT #2, "    GET #ff%, , rawdata$"
+        PRINT #2, "    filedata$ = LzwUnpack$(rawdata$)"
+        PRINT #2, "    PUT #ff%, 1, filedata$"
+        PRINT #2, "    CLOSE ff%"
+        PRINT #2, "END IF"
+        PRINT #2, "Write"; tarName$; "Array$ = real$"
+    END IF
+    PRINT #2, "END FUNCTION"
+    PRINT #2, ""
+    '--- ending ---
+    CLOSE #2
 
-'--- finish message ---
-ConvertFile% = -1
-IF packed% THEN
-    KILL tmpLzw$
+    '--- finish message ---
+    ConvertFile% = -1
+    IF packed% THEN
+        KILL tmpLzw$
     tmp$ = IndexFormat$("The original data were packed with a ratio of 0{##.##}%,|", STR$(100 - (100 / LEN(filedata$) * LEN(rawdata$))), "|") +_
            "Original:" + STR$(LEN(filedata$)) + " Bytes, Packed:" + STR$(LEN(rawdata$)) + " Bytes.|~"
-ELSEIF use% THEN
-    ConvertFile% = 0
+    ELSEIF use% THEN
+        ConvertFile% = 0
     tmp$ = "The original data could not be packed with your desired|" +_
            "least ratio, you may try again with a lesser ratio or|" +_
            "keep the converted Array as is (unpacked).|~"
-ELSE
-    tmp$ = "As requested, the data were converted without packing.|~"
-END IF
+    ELSE
+        tmp$ = "As requested, the data were converted without packing.|~"
+    END IF
 ok$ = MessageBox$("Info16px.png", "Information !!", tmp$ +_
      IndexFormat$("Have a look into the created file (0{&})|", tar$, CHR$(0)) +_
-                  "to learn how to write the Array back into a file.",_
+                  "to learn about the available options to read or write|back the embedded data.",_
                   "{SYM Checkmark * * * *}")
 END FUNCTION
 '~~~~~
@@ -904,40 +961,40 @@ END FUNCTION
 '    or to move it to the last known (if any) window position (0).
 '---------------------------------------------------------------------
 SUB SetupScreen (wid%, hei%, mid%)
-'--- create the screen ---
-appScreen& = _NEWIMAGE(wid%, hei%, 256)
-IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
-IF appGLVComp% THEN _SCREENSHOW
-SCREEN appScreen&
-'--- setup screen palette ---
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppPalette.bm'
-ApplyPrefs "Global.Colors", ""
-'--- set default font ---
-'uncomment and adjust the _LOADFONT line below to load/use a custom font,
-'otherwise QB64's inbuilt default _FONT 16 is used
-'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
-IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
-'--- set default icon ---
-'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
-'otherwise the GuiTools Framework's default icon is used as embedded via
-'the GuiAppIcon.h/.bm files located in the dev_framework folder
-appIcon& = _LOADIMAGE(RhoSigmaImgName$, 32)
-IF appIcon& < -1 THEN _ICON appIcon&
-'if you rather use $EXEICON then comment out the IF appIcon& ... line above
-'and uncomment and adjust the $EXEICON line below as you need instead, but
-'note it's QB64-GL only then, QB64-SDL will throw an error on $EXEICON
-'$EXEICON:'QB64GuiTools\images\icons\Default.ico'
-'--- make screen visible ---
-_DELAY 0.025
-IF mid% THEN
-    desktop& = _SCREENIMAGE
-    _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
-    _FREEIMAGE desktop&
-ELSE
-    LastPosUpdate 0 'load last known win pos
-END IF
-_DELAY 0.025: _SCREENSHOW
-IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
+    '--- create the screen ---
+    appScreen& = _NEWIMAGE(wid%, hei%, 256)
+    IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
+    IF appGLVComp% THEN _SCREENSHOW
+    SCREEN appScreen&
+    '--- setup screen palette ---
+    '$INCLUDE: '..\dev_framework\GuiAppPalette.bm'
+    ApplyPrefs "Global.Colors", ""
+    '--- set default font ---
+    'uncomment and adjust the _LOADFONT line below to load/use a custom font,
+    'otherwise QB64's inbuilt default _FONT 16 is used
+    'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
+    IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
+    '--- set default icon ---
+    'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
+    'otherwise the GuiTools Framework's default icon is used as embedded via
+    'the GuiAppIcon.h/.bm files located in the dev_framework folder
+    appIcon& = _LOADIMAGE(RhoSigmaImgName$, 32)
+    IF appIcon& < -1 THEN _ICON appIcon&
+    'if you rather use $EXEICON then comment out the IF appIcon& ... line above
+    'and uncomment and adjust the $EXEICON line below as you need instead, but
+    'note it's QB64 v1.1+ then, older versions will throw an error on $EXEICON
+    '$EXEICON:'..\images\icons\Default.ico'
+    '--- make screen visible ---
+    _DELAY 0.025
+    IF mid% THEN
+        desktop& = _SCREENIMAGE
+        _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
+        _FREEIMAGE desktop&
+    ELSE
+        LastPosUpdate 0 'load last known win pos
+    END IF
+    _DELAY 0.025: _SCREENSHOW
+    IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
 END SUB
 
 '-------------------
@@ -952,51 +1009,51 @@ END SUB
 '   CloseScreen
 '---------------------------------------------------------------------
 SUB CloseScreen
-'--- make screen invisible ---
-_SCREENHIDE
-'--- free the icon (if any) and invalidate its handle ---
-IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
-'--- free the font (if any) and invalidate its handle ---
-_FONT 16
-IF appFont& > 0 THEN _FREEFONT appFont&: appFont& = 0
-'--- free the screen and invalidate its handle ---
-SCREEN 0
-IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
+    '--- make screen invisible ---
+    _SCREENHIDE
+    '--- free the icon (if any) and invalidate its handle ---
+    IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
+    '--- free the font (if any) and invalidate its handle ---
+    _FONT 16
+    IF appFont& > 0 AND guiPGVCount% = 0 THEN _FREEFONT appFont&: appFont& = 0
+    '--- free the screen and invalidate its handle ---
+    SCREEN 0
+    IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
 END SUB
 '~~~~~
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bm'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bm'
 '*****************************************************
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ConvertSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ImageSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PackSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PolygonSupport.bm'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ConvertSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ImageSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PackSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PolygonSupport.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bm'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bm'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GenericClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ModelClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ImageClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SymbolClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RulerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\FrameClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\StringClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\TextClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ProgressClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\PagerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ButtonClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CheckboxClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CycleClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RadioClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListviewClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SliderClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ScrollerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ColorwheelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\GenericClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ModelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ImageClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SymbolClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RulerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\FrameClass.bm'
+'$INCLUDE: '..\dev_framework\classes\StringClass.bm'
+'$INCLUDE: '..\dev_framework\classes\TextClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ProgressClass.bm'
+'$INCLUDE: '..\dev_framework\classes\PagerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ButtonClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CheckboxClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CycleClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RadioClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListviewClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SliderClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ScrollerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ColorwheelClass.bm'
 
 '$INCLUDE: 'inline\RhoSigmaImg.bm'
 '$INCLUDE: 'inline\PlasmaImg.bm'

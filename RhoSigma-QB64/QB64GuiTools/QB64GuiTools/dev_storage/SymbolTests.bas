@@ -26,7 +26,7 @@ bgimg% = -1 'background image: use image = -1, blank screen = 0
 '-----------------------------------------------
 '--- DON'T CHANGE ANYTHING BEYOND THIS POINT ---
 '-----------------------------------------------
-DECLARE LIBRARY "QB64GuiTools\dev_framework\GuiAppFrame" 'Do not add .h here !!
+DECLARE LIBRARY "..\dev_framework\GuiAppFrame" 'Do not add .h here !!
     FUNCTION FindColor& (BYVAL r&, BYVAL g&, BYVAL b&, BYVAL i&, BYVAL mi&, BYVAL ma&)
     'This is a replacement for the _RGB function. It works for up to 8-bit
     '(256 colors) images only and needs a valid image. It can limit the
@@ -35,15 +35,15 @@ END DECLARE
 CONST guiReservedPens% = 0 'no reserved pens
 REDIM SHARED fsNearCol%(&HFFFFFF)
 
-IF _FILEEXISTS("qb64.exe") THEN
-    path$ = "QB64GuiTools\dev_storage\" 'qb64 folder
+IF _FILEEXISTS("qb64.exe") OR _FILEEXISTS("qb64pe.exe") THEN
+    path$ = "QB64GuiTools\dev_storage\" 'compiled to qb64 folder
 ELSE
-    path$ = "" 'source folder
+    path$ = "" 'compiled to source folder
 END IF
 
 appScreen& = _NEWIMAGE(480, 336, 256)
 SCREEN appScreen&
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppPalette.bm'
+'$INCLUDE: '..\dev_framework\GuiAppPalette.bm'
 DIM SHARED guiBackPen%: guiBackPen% = 9 'regular background pen
 DIM SHARED guiTextPen%: guiTextPen% = 1 'regular text (foreground) pen
 DIM SHARED guiHighPen%: guiHighPen% = 6 'regular text pen for highlighted (important) text
@@ -361,147 +361,147 @@ DATA 1,15,"shadow"
 
 '=== RS:COPYFROM:GuiAppFrame.bm/FillRectImage (original) =============
 SUB FillRectImage (xs%, ys%, wi%, he%, ihan&)
-tcol% = _CLEARCOLOR(ihan&): _CLEARCOLOR _NONE, ihan&
-than& = _NEWIMAGE(ABS(wi%), ABS(he%), 256)
-IF than& < -1 THEN
-    FOR y% = 0 TO ABS(he%) - 1 STEP _HEIGHT(ihan&)
-        FOR x% = 0 TO ABS(wi%) - 1 STEP _WIDTH(ihan&)
-            _PUTIMAGE (x%, y%)-(x% + _WIDTH(ihan&) - 1, y% + _HEIGHT(ihan&) - 1), ihan&, than&
-        NEXT x%
-    NEXT y%
-    IF tcol% > -1 THEN _CLEARCOLOR tcol%, than&
-    _PUTIMAGE (xs%, ys%)-(xs% + wi% - 1, ys% + he% - 1), than&
-    _FREEIMAGE than&
-END IF
+    tcol% = _CLEARCOLOR(ihan&): _CLEARCOLOR _NONE, ihan&
+    than& = _NEWIMAGE(ABS(wi%), ABS(he%), 256)
+    IF than& < -1 THEN
+        FOR y% = 0 TO ABS(he%) - 1 STEP _HEIGHT(ihan&)
+            FOR x% = 0 TO ABS(wi%) - 1 STEP _WIDTH(ihan&)
+                _PUTIMAGE (x%, y%)-(x% + _WIDTH(ihan&) - 1, y% + _HEIGHT(ihan&) - 1), ihan&, than&
+            NEXT x%
+        NEXT y%
+        IF tcol% > -1 THEN _CLEARCOLOR tcol%, than&
+        _PUTIMAGE (xs%, ys%)-(xs% + wi% - 1, ys% + he% - 1), than&
+        _FREEIMAGE than&
+    END IF
 END SUB
 
 '=== RS:COPYFROM:GuiAppFrame.bm/RemapImageRS& (original) =============
 FUNCTION RemapImageFS& (ohan&, dhan&)
-RemapImageFS& = -1 'so far return invalid handle
-shan& = ohan& 'avoid side effect on given argument
-IF shan& < -1 THEN
-    '--- check/adjust source image & get new 8-bit image ---
-    swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
-    IF _PIXELSIZE(shan&) <> 4 THEN
-        than& = _NEWIMAGE(swid%, shei%, 32)
-        IF than& >= -1 THEN EXIT FUNCTION
-        _PUTIMAGE , shan&, than&
-        shan& = than&
-    ELSE
-        than& = -1 'avoid freeing below
+    RemapImageFS& = -1 'so far return invalid handle
+    shan& = ohan& 'avoid side effect on given argument
+    IF shan& < -1 THEN
+        '--- check/adjust source image & get new 8-bit image ---
+        swid% = _WIDTH(shan&): shei% = _HEIGHT(shan&)
+        IF _PIXELSIZE(shan&) <> 4 THEN
+            than& = _NEWIMAGE(swid%, shei%, 32)
+            IF than& >= -1 THEN EXIT FUNCTION
+            _PUTIMAGE , shan&, than&
+            shan& = than&
+        ELSE
+            than& = -1 'avoid freeing below
+        END IF
+        nhan& = _NEWIMAGE(swid%, shei%, 256)
+        '--- Floyd-Steinberg error distribution arrays ---
+        rhan& = _NEWIMAGE(swid%, 2, 32) 'these are missused as LONG arrays,
+        ghan& = _NEWIMAGE(swid%, 2, 32) 'with CHECKING:OFF this is much faster
+        bhan& = _NEWIMAGE(swid%, 2, 32) 'than real QB64 arrays
+        '--- curr/next row offsets (for distribution array access) ---
+        cro% = 0: nro% = swid% * 4 'will be swapped after each pixel row
+        '--- the matrix values are extended by 16384 to avoid slow floating ---
+        '--- point ops and to allow for integer storage in the above arrays ---
+        '--- also it's a power of 2, which may be optimized into a bitshift ---
+        seven% = (7 / 16) * 16384 'X+1,Y+0 error fraction
+        three% = (3 / 16) * 16384 'X-1,Y+1 error fraction
+        five% = (5 / 16) * 16384 'X+0,Y+1 error fraction
+        one% = (1 / 16) * 16384 'X+1,Y+1 error fraction
+        '--- if all is good, then start remapping ---
+        $CHECKING:OFF
+        IF nhan& < -1 AND rhan& < -1 AND ghan& < -1 AND bhan& < -1 THEN
+            _COPYPALETTE dhan&, nhan& 'dest palette to new image
+            '--- for speed we do direct memory access ---
+            DIM sbuf AS _MEM: sbuf = _MEMIMAGE(shan&): soff%& = sbuf.OFFSET
+            DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&): noff%& = nbuf.OFFSET
+            DIM rbuf AS _MEM: rbuf = _MEMIMAGE(rhan&): roff%& = rbuf.OFFSET
+            DIM gbuf AS _MEM: gbuf = _MEMIMAGE(ghan&): goff%& = gbuf.OFFSET
+            DIM bbuf AS _MEM: bbuf = _MEMIMAGE(bhan&): boff%& = bbuf.OFFSET
+            '--- iterate through pixels ---
+            FOR y% = 0 TO shei% - 1
+                FOR x% = 0 TO swid% - 1
+                    '--- curr/prev/next pixel offsets ---
+                    cpo% = x% * 4: ppo% = cpo% - 4: npo% = cpo% + 4
+                    '--- get pixel ARGB value from source ---
+                    srgb~& = _MEMGET(sbuf, soff%&, _UNSIGNED LONG)
+                    '--- add distributed error, shrink by 16384, clear error ---
+                    '--- current pixel X+0, Y+0 (= cro% (current row offset)) ---
+                    poff% = cro% + cpo% 'pre-calc full pixel offset
+                    sr% = ((srgb~& AND &HFF0000~&) \ 65536) + (_MEMGET(rbuf, roff%& + poff%, LONG) \ 16384) 'red
+                    sg% = ((srgb~& AND &HFF00~&) \ 256) + (_MEMGET(gbuf, goff%& + poff%, LONG) \ 16384) 'green
+                    sb% = (srgb~& AND &HFF~&) + (_MEMGET(bbuf, boff%& + poff%, LONG) \ 16384) 'blue
+                    _MEMPUT rbuf, roff%& + poff%, 0 AS LONG 'clearing each single pixel error using _MEMPUT
+                    _MEMPUT gbuf, goff%& + poff%, 0 AS LONG 'turns out even faster than clearing the entire
+                    _MEMPUT bbuf, boff%& + poff%, 0 AS LONG 'pixel row using _MEMFILL at the end of the loop
+                    '--- find nearest color ---
+                    crgb~& = _RGBA32(sr%, sg%, sb%, 0) 'used for fast value clipping + channel merge
+                    IF fsNearCol%(crgb~&) > 0 THEN
+                        npen% = fsNearCol%(crgb~&) - 1 'already known
+                    ELSE
+                        npen% = FindColor&(sr%, sg%, sb%, nhan&, 24, 255 - guiReservedPens%) 'not known, find one
+                        fsNearCol%(crgb~&) = npen% + 1 'save for later use
+                    END IF
+                    '--- put colormapped pixel to dest ---
+                    _MEMPUT nbuf, noff%&, npen% AS _UNSIGNED _BYTE
+                    '------------------------------------------
+                    '--- Floyd-Steinberg error distribution ---
+                    '------------------------------------------
+                    '--- You may comment this block out, to see the
+                    '--- result without applied FS matrix.
+                    '-----
+                    '--- get dest palette RGB value, calc error to clipped source ---
+                    nrgb~& = _PALETTECOLOR(npen%, nhan&)
+                    er% = ((crgb~& AND &HFF0000~&) - (nrgb~& AND &HFF0000~&)) \ 65536
+                    eg% = ((crgb~& AND &HFF00~&) - (nrgb~& AND &HFF00~&)) \ 256
+                    eb% = (crgb~& AND &HFF~&) - (nrgb~& AND &HFF~&)
+                    '--- distribute error according to FS matrix ---
+                    IF x% > 0 THEN
+                        '--- X-1, Y+1 (= nro% (next row offset)) ---
+                        poff% = nro% + ppo% 'pre-calc full pixel offset
+                        _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * three%) AS LONG 'red
+                        _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * three%) AS LONG 'green
+                        _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * three%) AS LONG 'blue
+                    END IF
+                    '--- X+0, Y+1 (= nro% (next row offset)) ---
+                    poff% = nro% + cpo% 'pre-calc full pixel offset
+                    _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * five%) AS LONG 'red
+                    _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * five%) AS LONG 'green
+                    _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * five%) AS LONG 'blue
+                    IF x% < (swid% - 1) THEN
+                        '--- X+1, Y+0 (= cro% (current row offset)) ---
+                        poff% = cro% + npo% 'pre-calc full pixel offset
+                        _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * seven%) AS LONG 'red
+                        _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * seven%) AS LONG 'green
+                        _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * seven%) AS LONG 'blue
+                        '--- X+1, Y+1 (= nro% (next row offset)) ---
+                        poff% = nro% + npo% 'pre-calc full pixel offset
+                        _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * one%) AS LONG 'red
+                        _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * one%) AS LONG 'green
+                        _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * one%) AS LONG 'blue
+                    END IF
+                    '------------------------------------------
+                    '--- End of FS ----------------------------
+                    '------------------------------------------
+                    noff%& = noff%& + 1 'next dest pixel
+                    soff%& = soff%& + 4 'next source pixel
+                NEXT x%
+                tmp% = cro%: cro% = nro%: nro% = tmp% 'exchange distribution array row offsets
+            NEXT y%
+            '--- memory cleanup ---
+            _MEMFREE bbuf
+            _MEMFREE gbuf
+            _MEMFREE rbuf
+            _MEMFREE nbuf
+            _MEMFREE sbuf
+            '--- set result ---
+            RemapImageFS& = nhan&
+            nhan& = -1 'avoid freeing below
+        END IF
+        $CHECKING:ON
+        '--- remapping done or error, cleanup remains ---
+        IF bhan& < -1 THEN _FREEIMAGE bhan&
+        IF ghan& < -1 THEN _FREEIMAGE ghan&
+        IF rhan& < -1 THEN _FREEIMAGE rhan&
+        IF nhan& < -1 THEN _FREEIMAGE nhan&
+        IF than& < -1 THEN _FREEIMAGE than&
     END IF
-    nhan& = _NEWIMAGE(swid%, shei%, 256)
-    '--- Floyd-Steinberg error distribution arrays ---
-    rhan& = _NEWIMAGE(swid%, 2, 32) 'these are missused as LONG arrays,
-    ghan& = _NEWIMAGE(swid%, 2, 32) 'with CHECKING:OFF this is much faster
-    bhan& = _NEWIMAGE(swid%, 2, 32) 'than real QB64 arrays
-    '--- curr/next row offsets (for distribution array access) ---
-    cro% = 0: nro% = swid% * 4 'will be swapped after each pixel row
-    '--- the matrix values are extended by 16384 to avoid slow floating ---
-    '--- point ops and to allow for integer storage in the above arrays ---
-    '--- also it's a power of 2, which may be optimized into a bitshift ---
-    seven% = (7 / 16) * 16384 'X+1,Y+0 error fraction
-    three% = (3 / 16) * 16384 'X-1,Y+1 error fraction
-    five% = (5 / 16) * 16384 'X+0,Y+1 error fraction
-    one% = (1 / 16) * 16384 'X+1,Y+1 error fraction
-    '--- if all is good, then start remapping ---
-    $CHECKING:OFF
-    IF nhan& < -1 AND rhan& < -1 AND ghan& < -1 AND bhan& < -1 THEN
-        _COPYPALETTE dhan&, nhan& 'dest palette to new image
-        '--- for speed we do direct memory access ---
-        DIM sbuf AS _MEM: sbuf = _MEMIMAGE(shan&): soff%& = sbuf.OFFSET
-        DIM nbuf AS _MEM: nbuf = _MEMIMAGE(nhan&): noff%& = nbuf.OFFSET
-        DIM rbuf AS _MEM: rbuf = _MEMIMAGE(rhan&): roff%& = rbuf.OFFSET
-        DIM gbuf AS _MEM: gbuf = _MEMIMAGE(ghan&): goff%& = gbuf.OFFSET
-        DIM bbuf AS _MEM: bbuf = _MEMIMAGE(bhan&): boff%& = bbuf.OFFSET
-        '--- iterate through pixels ---
-        FOR y% = 0 TO shei% - 1
-            FOR x% = 0 TO swid% - 1
-                '--- curr/prev/next pixel offsets ---
-                cpo% = x% * 4: ppo% = cpo% - 4: npo% = cpo% + 4
-                '--- get pixel ARGB value from source ---
-                srgb~& = _MEMGET(sbuf, soff%&, _UNSIGNED LONG)
-                '--- add distributed error, shrink by 16384, clear error ---
-                '--- current pixel X+0, Y+0 (= cro% (current row offset)) ---
-                poff% = cro% + cpo% 'pre-calc full pixel offset
-                sr% = ((srgb~& AND &HFF0000~&) \ 65536) + (_MEMGET(rbuf, roff%& + poff%, LONG) \ 16384) 'red
-                sg% = ((srgb~& AND &HFF00~&) \ 256) + (_MEMGET(gbuf, goff%& + poff%, LONG) \ 16384) 'green
-                sb% = (srgb~& AND &HFF~&) + (_MEMGET(bbuf, boff%& + poff%, LONG) \ 16384) 'blue
-                _MEMPUT rbuf, roff%& + poff%, 0 AS LONG 'clearing each single pixel error using _MEMPUT
-                _MEMPUT gbuf, goff%& + poff%, 0 AS LONG 'turns out even faster than clearing the entire
-                _MEMPUT bbuf, boff%& + poff%, 0 AS LONG 'pixel row using _MEMFILL at the end of the loop
-                '--- find nearest color ---
-                crgb~& = _RGBA32(sr%, sg%, sb%, 0) 'used for fast value clipping + channel merge
-                IF fsNearCol%(crgb~&) > 0 THEN
-                    npen% = fsNearCol%(crgb~&) - 1 'already known
-                ELSE
-                    npen% = FindColor&(sr%, sg%, sb%, nhan&, 24, 255 - guiReservedPens%) 'not known, find one
-                    fsNearCol%(crgb~&) = npen% + 1 'save for later use
-                END IF
-                '--- put colormapped pixel to dest ---
-                _MEMPUT nbuf, noff%&, npen% AS _UNSIGNED _BYTE
-                '------------------------------------------
-                '--- Floyd-Steinberg error distribution ---
-                '------------------------------------------
-                '--- You may comment this block out, to see the
-                '--- result without applied FS matrix.
-                '-----
-                '--- get dest palette RGB value, calc error to clipped source ---
-                nrgb~& = _PALETTECOLOR(npen%, nhan&)
-                er% = ((crgb~& AND &HFF0000~&) - (nrgb~& AND &HFF0000~&)) \ 65536
-                eg% = ((crgb~& AND &HFF00~&) - (nrgb~& AND &HFF00~&)) \ 256
-                eb% = (crgb~& AND &HFF~&) - (nrgb~& AND &HFF~&)
-                '--- distribute error according to FS matrix ---
-                IF x% > 0 THEN
-                    '--- X-1, Y+1 (= nro% (next row offset)) ---
-                    poff% = nro% + ppo% 'pre-calc full pixel offset
-                    _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * three%) AS LONG 'red
-                    _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * three%) AS LONG 'green
-                    _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * three%) AS LONG 'blue
-                END IF
-                '--- X+0, Y+1 (= nro% (next row offset)) ---
-                poff% = nro% + cpo% 'pre-calc full pixel offset
-                _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * five%) AS LONG 'red
-                _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * five%) AS LONG 'green
-                _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * five%) AS LONG 'blue
-                IF x% < (swid% - 1) THEN
-                    '--- X+1, Y+0 (= cro% (current row offset)) ---
-                    poff% = cro% + npo% 'pre-calc full pixel offset
-                    _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * seven%) AS LONG 'red
-                    _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * seven%) AS LONG 'green
-                    _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * seven%) AS LONG 'blue
-                    '--- X+1, Y+1 (= nro% (next row offset)) ---
-                    poff% = nro% + npo% 'pre-calc full pixel offset
-                    _MEMPUT rbuf, roff%& + poff%, _MEMGET(rbuf, roff%& + poff%, LONG) + (er% * one%) AS LONG 'red
-                    _MEMPUT gbuf, goff%& + poff%, _MEMGET(gbuf, goff%& + poff%, LONG) + (eg% * one%) AS LONG 'green
-                    _MEMPUT bbuf, boff%& + poff%, _MEMGET(bbuf, boff%& + poff%, LONG) + (eb% * one%) AS LONG 'blue
-                END IF
-                '------------------------------------------
-                '--- End of FS ----------------------------
-                '------------------------------------------
-                noff%& = noff%& + 1 'next dest pixel
-                soff%& = soff%& + 4 'next source pixel
-            NEXT x%
-            tmp% = cro%: cro% = nro%: nro% = tmp% 'exchange distribution array row offsets
-        NEXT y%
-        '--- memory cleanup ---
-        _MEMFREE bbuf
-        _MEMFREE gbuf
-        _MEMFREE rbuf
-        _MEMFREE nbuf
-        _MEMFREE sbuf
-        '--- set result ---
-        RemapImageFS& = nhan&
-        nhan& = -1 'avoid freeing below
-    END IF
-    $CHECKING:ON
-    '--- remapping done or error, cleanup remains ---
-    IF bhan& < -1 THEN _FREEIMAGE bhan&
-    IF ghan& < -1 THEN _FREEIMAGE ghan&
-    IF rhan& < -1 THEN _FREEIMAGE rhan&
-    IF nhan& < -1 THEN _FREEIMAGE nhan&
-    IF than& < -1 THEN _FREEIMAGE than&
-END IF
 END FUNCTION
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PolygonSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PolygonSupport.bm'

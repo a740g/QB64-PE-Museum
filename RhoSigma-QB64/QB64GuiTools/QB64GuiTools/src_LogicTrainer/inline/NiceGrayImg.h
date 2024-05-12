@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file NiceGray.jpg
 // ---------------------------------------------------------------------
-static const unsigned int32 NiceGrayImgL0[] = {
+static const uint32_t NiceGrayImgL0[] = {
     552,
     0xE0FFD8FF,0x464A1000,0x01004649,0x01000001,0x00000100,0x4300DBFF,0x01010200,0x02010101,
     0x02010101,0x02020202,0x02020304,0x04050202,0x06040304,0x06060605,0x06060605,0x06080907,
@@ -78,11 +78,22 @@ static const unsigned int32 NiceGrayImgL0[] = {
     0x8905561F,0xE21650DF,0x5ECFAA3E,0x0F2C70E2,0x173B6653,0x721D5410,0xC46EDB39,0xF336AAEF
 };
 
-static const unsigned int8 NiceGrayImgB[] = {
+static const uint8_t NiceGrayImgB[] = {
     21,
     0xF0,0x85,0x38,0xAF,0x00,0xD6,0x6A,0xD8,0x6A,0x63,0xD4,0x08,0x57,0x99,0xD5,0x43,
     0xB8,0x90,0x7F,0xFF,0xD9
 };
+
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadNiceGrayImgData(char *Buffer)
+{
+    memcpy(Buffer, &NiceGrayImgL0[1], NiceGrayImgL0[0] << 2);
+    Buffer += (NiceGrayImgL0[0] << 2);
+
+    memcpy(Buffer, &NiceGrayImgB[1], NiceGrayImgB[0]);
+}
 
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
@@ -102,10 +113,10 @@ void KillNiceGrayImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteNiceGrayImgData(const char *FileName, int16 AutoClean)
+const char *WriteNiceGrayImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(NiceGrayImgName, FileName, 8192)) return "";

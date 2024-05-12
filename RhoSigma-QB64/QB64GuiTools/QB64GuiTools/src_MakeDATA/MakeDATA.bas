@@ -1,10 +1,10 @@
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bi'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bi'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bi'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bi'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bi'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bi'
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bi'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bi'
 '*****************************************************
 
 '+---------------+---------------------------------------------------+
@@ -20,11 +20,11 @@
 '| === MakeDATA.bas ===                                              |
 '|                                                                   |
 '| == Create a DATA block out of the given file, so you can embed it |
-'| == in your program and write it back when needed.                 |
+'| == into your program and read it or write it back when needed.    |
 '|                                                                   |
-'| == The DATAs are written into a .bm file together with a ready to |
-'| == use write back FUNCTION. You just $INCLUDE this .bm file into  |
-'| == your program and call the write back FUNCTION somewhere.       |
+'| == The DATAs are written into a .bm file together with ready to   |
+'| == use read and write back FUNCTIONs. You just $INCLUDE this .bm  |
+'| == file into your program and call the desired FUNCTION somewhere.|
 '|                                                                   |
 '+-------------------------------------------------------------------+
 '| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
@@ -217,7 +217,7 @@ UserMain:
 '=====================================================================
 
 SetupScreen 480, 273, 0
-appCR$ = "Convert File to DATAs v1.1, Done by RhoSigma, Roland Heyder"
+appCR$ = "Convert File to DATAs v2.0, Done by RhoSigma, Roland Heyder"
 _TITLE appExeName$ + " - " + appCR$
 
 '------------------------------
@@ -323,7 +323,7 @@ InputRatio$ = SliderC$("INIT",_
         NewTag$("IMAGEFILE", "PaperGray.jpg") +_
         NewTag$("AREA", "on") +_
         NewTag$("DISABLED", LTRIM$(STR$(NOT use%))) +_
-        NewTag$("TOOLTIP", "If packing gives less ratio than this, then|convert it unpacked and rather save the|time required for unpacking at writeback."))
+        NewTag$("TOOLTIP", "If packing gives less ratio than this,|then convert it unpacked, so you can|rather save the time for unpacking."))
 UseLzw$ = CheckboxC$("INIT",_
         NewTag$("LEFT", "434") +_
         NewTag$("TOP", "110") +_
@@ -492,246 +492,295 @@ RETURN
 CONST ShowErrSwitch$ = "ON" 'ON or OFF
 '-----
 FUNCTION ShowErr$ (tagString$)
-ShowErr$ = tagString$
-IF UCASE$(ShowErrSwitch$) = "ON" THEN
-    IF ValidateTags%(tagString$, "ERROR", -1) THEN
+    ShowErr$ = tagString$
+    IF UCASE$(ShowErrSwitch$) = "ON" THEN
+        IF ValidateTags%(tagString$, "ERROR", -1) THEN
         dummy$ = MessageBox$("Error16px.png", "Error Tag",_
                              GetTagData$(tagString$, "ERROR", "empty"),_
                              "{IMG Error16px.png 39}Ok, got it...")
-    ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
+        ELSEIF ValidateTags%(tagString$, "WARNING", -1) THEN
         dummy$ = MessageBox$("Problem16px.png", "Warning Tag",_
                              GetTagData$(tagString$, "WARNING", "empty"),_
                              "{IMG Problem16px.png 39}Ok, got it...")
+        END IF
     END IF
-END IF
+END FUNCTION
+'--- Function to define/return the program's version string.
+'-----
+FUNCTION VersionMakeDATA$
+    VersionMakeDATA$ = MID$("$VER: MakeDATA 2.0 (26-Oct-2023) by RhoSigma :END$", 7, 38)
 END FUNCTION
 '---------------------------------------------------------------------
 'Convert the selected file into DATAs, the return value indicates
 'whether to auto-reset the file input fields after the call or not.
 '---------------------------------------------------------------------
 FUNCTION ConvertFile%
-SHARED srcPath$, src$, tarPath$, tar$, tarName$, rat%, use%
-SHARED OutputState$, OutputProgress$
-ConvertFile% = 0
-'--- strip invalid chars for labels ---
-tmp$ = tarName$: tarName$ = ""
-FOR i% = 1 TO LEN(tmp$)
-    a% = ASC(tmp$, i%)
-    SELECT CASE a%
-        CASE 48 TO 57, 65 TO 90, 97 TO 122 'keep only 0-9, Aa-Zz
-            tarName$ = tarName$ + CHR$(a%)
-    END SELECT
-NEXT i%
-MID$(tarName$, 1, 1) = UCASE$(MID$(tarName$, 1, 1)) 'capitalize 1st letter
-'--- check files ---
-IF (srcPath$ + src$) = (tarPath$ + tar$) THEN
+    SHARED srcPath$, src$, tarPath$, tar$, tarName$, rat%, use%
+    SHARED OutputState$, OutputProgress$
+    ConvertFile% = 0
+    '--- strip invalid chars for labels ---
+    tmp$ = tarName$: tarName$ = ""
+    FOR i% = 1 TO LEN(tmp$)
+        a% = ASC(tmp$, i%)
+        SELECT CASE a%
+            CASE 48 TO 57, 65 TO 90, 97 TO 122 'keep only 0-9, Aa-Zz
+                tarName$ = tarName$ + CHR$(a%)
+        END SELECT
+    NEXT i%
+    MID$(tarName$, 1, 1) = UCASE$(MID$(tarName$, 1, 1)) 'capitalize 1st letter
+    '--- check files ---
+    IF (srcPath$ + src$) = (tarPath$ + tar$) THEN
     res$ = MessageBox$("Error16px.png", "Error !!",_
            "Source and Target files are the same!", "{IMG Error16px.png 39}I'll check")
-    EXIT FUNCTION
-END IF
-IF _FILEEXISTS(tarPath$ + tar$) THEN
+        EXIT FUNCTION
+    END IF
+    IF _FILEEXISTS(tarPath$ + tar$) THEN
     res$ = MessageBox$("Problem16px.png", "Attention !!",_
            "Target file already exists,|do you want to overwrite?",_
            "{SYM Checkmark * * * *}Yes||{SYM Cross * * * *}No")
-    IF res$ = "No" OR res$ = "" THEN EXIT FUNCTION
-END IF
-sff% = SafeOpenFile%("I", srcPath$ + src$)
+        IF res$ = "No" OR res$ = "" THEN EXIT FUNCTION
+    END IF
+    sff% = SafeOpenFile%("I", srcPath$ + src$)
 IF sff% THEN CLOSE sff%: ELSE res$ = MessageBox$("Error16px.png", "Error !!",_
                                    "Can't open/access source file!", "{IMG Error16px.png 39}I'll check")
-tff% = SafeOpenFile%("O", tarPath$ + tar$)
+    tff% = SafeOpenFile%("O", tarPath$ + tar$)
 IF tff% THEN CLOSE tff%: ELSE res$ = MessageBox$("Error16px.png", "Error !!",_
                                    "Can't open/access target file!", "{IMG Error16px.png 39}I'll check")
-IF sff% = 0 OR tff% = 0 THEN EXIT FUNCTION
-'--- init converter ---
-IF use% THEN 'packing requested?
-    OPEN "B", #1, srcPath$ + src$
-    filedata$ = SPACE$(LOF(1))
-    GET #1, , filedata$
-    CLOSE #1
-    res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "packing"))
-    lzwProgress$ = OutputProgress$ 'set progress indicator for LzwPack$()
-    rawdata$ = LzwPack$(filedata$, rat%)
-    IF rawdata$ <> "" THEN
-        tmpLzw$ = appTempDir$ + GetUniqueID$
-        TempLog tmpLzw$, "MODULE: MakeDATA CONTENTS: Temporary compressed file data."
-        OPEN "O", #1, tmpLzw$: CLOSE #1
-        OPEN "B", #1, tmpLzw$: PUT #1, , rawdata$: CLOSE #1
-        packed% = -1
-        OPEN "B", #1, tmpLzw$
+    IF sff% = 0 OR tff% = 0 THEN EXIT FUNCTION
+    '--- init converter ---
+    IF use% THEN 'packing requested?
+        OPEN "B", #1, srcPath$ + src$
+        filedata$ = SPACE$(LOF(1))
+        GET #1, , filedata$
+        CLOSE #1
+        res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "packing"))
+        lzwProgress$ = OutputProgress$ 'set progress indicator for LzwPack$()
+        rawdata$ = LzwPack$(filedata$, rat%)
+        IF rawdata$ <> "" THEN
+            tmpLzw$ = appTempDir$ + GetUniqueID$
+            TempLog tmpLzw$, "MODULE: MakeDATA CONTENTS: Temporary compressed file data."
+            OPEN "O", #1, tmpLzw$: CLOSE #1
+            OPEN "B", #1, tmpLzw$: PUT #1, , rawdata$: CLOSE #1
+            packed% = -1
+            OPEN "B", #1, tmpLzw$
+        ELSE
+            packed% = 0
+            OPEN "B", #1, srcPath$ + src$
+        END IF
     ELSE
         packed% = 0
         OPEN "B", #1, srcPath$ + src$
     END IF
-ELSE
-    packed% = 0
-    OPEN "B", #1, srcPath$ + src$
-END IF
-res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "converting"))
-fl& = LOF(1)
-cntL& = INT(fl& / 32)
-cntB& = (fl& - (cntL& * 32))
+    res$ = GenC$("SET", OutputState$ + NewTag$("TEXT", "converting"))
+    fl& = LOF(1)
+    cntL& = INT(fl& / 32)
+    cntB& = (fl& - (cntL& * 32))
 
-'--- .bm include file ---
-OPEN "O", #2, tarPath$ + tar$
-PRINT #2, "'============================================================"
-PRINT #2, "'=== This file was created with MakeDATA.bas by RhoSigma, ==="
-PRINT #2, "'=== you must $INCLUDE this at the end of your program.   ==="
-IF packed% THEN
-    PRINT #2, "'=== ---------------------------------------------------- ==="
-    PRINT #2, "'=== If your program is NOT a GuiTools based application, ==="
-    PRINT #2, "'=== then it must also $INCLUDE: 'lzwpacker.bm' available ==="
-    PRINT #2, "'=== from the Libraries Collection here:                  ==="
-    PRINT #2, "'=== http://qb64phoenix.com/forum/forumdisplay.php?fid=23 ==="
-END IF
-PRINT #2, "'============================================================"
-PRINT #2, ""
-'--- writeback function ---
-PRINT #2, "'"; STRING$(LEN(tarName$) + 18, "-")
-PRINT #2, "'--- Write"; tarName$; "Data$ ---"
-PRINT #2, "'"; STRING$(LEN(tarName$) + 18, "-")
-PRINT #2, "' This function will write the DATAs you've created with MakeDATA.bas"
-PRINT #2, "' back to disk and so it rebuilds the original file."
-PRINT #2, "'"
-PRINT #2, "' After the writeback call, only use the returned realFile$ to access the"
-PRINT #2, "' written file. It's your given path, but with an maybe altered filename"
-PRINT #2, "' (number added) in order to avoid the overwriting of an already existing"
-PRINT #2, "' file with the same name in the given location."
-PRINT #2, "'----------"
-PRINT #2, "' SYNTAX:"
-PRINT #2, "'   realFile$ = Write"; tarName$; "Data$ (wantFile$)"
-PRINT #2, "'----------"
-PRINT #2, "' INPUTS:"
-PRINT #2, "'   --- wantFile$ ---"
-PRINT #2, "'    The filename you would like to write the DATAs to, can contain"
-PRINT #2, "'    a full or relative path."
-PRINT #2, "'----------"
-PRINT #2, "' RESULT:"
-PRINT #2, "'   --- realFile$ ---"
-PRINT #2, "'    - On success this is the path and filename finally used after all"
-PRINT #2, "'      applied checks, use only this returned filename to access the"
-PRINT #2, "'      written file."
-PRINT #2, "'    - On failure this function will panic with the appropriate runtime"
-PRINT #2, "'      error code which you may trap and handle as needed with your own"
-PRINT #2, "'      ON ERROR GOTO... handler."
-PRINT #2, "'---------------------------------------------------------------------"
-PRINT #2, "FUNCTION Write"; tarName$; "Data$ (file$)"
-PRINT #2, "'--- option _explicit requirements ---"
-PRINT #2, "DIM po%, body$, ext$, num%, numL&, numB&, rawdata$, stroffs&, i&, dat&, ff%";
-IF packed% THEN PRINT #2, ", filedata$": ELSE PRINT #2, ""
-PRINT #2, "'--- separate filename body & extension ---"
-PRINT #2, "FOR po% = LEN(file$) TO 1 STEP -1"
-PRINT #2, "    IF MID$(file$, po%, 1) = "; CHR$(34); "."; CHR$(34); " THEN"
-PRINT #2, "        body$ = LEFT$(file$, po% - 1)"
-PRINT #2, "        ext$ = MID$(file$, po%)"
-PRINT #2, "        EXIT FOR"
-PRINT #2, "    ELSEIF MID$(file$, po%, 1) = "; CHR$(34); "\"; CHR$(34); " OR MID$(file$, po%, 1) = "; CHR$(34); "/"; CHR$(34); " OR po% = 1 THEN"
-PRINT #2, "        body$ = file$"
-PRINT #2, "        ext$ = "; CHR$(34); CHR$(34)
-PRINT #2, "        EXIT FOR"
-PRINT #2, "    END IF"
-PRINT #2, "NEXT po%"
-PRINT #2, "'--- avoid overwriting of existing files ---"
-PRINT #2, "num% = 1"
-PRINT #2, "WHILE _FILEEXISTS(file$)"
-PRINT #2, "    file$ = body$ + "; CHR$(34); "("; CHR$(34); " + LTRIM$(STR$(num%)) + "; CHR$(34); ")"; CHR$(34); " + ext$"
-PRINT #2, "    num% = num% + 1"
-PRINT #2, "WEND"
-PRINT #2, "'--- write DATAs ---"
-PRINT #2, "RESTORE "; tarName$
-PRINT #2, "READ numL&, numB&"
-PRINT #2, "rawdata$ = SPACE$((numL& * 4) + numB&)"
-PRINT #2, "stroffs& = 1"
-PRINT #2, "FOR i& = 1 TO numL&"
-PRINT #2, "    READ dat&"
-PRINT #2, "    MID$(rawdata$, stroffs&, 4) = MKL$(dat&)"
-PRINT #2, "    stroffs& = stroffs& + 4"
-PRINT #2, "NEXT i&"
-PRINT #2, "IF numB& > 0 THEN"
-PRINT #2, "    FOR i& = 1 TO numB&"
-PRINT #2, "        READ dat&"
-PRINT #2, "        MID$(rawdata$, stroffs&, 1) = CHR$(dat&)"
-PRINT #2, "        stroffs& = stroffs& + 1"
-PRINT #2, "    NEXT i&"
-PRINT #2, "END IF"
-PRINT #2, "ff% = FREEFILE"
-PRINT #2, "OPEN file$ FOR OUTPUT AS ff%"
-IF packed% THEN
-    PRINT #2, "CLOSE ff%"
-    PRINT #2, "filedata$ = LzwUnpack$(rawdata$)"
-    PRINT #2, "OPEN file$ FOR BINARY AS ff%"
-    PRINT #2, "PUT #ff%, , filedata$"
-ELSE
-    PRINT #2, "PRINT #ff%, rawdata$;"
-END IF
-PRINT #2, "CLOSE ff%"
-PRINT #2, "'--- set result ---"
-PRINT #2, "Write"; tarName$; "Data$ = file$"
-PRINT #2, "EXIT FUNCTION"
-PRINT #2, ""
-PRINT #2, "'--- DATAs representing the contents of file "; src$
-PRINT #2, "'---------------------------------------------------------------------"
-PRINT #2, tarName$; ":"
-'--- read LONGs ---
-PRINT #2, "DATA "; LTRIM$(STR$(cntL& * 8)); ","; LTRIM$(STR$(cntB&))
-_DISPLAY: stim# = TIMER(0.001)
-tmpI$ = SPACE$(32)
-FOR z& = 1 TO cntL&
-    GET #1, , tmpI$: offI% = 1
-    tmpO$ = "DATA " + STRING$(87, ","): offO% = 6
-    DO
-        tmpL& = CVL(MID$(tmpI$, offI%, 4)): offI% = offI% + 4
-        MID$(tmpO$, offO%, 10) = "&H" + RIGHT$("00000000" + HEX$(tmpL&), 8)
-        offO% = offO% + 11
-    LOOP UNTIL offO% > 92
-    PRINT #2, tmpO$
-    etim# = TIMER(0.001) - stim#
-    IF etim# < 0 THEN etim# = etim# + 86400 'midnight fix
-    IF etim# >= 0.04 THEN
-        res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", LTRIM$(STR$(CINT(100 / cntL& * z&)))))
-        _DISPLAY: stim# = TIMER(0.001)
+    '--- .bm include file ---
+    OPEN "O", #2, tarPath$ + tar$
+    PRINT #2, "'============================================================"
+    PRINT #2, "'=== This file was created with MakeDATA.bas by RhoSigma, ==="
+    PRINT #2, "'=== you must $INCLUDE this at the end of your program.   ==="
+    IF packed% THEN
+        PRINT #2, "'=== ---------------------------------------------------- ==="
+        PRINT #2, "'=== If your program is NOT a GuiTools based application, ==="
+        PRINT #2, "'=== then it must also $INCLUDE: 'lzwpacker.bm' available ==="
+        PRINT #2, "'=== from the Libraries Collection here:                  ==="
+        PRINT #2, "'=== http://qb64phoenix.com/forum/forumdisplay.php?fid=23 ==="
     END IF
-NEXT z&
-res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", "100"))
-_AUTODISPLAY
-'--- read remaining BYTEs ---
-IF cntB& > 0 THEN
-    PRINT #2, "DATA ";
-    FOR x% = 1 TO cntB&
-        GET #1, , tmpB%%
-        PRINT #2, "&H" + RIGHT$("00" + HEX$(tmpB%%), 2);
-        IF x% <> 16 THEN
-            IF x% <> cntB& THEN PRINT #2, ",";
-        ELSE
-            IF x% <> cntB& THEN
-                PRINT #2, ""
-                PRINT #2, "DATA ";
-            END IF
-        END IF
-    NEXT x%
+    PRINT #2, "'============================================================"
     PRINT #2, ""
-END IF
-PRINT #2, "END FUNCTION"
-PRINT #2, ""
-'--- ending ---
-CLOSE #2
-CLOSE #1
-'--- finish message ---
-ConvertFile% = -1
-IF packed% THEN
-    KILL tmpLzw$
+    '--- read function ---
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 17, "-")
+    PRINT #2, "'--- Read"; tarName$; "Data$ ---"
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 17, "-")
+    PRINT #2, "' This function will read the DATAs you've created with MakeDATA.bas"
+    PRINT #2, "' into a string, no data will be written to disk. If you rather wanna"
+    PRINT #2, "' rebuild the original file on disk, then use the write function below."
+    PRINT #2, "'"
+    PRINT #2, "' You may directly pass the returned string to _SNDOPEN, _LOADIMAGE or"
+    PRINT #2, "' _LOADFONT when using the memory load capabilities of these commands."
+    PRINT #2, "'----------"
+    PRINT #2, "' SYNTAX:"
+    PRINT #2, "'   dataStr$ = Read"; tarName$; "Data$"
+    PRINT #2, "'----------"
+    PRINT #2, "' RESULT:"
+    PRINT #2, "'   --- dataStr$ ---"
+    PRINT #2, "'    The data of the embedded file. This is in fact the same as if you"
+    PRINT #2, "'    had opend the file and read its entire content into a single string."
+    PRINT #2, "'---------------------------------------------------------------------"
+    PRINT #2, "FUNCTION Read"; tarName$; "Data$"
+    PRINT #2, "'--- option _explicit requirements ---"
+    PRINT #2, "DIM numL&, numB&, rawdata$, stroffs&, i&, dat&"
+    PRINT #2, "'--- read DATAs ---"
+    PRINT #2, "RESTORE "; tarName$
+    PRINT #2, "READ numL&, numB&"
+    PRINT #2, "rawdata$ = SPACE$((numL& * 4) + numB&)"
+    PRINT #2, "stroffs& = 1"
+    PRINT #2, "FOR i& = 1 TO numL&"
+    PRINT #2, "    READ dat&"
+    PRINT #2, "    MID$(rawdata$, stroffs&, 4) = MKL$(dat&)"
+    PRINT #2, "    stroffs& = stroffs& + 4"
+    PRINT #2, "NEXT i&"
+    PRINT #2, "IF numB& > 0 THEN"
+    PRINT #2, "    FOR i& = 1 TO numB&"
+    PRINT #2, "        READ dat&"
+    PRINT #2, "        MID$(rawdata$, stroffs&, 1) = CHR$(dat&)"
+    PRINT #2, "        stroffs& = stroffs& + 1"
+    PRINT #2, "    NEXT i&"
+    PRINT #2, "END IF"
+    PRINT #2, "'--- set result ---"
+    PRINT #2, "Read"; tarName$; "Data$ = ";
+    IF packed% THEN PRINT #2, "LzwUnpack$(rawdata$)": ELSE PRINT #2, "rawdata$"
+    PRINT #2, "END FUNCTION"
+    PRINT #2, ""
+    '--- writeback function ---
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 18, "-")
+    PRINT #2, "'--- Write"; tarName$; "Data$ ---"
+    PRINT #2, "'"; STRING$(LEN(tarName$) + 18, "-")
+    PRINT #2, "' This function will write the DATAs you've created with MakeDATA.bas"
+    PRINT #2, "' back to disk and so it rebuilds the original file."
+    PRINT #2, "'"
+    PRINT #2, "' After the writeback call, only use the returned realFile$ to access the"
+    PRINT #2, "' written file. It's your given path, but with an maybe altered filename"
+    PRINT #2, "' (number added) in order to avoid the overwriting of an already existing"
+    PRINT #2, "' file with the same name in the given location."
+    PRINT #2, "'----------"
+    PRINT #2, "' SYNTAX:"
+    PRINT #2, "'   realFile$ = Write"; tarName$; "Data$ (wantFile$)"
+    PRINT #2, "'----------"
+    PRINT #2, "' INPUTS:"
+    PRINT #2, "'   --- wantFile$ ---"
+    PRINT #2, "'    The filename you would like to write the DATAs to, can contain"
+    PRINT #2, "'    a full or relative path."
+    PRINT #2, "'----------"
+    PRINT #2, "' RESULT:"
+    PRINT #2, "'   --- realFile$ ---"
+    PRINT #2, "'    - On success this is the path and filename finally used after all"
+    PRINT #2, "'      applied checks, use only this returned filename to access the"
+    PRINT #2, "'      written file."
+    PRINT #2, "'    - On failure this function will panic with the appropriate runtime"
+    PRINT #2, "'      error code which you may trap and handle as needed with your own"
+    PRINT #2, "'      ON ERROR GOTO... handler."
+    PRINT #2, "'---------------------------------------------------------------------"
+    PRINT #2, "FUNCTION Write"; tarName$; "Data$ (file$)"
+    PRINT #2, "'--- option _explicit requirements ---"
+    PRINT #2, "DIM po%, body$, ext$, num%, numL&, numB&, rawdata$, stroffs&, i&, dat&, ff%";
+    IF packed% THEN PRINT #2, ", filedata$": ELSE PRINT #2, ""
+    PRINT #2, "'--- separate filename body & extension ---"
+    PRINT #2, "FOR po% = LEN(file$) TO 1 STEP -1"
+    PRINT #2, "    IF MID$(file$, po%, 1) = "; CHR$(34); "."; CHR$(34); " THEN"
+    PRINT #2, "        body$ = LEFT$(file$, po% - 1)"
+    PRINT #2, "        ext$ = MID$(file$, po%)"
+    PRINT #2, "        EXIT FOR"
+    PRINT #2, "    ELSEIF MID$(file$, po%, 1) = "; CHR$(34); "\"; CHR$(34); " OR MID$(file$, po%, 1) = "; CHR$(34); "/"; CHR$(34); " OR po% = 1 THEN"
+    PRINT #2, "        body$ = file$"
+    PRINT #2, "        ext$ = "; CHR$(34); CHR$(34)
+    PRINT #2, "        EXIT FOR"
+    PRINT #2, "    END IF"
+    PRINT #2, "NEXT po%"
+    PRINT #2, "'--- avoid overwriting of existing files ---"
+    PRINT #2, "num% = 1"
+    PRINT #2, "WHILE _FILEEXISTS(file$)"
+    PRINT #2, "    file$ = body$ + "; CHR$(34); "("; CHR$(34); " + LTRIM$(STR$(num%)) + "; CHR$(34); ")"; CHR$(34); " + ext$"
+    PRINT #2, "    num% = num% + 1"
+    PRINT #2, "WEND"
+    PRINT #2, "'--- write DATAs ---"
+    PRINT #2, "RESTORE "; tarName$
+    PRINT #2, "READ numL&, numB&"
+    PRINT #2, "rawdata$ = SPACE$((numL& * 4) + numB&)"
+    PRINT #2, "stroffs& = 1"
+    PRINT #2, "FOR i& = 1 TO numL&"
+    PRINT #2, "    READ dat&"
+    PRINT #2, "    MID$(rawdata$, stroffs&, 4) = MKL$(dat&)"
+    PRINT #2, "    stroffs& = stroffs& + 4"
+    PRINT #2, "NEXT i&"
+    PRINT #2, "IF numB& > 0 THEN"
+    PRINT #2, "    FOR i& = 1 TO numB&"
+    PRINT #2, "        READ dat&"
+    PRINT #2, "        MID$(rawdata$, stroffs&, 1) = CHR$(dat&)"
+    PRINT #2, "        stroffs& = stroffs& + 1"
+    PRINT #2, "    NEXT i&"
+    PRINT #2, "END IF"
+    PRINT #2, "ff% = FREEFILE"
+    PRINT #2, "OPEN file$ FOR OUTPUT AS ff%"
+    IF packed% THEN
+        PRINT #2, "CLOSE ff%"
+        PRINT #2, "filedata$ = LzwUnpack$(rawdata$)"
+        PRINT #2, "OPEN file$ FOR BINARY AS ff%"
+        PRINT #2, "PUT #ff%, , filedata$"
+    ELSE
+        PRINT #2, "PRINT #ff%, rawdata$;"
+    END IF
+    PRINT #2, "CLOSE ff%"
+    PRINT #2, "'--- set result ---"
+    PRINT #2, "Write"; tarName$; "Data$ = file$"
+    PRINT #2, "EXIT FUNCTION"
+    PRINT #2, ""
+    PRINT #2, "'--- DATAs representing the contents of file "; src$
+    PRINT #2, "'---------------------------------------------------------------------"
+    PRINT #2, tarName$; ":"
+    '--- read LONGs ---
+    PRINT #2, "DATA "; LTRIM$(STR$(cntL& * 8)); ","; LTRIM$(STR$(cntB&))
+    _DISPLAY: stim# = TIMER(0.001)
+    tmpI$ = SPACE$(32)
+    FOR z& = 1 TO cntL&
+        GET #1, , tmpI$: offI% = 1
+        tmpO$ = "DATA " + STRING$(87, ","): offO% = 6
+        DO
+            tmpL& = CVL(MID$(tmpI$, offI%, 4)): offI% = offI% + 4
+            MID$(tmpO$, offO%, 10) = "&H" + RIGHT$("00000000" + HEX$(tmpL&), 8)
+            offO% = offO% + 11
+        LOOP UNTIL offO% > 92
+        PRINT #2, tmpO$
+        etim# = TIMER(0.001) - stim#
+        IF etim# < 0 THEN etim# = etim# + 86400 'midnight fix
+        IF etim# >= 0.04 THEN
+            res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", LTRIM$(STR$(CINT(100 / cntL& * z&)))))
+            _DISPLAY: stim# = TIMER(0.001)
+        END IF
+    NEXT z&
+    res$ = GenC$("SET", OutputProgress$ + NewTag$("LEVEL", "100"))
+    _AUTODISPLAY
+    '--- read remaining BYTEs ---
+    IF cntB& > 0 THEN
+        PRINT #2, "DATA ";
+        FOR x% = 1 TO cntB&
+            GET #1, , tmpB%%
+            PRINT #2, "&H" + RIGHT$("00" + HEX$(tmpB%%), 2);
+            IF x% <> 16 THEN
+                IF x% <> cntB& THEN PRINT #2, ",";
+            ELSE
+                IF x% <> cntB& THEN
+                    PRINT #2, ""
+                    PRINT #2, "DATA ";
+                END IF
+            END IF
+        NEXT x%
+        PRINT #2, ""
+    END IF
+    PRINT #2, "END FUNCTION"
+    PRINT #2, ""
+    '--- ending ---
+    CLOSE #2
+    CLOSE #1
+    '--- finish message ---
+    ConvertFile% = -1
+    IF packed% THEN
+        KILL tmpLzw$
     tmp$ = IndexFormat$("The original data were packed with a ratio of 0{##.##}%,|", STR$(100 - (100 / LEN(filedata$) * LEN(rawdata$))), "|") +_
            "Original:" + STR$(LEN(filedata$)) + " Bytes, Packed:" + STR$(LEN(rawdata$)) + " Bytes.|~"
-ELSEIF use% THEN
-    ConvertFile% = 0
+    ELSEIF use% THEN
+        ConvertFile% = 0
     tmp$ = "The original data could not be packed with your desired|" +_
            "least ratio, you may try again with a lesser ratio or|" +_
            "keep the converted DATAs as is (unpacked).|~"
-ELSE
-    tmp$ = "As requested, the data were converted without packing.|~"
-END IF
+    ELSE
+        tmp$ = "As requested, the data were converted without packing.|~"
+    END IF
 ok$ = MessageBox$("Info16px.png", "Information !!", tmp$ +_
      IndexFormat$("Have a look into the created file (0{&})|", tar$, CHR$(0)) +_
-                  "to learn how to write the DATAs back into a file.",_
+                  "to learn about the available options to read or write|back the embedded data.",_
                   "{SYM Checkmark * * * *}")
 END FUNCTION
 '~~~~~
@@ -765,40 +814,40 @@ END FUNCTION
 '    or to move it to the last known (if any) window position (0).
 '---------------------------------------------------------------------
 SUB SetupScreen (wid%, hei%, mid%)
-'--- create the screen ---
-appScreen& = _NEWIMAGE(wid%, hei%, 256)
-IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
-IF appGLVComp% THEN _SCREENSHOW
-SCREEN appScreen&
-'--- setup screen palette ---
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppPalette.bm'
-ApplyPrefs "Global.Colors", ""
-'--- set default font ---
-'uncomment and adjust the _LOADFONT line below to load/use a custom font,
-'otherwise QB64's inbuilt default _FONT 16 is used
-'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
-IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
-'--- set default icon ---
-'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
-'otherwise the GuiTools Framework's default icon is used as embedded via
-'the GuiAppIcon.h/.bm files located in the dev_framework folder
-appIcon& = _LOADIMAGE(RhoSigmaImgName$, 32)
-IF appIcon& < -1 THEN _ICON appIcon&
-'if you rather use $EXEICON then comment out the IF appIcon& ... line above
-'and uncomment and adjust the $EXEICON line below as you need instead, but
-'note it's QB64-GL only then, QB64-SDL will throw an error on $EXEICON
-'$EXEICON:'QB64GuiTools\images\icons\Default.ico'
-'--- make screen visible ---
-_DELAY 0.025
-IF mid% THEN
-    desktop& = _SCREENIMAGE
-    _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
-    _FREEIMAGE desktop&
-ELSE
-    LastPosUpdate 0 'load last known win pos
-END IF
-_DELAY 0.025: _SCREENSHOW
-IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
+    '--- create the screen ---
+    appScreen& = _NEWIMAGE(wid%, hei%, 256)
+    IF appScreen& >= -1 THEN ERROR 1000 'can't create main screen
+    IF appGLVComp% THEN _SCREENSHOW
+    SCREEN appScreen&
+    '--- setup screen palette ---
+    '$INCLUDE: '..\dev_framework\GuiAppPalette.bm'
+    ApplyPrefs "Global.Colors", ""
+    '--- set default font ---
+    'uncomment and adjust the _LOADFONT line below to load/use a custom font,
+    'otherwise QB64's inbuilt default _FONT 16 is used
+    'appFont& = _LOADFONT("C:\Windows\Fonts\timesbd.ttf", 16)
+    IF appFont& > 0 THEN _FONT appFont&: ELSE _FONT 16
+    '--- set default icon ---
+    'uncomment and adjust the _LOADIMAGE line below to load a specific icon,
+    'otherwise the GuiTools Framework's default icon is used as embedded via
+    'the GuiAppIcon.h/.bm files located in the dev_framework folder
+    appIcon& = _LOADIMAGE(RhoSigmaImgName$, 32)
+    IF appIcon& < -1 THEN _ICON appIcon&
+    'if you rather use $EXEICON then comment out the IF appIcon& ... line above
+    'and uncomment and adjust the $EXEICON line below as you need instead, but
+    'note it's QB64 v1.1+ then, older versions will throw an error on $EXEICON
+    '$EXEICON:'..\images\icons\Default.ico'
+    '--- make screen visible ---
+    _DELAY 0.025
+    IF mid% THEN
+        desktop& = _SCREENIMAGE
+        _SCREENMOVE (_WIDTH(desktop&) - wid%) / 2 - 4, (_HEIGHT(desktop&) - hei%) / 2 - 20
+        _FREEIMAGE desktop&
+    ELSE
+        LastPosUpdate 0 'load last known win pos
+    END IF
+    _DELAY 0.025: _SCREENSHOW
+    IF appGLVComp% THEN _DELAY 0.05: UntitledToTop
 END SUB
 
 '-------------------
@@ -813,51 +862,51 @@ END SUB
 '   CloseScreen
 '---------------------------------------------------------------------
 SUB CloseScreen
-'--- make screen invisible ---
-_SCREENHIDE
-'--- free the icon (if any) and invalidate its handle ---
-IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
-'--- free the font (if any) and invalidate its handle ---
-_FONT 16
-IF appFont& > 0 THEN _FREEFONT appFont&: appFont& = 0
-'--- free the screen and invalidate its handle ---
-SCREEN 0
-IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
+    '--- make screen invisible ---
+    _SCREENHIDE
+    '--- free the icon (if any) and invalidate its handle ---
+    IF appIcon& < -1 THEN _FREEIMAGE appIcon&: appIcon& = -1
+    '--- free the font (if any) and invalidate its handle ---
+    _FONT 16
+    IF appFont& > 0 AND guiPGVCount% = 0 THEN _FREEFONT appFont&: appFont& = 0
+    '--- free the screen and invalidate its handle ---
+    SCREEN 0
+    IF appScreen& < -1 THEN _FREEIMAGE appScreen&: appScreen& = -1
 END SUB
 '~~~~~
 
 '*****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppFrame.bm'
+'$INCLUDE: '..\dev_framework\GuiAppFrame.bm'
 '*****************************************************
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\BufferSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ConvertSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\ImageSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PackSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\PolygonSupport.bm'
+'$INCLUDE: '..\dev_framework\support\BufferSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ConvertSupport.bm'
+'$INCLUDE: '..\dev_framework\support\ImageSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PackSupport.bm'
+'$INCLUDE: '..\dev_framework\support\PolygonSupport.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\support\TagSupport.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GuiClasses.bm'
+'$INCLUDE: '..\dev_framework\support\TagSupport.bm'
+'$INCLUDE: '..\dev_framework\classes\GuiClasses.bm'
 
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\GenericClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ModelClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ImageClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SymbolClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RulerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\FrameClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\StringClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\TextClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ProgressClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\PagerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ButtonClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CheckboxClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\CycleClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\RadioClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ListviewClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\SliderClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ScrollerClass.bm'
-'$INCLUDE: 'QB64GuiTools\dev_framework\classes\ColorwheelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\GenericClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ModelClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ImageClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SymbolClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RulerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\FrameClass.bm'
+'$INCLUDE: '..\dev_framework\classes\StringClass.bm'
+'$INCLUDE: '..\dev_framework\classes\TextClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ProgressClass.bm'
+'$INCLUDE: '..\dev_framework\classes\PagerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ButtonClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CheckboxClass.bm'
+'$INCLUDE: '..\dev_framework\classes\CycleClass.bm'
+'$INCLUDE: '..\dev_framework\classes\RadioClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ListviewClass.bm'
+'$INCLUDE: '..\dev_framework\classes\SliderClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ScrollerClass.bm'
+'$INCLUDE: '..\dev_framework\classes\ColorwheelClass.bm'
 
 '$INCLUDE: 'inline\RhoSigmaImg.bm'
 '$INCLUDE: 'inline\PlasmaImg.bm'

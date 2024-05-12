@@ -22,6 +22,9 @@ TODO:
 -----
 - add a new GUI class to allow any GuiViews to be placed as part of other
   forms (like an <iframe> in HTML) in alternative for multiple windows
+- improve ListviewC class to allow multiple columns in a list
+- add a new GUI class providing some kind of multi-line or text editor
+  like input fields
 - continue work on the GuiTools Framwork documentation
   - if you have questions about anything what's not yet documented in any
     source, HTML or PDF file, then please don't hesitate to ask for help
@@ -32,6 +35,31 @@ TODO:
 
 HISTORY:
 --------
+>> 12/02/2023 v0.17
+   - the StringC class now allows the NOSHOW tag to make a password field,
+     also pressing <Esc> will now deselect any active string field and also
+     fires the GADGETUP event according to the PASSIVE tag and change state
+   - in the ListviewC class, when the mouse hovers an overlong (clipped)
+     list entry, then the full entry is now displayed as tooltip
+   - fixed a bug in the GuiViews API, the additional Views were not using
+     the designated font as set in the SetupScreen() routine
+   - added the convenience function GetObjTagData$() in GuiClasses.bm to
+     simplify data retrieval from GUI objects, all sources adapted to it
+   - updated MakeDATA/MakeCARR applications to create a read to string
+     function additional to the write to disk function, the result of the
+     new read function can be passed to _LOADFONT, _LOADIMAGE or _SNDOPEN
+     when using the new memory load capabilities of these commands
+   - added version strings in all apps and in the framework base library,
+     see also dev_storage\FindVersions.bas for more informations
+   - removed obsolete file docs\KnownIssues.txt, issues have been either
+     fixed or successfully worked around
+
+>> 12/07/2022 v0.16 [silent release]
+   - adjustments for QB64 Phoenix Edition v3.0.0 and up (Phoenix rebranding)
+   - further speed and safety improvements in BufferSupport.bi/.bm library
+   - changed integer C/C++ types in .h header files to use stdint.h types
+   - fixed a bug in IndexFormat$() regarding _FLOAT scientific notation
+
 >> 06/20/2022 v0.15
    - one final fix regarding the old recursion bug in GTPrefsEditor.bas
    - overhaul of LStrip$(), RStrip$() and its respective mode constants
@@ -43,9 +71,8 @@ HISTORY:
      drive or folder for a specified file
    - adapted the ImageClass its image search tree to use SearchFile$()
      instead of hardcoding all folders of the search tree
-   - from QB64 v2.1 respectively QB64-PE v0.5 (QB64 Phoenix Edition) there
-     will be a built-in _BIN$() function, to avoid conflicts I've renamed
-     my own function into BinStr$()
+   - from QB64 v2.1 (incl. Phoenix Edition) there will be a built-in _BIN$()
+     function, to avoid conflicts I've renamed my function into BinStr$()
    - complete overhaul of the included BufferSupport.bi/.bm library
    - some more minor program flow changes under the hood
    - continued revision of sub/function documentation (work in progress)
@@ -222,11 +249,10 @@ HISTORY:
    - the entire tag string API internals reworked for better performance
    - added a FileRequest/Open dialog box function for easy file selection
    - added regex support, eg. used in the new FileSelect$() function,
-     note that the regex stuff is experimental/limited in QB64 versions
-     published before January, 5th 2019, as the used C/C++ compiler in
-     older QB64 versions has issues with it, that's why it is not
-     activated by default, to switch it on follow the instuctions given
-     in file dev_framework\GuiAppFrame.h
+     note that the regex stuff is experimental/limited in QB64 before v1.3,
+     as the used C/C++ compiler in older QB64 versions has issues with it,
+     that's why it is not activated by default, to switch it on follow the
+     instuctions given in file dev_framework\GuiAppFrame.h
    - improved the keyboard shortcut handling, the always use ALT requirement
      has been removed, hence you now can use ALT yourself to vary shortcuts
    - a couple of changes to the GuiAppDemo.bas program in order to showcase
@@ -302,7 +328,7 @@ HISTORY:
      a IMAGEOBJECT and/or SYMBOLOBJECT assigned to it, how much sense this
      makes for the one or other object type I'll leave up to your own
      imagination, the handling logic for it is now there at least
-   - now works with "Output EXE to source folder" option in QB64-GL
+   - now properly works with the "Output EXE to source folder" option
 
 >> 01/27/2017 v0.4
    - added new class CheckboxC, which provides checkboxes of course
@@ -367,8 +393,7 @@ HISTORY:
 >> 02/01/2016 v0.1a
    - reworked type casting in GuiAppFrame.h mutex functions
    - on QB64 level changed the affected function results to _OFFSET type
-   - the project can be compiled with both QB64-GL build versions now,
-     with x32 compiler and x64 compiler
+   - the project can be compiled with both QB64 versions now, x32 and x64
 
 >> 01/30/2016 v0.1
    - alpha development

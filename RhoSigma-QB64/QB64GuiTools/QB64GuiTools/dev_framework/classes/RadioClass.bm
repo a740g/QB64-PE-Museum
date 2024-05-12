@@ -209,11 +209,13 @@ RETURN
 meGet:
 IF ValidObject%(this&, thisTag$, RadioRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
+    reco$ = ListC$("READ", ObjectTag$(guiObjects$(objData%, this&), "LISTOBJECT") + NewTag$("REFOBJ", LTRIM$(STR$(this&))) + NewTag$("HOLD", "true") + GetTag$(guiObjects$(objData%, this&), "ACTUAL"))
+    IF ValidateTags%(reco$, "ERROR", 0) THEN reco$ = ""
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
     IF temp$ <> "n/a" THEN
-        reco$ = ListC$("READ", ObjectTag$(guiObjects$(objData%, this&), "LISTOBJECT") + NewTag$("REFOBJ", LTRIM$(STR$(this&))) + NewTag$("HOLD", "true") + GetTag$(guiObjects$(objData%, this&), "ACTUAL"))
-        IF ValidateTags%(reco$, "ERROR", 0) THEN reco$ = ""
         RadioRes$ = GetTags$(guiObjects$(objData%, this&) + reco$, temp$)
+    ELSE
+        RadioRes$ = GetTags$(guiObjects$(objData%, this&) + reco$, guiInitTags$)
     END IF
 END IF
 RETURN

@@ -1,5 +1,22 @@
-A quick introduction into the program structure
-===============================================
+'+---------------+---------------------------------------------------+
+'| ###### ###### |     .--. .         .-.                            |
+'| ##  ## ##   # |     |   )|        (   ) o                         |
+'| ##  ##  ##    |     |--' |--. .-.  `-.  .  .-...--.--. .-.        |
+'| ######   ##   |     |  \ |  |(   )(   ) | (   ||  |  |(   )       |
+'| ##      ##    |     '   `'  `-`-'  `-'-' `-`-`|'  '  `-`-'`-      |
+'| ##     ##   # |                            ._.'                   |
+'| ##     ###### | Sources & Documents placed under the MIT License. |
+'+---------------+---------------------------------------------------+
+'|                                                                   |
+'| === QuickIntro.txt ===                                            |
+'|                                                                   |
+'| == Brief introduction to GuiTools its general program structure.  |
+'|                                                                   |
+'+-------------------------------------------------------------------+
+'| Done by RhoSigma, R.Heyder, provided AS IS, use at your own risk. |
+'| Find me in the QB64 Forum or mail to support@rhosigma-cw.net for  |
+'| any questions or suggestions. Thanx for your interest in my work. |
+'+-------------------------------------------------------------------+
 
 The GuiTools Framework ??
 In general a very big library of many useful functions, which you will
@@ -36,8 +53,8 @@ should be no END or SYSTEM in your own code.
 
 GuiApp/MyApp.bas has several sections, which you can easily find by searching
 for its headings or program labels, or simply by scrolling from top to bottom
-following the next paragraphs. This also gives you the chance to read the
-comments along the code.
+following the next paragraphs. The latter method also gives you the chance to
+read the comments along the code.
 
 1. The heading "My Init/Exit Handlers" with the labels
     - UserInitHandler:
@@ -96,8 +113,10 @@ After the main loop you find two more sections:
 
 5. The heading "My GOSUB routines" and
 6. The heading "My SUBs/FUNCs"
-   Here is the place for your own routines, SUBs and FUNCTIONs as needed.
-   As part of the latter section, you also have
+   Here is the place for your own GOSUB routines, SUBs and FUNCTIONs as
+   you need it. You should also adapt the Version...$() function to match
+   your new program's name and version relevant data.
+   As part of this SUBs/FUNCs section you also find
 7. The heading "My Screen Setup/Cleanup" with the standard SUBs
     - SetupScreen
     - CloseScreen

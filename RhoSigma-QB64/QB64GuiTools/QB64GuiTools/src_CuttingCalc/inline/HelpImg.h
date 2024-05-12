@@ -5,7 +5,7 @@
 
 // --- Array(s) representing the contents of file Help32px.png
 // ---------------------------------------------------------------------
-static const unsigned int32 HelpImgL0[] = {
+static const uint32_t HelpImgL0[] = {
     640,
     0x474E5089,0x0A1A0A0D,0x0D000000,0x52444849,0x20000000,0x20000000,0x00000608,0x7A7A7300,
     0x090000F4,0x414449C7,0x9DDA7854,0x53500B57,0xEFFE19D9,0x204849BD,0x8212BC21,0xE82A0808,
@@ -89,6 +89,14 @@ static const unsigned int32 HelpImgL0[] = {
     0x718FC518,0xE32CBFBA,0x017FC7A7,0x2243B354,0x59833B52,0x00000000,0x444E4549,0x826042AE
 };
 
+// --- Function to copy the array(s) into the provided string buffer.
+// --- Buffer size is not checked, as MakeCARR makes sure it's sufficient.
+// ---------------------------------------------------------------------
+void ReadHelpImgData(char *Buffer)
+{
+    memcpy(Buffer, &HelpImgL0[1], HelpImgL0[0] << 2);
+}
+
 // --- Saved full qualified output path and filename, so we've no troubles
 // --- when cleaning up, even if the current working folder was changed
 // --- during program runtime.
@@ -107,10 +115,10 @@ void KillHelpImgData(void)
 // --- full qualified output path and filename on success, otherwise an
 // --- empty string is returned (access/write errors, file truncated).
 // ---------------------------------------------------------------------
-const char *WriteHelpImgData(const char *FileName, int16 AutoClean)
+const char *WriteHelpImgData(const char *FileName, int16_t AutoClean)
 {
-    FILE *han = NULL; // file handle
-    int32 num = NULL; // written elements
+    FILE   *han = NULL; // file handle
+    int32_t num = NULL; // written elements
 
     #ifdef QB64_WINDOWS
     if (!_fullpath(HelpImgName, FileName, 8192)) return "";

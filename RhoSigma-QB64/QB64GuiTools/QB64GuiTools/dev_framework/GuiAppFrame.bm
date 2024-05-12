@@ -21,28 +21,28 @@
 
 '--- docs\doc_GuiAppframe.bm\InternalErrHandler.html
 '---------------------------------------------------------------------
-SUB InternalErrHandler
-appLastErr% = 0
-IF UCASE$(ErrorHandlerSwitch$) <> "DISABLED" THEN
-    ON ERROR GOTO InternalErrorHandler
-ELSE
-    ON ERROR GOTO 0
-END IF
-END SUB
+Sub InternalErrHandler
+    appLastErr% = 0
+    If UCase$(ErrorHandlerSwitch$) <> "DISABLED" Then
+        On Error GoTo InternalErrorHandler
+    Else
+        On Error GoTo 0
+    End If
+End Sub
 
 '--- docs\doc_GuiAppframe.bm\UserErrHandler.html
 '---------------------------------------------------------------------
-SUB UserErrHandler
-IF UCASE$(ErrorHandlerSwitch$) = "ON" THEN
-    ON ERROR GOTO UserErrorHandler
-ELSE
-    ON ERROR GOTO 0
-END IF
-END SUB
+Sub UserErrHandler
+    If UCase$(ErrorHandlerSwitch$) = "ON" Then
+        On Error GoTo UserErrorHandler
+    Else
+        On Error GoTo 0
+    End If
+End Sub
 
 '--- docs\doc_GuiAppframe.bm\GetUniqueID.html
 '---------------------------------------------------------------------
-FUNCTION GetUniqueID$
+Function GetUniqueID$
 REDIM vars(0) AS ChunkVARS
 '--- exclusivly access the unique ID source file ---
 mtx%& = LockMutex%&("Global\RhoSigma-GuiApp-FileAccess-univars.tmp" + CHR$(0))
@@ -279,7 +279,7 @@ ELSE
     LINE INPUT #rff%, tags$
     SetupScreen VAL(GetTagData$(tags$, "WIDTH", "320")), VAL(GetTagData$(tags$, "HEIGHT", "240")), -1
     winImg$ = ImageC$("INIT", NewTag$("IMAGEFILE", winIcon$) + NewTag$("LEFT", "0") + NewTag$("TOP", "0"))
-    winIco& = VAL(GetTagData$(ImageC$("GET", winImg$ + NewTag$("TAGNAMES", "IHANDLE")), "IHANDLE", "0"))
+    winIco& = VAL(GetObjTagData$(winImg$, "IHANDLE", "0"))
     IF winIco& < -1 THEN _ICON winIco&
     temp$ = ImageC$("KILL", winImg$)
     _FONT 16
@@ -319,7 +319,7 @@ ELSE
             butt$ = ObjectTag$(mess$, "GADGETUP")
             rff% = SafeOpenFile%("O", appTempDir$ + bodyText$)
             ON ERROR GOTO 0 'avoid recursion, in case of errors
-            PRINT #rff%, GetTagData$(ButtonC$("GET", butt$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            PRINT #rff%, GetObjTagData$(butt$, "TEXT", "")
             CLOSE rff%
             rff% = 0
         END IF
@@ -465,7 +465,7 @@ SELECT CASE UCASE$(LEFT$(ft$, 1))
                 tmp$ = RIGHT$(STRING$(tyl%, "0") + tmp$, tyl%): idx% = INSTR(tmp$, "-")
                 IF idx% > 0 THEN
                     typ$ = UCASE$(MID$(tmp$, idx% - 1, 1))
-                    IF typ$ <> "E" AND typ$ <> "D" THEN tmp$ = "-" + LEFT$(tmp$, idx% - 1) + MID$(tmp$, idx% + 1)
+                    IF INSTR("EDF", typ$) = 0 THEN tmp$ = "-" + LEFT$(tmp$, idx% - 1) + MID$(tmp$, idx% + 1)
                 END IF
             ELSE
                 tmp$ = "%" + tmp$
@@ -777,7 +777,7 @@ ELSE
     '--- init window ---
     SetupScreen 440, 520, -1
     winImg$ = ImageC$("INIT", NewTag$("IMAGEFILE", winIcon$) + NewTag$("LEFT", "0") + NewTag$("TOP", "0"))
-    winIco& = VAL(GetTagData$(ImageC$("GET", winImg$ + NewTag$("TAGNAMES", "IHANDLE")), "IHANDLE", "0"))
+    winIco& = VAL(GetObjTagData$(winImg$, "IHANDLE", "0"))
     IF winIco& < -1 THEN _ICON winIco&
     resu$ = ImageC$("KILL", winImg$)
     titl$ = "Select a file ...": mode$ = "File Load Mode."
@@ -894,8 +894,8 @@ ELSE
         END IF
         IF ValidateTags%(mess$, "GADGETUP", 0) OR BoolTagTrue%(mess$, "MOUSEMBDOWN") OR _
                                                   BoolTagTrue%(mess$, "MOUSERBDOWN") THEN
-            curr$ = GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
-            file$ = GetTagData$(StringC$("GET", fsfi$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+            curr$ = GetObjTagData$(fspa$, "TEXT", "")
+            file$ = GetObjTagData$(fsfi$, "TEXT", "")
             '-----
             IF ThisObject%(fslv$, mess$, "GADGETUP") THEN
                 node$ = ListviewC$("GET", fslv$ + NewTag$("TAGNAMES", "DATA,FSREAL"))
@@ -937,7 +937,7 @@ ELSE
                 END IF
             END IF
             IF ThisObject%(fsre$, mess$, "GADGETUP") THEN
-                patt$ = GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+                patt$ = GetObjTagData$(fsre$, "TEXT", "")
                 IF patt$ <> "" THEN
                     vali% = RegexMatch%("TestString" + CHR$(0), patt$ + CHR$(0))
                     IF vali% < 0 THEN
@@ -1035,7 +1035,7 @@ ELSE
             IF ThisObject%(pabu$, mess$, "GADGETUP") OR BoolTagTrue%(mess$, "MOUSERBDOWN") THEN
                 IF (NOT disa%) OR dlis% THEN
                     IF NOT dlis% THEN
-                        curr$ = GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+                        curr$ = GetObjTagData$(fspa$, "TEXT", "")
                         spos% = RInstr&(LEN(curr$) - 1, curr$, "\"): IF spos% = 0 THEN spos% = 1
                         curr$ = LEFT$(curr$, spos% - 1)
                         resu$ = StringC$("SET", fspa$ + NewTag$("TEXT", curr$))
@@ -1068,7 +1068,7 @@ EXIT FUNCTION
 fsWriteSelectResult:
 rff% = SafeOpenFile%("O", appTempDir$ + iniDir$)
 PRINT #rff%, curr$; file$
-PRINT #rff%, GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+PRINT #rff%, GetObjTagData$(fsre$, "TEXT", "")
 PRINT #rff%, curr$
 CLOSE rff%
 RETURN
@@ -1076,8 +1076,8 @@ RETURN
 fsWriteCancelResult:
 rff% = SafeOpenFile%("O", appTempDir$ + iniDir$)
 PRINT #rff%, ""
-PRINT #rff%, GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
-PRINT #rff%, GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
+PRINT #rff%, GetObjTagData$(fsre$, "TEXT", "")
+PRINT #rff%, GetObjTagData$(fspa$, "TEXT", "")
 CLOSE rff%
 RETURN
 '----------------------------------
@@ -1105,8 +1105,8 @@ nd& = 0: nf& = 0: nu&& = 0: dfut$ = "Dirs:0{&} / Files:1{&} / Usage:2{&}"
 text$ = IndexFormat$(dfut$, STR$(nd&) + "|" + STR$(nf&) + "|" + STR$(nu&&), "|")
 resu$ = TextC$("SET", fstx$ + NewTag$("TEXT", text$))
 
-patt$ = GetTagData$(StringC$("GET", fsre$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
-curr$ = GetTagData$(StringC$("GET", fspa$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", CurrDIR$)
+patt$ = GetObjTagData$(fsre$, "TEXT", "")
+curr$ = GetObjTagData$(fspa$, "TEXT", CurrDIR$)
 IF curr$ = "" THEN curr$ = CurrDIR$
 IF NOT _DIREXISTS(curr$) THEN
     resu$ = ListC$("STORE", flis$ + NewTag$("DATA", CHR$(255))): ro$ = NewTag$("READONLY", "true")
@@ -1158,7 +1158,7 @@ IF dhan%& <> 0 THEN
                     IF RegexMatch%(UCASE$(entr$) + CHR$(0), UCASE$(patt$) + CHR$(0)) THEN 'if match or faulty regex
                         eff% = SafeOpenFile%("B", curr$ + entr$)
                         IF eff% <> 0 THEN
-                            elof$ = LTRIM$(STR$(LOF(eff%) AND &HFFFFFFFFFFFFFFFF)) 'force int64 for STR$()
+                            elof$ = LTRIM$(STR$(LOF(eff%) AND &HFFFFFFFFFFFFFFFF)) 'force _INTEGER64 for STR$()
                             elof$ = SPACE$(11 - LEN(elof$)) + elof$
                             CLOSE eff%
                             nu&& = nu&& + VAL(elof$)
@@ -1199,13 +1199,13 @@ IF trec& > 0 THEN
 END IF
 
 fsChkFile:
-file$ = GetTagData$(StringC$("GET", fsfi$ + NewTag$("TAGNAMES", "TEXT")), "TEXT", "")
-reco$ = GetTagData$(ListC$("GET", flis$ + refo$ + NewTag$("TAGNAMES", "RECORDS")), "RECORDS", "0")
+file$ = GetObjTagData$(fsfi$, "TEXT", "")
+reco$ = GetObjTagData$(flis$ + refo$, "RECORDS", "0")
 IF nofi% THEN file$ = ""
 IF VAL(reco$) > 0 THEN
     IF file$ <> "" THEN
         resu$ = ListC$("SEARCH", flis$ + refo$ + NewTag$("DATA", file$) + NewTag$("PARTIAL", "left") + NewTag$("NOCASE", "true") + NewTag$("HOLD", "true"))
-        IF resu$ <> "" THEN actu$ = GetTagData$(ListC$("GET", flis$ + refo$ + NewTag$("TAGNAMES", "ACTUAL")), "ACTUAL", "1")
+        IF resu$ <> "" THEN actu$ = GetObjTagData$(flis$ + refo$, "ACTUAL", "1")
     END IF
     IF file$ = "" OR resu$ = "" THEN actu$ = "0"
 ELSE
@@ -1690,7 +1690,13 @@ IF shan& < -1 THEN
 END IF
 END FUNCTION
 
+'--- undocumented - for internal use only
+'---------------------------------------------------------------------
+FUNCTION VersionGuiTools$
+VersionGuiTools$ = MID$("$VER: GuiTools Framework 0.17 (02-Dec-2023) by RhoSigma :END$", 7, 49)
+END FUNCTION
+
 '****************************************************
-'$INCLUDE: 'QB64GuiTools\dev_framework\GuiAppIcon.bm'
+'$INCLUDE: '..\dev_framework\GuiAppIcon.bm'
 '****************************************************
 

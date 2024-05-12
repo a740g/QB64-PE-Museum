@@ -3,6 +3,48 @@
 '=== you must $INCLUDE this at the end of your program.   ===
 '============================================================
 
+'---------------------------
+'--- ReadError32ImgData$ ---
+'---------------------------
+' This function will read the DATAs you've created with MakeDATA.bas
+' into a string, no data will be written to disk. If you rather wanna
+' rebuild the original file on disk, then use the write function below.
+'
+' You may directly pass the returned string to _SNDOPEN, _LOADIMAGE or
+' _LOADFONT when using the memory load capabilities of these commands.
+'----------
+' SYNTAX:
+'   dataStr$ = ReadError32ImgData$
+'----------
+' RESULT:
+'   --- dataStr$ ---
+'    The data of the embedded file. This is in fact the same as if you
+'    had opend the file and read its entire content into a single string.
+'---------------------------------------------------------------------
+FUNCTION ReadError32ImgData$
+'--- option _explicit requirements ---
+DIM numL&, numB&, rawdata$, stroffs&, i&, dat&
+'--- read DATAs ---
+RESTORE Error32Img
+READ numL&, numB&
+rawdata$ = SPACE$((numL& * 4) + numB&)
+stroffs& = 1
+FOR i& = 1 TO numL&
+    READ dat&
+    MID$(rawdata$, stroffs&, 4) = MKL$(dat&)
+    stroffs& = stroffs& + 4
+NEXT i&
+IF numB& > 0 THEN
+    FOR i& = 1 TO numB&
+        READ dat&
+        MID$(rawdata$, stroffs&, 1) = CHR$(dat&)
+        stroffs& = stroffs& + 1
+    NEXT i&
+END IF
+'--- set result ---
+ReadError32ImgData$ = rawdata$
+END FUNCTION
+
 '----------------------------
 '--- WriteError32ImgData$ ---
 '----------------------------

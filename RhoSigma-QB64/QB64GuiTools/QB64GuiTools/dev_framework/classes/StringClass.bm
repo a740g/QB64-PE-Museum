@@ -26,7 +26,12 @@
 '   will be framed and the typed string can be left/right justified
 '   or centered within the area. Vertically it will always be centered
 '   in the area. The available editing/control shortcuts are:
-'    Return/Enter          -> confirm input and deselect input field
+'    Return/Enter          -> confirm input and deselect/leave input field
+'    Esc                   -> simply deselect/leave the input field
+'   Note that the same happens if the field loses focus due to actions
+'   performed on other objects, but in all these cases (in difference to
+'   a Return/Enter press) the input is only confirmed here, if the field
+'   is not set to be PASSIVE (see the respective tag).
 '    Tab/CursorDown        -> select next visible input field (if any)
 '    Shift-Tab/CursorUp    -> select previous visible input field (if any)
 '    CursorLeft/Right      -> move cursor one char left/right respectivly
@@ -66,7 +71,7 @@ SELECT CASE methodID$
     CASE "Init"
         tagsReq$ = "LEFT,TOP,WIDTH,HEIGHT,"
         tagsOpt$ = "GUIVIEW,PAGEROBJECT,IMAGEOBJECT,SYMBOLOBJECT," +_
-                   "ALLOWED,MAXIMUM,TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY," +_
+                   "ALLOWED,MAXIMUM,NOSHOW,TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY," +_
                    "LABEL,LABELHIGH,LABELPLACE,LABELMOVEX,LABELMOVEY," +_
                    "IMAGEFILE,IMAGEHANDLE,AREA," +_
                    "TOOLTIP,SHORTCUT,DISABLED,PASSIVE," '+ user tags
@@ -77,7 +82,7 @@ SELECT CASE methodID$
     CASE "Set"
         tagsReq$ = "OBJECT,"
         tagsOpt$ = "IMAGEOBJECT,SYMBOLOBJECT," +_
-                   "TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY,DISABLED," '+ user tags
+                   "NOSHOW,TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY,DISABLED," '+ user tags
         'NOTE: Given TEXT its length may exceed the initialized MAXIMUM, which
         '      will temporarily raise the maximum value up to text length.
         GOSUB meSet
@@ -133,6 +138,7 @@ ELSE
         '-----
         widt% = VAL(GetTagData$(tagsID$, "WIDTH", "0"))
         part$ = GetTagData$(tagsID$, "TEXT", "")
+        IF BoolTagTrue%(tagsID$, "NOSHOW") THEN part$ = STRING$(LEN(part$), "*")
         curr% = LEN(part$) + 1
         WHILE _PRINTWIDTH(part$) > widt% - 12: part$ = MID$(part$, 2): WEND
         firs% = curr% - LEN(part$)
@@ -164,24 +170,28 @@ RETURN
 meSet:
 IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
     '--- check required/optional tag changes ---
-    flag% = 0
+    flag% = 0: tchg% = 0
     IF SetAssignedImgSym%(this&, "IMAGEOBJECT", StringRes$, classID$, tagsID$) THEN flag% = -1
     IF SetAssignedImgSym%(this&, "SYMBOLOBJECT", StringRes$, classID$, tagsID$) THEN flag% = -1
-    IF UpdateTags%(guiObjects$(objData%, this&), "TEXT,TEXTPLACE,TEXTMOVEX,TEXTMOVEY", tagsID$) THEN flag% = -1
+    IF UpdateTags%(guiObjects$(objData%, this&), "TEXTPLACE,TEXTMOVEX,TEXTMOVEY", tagsID$) THEN flag% = -1
+    IF UpdateTags%(guiObjects$(objData%, this&), "NOSHOW,TEXT", tagsID$) THEN tchg% = -1
     text$ = GetTag$(tagsID$, "TEXT"): temp$ = GetTagData$(text$, "TEXT", "n/a")
     IF temp$ = "n/a" THEN
         IF text$ <> "" THEN
             RemTags guiObjects$(objData%, this&), "TEXT,FIRST,CURRENT": flag% = -1
         END IF
-    ELSE
-        IF flag% THEN
-            widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
-            curr% = LEN(temp$) + 1
-            WHILE _PRINTWIDTH(temp$) > widt% - 12: temp$ = MID$(temp$, 2): WEND
-            firs% = curr% - LEN(temp$)
-            SetTag guiObjects$(objData%, this&), "FIRST", LTRIM$(STR$(firs%))
-            SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(curr%))
-        END IF
+    END IF
+    IF tchg% THEN
+        widt% = VAL(GetTagData$(guiObjects$(objData%, this&), "WIDTH", "0"))
+        part$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "")
+        nosh% = BoolTagTrue%(guiObjects$(objData%, this&), "NOSHOW")
+        curr% = LEN(part$) + 1
+        IF nosh% THEN part$ = STRING$(LEN(part$), "*")
+        WHILE _PRINTWIDTH(part$) > widt% - 12: part$ = MID$(part$, 2): WEND
+        firs% = curr% - LEN(part$)
+        SetTag guiObjects$(objData%, this&), "FIRST", LTRIM$(STR$(firs%))
+        SetTag guiObjects$(objData%, this&), "CURRENT", LTRIM$(STR$(curr%))
+        flag% = -1
     END IF
     temp$ = GetTagData$(tagsID$, "DISABLED", "n/a")
     IF temp$ <> "n/a" THEN
@@ -211,7 +221,11 @@ meGet:
 IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
     '--- get the requested tags ---
     temp$ = GetTagData$(tagsID$, "TAGNAMES", "n/a")
-    IF temp$ <> "n/a" THEN StringRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    IF temp$ <> "n/a" THEN
+        StringRes$ = GetTags$(guiObjects$(objData%, this&), temp$)
+    ELSE
+        StringRes$ = GetTags$(guiObjects$(objData%, this&), guiInitTags$)
+    END IF
 END IF
 RETURN
 '---------------------------------------------------------------------
@@ -270,9 +284,11 @@ IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
     plac$ = LCASE$(GetTagData$(guiObjects$(objData%, this&), "TEXTPLACE", "left"))
     xmov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEX", "0"))
     ymov% = VAL(GetTagData$(guiObjects$(objData%, this&), "TEXTMOVEY", "0"))
+    nosh% = BoolTagTrue%(guiObjects$(objData%, this&), "NOSHOW")
     firs% = VAL(GetTagData$(guiObjects$(objData%, this&), "FIRST", "1"))
     curr% = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "1"))
     part$ = MID$(text$, firs%)
+    IF nosh% THEN part$ = STRING$(LEN(part$), "*")
     WHILE _PRINTWIDTH(part$) > widt% - 12
         part$ = LEFT$(part$, LEN(part$) - 1)
     WEND
@@ -292,7 +308,8 @@ IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
     SetPrintMode prim%
     IF BoolTagTrue%(guiObjects$(objData%, this&), "SELECTED") THEN
         IF BoolTagTrue%(guiObjects$(objData%, this&), "CSRON") THEN
-            LINE (txle% + 0 + xmov% + _PRINTWIDTH(LEFT$(part$, curr% - firs%)), txto% + 1 + ymov%)-(txle% + 1 + xmov% + _PRINTWIDTH(LEFT$(part$, curr% - firs%)), txto% + 1 + ymov% + _FONTHEIGHT - 1), guiFillTextPen%, BF
+            csrp% = _PRINTWIDTH(LEFT$(part$, curr% - firs%))
+            LINE (txle% + 0 + xmov% + csrp%, txto% + 1 + ymov%)-(txle% + 1 + xmov% + csrp%, txto% + 1 + ymov% + _FONTHEIGHT - 1), guiFillTextPen%, BF
         END IF
         PrintObjectTooltip -1 'redraw maybe covered tooltip (if any)
     END IF
@@ -364,6 +381,11 @@ IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
             IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(13) THEN
                 RemTags guiObjects$(objData%, this&), "SELECTED,UNDO,CHANGED"
                 SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                guiASCObject& = 0
+            ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(27) THEN
+                IF BoolTagTrue%(guiObjects$(objData%, this&), "CHANGED") THEN _
+                   SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                RemTags guiObjects$(objData%, this&), "SELECTED,UNDO,CHANGED"
                 guiASCObject& = 0
             ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(9) OR _
                    GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
@@ -459,6 +481,11 @@ IF ValidObject%(this&, thisTag$, StringRes$, classID$, methodID$, tagsID$) THEN
                 IF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(13) THEN
                     RemTags guiObjects$(objData%, this&), "SELECTED,UNDO,CHANGED"
                     SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                    guiASCObject& = 0
+                ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(27) THEN
+                    IF BoolTagTrue%(guiObjects$(objData%, this&), "CHANGED") THEN _
+                       SetTag StringRes$, "RELEASED", LTRIM$(STR$(this&))
+                    RemTags guiObjects$(objData%, this&), "SELECTED,UNDO,CHANGED"
                     guiASCObject& = 0
                 ELSEIF GetTagData$(tagsID$, "KEY", "n/a") = CHR$(9) OR _
                        GetTagData$(tagsID$, "KEY", "n/a") = CHR$(0) + "P" THEN
@@ -556,6 +583,7 @@ RETURN
 meEditHook:
 defa$ = GetTagData$(guiObjects$(objData%, this&), "TEXT", "")
 allo$ = GetTagData$(guiObjects$(objData%, this&), "ALLOWED", "")
+nosh% = BoolTagTrue%(guiObjects$(objData%, this&), "NOSHOW")
 maxx% = VAL(GetTagData$(guiObjects$(objData%, this&), "MAXIMUM", "300"))
 firs% = VAL(GetTagData$(guiObjects$(objData%, this&), "FIRST", "1"))
 curr% = VAL(GetTagData$(guiObjects$(objData%, this&), "CURRENT", "1"))
@@ -564,7 +592,9 @@ ik$ = GetTagData$(tagsID$, "KEY", "n/a"): cflg% = 0
 IF INSTR(allo$, ik$) > 0 AND leng% < maxx% THEN
     'regular allowed input
     defa$ = LEFT$(defa$, curr% - 1) + ik$ + MID$(defa$, curr%): curr% = curr% + 1: cflg% = -1
-    IF _PRINTWIDTH(MID$(defa$, firs%, curr% - firs%)) > widt% - 12 THEN firs% = firs% + 1
+    part$ = MID$(defa$, firs%, curr% - firs%)
+    IF nosh% THEN part$ = STRING$(LEN(part$), "*")
+    IF _PRINTWIDTH(part$) > widt% - 12 THEN firs% = firs% + 1
 ELSEIF ik$ = CHR$(0) + "K" OR ik$ = CHR$(0) + "M" OR ik$ = CHR$(0) + "G" OR ik$ = CHR$(0) + "O" THEN
     IF ik$ = CHR$(0) + "G" OR _
       (ik$ = CHR$(0) + "K" AND BoolTagTrue%(tagsID$, "SHIFT")) THEN
@@ -574,6 +604,7 @@ ELSEIF ik$ = CHR$(0) + "K" OR ik$ = CHR$(0) + "M" OR ik$ = CHR$(0) + "G" OR ik$ 
           (ik$ = CHR$(0) + "M" AND BoolTagTrue%(tagsID$, "SHIFT")) THEN
         '<End> or <Shift-CsrRgt> = jump to end
         curr% = leng% + 1: part$ = defa$
+        IF nosh% THEN part$ = STRING$(LEN(part$), "*")
         WHILE _PRINTWIDTH(part$) > widt% - 12: part$ = MID$(part$, 2): WEND
         firs% = curr% - LEN(part$)
     ELSEIF ik$ = CHR$(0) + "K" THEN
@@ -583,7 +614,9 @@ ELSEIF ik$ = CHR$(0) + "K" OR ik$ = CHR$(0) + "M" OR ik$ = CHR$(0) + "G" OR ik$ 
     ELSE
         '<CsrRgt> = cursor one char right
         IF curr% < leng% + 1 THEN curr% = curr% + 1
-        IF _PRINTWIDTH(MID$(defa$, firs%, curr% - firs%)) > widt% - 12 THEN firs% = firs% + 1
+        part$ = MID$(defa$, firs%, curr% - firs%)
+        IF nosh% THEN part$ = STRING$(LEN(part$), "*")
+        IF _PRINTWIDTH(part$) > widt% - 12 THEN firs% = firs% + 1
     END IF
 ELSEIF ik$ = CHR$(8) OR ik$ = CHR$(0) + "S" THEN
     IF leng% > 0 THEN
@@ -625,7 +658,9 @@ ELSEIF ik$ = CHR$(22) THEN
         mi$ = MID$(clip$, i%, 1)
         IF INSTR(allo$, mi$) > 0 THEN
             ntxt$ = ntxt$ + mi$: curr% = curr% + 1
-            IF _PRINTWIDTH(MID$(ntxt$, firs%, curr% - firs%)) > widt% - 12 THEN firs% = firs% + 1
+            part$ = MID$(ntxt$, firs%, curr% - firs%)
+            IF nosh% THEN part$ = STRING$(LEN(part$), "*")
+            IF _PRINTWIDTH(part$) > widt% - 12 THEN firs% = firs% + 1
         END IF
     NEXT i%
     ntxt$ = ntxt$ + rtxt$
@@ -637,6 +672,7 @@ ELSEIF ik$ = CHR$(17) OR ik$ = CHR$(26) THEN
     defa$ = GetTagData$(guiObjects$(objData%, this&), "UNDO", ""): leng% = LEN(defa$): cflg% = 1 'flag rem chg
     IF curr% > leng% + 1 THEN
         curr% = leng% + 1: part$ = defa$
+        IF nosh% THEN part$ = STRING$(LEN(part$), "*")
         WHILE _PRINTWIDTH(part$) > widt% - 12: part$ = MID$(part$, 2): WEND
         firs% = curr% - LEN(part$)
     END IF

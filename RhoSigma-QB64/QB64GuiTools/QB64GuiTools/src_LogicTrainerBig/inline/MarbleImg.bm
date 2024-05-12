@@ -12,6 +12,39 @@
 ' specify a relative path assuming your QB64 installation folder as root.
 '---------------------------------------------------------------------
 
+'--- declare C/C++ functions ---
+DECLARE LIBRARY "MarbleImg" 'Do not add .h here !!
+    SUB ReadMarbleImgData (StrBuf$)
+    FUNCTION WriteMarbleImgData$ (FileName$, BYVAL AutoClean%)
+END DECLARE
+
+'---------------------------
+'--- ReadMarbleImgArray$ ---
+'---------------------------
+' This function will read the array(s) you've created with MakeCARR.bas
+' into a string, no data will be written to disk. If you rather wanna
+' rebuild the original file on disk, then use the write function below.
+'
+' You may directly pass the returned string to _SNDOPEN, _LOADIMAGE or
+' _LOADFONT when using the memory load capabilities of these commands.
+'----------
+' SYNTAX:
+'   arrData$ = ReadMarbleImgArray$
+'----------
+' RESULT:
+'   --- arrData$ ---
+'    The data of the embedded file. This is in fact the same as if you
+'    had opend the file and read its entire content into a single string.
+'---------------------------------------------------------------------
+FUNCTION ReadMarbleImgArray$
+    '--- option _explicit requirements ---
+    DIM temp$
+    '--- get array & set result ---
+    temp$ = SPACE$(14666) 'Do not change this number !!
+    ReadMarbleImgData temp$
+    ReadMarbleImgArray$ = temp$
+END FUNCTION
+
 '----------------------------
 '--- WriteMarbleImgArray$ ---
 '----------------------------
@@ -49,31 +82,27 @@
 '      should check for this before trying to access/open the file.
 '---------------------------------------------------------------------
 FUNCTION WriteMarbleImgArray$ (file$, clean%)
-'--- declare C/C++ function ---
-DECLARE LIBRARY "QB64GuiTools\src_LogicTrainerBig\inline\MarbleImg" 'Do not add .h here !!
-    FUNCTION WriteMarbleImgData$ (FileName$, BYVAL AutoClean%)
-END DECLARE
-'--- option _explicit requirements ---
-DIM po%, body$, ext$, num%
-'--- separate filename body & extension ---
-FOR po% = LEN(file$) TO 1 STEP -1
-    IF MID$(file$, po%, 1) = "." THEN
-        body$ = LEFT$(file$, po% - 1)
-        ext$ = MID$(file$, po%)
-        EXIT FOR
-    ELSEIF MID$(file$, po%, 1) = "\" OR MID$(file$, po%, 1) = "/" OR po% = 1 THEN
-        body$ = file$
-        ext$ = ""
-        EXIT FOR
-    END IF
-NEXT po%
-'--- avoid overwriting of existing files ---
-num% = 1
-WHILE _FILEEXISTS(file$)
-    file$ = body$ + "(" + LTRIM$(STR$(num%)) + ")" + ext$
-    num% = num% + 1
-WEND
-'--- write array & set result ---
-WriteMarbleImgArray$ = WriteMarbleImgData$(file$ + CHR$(0), clean%)
+    '--- option _explicit requirements ---
+    DIM po%, body$, ext$, num%
+    '--- separate filename body & extension ---
+    FOR po% = LEN(file$) TO 1 STEP -1
+        IF MID$(file$, po%, 1) = "." THEN
+            body$ = LEFT$(file$, po% - 1)
+            ext$ = MID$(file$, po%)
+            EXIT FOR
+        ELSEIF MID$(file$, po%, 1) = "\" OR MID$(file$, po%, 1) = "/" OR po% = 1 THEN
+            body$ = file$
+            ext$ = ""
+            EXIT FOR
+        END IF
+    NEXT po%
+    '--- avoid overwriting of existing files ---
+    num% = 1
+    WHILE _FILEEXISTS(file$)
+        file$ = body$ + "(" + LTRIM$(STR$(num%)) + ")" + ext$
+        num% = num% + 1
+    WEND
+    '--- write array & set result ---
+    WriteMarbleImgArray$ = WriteMarbleImgData$(file$ + CHR$(0), clean%)
 END FUNCTION
 
