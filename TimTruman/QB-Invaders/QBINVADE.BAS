@@ -49,10 +49,10 @@
 '  (2) Change the 'Hard' variable to true for harder gameplay.
 '  (3) Two graphics set are available.
 
+' Fixed by a740g for QB64-PE
 
 DEFINT A-Z
 OPTION _EXPLICIT
-$RESIZE:SMOOTH
 
 '$INCLUDE:'adlib.bi'
 
@@ -126,7 +126,7 @@ DIM SHARED sfx$(25) 'dim array to hold 26 sounds
 
 _TITLE "QB Invaders"
 SCREEN 13 'set video mode
-_FULLSCREEN _SQUAREPIXELS , _SMOOTH
+_FULLSCREEN _SQUAREPIXELS ', _SMOOTH
 _MOUSEHIDE
 
 PLAY "MB@1Q0" ' a740g: play SOUND and MML in the background, use square wave, no volume ramping

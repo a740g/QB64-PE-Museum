@@ -1,11 +1,16 @@
+' Written 2000-12-31 by Bisqwit (http://iki.fi/bisqwit/)
+' Copyright (C) 1992,2004
+' Home page: http://bisqwit.iki.fi/source/fmengineqb.html
+
+' Do a complier check to ensure we have the minimum version needed
+$IF VERSION < 3.13.1 THEN
+    $ERROR 'This requires the latest version of QB64-PE from https://github.com/QB64-Phoenix-Edition/QB64pe/releases/latest'
+$END IF
+
 '$INCLUDE:'fmengine.bi'
 '$INCLUDE:'include/adlib.bi'
 
 IF FMinit < 0 THEN PRINT "FM sound not available.": END
-
-' Written 2000-12-31 by Bisqwit (http://iki.fi/bisqwit/)
-' Copyright (C) 1992,2004
-' Home page: http://bisqwit.iki.fi/source/fmengineqb.html
 
 'FMload "m:\warp\last_dep.s3m"
 'FMload "m:\fmdrv\chmmr.s3m"

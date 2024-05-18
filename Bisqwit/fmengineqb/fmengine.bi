@@ -2,6 +2,8 @@
 ' option
 ' common
 
+$INCLUDEONCE
+
 _DEFINE A-Z AS INTEGER
 OPTION _EXPLICIT
 

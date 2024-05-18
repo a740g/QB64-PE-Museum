@@ -1,25 +1,40 @@
 //----------------------------------------------------------------------------------------------------------------------
-// OPL3 emulation for QB64-PE using Nuked OPL3
-// Copyright (c) 2023 Samuel Gomes
+// OPL3 emulation for QB64-PE using Opal
+// Copyright (c) 2024 Samuel Gomes
 //----------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#include "opl3.c"
+#include "opal.h"
 
-static opl3_chip g_OPL3;
+static Opal *g_OPL3 = nullptr;
 
 inline void __Adlib_Initialize(uint32_t sampleRate)
 {
-    OPL3_Reset(&g_OPL3, sampleRate);
+    if (sampleRate == 0)
+        return;
+
+    delete g_OPL3;
+    g_OPL3 = new Opal(sampleRate);
+    g_OPL3->Port(0x105, 1);
 }
 
 inline void Adlib_WriteRegister(uint16_t reg, uint8_t v)
 {
-    OPL3_WriteRegBuffered(&g_OPL3, reg, v);
+    if (g_OPL3)
+        g_OPL3->Port(reg, v);
 }
 
 inline void __Adlib_GenerateSamples(uintptr_t buf, uint32_t frames)
 {
-    OPL3_GenerateStream(&g_OPL3, reinterpret_cast<int16_t *>(buf), frames);
+    if (!g_OPL3 || !buf || frames == 0)
+        return;
+
+    auto output = reinterpret_cast<int16_t *>(buf);
+
+    for (size_t i = 0; i < frames; i++)
+    {
+        g_OPL3->Sample(output, output + 1);
+        output += 2;
+    }
 }

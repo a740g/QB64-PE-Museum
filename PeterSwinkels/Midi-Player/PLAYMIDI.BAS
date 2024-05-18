@@ -4,8 +4,8 @@
 ' Ported to QB64-PE by a740g
 
 ' Do a complier check to ensure we have the minimum version needed
-$IF VERSION < 3.11.0 THEN
-        $ERROR 'This requires the latest version of QB64-PE from https://github.com/QB64-Phoenix-Edition/QB64pe/releases/latest'
+$IF VERSION < 3.13.1 THEN
+    $ERROR 'This requires the latest version of QB64-PE from https://github.com/QB64-Phoenix-Edition/QB64pe/releases/latest'
 $END IF
 
 _DEFINE A-Z AS LONG
