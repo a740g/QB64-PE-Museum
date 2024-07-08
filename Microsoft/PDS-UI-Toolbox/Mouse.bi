@@ -7,18 +7,15 @@
 '
 ' ===========================================================================
 
-$IF MOUSE_BI = UNDEFINED THEN
-    $LET MOUSE_BI = TRUE
+$INCLUDEONCE
 
-    '$INCLUDE:'General.bi'
+'$INCLUDE:'General.bi'
 
-    TYPE MousePrivateType
-        bL AS LONG
-        bT AS LONG
-        bR AS LONG
-        bB AS LONG
-    END TYPE
+TYPE MousePrivateType
+    bL AS LONG
+    bT AS LONG
+    bR AS LONG
+    bB AS LONG
+END TYPE
 
-    DIM MousePrivate AS MousePrivateType
-$END IF
-
+DIM MousePrivate AS MousePrivateType

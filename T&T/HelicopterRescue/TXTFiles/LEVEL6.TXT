@@ -1,0 +1,14 @@
+START
+ 1080 
+ 9 
+ 0      0  0 BASE
+ 0             0             2200         RESCUE 1
+ 1414          0             1685         RESCUE 2
+ 2167          0             382          RESCUE 3
+ 1905          0            -1100         RESCUE 4
+ 752           0            -2067         RESCUE 5
+-752           0            -2067         RESCUE 6
+-1905          0            -1100         RESCUE 7
+-2167          0             382          RESCUE 8
+-1414          0             1685         RESCUE 9
+STOP

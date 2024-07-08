@@ -1,0 +1,9 @@
+START
+ 480 
+ 4 
+ 0      0  0 BASE
+ 0             0             2200         RESCUE 1
+ 2200          0             0            RESCUE 2
+ 0             0            -2200         RESCUE 3
+-2200          0             0            RESCUE 4
+STOP

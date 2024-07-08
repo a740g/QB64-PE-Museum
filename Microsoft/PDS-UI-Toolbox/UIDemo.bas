@@ -809,10 +809,10 @@ SUB DemoFileNameListBox
         EXIT SUB
     END IF
 
-    FileList$(1) = DIR$(FileSpec$)
+    FileList$(1) = _FILES$(FileSpec$)
 
     DIM Indx AS LONG: FOR Indx = 2 TO FileCount
-        FileList$(Indx) = DIR$("")
+        FileList$(Indx) = _FILES$
     NEXT Indx
 
     DIM x AS LONG: x = ListBox(FileList$(), UBOUND(FileList$), 20)
@@ -1148,10 +1148,10 @@ END SUB
 
 FUNCTION GetFileCount& (FileSpec$)
     DIM count AS LONG: count = 0
-    DIM fileName$: fileName$ = DIR$(FileSpec$)
+    DIM fileName$: fileName$ = _FILES$(FileSpec$)
     DO WHILE fileName$ <> ""
         count = count + 1
-        fileName$ = DIR$("")
+        fileName$ = _FILES$
     LOOP
     GetFileCount = count
 END FUNCTION
@@ -1237,44 +1237,6 @@ SUB SetupMenu
     MenuPreProcess
 
 END SUB
-
-' This is from https://qb64phoenix.com/qb64wiki/index.php/PDS(7.1)_Procedures
-' This is NOT tested and may not work correctly on Linux / macOS
-' Used for demonstration purpose only
-FUNCTION DIR$ (spec$)
-    CONST TmpFile = "DIR$INF0.INF", ListMAX = 4096 'change maximum to suit your needs
-
-    STATIC AS LONG Ready, Index
-    STATIC DirList() AS STRING
-
-    DIM AS LONG ff, size
-
-    IF NOT Ready THEN REDIM DirList(0 TO ListMAX) AS STRING: Ready = TRUE 'DIM array first use
-
-    IF spec$ > "" THEN 'get file names when a spec is given
-        $IF WINDOWS THEN
-            SHELL _HIDE "dir " + spec$ + " /b > " + TmpFile$
-        $ELSE
-                SHELL _HIDE "ls " + spec$ + " > " + TmpFile$
-        $END IF
-        Index = 0: DirList(Index) = "": ff = FREEFILE
-        OPEN TmpFile FOR APPEND AS #ff
-        size = LOF(ff)
-        CLOSE #ff
-        IF size = 0 THEN KILL TmpFile: EXIT FUNCTION
-        OPEN TmpFile FOR INPUT AS #ff
-        DO WHILE NOT EOF(ff) AND Index < ListMAX
-            Index = Index + 1
-            LINE INPUT #ff, DirList$(Index)
-        LOOP
-        CLOSE #ff
-        KILL TmpFile
-    ELSE
-        IF Index > 0 THEN Index = Index - 1 'no spec sends next file name
-    END IF
-
-    DIR$ = DirList(Index)
-END FUNCTION
 
 '$INCLUDE:'General.bas'
 '$INCLUDE:'Mouse.bas'

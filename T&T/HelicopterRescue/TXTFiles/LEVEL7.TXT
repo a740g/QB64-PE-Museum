@@ -1,0 +1,15 @@
+START
+ 1200 
+ 10 
+ 0      0  0 BASE
+ 0             0             2200         RESCUE 1
+ 1293          0             1780         RESCUE 2
+ 2092          0             680          RESCUE 3
+ 2092          0            -680          RESCUE 4
+ 1293          0            -1780         RESCUE 5
+ 0             0            -2200         RESCUE 6
+-1293          0            -1780         RESCUE 7
+-2092          0            -680          RESCUE 8
+-2092          0             680          RESCUE 9
+-1293          0             1780         RESCUE 10
+STOP

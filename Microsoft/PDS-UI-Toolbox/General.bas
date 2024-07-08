@@ -376,269 +376,266 @@
 
 '        END
 
-$IF GENERAL_BAS = UNDEFINED THEN
-    $LET GENERAL_BAS = TRUE
+$INCLUDEONCE
 
-    '$INCLUDE:'General.bi'
+'$INCLUDE:'General.bi'
 
-    ' Same as DECLARE SUB GetCopyBox (row1%, col1%, row2%, col2%, buffer$)
-    ';-----------------------------------------------------------------------------
-    ';----------------------------------------This is the routine that copies
-    ';----------------------------------------screen info to the string variable
-    ';-----------------------------------------------------------------------------
-    SUB GetBackground (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, buffer AS STRING)
-        ' =======================================================================
-        ' Create enough space in buffer$ to hold the screen info behind the box
-        ' =======================================================================
-        DIM w AS LONG: w = col2 - col1 + 1
-        DIM h AS LONG: h = row2 - row1 + 1
-
-        buffer = STRING$(LEN(w) + LEN(h) + (2 * w * h), 0) ' sizeof_long + sizeof_long + (sizeof_each_textmode_cell * w * h)
-
-        ' Save the size
-        DIM i AS LONG: i = 1
-        MID$(buffer, i, LEN(w)) = MKL$(w)
-        i = i + LEN(w)
-        MID$(buffer, i, LEN(h)) = MKL$(h)
-        i = i + LEN(h)
-
-        ' Now copy the contents of the screen to the buffer
-        DIM AS LONG x, y
-        FOR y = row1 TO row2
-            FOR x = col1 TO col2
-                IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN
-                    ASC(buffer, i) = SCREEN(y, x, 1) ' copy the color attribute
-                    i = i + 1
-                    ASC(buffer, i) = SCREEN(y, x) ' copy the text
-                    i = i + 1
-                ELSE
-                    i = i + 2
-                END IF
-            NEXT
-        NEXT
-    END SUB
-
-
-    ' Same as DECLARE SUB PutCopyBox (row%, col%, buffer$)
-    ';-----------------------------------------------------------------------------
-    ';----------------------------------------This is the routine that copies the
-    ';----------------------------------------information stored in the string to
-    ';----------------------------------------the screen in the specified location
-    ';-----------------------------------------------------------------------------
-    SUB PutBackground (row AS LONG, col AS LONG, buffer AS STRING)
-        ' Save some stuff
-        DIM fc AS LONG: fc = _DEFAULTCOLOR
-        DIM bc AS LONG: bc = _BACKGROUNDCOLOR
-
-        ' Get the width and height
-        DIM i AS LONG: i = 1
-        DIM w AS LONG: w = CVL(LEFT$(buffer, LEN(w)))
-        i = i + LEN(w)
-        DIM h AS LONG: h = CVL(MID$(buffer, i, LEN(h)))
-        i = i + LEN(h)
-
-        DIM row2 AS LONG: row2 = row + h - 1
-        DIM col2 AS LONG: col2 = col + w - 1
-
-        ' Now copy the contents of the buffer to the screen
-        DIM AS LONG x, y
-        DIM AS LONG c
-        FOR y = row TO row2
-            FOR x = col TO col2
-                IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN
-                    c = ASC(buffer, i) ' get the color
-                    COLOR c AND 15, c \ 16 ' this correctly sets high intensity colors
-                    i = i + 1
-                    _PRINTSTRING (x, y), MID$(buffer, i, 1) ' get and print the character at x, y
-                    i = i + 1
-                ELSE
-                    i = i + 2
-                END IF
-            NEXT
-        NEXT
-
-        ' Restore saved stuff
-        COLOR fc, bc
-    END SUB
-
-
-    '-----------------------------------------------------------------------------
-    '----------------------------------------This is the routine that changes
-    '----------------------------------------the colors of the box's characters
-    '-----------------------------------------------------------------------------
-    SUB AttrBox (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, attr AS LONG)
-        ' Save some stuff
-        DIM fc AS LONG: fc = _DEFAULTCOLOR
-        DIM bc AS LONG: bc = _BACKGROUNDCOLOR
-
-        DIM AS LONG x, y
-        FOR y = row1 TO row2
-            FOR x = col1 TO col2
-                IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN
-                    COLOR attr AND 15, attr \ 16 ' Set the color attribute
-                    _PRINTSTRING (x, y), CHR$(SCREEN(y, x))
-                END IF
-            NEXT
-        NEXT
-
-        ' Restore saved stuff
-        COLOR fc, bc
-    END SUB
-
-
+' Same as DECLARE SUB GetCopyBox (row1%, col1%, row2%, col2%, buffer$)
+';-----------------------------------------------------------------------------
+';----------------------------------------This is the routine that copies
+';----------------------------------------screen info to the string variable
+';-----------------------------------------------------------------------------
+SUB GetBackground (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, buffer AS STRING)
     ' =======================================================================
-    ' Draws a box on the screen using characters specified in border
+    ' Create enough space in buffer$ to hold the screen info behind the box
     ' =======================================================================
-    SUB Box (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, fore AS LONG, back AS LONG, border AS STRING, fillFlag AS LONG)
-        STATIC defaultBoxChars AS STRING
-        IF LEN(defaultBoxChars) = 0 THEN
-            defaultBoxChars = CHR$(218) + CHR$(196) + CHR$(191) + CHR$(179) + CHR$(32) + CHR$(179) + CHR$(192) + CHR$(196) + CHR$(217)
-        END IF
+    DIM w AS LONG: w = col2 - col1 + 1
+    DIM h AS LONG: h = row2 - row1 + 1
 
-        '=======================================================================
-        '  Use default border if an illegal border$ is passed
-        '=======================================================================
-        DIM t AS STRING
-        IF LEN(border) < 9 THEN
-            t = defaultBoxChars
-        ELSE
-            t = border
-        END IF
+    buffer = STRING$(LEN(w) + LEN(h) + (2 * w * h), 0) ' sizeof_long + sizeof_long + (sizeof_each_textmode_cell * w * h)
 
-        ' =======================================================================
-        ' Check coordinates for validity, then draw box
-        ' =======================================================================
-        IF col1 <= (col2 - 2) AND row1 <= (row2 - 2) AND col1 >= MINCOL AND row1 >= MINROW AND col2 <= _WIDTH AND row2 <= _HEIGHT THEN
-            DIM boxWidth AS LONG: boxWidth = col2 - col1 + 1
-            DIM boxHeight AS LONG: boxHeight = row2 - row1 + 1
+    ' Save the size
+    DIM i AS LONG: i = 1
+    MID$(buffer, i, LEN(w)) = MKL$(w)
+    i = i + LEN(w)
+    MID$(buffer, i, LEN(h)) = MKL$(h)
+    i = i + LEN(h)
 
-            COLOR fore, back
-
-            _PRINTSTRING (col1, row1), LEFT$(t, 1) + STRING$(boxWidth - 2, ASC(t, 2)) + MID$(t, 3, 1)
-            _PRINTSTRING (col1, row2), MID$(t, 7, 1) + STRING$(boxWidth - 2, ASC(t, 8)) + MID$(t, 9, 1)
-
-            DIM i AS LONG: FOR i = row1 + 1 TO row1 + boxHeight - 2
-                IF fillFlag THEN
-                    _PRINTSTRING (col1, i), MID$(t, 4, 1) + STRING$(boxWidth - 2, ASC(t, 5)) + MID$(t, 6, 1)
-                ELSE
-                    _PRINTSTRING (col1, i), MID$(t, 4, 1)
-                    _PRINTSTRING (col1 + boxWidth - 1, i), MID$(t, 6, 1)
-                END IF
-            NEXT
-
-            LOCATE row1 + 1, col1 + 1 ' set cursor inside the box
-        END IF
-    END SUB
-
-
-    ' =======================================================================
-    ' Clears a given portion of the screen without disturbing the cursor location and colors
-    ' =======================================================================
-    SUB ClearBox (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, bc AS LONG)
-        ' Save some stuff
-        DIM obc AS LONG: obc = _BACKGROUNDCOLOR
-
-        COLOR , bc
-
-        DIM AS LONG x, y
-        FOR y = row1 TO row2
-            FOR x = col1 TO col2
-                IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN _PRINTSTRING (x, y), " " ' fill with SPACE
-            NEXT
-        NEXT
-
-        ' Restore saved stuff
-        COLOR , obc
-    END SUB
-
-
-    ' =======================================================================
-    ' Scrolls a section of the screen up (lines > 0), down (lines < 0)
-    ' or clears the screen (lines = 0)
-    ' =======================================================================
-    SUB Scroll (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, lines AS LONG, bc AS LONG)
-        ' If coordinates are valid, scroll the screen
-        IF row1 >= MINROW AND row2 <= _HEIGHT AND col1 >= MINCOL AND col2 <= _WIDTH THEN
-            DIM buffer AS STRING
-
-            IF lines < 0 THEN ' scoll down
-                GetBackground row1, col1, row2 + lines, col2, buffer ' only get the portion we want to scroll
-                PutBackground row2 + lines, col1, buffer ' put the portion in the correct location
-                ClearBox row1, col1, row1 - lines - 1, col2, bc
-            ELSEIF lines > 0 THEN ' scroll up
-                GetBackground row2 - lines, col1, row2, col2, buffer ' only get the portion we want to scroll
-                PutBackground row1, col1, buffer ' put the portion in the correct location
-                ClearBox row2 - lines + 1, col1, row2, col2, bc
-            ELSE ' clear area
-                ClearBox row1, col1, row2, col2, bc
+    ' Now copy the contents of the screen to the buffer
+    DIM AS LONG x, y
+    FOR y = row1 TO row2
+        FOR x = col1 TO col2
+            IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN
+                ASC(buffer, i) = SCREEN(y, x, 1) ' copy the color attribute
+                i = i + 1
+                ASC(buffer, i) = SCREEN(y, x) ' copy the text
+                i = i + 1
+            ELSE
+                i = i + 2
             END IF
+        NEXT
+    NEXT
+END SUB
+
+
+' Same as DECLARE SUB PutCopyBox (row%, col%, buffer$)
+';-----------------------------------------------------------------------------
+';----------------------------------------This is the routine that copies the
+';----------------------------------------information stored in the string to
+';----------------------------------------the screen in the specified location
+';-----------------------------------------------------------------------------
+SUB PutBackground (row AS LONG, col AS LONG, buffer AS STRING)
+    ' Save some stuff
+    DIM fc AS LONG: fc = _DEFAULTCOLOR
+    DIM bc AS LONG: bc = _BACKGROUNDCOLOR
+
+    ' Get the width and height
+    DIM i AS LONG: i = 1
+    DIM w AS LONG: w = CVL(LEFT$(buffer, LEN(w)))
+    i = i + LEN(w)
+    DIM h AS LONG: h = CVL(MID$(buffer, i, LEN(h)))
+    i = i + LEN(h)
+
+    DIM row2 AS LONG: row2 = row + h - 1
+    DIM col2 AS LONG: col2 = col + w - 1
+
+    ' Now copy the contents of the buffer to the screen
+    DIM AS LONG x, y
+    DIM AS LONG c
+    FOR y = row TO row2
+        FOR x = col TO col2
+            IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN
+                c = ASC(buffer, i) ' get the color
+                COLOR c AND 15, c \ 16 ' this correctly sets high intensity colors
+                i = i + 1
+                _PRINTSTRING (x, y), MID$(buffer, i, 1) ' get and print the character at x, y
+                i = i + 1
+            ELSE
+                i = i + 2
+            END IF
+        NEXT
+    NEXT
+
+    ' Restore saved stuff
+    COLOR fc, bc
+END SUB
+
+
+'-----------------------------------------------------------------------------
+'----------------------------------------This is the routine that changes
+'----------------------------------------the colors of the box's characters
+'-----------------------------------------------------------------------------
+SUB AttrBox (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, attr AS LONG)
+    ' Save some stuff
+    DIM fc AS LONG: fc = _DEFAULTCOLOR
+    DIM bc AS LONG: bc = _BACKGROUNDCOLOR
+
+    DIM AS LONG x, y
+    FOR y = row1 TO row2
+        FOR x = col1 TO col2
+            IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN
+                COLOR attr AND 15, attr \ 16 ' Set the color attribute
+                _PRINTSTRING (x, y), CHR$(SCREEN(y, x))
+            END IF
+        NEXT
+    NEXT
+
+    ' Restore saved stuff
+    COLOR fc, bc
+END SUB
+
+
+' =======================================================================
+' Draws a box on the screen using characters specified in border
+' =======================================================================
+SUB Box (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, fore AS LONG, back AS LONG, border AS STRING, fillFlag AS LONG)
+    STATIC defaultBoxChars AS STRING
+    IF LEN(defaultBoxChars) = 0 THEN
+        defaultBoxChars = CHR$(218) + CHR$(196) + CHR$(191) + CHR$(179) + CHR$(32) + CHR$(179) + CHR$(192) + CHR$(196) + CHR$(217)
+    END IF
+
+    '=======================================================================
+    '  Use default border if an illegal border$ is passed
+    '=======================================================================
+    DIM t AS STRING
+    IF LEN(border) < 9 THEN
+        t = defaultBoxChars
+    ELSE
+        t = border
+    END IF
+
+    ' =======================================================================
+    ' Check coordinates for validity, then draw box
+    ' =======================================================================
+    IF col1 <= (col2 - 2) AND row1 <= (row2 - 2) AND col1 >= MINCOL AND row1 >= MINROW AND col2 <= _WIDTH AND row2 <= _HEIGHT THEN
+        DIM boxWidth AS LONG: boxWidth = col2 - col1 + 1
+        DIM boxHeight AS LONG: boxHeight = row2 - row1 + 1
+
+        COLOR fore, back
+
+        _PRINTSTRING (col1, row1), LEFT$(t, 1) + STRING$(boxWidth - 2, ASC(t, 2)) + MID$(t, 3, 1)
+        _PRINTSTRING (col1, row2), MID$(t, 7, 1) + STRING$(boxWidth - 2, ASC(t, 8)) + MID$(t, 9, 1)
+
+        DIM i AS LONG: FOR i = row1 + 1 TO row1 + boxHeight - 2
+            IF fillFlag THEN
+                _PRINTSTRING (col1, i), MID$(t, 4, 1) + STRING$(boxWidth - 2, ASC(t, 5)) + MID$(t, 6, 1)
+            ELSE
+                _PRINTSTRING (col1, i), MID$(t, 4, 1)
+                _PRINTSTRING (col1 + boxWidth - 1, i), MID$(t, 6, 1)
+            END IF
+        NEXT
+
+        LOCATE row1 + 1, col1 + 1 ' set cursor inside the box
+    END IF
+END SUB
+
+
+' =======================================================================
+' Clears a given portion of the screen without disturbing the cursor location and colors
+' =======================================================================
+SUB ClearBox (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, bc AS LONG)
+    ' Save some stuff
+    DIM obc AS LONG: obc = _BACKGROUNDCOLOR
+
+    COLOR , bc
+
+    DIM AS LONG x, y
+    FOR y = row1 TO row2
+        FOR x = col1 TO col2
+            IF x > 0 AND x <= _WIDTH AND y > 0 AND y <= _HEIGHT THEN _PRINTSTRING (x, y), " " ' fill with SPACE
+        NEXT
+    NEXT
+
+    ' Restore saved stuff
+    COLOR , obc
+END SUB
+
+
+' =======================================================================
+' Scrolls a section of the screen up (lines > 0), down (lines < 0)
+' or clears the screen (lines = 0)
+' =======================================================================
+SUB Scroll (row1 AS LONG, col1 AS LONG, row2 AS LONG, col2 AS LONG, lines AS LONG, bc AS LONG)
+    ' If coordinates are valid, scroll the screen
+    IF row1 >= MINROW AND row2 <= _HEIGHT AND col1 >= MINCOL AND col2 <= _WIDTH THEN
+        DIM buffer AS STRING
+
+        IF lines < 0 THEN ' scoll down
+            GetBackground row1, col1, row2 + lines, col2, buffer ' only get the portion we want to scroll
+            PutBackground row2 + lines, col1, buffer ' put the portion in the correct location
+            ClearBox row1, col1, row1 - lines - 1, col2, bc
+        ELSEIF lines > 0 THEN ' scroll up
+            GetBackground row2 - lines, col1, row2, col2, buffer ' only get the portion we want to scroll
+            PutBackground row1, col1, buffer ' put the portion in the correct location
+            ClearBox row2 - lines + 1, col1, row2, col2, bc
+        ELSE ' clear area
+            ClearBox row1, col1, row2, col2, bc
         END IF
-    END SUB
+    END IF
+END SUB
 
 
-    ' =======================================================================
-    ' Converts Alt+A to A,Alt+B to B, etc.  You send it a string.  The right
-    ' most character is compared to the string below, and is converted to
-    ' the proper character.
-    ' =======================================================================
-    FUNCTION AltToASCII$ (kbd AS STRING)
-        STATIC altStr AS STRING
-        IF LEN(altStr) = 0 THEN
+' =======================================================================
+' Converts Alt+A to A,Alt+B to B, etc.  You send it a string.  The right
+' most character is compared to the string below, and is converted to
+' the proper character.
+' =======================================================================
+FUNCTION AltToASCII$ (kbd AS STRING)
+    STATIC altStr AS STRING
+    IF LEN(altStr) = 0 THEN
             altStr = CHR$(120) + CHR$(121) + CHR$(122) + CHR$(123) + CHR$(124) + CHR$(125) + CHR$(126) + CHR$(127) _
                 + CHR$(128) + CHR$(129) + CHR$(16) + CHR$(17) + CHR$(18) + CHR$(19) + CHR$(20) + CHR$(21) + CHR$(22) _
                 + CHR$(23) + CHR$(24) + CHR$(25) + CHR$(30) + CHR$(31) + CHR$(32) + CHR$(33) + CHR$(34) + CHR$(35) _
                 + CHR$(36) + CHR$(37) + CHR$(38) + CHR$(44) + CHR$(45) + CHR$(46) + CHR$(47) + CHR$(48) + CHR$(49) _
                 + CHR$(50) + CHR$(130) + CHR$(131)
-        END IF
+    END IF
 
-        DIM AS LONG index: index = INSTR(altStr, RIGHT$(kbd, 1))
+    DIM AS LONG index: index = INSTR(altStr, RIGHT$(kbd, 1))
 
-        IF index = 0 THEN
-            AltToASCII = ""
-        ELSE
-            AltToASCII = MID$("1234567890QWERTYUIOPASDFGHJKLZXCVBNM-=", index, 1)
-        END IF
-    END FUNCTION
+    IF index = 0 THEN
+        AltToASCII = ""
+    ELSE
+        AltToASCII = MID$("1234567890QWERTYUIOPASDFGHJKLZXCVBNM-=", index, 1)
+    END IF
+END FUNCTION
 
 
-    ' =======================================================================
-    ' Returns the keyboard shift state after calling interrupt 22
-    '    bit 0 : right shift
-    '        1 : left shift
-    '        2 : ctrl key
-    '        3 : alt key
-    '        4 : scroll lock
-    '        5 : num lock
-    '        6 : caps lock
-    '        7 : insert state
-    ' =======================================================================
-    FUNCTION GetShiftState& (b AS LONG)
-        STATIC isInsert AS LONG, lastTime AS SINGLE
+' =======================================================================
+' Returns the keyboard shift state after calling interrupt 22
+'    bit 0 : right shift
+'        1 : left shift
+'        2 : ctrl key
+'        3 : alt key
+'        4 : scroll lock
+'        5 : num lock
+'        6 : caps lock
+'        7 : insert state
+' =======================================================================
+FUNCTION GetShiftState& (b AS LONG)
+    STATIC isInsert AS LONG, lastTime AS SINGLE
 
-        DIM curTime AS SINGLE: curTime = TIMER
+    DIM curTime AS SINGLE: curTime = TIMER
 
-        IF _KEYDOWN(20992) AND ABS(curTime - lastTime) > 1 THEN
-            lastTime = curTime
-            isInsert = NOT isInsert
-        END IF
+    IF _KEYDOWN(20992) AND ABS(curTime - lastTime) > 1 THEN
+        lastTime = curTime
+        isInsert = NOT isInsert
+    END IF
 
-        IF _READBIT(b, 0) THEN
-            GetShiftState = _KEYDOWN(100303)
-        ELSEIF _READBIT(b, 1) THEN
-            GetShiftState = _KEYDOWN(100304)
-        ELSEIF _READBIT(b, 2) THEN
-            GetShiftState = _KEYDOWN(100306) OR _KEYDOWN(100305)
-        ELSEIF _READBIT(b, 3) THEN
-            GetShiftState = _KEYDOWN(100308) OR _KEYDOWN(100306)
-        ELSEIF _READBIT(b, 4) THEN
-            GetShiftState = _SCROLLLOCK
-        ELSEIF _READBIT(b, 5) THEN
-            GetShiftState = _NUMLOCK
-        ELSEIF _READBIT(b, 6) THEN
-            GetShiftState = _CAPSLOCK
-        ELSEIF _READBIT(b, 7) THEN
-            GetShiftState = isInsert
-        END IF
-    END FUNCTION
-
-$END IF
+    IF _READBIT(b, 0) THEN
+        GetShiftState = _KEYDOWN(100303)
+    ELSEIF _READBIT(b, 1) THEN
+        GetShiftState = _KEYDOWN(100304)
+    ELSEIF _READBIT(b, 2) THEN
+        GetShiftState = _KEYDOWN(100306) OR _KEYDOWN(100305)
+    ELSEIF _READBIT(b, 3) THEN
+        GetShiftState = _KEYDOWN(100308) OR _KEYDOWN(100306)
+    ELSEIF _READBIT(b, 4) THEN
+        GetShiftState = _SCROLLLOCK
+    ELSEIF _READBIT(b, 5) THEN
+        GetShiftState = _NUMLOCK
+    ELSEIF _READBIT(b, 6) THEN
+        GetShiftState = _CAPSLOCK
+    ELSEIF _READBIT(b, 7) THEN
+        GetShiftState = isInsert
+    END IF
+END FUNCTION
