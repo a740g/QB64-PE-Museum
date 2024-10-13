@@ -8,150 +8,150 @@
 '
 'See README.bm.
 
-Option _Explicit
+OPTION _EXPLICIT
 
-Rem $INCLUDE: 'sxript.bi'
-Rem $Include: 'sxmath.bi'
+REM $INCLUDE: 'sxript.bi'
+REM $INCLUDE: 'sxmath.bi'
 
-Do Until _ScreenExists: Loop
-_Title "3D Grapher"
+DO UNTIL _SCREENEXISTS: LOOP
+_TITLE "3D Grapher"
 
-Screen _NewImage(600, 600, 32)
+SCREEN _NEWIMAGE(600, 600, 32)
 
-Declare Library
-    Sub gluLookAt (ByVal eyeX#, Byval eyeY#, Byval eyeZ#, Byval centerX#, Byval centerY#, Byval centerZ#, Byval upX#, Byval upY#, Byval upZ#)
-End Declare
+DECLARE LIBRARY
+    SUB gluLookAt (BYVAL eyeX#, BYVAL eyeY#, BYVAL eyeZ#, BYVAL centerX#, BYVAL centerY#, BYVAL centerZ#, BYVAL upX#, BYVAL upY#, BYVAL upZ#)
+END DECLARE
 
 ' Types.
-Type rgb
-    r As Single
-    g As Single
-    b As Single
-End Type
+TYPE rgb
+    r AS SINGLE
+    g AS SINGLE
+    b AS SINGLE
+END TYPE
 
 ' Master switch for SUB _GL().
-Dim Shared glAllow As Integer
+DIM SHARED glAllow AS INTEGER
 
 ' Plot structure.
-Dim Shared mainEquation As String
-Dim Shared shadeMap(100, 100) As rgb
-Dim Shared vert(100, 100)
+DIM SHARED mainEquation AS STRING
+DIM SHARED shadeMap(100, 100) AS rgb
+DIM SHARED vert(100, 100)
 
 ' Plot settings.
-Dim Shared stepFactor As Double
-Dim Shared zStretch As Double
+DIM SHARED stepFactor AS DOUBLE
+DIM SHARED zStretch AS DOUBLE
 
 ' Camera settings.
-Dim Shared xRot As Double
-Dim Shared yRot As Double
-Dim Shared zoomFactor
+DIM SHARED xRot AS DOUBLE
+DIM SHARED yRot AS DOUBLE
+DIM SHARED zoomFactor
 
 ' Render settings.
-Dim Shared graph_render_mode
+DIM SHARED graph_render_mode
 
 ' Initialize.
-Call setShades
+CALL setShades
 stepFactor = .1
 zStretch = 5
 zoomFactor = 1.0
 mainEquation = "sin((x^2)-(y^2))"
 
-If (Command$ <> "") Then
-    Open Command$ For Input As #1
-    Input #1, mainEquation
-    Close #1
-Else
-    Call getEquation
-End If
+IF (COMMAND$ <> "") THEN
+    OPEN COMMAND$ FOR INPUT AS #1
+    INPUT #1, mainEquation
+    CLOSE #1
+ELSE
+    CALL getEquation
+END IF
 
 ' Prime main loop.
-Call initSequence
+CALL initSequence
 
 ' Main loop.
-Do
-    Call mouseProcess
-    If (glAllow = 0) Then
-        Call getEquation
-        Call initSequence
-    End If
-    Call keyProcess
-    _Limit 60
-Loop
+DO
+    CALL mouseProcess
+    IF (glAllow = 0) THEN
+        CALL getEquation
+        CALL initSequence
+    END IF
+    CALL keyProcess
+    _LIMIT 60
+LOOP
 
-End
+END
 
-Sub _GL Static
-    If (glAllow = 0) Then Exit Sub
+SUB _GL STATIC
+    IF (glAllow = 0) THEN EXIT SUB
 
-    Dim x As Integer
-    Dim z As Integer
+    DIM x AS INTEGER
+    DIM z AS INTEGER
 
     ' Environment.
-    _glClear _GL_COLOR_BUFFER_BIT Or _GL_DEPTH_BUFFER_BIT
-    _glEnable _GL_DEPTH_TEST
-    _glEnable _GL_BLEND
-    _glMatrixMode _GL_PROJECTION
+    _GLCLEAR _GL_COLOR_BUFFER_BIT OR _GL_DEPTH_BUFFER_BIT
+    _GLENABLE _GL_DEPTH_TEST
+    _GLENABLE _GL_BLEND
+    _GLMATRIXMODE _GL_PROJECTION
 
-    _gluPerspective 50, 1, 0.1, 40
-    _glMatrixMode _GL_MODELVIEW
+    _GLUPERSPECTIVE 50, 1, 0.1, 40
+    _GLMATRIXMODE _GL_MODELVIEW
 
-    _glLoadIdentity
+    _GLLOADIDENTITY
 
     gluLookAt 0, 7, 15, 0, 0, 0, 0, 1, 0
 
     ' Set camera angle.
-    _glRotatef xRot, 1, 0, 0
-    _glRotatef yRot, 0, 1, 0
+    _GLROTATEF xRot, 1, 0, 0
+    _GLROTATEF yRot, 0, 1, 0
 
     ' Set camera zoom.
-    _glScalef zoomFactor, zoomFactor, zoomFactor
+    _GLSCALEF zoomFactor, zoomFactor, zoomFactor
 
     ' Draw axes.
-    _glBegin _GL_LINES
-    _glLineWidth 2.0
+    _GLBEGIN _GL_LINES
+    _GLLINEWIDTH 2.0
     ' x-axis
-    _glColor3f 1, 0, 0
-    _glVertex3f -5, 0, 0
-    _glVertex3f 5, 0, 0
+    _GLCOLOR3F 1, 0, 0
+    _GLVERTEX3F -5, 0, 0
+    _GLVERTEX3F 5, 0, 0
     ' z-axis
-    _glColor3f 0, 1, 0
-    _glVertex3f 0, -5, 0
-    _glVertex3f 0, 5, 0
+    _GLCOLOR3F 0, 1, 0
+    _GLVERTEX3F 0, -5, 0
+    _GLVERTEX3F 0, 5, 0
     ' y-axis
-    _glColor3f 0, 0, 1
-    _glVertex3f 0, 0, -5
-    _glVertex3f 0, 0, 5
-    _glEnd
+    _GLCOLOR3F 0, 0, 1
+    _GLVERTEX3F 0, 0, -5
+    _GLVERTEX3F 0, 0, 5
+    _GLEND
 
     ' Draw the surface.
-    For z = -50 To 49
-        For x = -50 To 49
+    FOR z = -50 TO 49
+        FOR x = -50 TO 49
 
             ' Each square patch is really two triangles.
 
-            If (graph_render_mode = 1) Then _glBegin _GL_TRIANGLE_STRIP Else _glBegin _GL_LINE_STRIP
-            _glColor4f shadeMap(x + 50, z + 50).r, shadeMap(x + 50, z + 50).g, shadeMap(x + 50, z + 50).b, 0.7
-            _glLineWidth 1.0
-            _glVertex3f x, vert(x + 50, z + 50), z
-            _glVertex3f x + 1, vert(x + 51, z + 50), z
-            _glVertex3f x, vert(x + 50, z + 51), z + 1
-            _glEnd
+            IF (graph_render_mode = 1) THEN _GLBEGIN _GL_TRIANGLE_STRIP ELSE _GLBEGIN _GL_LINE_STRIP
+            _GLCOLOR4F shadeMap(x + 50, z + 50).r, shadeMap(x + 50, z + 50).g, shadeMap(x + 50, z + 50).b, 0.7
+            _GLLINEWIDTH 1.0
+            _GLVERTEX3F x, vert(x + 50, z + 50), z
+            _GLVERTEX3F x + 1, vert(x + 51, z + 50), z
+            _GLVERTEX3F x, vert(x + 50, z + 51), z + 1
+            _GLEND
 
-            If (graph_render_mode = 1) Then _glBegin _GL_TRIANGLE_STRIP Else _glBegin _GL_LINE_STRIP
-            _glColor4f shadeMap(x + 50, z + 50).r, shadeMap(x + 50, z + 50).g, shadeMap(x + 50, z + 50).b, 0.7
-            _glLineWidth 1.0
-            _glVertex3f x + 1, vert(x + 51, z + 51), z + 1
-            _glVertex3f x + 1, vert(x + 51, z + 50), z
-            _glVertex3f x, vert(x + 50, z + 51), z + 1
-            _glEnd
+            IF (graph_render_mode = 1) THEN _GLBEGIN _GL_TRIANGLE_STRIP ELSE _GLBEGIN _GL_LINE_STRIP
+            _GLCOLOR4F shadeMap(x + 50, z + 50).r, shadeMap(x + 50, z + 50).g, shadeMap(x + 50, z + 50).b, 0.7
+            _GLLINEWIDTH 1.0
+            _GLVERTEX3F x + 1, vert(x + 51, z + 51), z + 1
+            _GLVERTEX3F x + 1, vert(x + 51, z + 50), z
+            _GLVERTEX3F x, vert(x + 50, z + 51), z + 1
+            _GLEND
 
-        Next
-    Next
+        NEXT
+    NEXT
 
-End Sub
+END SUB
 
 'By Fellipe Heitor
-Function INPUTBOX (tTitle$, tMessage$, InitialValue As String, NewValue As String, Selected)
+FUNCTION INPUTBOX (tTitle$, tMessage$, InitialValue AS STRING, NewValue AS STRING, Selected)
     'INPUTBOX ---------------------------------------------------------------------
     'Show a dialog and allow user input. Returns 1 = OK or 2 = Cancel.            '
     '                                                                             '
@@ -174,541 +174,541 @@ Function INPUTBOX (tTitle$, tMessage$, InitialValue As String, NewValue As Strin
     '------------------------------------------------------------------------------
 
     'Variable declaration:
-    Dim Message$, Title$, CharW As Integer, MaxLen As Integer
-    Dim lineBreak As Integer, totalLines As Integer, prevlinebreak As Integer
-    Dim Cursor As Integer, Selection.Start As Integer, InputViewStart As Integer
-    Dim FieldArea As Integer, DialogH As Integer, DialogW As Integer
-    Dim DialogX As Integer, DialogY As Integer, InputField.X As Integer
-    Dim TotalButtons As Integer, B As Integer, ButtonLine$
-    Dim cb As Integer, DIALOGRESULT As Integer, i As Integer
-    Dim message.X As Integer, SetCursor#, cursorBlink%
-    Dim DefaultButton As Integer, k As Long
-    Dim shiftDown As _Byte, ctrlDown As _Byte, Clip$
-    Dim FindLF%, s1 As Integer, s2 As Integer
-    Dim Selection.Value$
-    Dim prevCursor As Integer, ss1 As Integer, ss2 As Integer, mb As _Byte
-    Dim mx As Integer, my As Integer, nmx As Integer, nmy As Integer
-    Dim FGColor As Long, BGColor As Long
+    DIM Message$, Title$, CharW AS INTEGER, MaxLen AS INTEGER
+    DIM lineBreak AS INTEGER, totalLines AS INTEGER, prevlinebreak AS INTEGER
+    DIM Cursor AS INTEGER, Selection.Start AS INTEGER, InputViewStart AS INTEGER
+    DIM FieldArea AS INTEGER, DialogH AS INTEGER, DialogW AS INTEGER
+    DIM DialogX AS INTEGER, DialogY AS INTEGER, InputField.X AS INTEGER
+    DIM TotalButtons AS INTEGER, B AS INTEGER, ButtonLine$
+    DIM cb AS INTEGER, DIALOGRESULT AS INTEGER, i AS INTEGER
+    DIM message.X AS INTEGER, SetCursor#, cursorBlink%
+    DIM DefaultButton AS INTEGER, k AS LONG
+    DIM shiftDown AS _BYTE, ctrlDown AS _BYTE, Clip$
+    DIM FindLF%, s1 AS INTEGER, s2 AS INTEGER
+    DIM Selection.Value$
+    DIM prevCursor AS INTEGER, ss1 AS INTEGER, ss2 AS INTEGER, mb AS _BYTE
+    DIM mx AS INTEGER, my AS INTEGER, nmx AS INTEGER, nmy AS INTEGER
+    DIM FGColor AS LONG, BGColor AS LONG
 
     'Data type used for the dialog buttons:
-    Type BUTTONSTYPE
-        ID As Long
-        CAPTION As String * 120
-        X As Integer
-        Y As Integer
-        W As Integer
-    End Type
+    TYPE BUTTONSTYPE
+        ID AS LONG
+        CAPTION AS STRING * 120
+        X AS INTEGER
+        Y AS INTEGER
+        W AS INTEGER
+    END TYPE
 
     'Color constants. You can customize colors by changing these:
-    Const TitleBarColor = _RGB32(0, 178, 179)
-    Const DialogBGColor = _RGB32(255, 255, 255)
-    Const TitleBarTextColor = _RGB32(0, 0, 0)
-    Const DialogTextColor = _RGB32(0, 0, 0)
-    Const InputFieldColor = _RGB32(200, 200, 200)
-    Const InputFieldTextColor = _RGB32(0, 0, 0)
-    Const SelectionColor = _RGBA32(127, 127, 127, 100)
+    CONST TitleBarColor = _RGB32(0, 178, 179)
+    CONST DialogBGColor = _RGB32(255, 255, 255)
+    CONST TitleBarTextColor = _RGB32(0, 0, 0)
+    CONST DialogTextColor = _RGB32(0, 0, 0)
+    CONST InputFieldColor = _RGB32(200, 200, 200)
+    CONST InputFieldTextColor = _RGB32(0, 0, 0)
+    CONST SelectionColor = _RGBA32(127, 127, 127, 100)
 
     'Initial variable setup:
     Message$ = tMessage$
-    Title$ = RTrim$(LTrim$(tTitle$))
-    If Title$ = "" Then Title$ = "Input"
-    NewValue = RTrim$(LTrim$(InitialValue))
+    Title$ = RTRIM$(LTRIM$(tTitle$))
+    IF Title$ = "" THEN Title$ = "Input"
+    NewValue = RTRIM$(LTRIM$(InitialValue))
     DefaultButton = 1
 
     'Save the current drawing page so it can be restored later:
-    FGColor = _DefaultColor
-    BGColor = _BackgroundColor
-    PCopy 0, 1
+    FGColor = _DEFAULTCOLOR
+    BGColor = _BACKGROUNDCOLOR
+    PCOPY 0, 1
 
     'Figure out the print width of a single character (in case user has a custom font applied)
-    CharW = _PrintWidth("_")
+    CharW = _PRINTWIDTH("_")
 
     'Place a color overlay over the old screen image so the focus is on the dialog:
-    Line (0, 0)-Step(_Width - 1, _Height - 1), _RGBA32(170, 170, 170, 170), BF
+    LINE (0, 0)-STEP(_WIDTH - 1, _HEIGHT - 1), _RGBA32(170, 170, 170, 170), BF
 
     'Message breakdown, in case CHR$(10) was used as line break:
-    ReDim MessageLines(1) As String
+    REDIM MessageLines(1) AS STRING
     MaxLen = 1
-    Do
-        lineBreak = InStr(lineBreak + 1, Message$, Chr$(10))
-        If lineBreak = 0 And totalLines = 0 Then
+    DO
+        lineBreak = INSTR(lineBreak + 1, Message$, CHR$(10))
+        IF lineBreak = 0 AND totalLines = 0 THEN
             totalLines = 1
             MessageLines(1) = Message$
-            MaxLen = Len(Message$)
-            Exit Do
-        ElseIf lineBreak = 0 And totalLines > 0 Then
+            MaxLen = LEN(Message$)
+            EXIT DO
+        ELSEIF lineBreak = 0 AND totalLines > 0 THEN
             totalLines = totalLines + 1
-            ReDim _Preserve MessageLines(1 To totalLines) As String
-            MessageLines(totalLines) = Right$(Message$, Len(Message$) - prevlinebreak + 1)
-            If Len(MessageLines(totalLines)) > MaxLen Then MaxLen = Len(MessageLines(totalLines))
-            Exit Do
-        End If
-        If totalLines = 0 Then prevlinebreak = 1
+            REDIM _PRESERVE MessageLines(1 TO totalLines) AS STRING
+            MessageLines(totalLines) = RIGHT$(Message$, LEN(Message$) - prevlinebreak + 1)
+            IF LEN(MessageLines(totalLines)) > MaxLen THEN MaxLen = LEN(MessageLines(totalLines))
+            EXIT DO
+        END IF
+        IF totalLines = 0 THEN prevlinebreak = 1
         totalLines = totalLines + 1
-        ReDim _Preserve MessageLines(1 To totalLines) As String
-        MessageLines(totalLines) = Mid$(Message$, prevlinebreak, lineBreak - prevlinebreak)
-        If Len(MessageLines(totalLines)) > MaxLen Then MaxLen = Len(MessageLines(totalLines))
+        REDIM _PRESERVE MessageLines(1 TO totalLines) AS STRING
+        MessageLines(totalLines) = MID$(Message$, prevlinebreak, lineBreak - prevlinebreak)
+        IF LEN(MessageLines(totalLines)) > MaxLen THEN MaxLen = LEN(MessageLines(totalLines))
         prevlinebreak = lineBreak + 1
-    Loop
+    LOOP
 
-    Cursor = Len(NewValue)
+    Cursor = LEN(NewValue)
     Selection.Start = 0
     InputViewStart = 1
-    FieldArea = _Width \ CharW - 4
-    If FieldArea > 62 Then FieldArea = 62
-    If Selected > 0 Then Selection.Start = Selected: Selected = -1
+    FieldArea = _WIDTH \ CharW - 4
+    IF FieldArea > 62 THEN FieldArea = 62
+    IF Selected > 0 THEN Selection.Start = Selected: Selected = -1
 
     'Calculate dialog dimensions and print coordinates:
-    DialogH = _FontHeight * (6 + totalLines) + 10
+    DialogH = _FONTHEIGHT * (6 + totalLines) + 10
     DialogW = (CharW * FieldArea) + 10
-    If DialogW < MaxLen * CharW + 10 Then DialogW = MaxLen * CharW + 10
+    IF DialogW < MaxLen * CharW + 10 THEN DialogW = MaxLen * CharW + 10
 
-    DialogX = _Width / 2 - DialogW / 2
-    DialogY = _Height / 2 - DialogH / 2
+    DialogX = _WIDTH / 2 - DialogW / 2
+    DialogY = _HEIGHT / 2 - DialogH / 2
     InputField.X = (DialogX + (DialogW / 2)) - (((FieldArea * CharW) - 10) / 2) - 4
 
     'Calculate button's print coordinates:
     TotalButtons = 2
-    Dim Buttons(1 To TotalButtons) As BUTTONSTYPE
+    DIM Buttons(1 TO TotalButtons) AS BUTTONSTYPE
     B = 1
     Buttons(B).ID = 1: Buttons(B).CAPTION = "< OK >": B = B + 1
     Buttons(B).ID = 2: Buttons(B).CAPTION = "< Cancel >": B = B + 1
     ButtonLine$ = " "
-    For cb = 1 To TotalButtons
-        ButtonLine$ = ButtonLine$ + RTrim$(LTrim$(Buttons(cb).CAPTION)) + " "
-        Buttons(cb).Y = DialogY + 5 + _FontHeight * (5 + totalLines)
-        Buttons(cb).W = _PrintWidth(RTrim$(LTrim$(Buttons(cb).CAPTION)))
-    Next cb
-    Buttons(1).X = _Width / 2 - _PrintWidth(ButtonLine$) / 2
-    For cb = 2 To TotalButtons
-        Buttons(cb).X = Buttons(1).X + _PrintWidth(Space$(InStr(ButtonLine$, RTrim$(LTrim$(Buttons(cb).CAPTION)))))
-    Next cb
+    FOR cb = 1 TO TotalButtons
+        ButtonLine$ = ButtonLine$ + RTRIM$(LTRIM$(Buttons(cb).CAPTION)) + " "
+        Buttons(cb).Y = DialogY + 5 + _FONTHEIGHT * (5 + totalLines)
+        Buttons(cb).W = _PRINTWIDTH(RTRIM$(LTRIM$(Buttons(cb).CAPTION)))
+    NEXT cb
+    Buttons(1).X = _WIDTH / 2 - _PRINTWIDTH(ButtonLine$) / 2
+    FOR cb = 2 TO TotalButtons
+        Buttons(cb).X = Buttons(1).X + _PRINTWIDTH(SPACE$(INSTR(ButtonLine$, RTRIM$(LTRIM$(Buttons(cb).CAPTION)))))
+    NEXT cb
 
     'Main loop:
     DIALOGRESULT = 0
-    _KeyClear
-    Do: _Limit 500
+    _KEYCLEAR
+    DO: _LIMIT 500
         'Draw the dialog.
-        Line (DialogX, DialogY)-Step(DialogW - 1, DialogH - 1), DialogBGColor, BF
-        Line (DialogX, DialogY)-Step(DialogW - 1, _FontHeight + 1), TitleBarColor, BF
-        Color TitleBarTextColor
-        _PrintString (_Width / 2 - _PrintWidth(Title$) / 2, DialogY + 1), Title$
+        LINE (DialogX, DialogY)-STEP(DialogW - 1, DialogH - 1), DialogBGColor, BF
+        LINE (DialogX, DialogY)-STEP(DialogW - 1, _FONTHEIGHT + 1), TitleBarColor, BF
+        COLOR TitleBarTextColor
+        _PRINTSTRING (_WIDTH / 2 - _PRINTWIDTH(Title$) / 2, DialogY + 1), Title$
 
-        Color DialogTextColor, _RGBA32(0, 0, 0, 0)
-        For i = 1 To totalLines
-            message.X = _Width / 2 - _PrintWidth(MessageLines(i)) / 2
-            _PrintString (message.X, DialogY + 5 + _FontHeight * (i + 1)), MessageLines(i)
-        Next i
+        COLOR DialogTextColor, _RGBA32(0, 0, 0, 0)
+        FOR i = 1 TO totalLines
+            message.X = _WIDTH / 2 - _PRINTWIDTH(MessageLines(i)) / 2
+            _PRINTSTRING (message.X, DialogY + 5 + _FONTHEIGHT * (i + 1)), MessageLines(i)
+        NEXT i
 
         'Draw the input field
-        Line (InputField.X - 2, DialogY + 3 + _FontHeight * (3 + totalLines))-Step(FieldArea * CharW, _FontHeight + 4), InputFieldColor, BF
-        Color InputFieldTextColor
-        _PrintString (InputField.X, DialogY + 5 + _FontHeight * (3 + totalLines)), Mid$(NewValue, InputViewStart, FieldArea)
+        LINE (InputField.X - 2, DialogY + 3 + _FONTHEIGHT * (3 + totalLines))-STEP(FieldArea * CharW, _FONTHEIGHT + 4), InputFieldColor, BF
+        COLOR InputFieldTextColor
+        _PRINTSTRING (InputField.X, DialogY + 5 + _FONTHEIGHT * (3 + totalLines)), MID$(NewValue, InputViewStart, FieldArea)
 
         'Selection highlight:
-        GoSub SelectionHighlight
+        GOSUB SelectionHighlight
 
         'Cursor blink:
-        If Timer - SetCursor# > .4 Then
-            SetCursor# = Timer
-            If cursorBlink% = 1 Then cursorBlink% = 0 Else cursorBlink% = 1
-        End If
-        If cursorBlink% = 1 Then
-            Line (InputField.X + (Cursor - (InputViewStart - 1)) * CharW, DialogY + 5 + _FontHeight * (3 + totalLines))-Step(0, _FontHeight), _RGB32(0, 0, 0)
-        End If
+        IF TIMER - SetCursor# > .4 THEN
+            SetCursor# = TIMER
+            IF cursorBlink% = 1 THEN cursorBlink% = 0 ELSE cursorBlink% = 1
+        END IF
+        IF cursorBlink% = 1 THEN
+            LINE (InputField.X + (Cursor - (InputViewStart - 1)) * CharW, DialogY + 5 + _FONTHEIGHT * (3 + totalLines))-STEP(0, _FONTHEIGHT), _RGB32(0, 0, 0)
+        END IF
 
         'Check if buttons have been clicked or are being hovered:
-        GoSub CheckButtons
+        GOSUB CheckButtons
 
         'Draw buttons:
-        For cb = 1 To TotalButtons
-            _PrintString (Buttons(cb).X, Buttons(cb).Y), RTrim$(LTrim$(Buttons(cb).CAPTION))
-            If cb = DefaultButton Then
-                Color _RGB32(255, 255, 0)
-                _PrintString (Buttons(cb).X, Buttons(cb).Y), "<" + Space$(Len(RTrim$(LTrim$(Buttons(cb).CAPTION))) - 2) + ">"
-                Color _RGB32(0, 178, 179)
-                _PrintString (Buttons(cb).X - 1, Buttons(cb).Y - 1), "<" + Space$(Len(RTrim$(LTrim$(Buttons(cb).CAPTION))) - 2) + ">"
-                Color _RGB32(0, 0, 0)
-            End If
-        Next cb
+        FOR cb = 1 TO TotalButtons
+            _PRINTSTRING (Buttons(cb).X, Buttons(cb).Y), RTRIM$(LTRIM$(Buttons(cb).CAPTION))
+            IF cb = DefaultButton THEN
+                COLOR _RGB32(255, 255, 0)
+                _PRINTSTRING (Buttons(cb).X, Buttons(cb).Y), "<" + SPACE$(LEN(RTRIM$(LTRIM$(Buttons(cb).CAPTION))) - 2) + ">"
+                COLOR _RGB32(0, 178, 179)
+                _PRINTSTRING (Buttons(cb).X - 1, Buttons(cb).Y - 1), "<" + SPACE$(LEN(RTRIM$(LTRIM$(Buttons(cb).CAPTION))) - 2) + ">"
+                COLOR _RGB32(0, 0, 0)
+            END IF
+        NEXT cb
 
-        _Display
+        _DISPLAY
 
         'Process input:
-        k = _KeyHit
-        If k = 100303 Or k = 100304 Then shiftDown = -1
-        If k = -100303 Or k = -100304 Then shiftDown = 0
-        If k = 100305 Or k = 100306 Then ctrlDown = -1
-        If k = -100305 Or k = -100306 Then ctrlDown = 0
+        k = _KEYHIT
+        IF k = 100303 OR k = 100304 THEN shiftDown = -1
+        IF k = -100303 OR k = -100304 THEN shiftDown = 0
+        IF k = 100305 OR k = 100306 THEN ctrlDown = -1
+        IF k = -100305 OR k = -100306 THEN ctrlDown = 0
 
-        Select Case k
-            Case 13: DIALOGRESULT = 1
-            Case 27: DIALOGRESULT = 2
-            Case 32 To 126 'Printable ASCII characters
-                If k = Asc("v") Or k = Asc("V") Then 'Paste from clipboard (Ctrl+V)
-                    If ctrlDown Then
-                        Clip$ = _Clipboard$
-                        FindLF% = InStr(Clip$, Chr$(13))
-                        If FindLF% > 0 Then Clip$ = Left$(Clip$, FindLF% - 1)
-                        FindLF% = InStr(Clip$, Chr$(10))
-                        If FindLF% > 0 Then Clip$ = Left$(Clip$, FindLF% - 1)
-                        If Len(RTrim$(LTrim$(Clip$))) > 0 Then
-                            If Not Selected Then
-                                If Cursor = Len(NewValue) Then
+        SELECT CASE k
+            CASE 13: DIALOGRESULT = 1
+            CASE 27: DIALOGRESULT = 2
+            CASE 32 TO 126 'Printable ASCII characters
+                IF k = ASC("v") OR k = ASC("V") THEN 'Paste from clipboard (Ctrl+V)
+                    IF ctrlDown THEN
+                        Clip$ = _CLIPBOARD$
+                        FindLF% = INSTR(Clip$, CHR$(13))
+                        IF FindLF% > 0 THEN Clip$ = LEFT$(Clip$, FindLF% - 1)
+                        FindLF% = INSTR(Clip$, CHR$(10))
+                        IF FindLF% > 0 THEN Clip$ = LEFT$(Clip$, FindLF% - 1)
+                        IF LEN(RTRIM$(LTRIM$(Clip$))) > 0 THEN
+                            IF NOT Selected THEN
+                                IF Cursor = LEN(NewValue) THEN
                                     NewValue = NewValue + Clip$
-                                    Cursor = Len(NewValue)
-                                Else
-                                    NewValue = Left$(NewValue, Cursor) + Clip$ + Mid$(NewValue, Cursor + 1)
-                                    Cursor = Cursor + Len(Clip$)
-                                End If
-                            Else
+                                    Cursor = LEN(NewValue)
+                                ELSE
+                                    NewValue = LEFT$(NewValue, Cursor) + Clip$ + MID$(NewValue, Cursor + 1)
+                                    Cursor = Cursor + LEN(Clip$)
+                                END IF
+                            ELSE
                                 s1 = Selection.Start
                                 s2 = Cursor
-                                If s1 > s2 Then Swap s1, s2
-                                NewValue = Left$(NewValue, s1) + Clip$ + Mid$(NewValue, s2 + 1)
-                                Cursor = s1 + Len(Clip$)
+                                IF s1 > s2 THEN SWAP s1, s2
+                                NewValue = LEFT$(NewValue, s1) + Clip$ + MID$(NewValue, s2 + 1)
+                                Cursor = s1 + LEN(Clip$)
                                 Selected = 0
-                            End If
-                        End If
+                            END IF
+                        END IF
                         k = 0
-                    End If
-                ElseIf k = Asc("c") Or k = Asc("C") Then 'Copy selection to clipboard (Ctrl+C)
-                    If ctrlDown Then
-                        _Clipboard$ = Selection.Value$
+                    END IF
+                ELSEIF k = ASC("c") OR k = ASC("C") THEN 'Copy selection to clipboard (Ctrl+C)
+                    IF ctrlDown THEN
+                        _CLIPBOARD$ = Selection.Value$
                         k = 0
-                    End If
-                ElseIf k = Asc("x") Or k = Asc("X") Then 'Cut selection to clipboard (Ctrl+X)
-                    If ctrlDown Then
-                        _Clipboard$ = Selection.Value$
-                        GoSub DeleteSelection
+                    END IF
+                ELSEIF k = ASC("x") OR k = ASC("X") THEN 'Cut selection to clipboard (Ctrl+X)
+                    IF ctrlDown THEN
+                        _CLIPBOARD$ = Selection.Value$
+                        GOSUB DeleteSelection
                         k = 0
-                    End If
-                ElseIf k = Asc("a") Or k = Asc("A") Then 'Select all text (Ctrl+A)
-                    If ctrlDown Then
-                        Cursor = Len(NewValue)
+                    END IF
+                ELSEIF k = ASC("a") OR k = ASC("A") THEN 'Select all text (Ctrl+A)
+                    IF ctrlDown THEN
+                        Cursor = LEN(NewValue)
                         Selection.Start = 0
                         Selected = -1
                         k = 0
-                    End If
-                End If
+                    END IF
+                END IF
 
-                If k > 0 Then
-                    If Not Selected Then
-                        If Cursor = Len(NewValue) Then
-                            NewValue = NewValue + Chr$(k)
+                IF k > 0 THEN
+                    IF NOT Selected THEN
+                        IF Cursor = LEN(NewValue) THEN
+                            NewValue = NewValue + CHR$(k)
                             Cursor = Cursor + 1
-                        Else
-                            NewValue = Left$(NewValue, Cursor) + Chr$(k) + Mid$(NewValue, Cursor + 1)
+                        ELSE
+                            NewValue = LEFT$(NewValue, Cursor) + CHR$(k) + MID$(NewValue, Cursor + 1)
                             Cursor = Cursor + 1
-                        End If
-                        If Cursor > FieldArea Then InputViewStart = (Cursor - FieldArea) + 2
-                    Else
+                        END IF
+                        IF Cursor > FieldArea THEN InputViewStart = (Cursor - FieldArea) + 2
+                    ELSE
                         s1 = Selection.Start
                         s2 = Cursor
-                        If s1 > s2 Then Swap s1, s2
-                        NewValue = Left$(NewValue, s1) + Chr$(k) + Mid$(NewValue, s2 + 1)
+                        IF s1 > s2 THEN SWAP s1, s2
+                        NewValue = LEFT$(NewValue, s1) + CHR$(k) + MID$(NewValue, s2 + 1)
                         Selected = 0
                         Cursor = s1 + 1
-                    End If
-                End If
-            Case 8 'Backspace
-                If Len(NewValue) > 0 Then
-                    If Not Selected Then
-                        If Cursor = Len(NewValue) Then
-                            NewValue = Left$(NewValue, Len(NewValue) - 1)
+                    END IF
+                END IF
+            CASE 8 'Backspace
+                IF LEN(NewValue) > 0 THEN
+                    IF NOT Selected THEN
+                        IF Cursor = LEN(NewValue) THEN
+                            NewValue = LEFT$(NewValue, LEN(NewValue) - 1)
                             Cursor = Cursor - 1
-                        ElseIf Cursor > 1 Then
-                            NewValue = Left$(NewValue, Cursor - 1) + Mid$(NewValue, Cursor + 1)
+                        ELSEIF Cursor > 1 THEN
+                            NewValue = LEFT$(NewValue, Cursor - 1) + MID$(NewValue, Cursor + 1)
                             Cursor = Cursor - 1
-                        ElseIf Cursor = 1 Then
-                            NewValue = Right$(NewValue, Len(NewValue) - 1)
+                        ELSEIF Cursor = 1 THEN
+                            NewValue = RIGHT$(NewValue, LEN(NewValue) - 1)
                             Cursor = Cursor - 1
-                        End If
-                    Else
-                        GoSub DeleteSelection
-                    End If
-                End If
-            Case 21248 'Delete
-                If Not Selected Then
-                    If Len(NewValue) > 0 Then
-                        If Cursor = 0 Then
-                            NewValue = Right$(NewValue, Len(NewValue) - 1)
-                        ElseIf Cursor > 0 And Cursor <= Len(NewValue) - 1 Then
-                            NewValue = Left$(NewValue, Cursor) + Mid$(NewValue, Cursor + 2)
-                        End If
-                    End If
-                Else
-                    GoSub DeleteSelection
-                End If
-            Case 19200 'Left arrow key
-                GoSub CheckSelection
-                If Cursor > 0 Then Cursor = Cursor - 1
-            Case 19712 'Right arrow key
-                GoSub CheckSelection
-                If Cursor < Len(NewValue) Then Cursor = Cursor + 1
-            Case 18176 'Home
-                GoSub CheckSelection
+                        END IF
+                    ELSE
+                        GOSUB DeleteSelection
+                    END IF
+                END IF
+            CASE 21248 'Delete
+                IF NOT Selected THEN
+                    IF LEN(NewValue) > 0 THEN
+                        IF Cursor = 0 THEN
+                            NewValue = RIGHT$(NewValue, LEN(NewValue) - 1)
+                        ELSEIF Cursor > 0 AND Cursor <= LEN(NewValue) - 1 THEN
+                            NewValue = LEFT$(NewValue, Cursor) + MID$(NewValue, Cursor + 2)
+                        END IF
+                    END IF
+                ELSE
+                    GOSUB DeleteSelection
+                END IF
+            CASE 19200 'Left arrow key
+                GOSUB CheckSelection
+                IF Cursor > 0 THEN Cursor = Cursor - 1
+            CASE 19712 'Right arrow key
+                GOSUB CheckSelection
+                IF Cursor < LEN(NewValue) THEN Cursor = Cursor + 1
+            CASE 18176 'Home
+                GOSUB CheckSelection
                 Cursor = 0
-            Case 20224 'End
-                GoSub CheckSelection
-                Cursor = Len(NewValue)
-        End Select
+            CASE 20224 'End
+                GOSUB CheckSelection
+                Cursor = LEN(NewValue)
+        END SELECT
 
         'Cursor adjustments:
-        GoSub CursorAdjustments
-    Loop Until DIALOGRESULT > 0
+        GOSUB CursorAdjustments
+    LOOP UNTIL DIALOGRESULT > 0
 
-    _KeyClear
+    _KEYCLEAR
     INPUTBOX = DIALOGRESULT
 
     'Restore previous display:
-    PCopy 1, 0
-    Color FGColor, BGColor
-    Exit Function
+    PCOPY 1, 0
+    COLOR FGColor, BGColor
+    EXIT FUNCTION
 
     CursorAdjustments:
-    If Cursor > prevCursor Then
-        If Cursor - InputViewStart + 2 > FieldArea Then InputViewStart = (Cursor - FieldArea) + 2
-    ElseIf Cursor < prevCursor Then
-        If Cursor < InputViewStart - 1 Then InputViewStart = Cursor
-    End If
+    IF Cursor > prevCursor THEN
+        IF Cursor - InputViewStart + 2 > FieldArea THEN InputViewStart = (Cursor - FieldArea) + 2
+    ELSEIF Cursor < prevCursor THEN
+        IF Cursor < InputViewStart - 1 THEN InputViewStart = Cursor
+    END IF
     prevCursor = Cursor
-    If InputViewStart < 1 Then InputViewStart = 1
-    Return
+    IF InputViewStart < 1 THEN InputViewStart = 1
+    RETURN
 
     CheckSelection:
-    If shiftDown = -1 Then
-        If Selected = 0 Then
+    IF shiftDown = -1 THEN
+        IF Selected = 0 THEN
             Selected = -1
             Selection.Start = Cursor
-        End If
-    ElseIf shiftDown = 0 Then
+        END IF
+    ELSEIF shiftDown = 0 THEN
         Selected = 0
-    End If
-    Return
+    END IF
+    RETURN
 
     DeleteSelection:
-    NewValue = Left$(NewValue, s1) + Mid$(NewValue, s2 + 1)
+    NewValue = LEFT$(NewValue, s1) + MID$(NewValue, s2 + 1)
     Selected = 0
     Cursor = s1
-    Return
+    RETURN
 
     SelectionHighlight:
-    If Selected Then
+    IF Selected THEN
         s1 = Selection.Start
         s2 = Cursor
-        If s1 > s2 Then
-            Swap s1, s2
-            If InputViewStart > 1 Then
+        IF s1 > s2 THEN
+            SWAP s1, s2
+            IF InputViewStart > 1 THEN
                 ss1 = s1 - InputViewStart + 1
-            Else
+            ELSE
                 ss1 = s1
-            End If
+            END IF
             ss2 = s2 - s1
-            If ss1 + ss2 > FieldArea Then ss2 = FieldArea - ss1
-        Else
+            IF ss1 + ss2 > FieldArea THEN ss2 = FieldArea - ss1
+        ELSE
             ss1 = s1
             ss2 = s2 - s1
-            If ss1 < InputViewStart Then ss1 = 0: ss2 = s2 - InputViewStart + 1
-            If ss1 > InputViewStart Then ss1 = ss1 - InputViewStart + 1: ss2 = s2 - s1
-        End If
-        Selection.Value$ = Mid$(NewValue, s1 + 1, s2 - s1)
+            IF ss1 < InputViewStart THEN ss1 = 0: ss2 = s2 - InputViewStart + 1
+            IF ss1 > InputViewStart THEN ss1 = ss1 - InputViewStart + 1: ss2 = s2 - s1
+        END IF
+        Selection.Value$ = MID$(NewValue, s1 + 1, s2 - s1)
 
-        Line (InputField.X + ss1 * CharW, DialogY + 5 + _FontHeight * (3 + totalLines))-Step(ss2 * CharW, _FontHeight), _RGBA32(255, 255, 255, 150), BF
-    End If
-    Return
+        LINE (InputField.X + ss1 * CharW, DialogY + 5 + _FONTHEIGHT * (3 + totalLines))-STEP(ss2 * CharW, _FONTHEIGHT), _RGBA32(255, 255, 255, 150), BF
+    END IF
+    RETURN
 
     CheckButtons:
     'Hover highlight:
-    While _MouseInput: Wend
-    mb = _MouseButton(1): mx = _MouseX: my = _MouseY
-    For cb = 1 To TotalButtons
-        If (mx >= Buttons(cb).X) And (mx <= Buttons(cb).X + Buttons(cb).W) Then
-            If (my >= Buttons(cb).Y) And (my < Buttons(cb).Y + _FontHeight) Then
-                Line (Buttons(cb).X, Buttons(cb).Y)-Step(Buttons(cb).W, _FontHeight - 1), _RGBA32(230, 230, 230, 235), BF
-            End If
-        End If
-    Next cb
+    WHILE _MOUSEINPUT: WEND
+    mb = _MOUSEBUTTON(1): mx = _MOUSEX: my = _MOUSEY
+    FOR cb = 1 TO TotalButtons
+        IF (mx >= Buttons(cb).X) AND (mx <= Buttons(cb).X + Buttons(cb).W) THEN
+            IF (my >= Buttons(cb).Y) AND (my < Buttons(cb).Y + _FONTHEIGHT) THEN
+                LINE (Buttons(cb).X, Buttons(cb).Y)-STEP(Buttons(cb).W, _FONTHEIGHT - 1), _RGBA32(230, 230, 230, 235), BF
+            END IF
+        END IF
+    NEXT cb
 
-    If mb Then
-        If mx >= InputField.X And my >= DialogY + 3 + _FontHeight * (3 + totalLines) And mx <= InputField.X + (FieldArea * CharW - 10) And my <= DialogY + 3 + _FontHeight * (3 + totalLines) + _FontHeight + 4 Then
+    IF mb THEN
+        IF mx >= InputField.X AND my >= DialogY + 3 + _FONTHEIGHT * (3 + totalLines) AND mx <= InputField.X + (FieldArea * CharW - 10) AND my <= DialogY + 3 + _FONTHEIGHT * (3 + totalLines) + _FONTHEIGHT + 4 THEN
             'Clicking inside the text field positions the cursor
-            While _MouseButton(1)
-                _Limit 500
-                mb = _MouseInput
-            Wend
+            WHILE _MOUSEBUTTON(1)
+                _LIMIT 500
+                mb = _MOUSEINPUT
+            WEND
             Cursor = ((mx - InputField.X) / CharW) + (InputViewStart - 1)
-            If Cursor > Len(NewValue) Then Cursor = Len(NewValue)
+            IF Cursor > LEN(NewValue) THEN Cursor = LEN(NewValue)
             Selected = 0
-            Return
-        End If
+            RETURN
+        END IF
 
-        For cb = 1 To TotalButtons
-            If (mx >= Buttons(cb).X) And (mx <= Buttons(cb).X + Buttons(cb).W) Then
-                If (my >= Buttons(cb).Y) And (my < Buttons(cb).Y + _FontHeight) Then
+        FOR cb = 1 TO TotalButtons
+            IF (mx >= Buttons(cb).X) AND (mx <= Buttons(cb).X + Buttons(cb).W) THEN
+                IF (my >= Buttons(cb).Y) AND (my < Buttons(cb).Y + _FONTHEIGHT) THEN
                     DefaultButton = cb
-                    While _MouseButton(1): _Limit 500: mb = _MouseInput: Wend
-                    mb = 0: nmx = _MouseX: nmy = _MouseY
-                    If nmx = mx And nmy = my Then DIALOGRESULT = cb
-                    Return
-                End If
-            End If
-        Next cb
-    End If
-    Return
-End Function
+                    WHILE _MOUSEBUTTON(1): _LIMIT 500: mb = _MOUSEINPUT: WEND
+                    mb = 0: nmx = _MOUSEX: nmy = _MOUSEY
+                    IF nmx = mx AND nmy = my THEN DIALOGRESULT = cb
+                    RETURN
+                END IF
+            END IF
+        NEXT cb
+    END IF
+    RETURN
+END FUNCTION
 
-Function hsb~& (__H As _Float, __S As _Float, __B As _Float, A As _Float)
+FUNCTION hsb~& (__H AS _FLOAT, __S AS _FLOAT, __B AS _FLOAT, A AS _FLOAT)
     'method adapted form http://stackoverflow.com/questions/4106363/converting-rgb-to-hsb-colors
-    Dim H As _Float, S As _Float, B As _Float
+    DIM H AS _FLOAT, S AS _FLOAT, B AS _FLOAT
 
     H = map(__H, 0, 255, 0, 360)
     S = map(__S, 0, 255, 0, 1)
     B = map(__B, 0, 255, 0, 1)
 
-    If S = 0 Then
+    IF S = 0 THEN
         hsb~& = _RGBA32(B * 255, B * 255, B * 255, A)
-        Exit Function
-    End If
+        EXIT FUNCTION
+    END IF
 
-    Dim fmx As _Float, fmn As _Float
-    Dim fmd As _Float, iSextant As Integer
-    Dim imx As Integer, imd As Integer, imn As Integer
+    DIM fmx AS _FLOAT, fmn AS _FLOAT
+    DIM fmd AS _FLOAT, iSextant AS INTEGER
+    DIM imx AS INTEGER, imd AS INTEGER, imn AS INTEGER
 
-    If B > .5 Then
+    IF B > .5 THEN
         fmx = B - (B * S) + S
         fmn = B + (B * S) - S
-    Else
+    ELSE
         fmx = B + (B * S)
         fmn = B - (B * S)
-    End If
+    END IF
 
-    iSextant = Int(H / 60)
+    iSextant = INT(H / 60)
 
-    If H >= 300 Then
+    IF H >= 300 THEN
         H = H - 360
-    End If
+    END IF
 
     H = H / 60
-    H = H - (2 * Int(((iSextant + 1) Mod 6) / 2))
+    H = H - (2 * INT(((iSextant + 1) MOD 6) / 2))
 
-    If iSextant Mod 2 = 0 Then
+    IF iSextant MOD 2 = 0 THEN
         fmd = (H * (fmx - fmn)) + fmn
-    Else
+    ELSE
         fmd = fmn - (H * (fmx - fmn))
-    End If
+    END IF
 
-    imx = _Round(fmx * 255)
-    imd = _Round(fmd * 255)
-    imn = _Round(fmn * 255)
+    imx = _ROUND(fmx * 255)
+    imd = _ROUND(fmd * 255)
+    imn = _ROUND(fmn * 255)
 
-    Select Case Int(iSextant)
-        Case 1
+    SELECT CASE INT(iSextant)
+        CASE 1
             hsb~& = _RGBA32(imd, imx, imn, A)
-        Case 2
+        CASE 2
             hsb~& = _RGBA32(imn, imx, imd, A)
-        Case 3
+        CASE 3
             hsb~& = _RGBA32(imn, imd, imx, A)
-        Case 4
+        CASE 4
             hsb~& = _RGBA32(imd, imn, imx, A)
-        Case 5
+        CASE 5
             hsb~& = _RGBA32(imx, imn, imd, A)
-        Case Else
+        CASE ELSE
             hsb~& = _RGBA32(imx, imd, imn, A)
-    End Select
-End Function
+    END SELECT
+END FUNCTION
 
-Sub getEquation
-    Dim inputStatus As Integer
-    Cls
+SUB getEquation
+    DIM inputStatus AS INTEGER
+    CLS
     inputStatus = INPUTBOX("Equation Editor", "Enter the expression for z = (ex. x*y)", mainEquation, mainEquation, -1)
-    If (inputStatus = 2) Then End
-End Sub
+    IF (inputStatus = 2) THEN END
+END SUB
 
-Sub initSequence
-    Cls
-    Print "Generating..."
-    _Display
-    Call generatePlot(mainEquation)
-    Cls , 1
-    Color , 1
-    Print "z = " + mainEquation
-    _Display
-    _GLRender _Behind
+SUB initSequence
+    CLS
+    PRINT "Generating..."
+    _DISPLAY
+    CALL generatePlot(mainEquation)
+    CLS , 1
+    COLOR , 1
+    PRINT "z = " + mainEquation
+    _DISPLAY
+    _GLRENDER _BEHIND
     graph_render_mode = 1 ' 1=solid surface, -1=lines
     glAllow = 1
-End Sub
+END SUB
 
-Sub mouseProcess
-    Dim x As Double
-    Dim y As Double
-    While _MouseInput
-        If (zoomFactor > 0.1) Then
-            zoomFactor = zoomFactor + _MouseWheel * 0.05
-        Else
+SUB mouseProcess
+    DIM x AS DOUBLE
+    DIM y AS DOUBLE
+    WHILE _MOUSEINPUT
+        IF (zoomFactor > 0.1) THEN
+            zoomFactor = zoomFactor + _MOUSEWHEEL * 0.05
+        ELSE
             zoomFactor = 0.11
-        End If
-    Wend
-    If (_MouseButton(1)) Then
-        x = _MouseX
-        y = _MouseY
-        While _MouseButton(1)
-            While _MouseInput: Wend
-            yRot = yRot + (_MouseX - x)
-            xRot = xRot + (_MouseY - y)
-            x = _MouseX
-            y = _MouseY
-        Wend
-    End If
-    If (_MouseButton(2)) Then
+        END IF
+    WEND
+    IF (_MOUSEBUTTON(1)) THEN
+        x = _MOUSEX
+        y = _MOUSEY
+        WHILE _MOUSEBUTTON(1)
+            WHILE _MOUSEINPUT: WEND
+            yRot = yRot + (_MOUSEX - x)
+            xRot = xRot + (_MOUSEY - y)
+            x = _MOUSEX
+            y = _MOUSEY
+        WEND
+    END IF
+    IF (_MOUSEBUTTON(2)) THEN
         glAllow = 0
-    End If
-End Sub
+    END IF
+END SUB
 
-Sub keyProcess
-    Dim k As Integer
-    k = _KeyHit
-    If (k = Asc(" ")) Then graph_render_mode = graph_render_mode * -1
-    _KeyClear
-End Sub
+SUB keyProcess
+    DIM k AS INTEGER
+    k = _KEYHIT
+    IF (k = ASC(" ")) THEN graph_render_mode = graph_render_mode * -1
+    _KEYCLEAR
+END SUB
 
-Sub generatePlot (TheExpression As String)
-    Dim x As Integer
-    Dim z As Integer
-    Dim i As Integer
-    Dim ca As String
-    Dim ex As String
-    For x = -50 To 50
-        For z = -50 To 50
+SUB generatePlot (TheExpression AS STRING)
+    DIM x AS INTEGER
+    DIM z AS INTEGER
+    DIM i AS INTEGER
+    DIM ca AS STRING
+    DIM ex AS STRING
+    FOR x = -50 TO 50
+        FOR z = -50 TO 50
             ex = ""
-            For i = 1 To Len(TheExpression)
-                ca = Mid$(TheExpression, i, 1)
-                If (LCase$(ca) = "x") Then ca = _Trim$("(" + Str$(x * stepFactor) + ")")
-                If (LCase$(ca) = "y") Then ca = _Trim$("(" + Str$(z * stepFactor) + ")")
+            FOR i = 1 TO LEN(TheExpression)
+                ca = MID$(TheExpression, i, 1)
+                IF (LCASE$(ca) = "x") THEN ca = _TRIM$("(" + STR$(x * stepFactor) + ")")
+                IF (LCASE$(ca) = "y") THEN ca = _TRIM$("(" + STR$(z * stepFactor) + ")")
                 ex = ex + ca
-            Next
-            vert(x + 50, z + 50) = zStretch * Val(SxriptEval(ex))
-        Next
-    Next
-End Sub
+            NEXT
+            vert(x + 50, z + 50) = zStretch * VAL(SxriptEval(ex))
+        NEXT
+    NEXT
+END SUB
 
-Sub setShades
-    Dim x As Integer
-    Dim z As Integer
-    Dim c As _Unsigned Long
-    For x = -50 To 50
-        For z = -50 To 50
+SUB setShades
+    DIM x AS INTEGER
+    DIM z AS INTEGER
+    DIM c AS _UNSIGNED LONG
+    FOR x = -50 TO 50
+        FOR z = -50 TO 50
             c = hsb(map(z, -50, 50, 0, 255), 255, 128, 255)
-            shadeMap(x + 50, z + 50).r = _Red(c) / 255
-            shadeMap(x + 50, z + 50).g = _Green(c) / 255
-            shadeMap(x + 50, z + 50).b = _Blue(c) / 255
-        Next
-    Next
-End Sub
+            shadeMap(x + 50, z + 50).r = _RED(c) / 255
+            shadeMap(x + 50, z + 50).g = _GREEN(c) / 255
+            shadeMap(x + 50, z + 50).b = _BLUE(c) / 255
+        NEXT
+    NEXT
+END SUB
 
-Function map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
+FUNCTION map! (value!, minRange!, maxRange!, newMinRange!, newMaxRange!)
     map! = ((value! - minRange!) / (maxRange! - minRange!)) * (newMaxRange! - newMinRange!) + newMinRange!
-End Function
+END FUNCTION
 
-Rem $INCLUDE: 'sxript.bm'
-Rem $Include: 'sxmath.bm'
+REM $INCLUDE: 'sxript.bm'
+REM $INCLUDE: 'sxmath.bm'

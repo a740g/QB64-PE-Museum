@@ -3,9 +3,8 @@
 ' Slow but does the job!
 
 $CONSOLE:ONLY
-$NOPREFIX
-DEFINE A-Z AS LONG
-OPTION EXPLICIT
+_DEFINE A-Z AS LONG
+OPTION _EXPLICIT
 
 TYPE uniModType
     numChn AS STRING * 1
@@ -55,7 +54,7 @@ CLOSE 1
 END
 
 errorHandler:
-PRINT "Error: "; ERRORMESSAGE$; "!"
+PRINT "Error: "; _ERRORMESSAGE$; "!"
 END
 
 SUB copyUniModToFile (fromFile, fromWhere&, howMuch&, toFile$)

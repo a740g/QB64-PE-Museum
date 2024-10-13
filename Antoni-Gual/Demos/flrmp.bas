@@ -1,29 +1,29 @@
 'Floormaper by Antoni Gual
 'for Rel's 9 LINER contest at QBASICNEWS.COM  1/2003
 '------------------------------------------------------------------------
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
 
-$Resize:Smooth
+DEFLNG A-Z
+OPTION _EXPLICIT
+OPTION _EXPLICITARRAY
 
-Dim As Long r, y, y1, x
-Dim As Single y2
+$RESIZE:SMOOTH
 
-Screen 13
-FullScreen SquarePixels , Smooth
+DIM AS LONG r, y, y1, x
+DIM AS SINGLE y2
 
-Do
-    r = (r + 1) And 15
-    For y = 1 To 99
-        y1 = ((1190 / y + r) And 15)
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
+
+DO
+    r = (r + 1) AND 15
+    FOR y = 1 TO 99
+        y1 = ((1190 / y + r) AND 15)
         y2 = 6 / y
-        For x = 0 To 319
-            PSet (x, y + 100), CInt((159 - x) * y2) And 15 Xor y1 + 16
-        Next
-    Next
-    Limit 60
-Loop While Len(InKey$) = 0
+        FOR x = 0 TO 319
+            PSET (x, y + 100), CINT((159 - x) * y2) AND 15 XOR y1 + 16
+        NEXT
+    NEXT
+    _LIMIT 60
+LOOP WHILE LEN(INKEY$) = 0
 
-System 0
+SYSTEM

@@ -1,28 +1,28 @@
 ' Vortex  Antoni Gual 2003
 ' for Rel's 9 liners contest at QBASICNEWS.COM
 '------------------------------------------------------------------------
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
 
-$Resize:Smooth
-Screen 13
-FullScreen SquarePixels , Smooth
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-Dim a As String
-Dim j As Long
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-2 Palette Len(a$) / 3, 0
-a$ = a$ + Chr$(32 - 31 * Sin((Len(a$) - 60 * ((Len(a$) Mod 3) = 2) + 60 * ((Len(a$) Mod 3) = 1)) * 3.14151693# / 128))
-Circle (160, 290 - Len(a$) ^ .8), Len(a$) / 2.8, Len(a$) \ 3, , , .5
-Circle (160, 290 - Len(a$) ^ .8 + 1), Len(a$) / 2.8, Len(a$) \ 3, , , .5
-If Len(a$) < 256 * 3 Then 2 Else Out &H3C8, 0
+DIM a AS STRING
+DIM j AS LONG
 
-Do
-    j = (j + 1) Mod (Len(a$) - 3)
-    Out &H3C9, Asc(Mid$(a$, j + 1, 1))
-Loop While Len(InKey$) = 0
+2:
+PALETTE LEN(a$) / 3, 0
+a$ = a$ + CHR$(32 - 31 * SIN((LEN(a$) - 60 * ((LEN(a$) MOD 3) = 2) + 60 * ((LEN(a$) MOD 3) = 1)) * 3.14151693# / 128))
+CIRCLE (160, 290 - LEN(a$) ^ .8), LEN(a$) / 2.8, LEN(a$) \ 3, , , .5
+CIRCLE (160, 290 - LEN(a$) ^ .8 + 1), LEN(a$) / 2.8, LEN(a$) \ 3, , , .5
+IF LEN(a$) < 256 * 3 THEN GOTO 2 ELSE OUT &H3C8, 0
 
-System 0
+DO
+    j = (j + 1) MOD (LEN(a$) - 3)
+    OUT &H3C9, ASC(MID$(a$, j + 1, 1))
+    _LIMIT 16384
+LOOP WHILE LEN(INKEY$) = 0
 
+SYSTEM

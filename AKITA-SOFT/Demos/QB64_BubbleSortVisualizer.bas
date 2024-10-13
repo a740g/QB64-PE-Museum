@@ -2,7 +2,7 @@
 '**SORTING VISUALIZER by AKITA SOFT (C) 2021**
 '**FEEL FREE TO USE HOW YOU WANT WITHOUT LICENSE!**
 '**************************************************************************************************
-_Title "Bubble Sort Visualizer"
+_TITLE "Bubble Sort Visualizer"
 '**************************************************************************************************
 '*VARIABLES
 '**************************************************************************************************
@@ -14,17 +14,17 @@ leftOffset = 50 'Start how far from left of screen
 lowerOffset = 470 'Start how low down the screen
 swapCount = -1 'Initialize Swap Count
 delayTime = .04 'Global delay value
-Dim rndNums(numOfValues) As Integer 'Make sure this one is an integer just in case, do it up top to avoid problems
+DIM rndNums(numOfValues) AS INTEGER 'Make sure this one is an integer just in case, do it up top to avoid problems
 
 '**************************************************************************************************
 '*COLORS
 '**************************************************************************************************
 
-Const red = _RGB32(255, 0, 0)
-Const green = _RGB32(0, 255, 0)
-Const blue = _RGB32(0, 0, 255)
-Const yellow = _RGB32(255, 255, 0)
-Const black = _RGB32(0, 0, 0)
+CONST red = _RGB32(255, 0, 0)
+CONST green = _RGB32(0, 255, 0)
+CONST blue = _RGB32(0, 0, 255)
+CONST yellow = _RGB32(255, 255, 0)
+CONST black = _RGB32(0, 0, 0)
 
 '**************************************************************************************************
 '*INIT SCREEN
@@ -32,55 +32,55 @@ Const black = _RGB32(0, 0, 0)
 
 screenWidth = 640
 screenHeight = 480
-Screen _NewImage(screenWidth, screenHeight, 32) 'Initialize the screen
-_Limit 30 'Limit Framerate
+SCREEN _NEWIMAGE(screenWidth, screenHeight, 32) 'Initialize the screen
+_LIMIT 30 'Limit Framerate
 
 '**************************************************************************************************
 ' MAIN FUNCTION
 '**************************************************************************************************
 
 main:
-Cls
+CLS
 
 'SLEEP
-GoSub rngArrayFill
-GoSub printArray
-GoSub bubbleSort
+GOSUB rngArrayFill
+GOSUB printArray
+GOSUB bubbleSort
 
-End
+END
 
 '**************************************************************************************************
 ' SUBROUNTINES
 '**************************************************************************************************
 
 printArray:
-Cls
-_Delay delayTime
-For i = 0 To numOfValues
+CLS
+_DELAY delayTime
+FOR i = 0 TO numOfValues
 
     'Print text output displaying"RNG" ;abel and numbers generated
-    Locate 1, 1
-    Print "       "
-    Locate 1, 1
-    Print "RNG"
+    LOCATE 1, 1
+    PRINT "       "
+    LOCATE 1, 1
+    PRINT "RNG"
 
-    Locate 2, 1
-    Print "   "
-    Locate 2, 1
-    Print rndNums(i)
+    LOCATE 2, 1
+    PRINT "   "
+    LOCATE 2, 1
+    PRINT rndNums(i)
 
     'Starting at 0, loop drawing lines to create thickness based off var lineThickness
     'Remember QB64 is 0 based, not 1 based
-    For z = 0 To (lineThickness - 1)
-        Line ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), yellow
+    FOR z = 0 TO (lineThickness - 1)
+        LINE ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), yellow
 
-    Next z
+    NEXT z
 
-    _Delay delayTime 'Delay so we can see it
+    _DELAY delayTime 'Delay so we can see it
 
-Next i
+NEXT i
 
-Return
+RETURN
 
 
 '**************************************************************************************************
@@ -92,86 +92,86 @@ swaps = 0
 sorted = 1
 
 'Print text output displaying "SWAPS" for our swap counter
-Locate 1, 1
-Print "   "
-Locate 1, 1
-Print "SWAPS"
+LOCATE 1, 1
+PRINT "   "
+LOCATE 1, 1
+PRINT "SWAPS"
 
 'Print text output displaying "WORST" and number of swaps completed
-Locate 3, 1
-Print "WORST"
-Locate 4, 1
-Print numOfValues ^ 2 'Bubble sort worst case n^2
+LOCATE 3, 1
+PRINT "WORST"
+LOCATE 4, 1
+PRINT numOfValues ^ 2 'Bubble sort worst case n^2
 
 'The DO loop that actually DOes the real stuff
-Do
+DO
     swapped = 0 'Init as swapped 0 before iterating through array again
 
-    For i = 0 To numOfValues - sorted 'Iterate through array until we hit a number we know is sorted already
+    FOR i = 0 TO numOfValues - sorted 'Iterate through array until we hit a number we know is sorted already
 
 
         'Update our swap counter in the beginning of the loop
-        Locate 2, 1
-        Print "     "
-        Locate 2, 1
-        Print swaps
+        LOCATE 2, 1
+        PRINT "     "
+        LOCATE 2, 1
+        PRINT swaps
 
         'Use the same line drawing looper based on thickness to draw our neighbor selections in color
-        For z = 0 To (lineThickness - 1)
-            Line ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), red
-            Line ((lineThickness * i + lineThickness) + z + leftOffset, lowerOffset)-((lineThickness * i + lineThickness) + z + leftOffset, maxNum - rndNums(i + 1)), green
-        Next z
+        FOR z = 0 TO (lineThickness - 1)
+            LINE ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), red
+            LINE ((lineThickness * i + lineThickness) + z + leftOffset, lowerOffset)-((lineThickness * i + lineThickness) + z + leftOffset, maxNum - rndNums(i + 1)), green
+        NEXT z
 
-        _Delay delayTime
+        _DELAY delayTime
 
         'If the first value is bigger than the second value, swap them in the array. This gradually moves the larger value to the end
-        If rndNums(i) > rndNums(i + 1) Then swapped = 1: Swap rndNums(i), rndNums(i + 1)
+        IF rndNums(i) > rndNums(i + 1) THEN swapped = 1: SWAP rndNums(i), rndNums(i + 1)
 
         'If swap is detected then clear the lines we need to swap graphically
-        If swapped = 1 Then
-            For z = 0 To (lineThickness - 1)
-                Line ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i + 1)), black
-                Line ((lineThickness * i + lineThickness) + z + leftOffset, lowerOffset)-((lineThickness * i + lineThickness) + z + leftOffset, maxNum - rndNums(i + 1)), black
-            Next z
+        IF swapped = 1 THEN
+            FOR z = 0 TO (lineThickness - 1)
+                LINE ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i + 1)), black
+                LINE ((lineThickness * i + lineThickness) + z + leftOffset, lowerOffset)-((lineThickness * i + lineThickness) + z + leftOffset, maxNum - rndNums(i + 1)), black
+            NEXT z
 
             'Add to the swaps counter
             swaps = swaps + 1
-        End If
+        END IF
 
         'Draw new second to last value as yellow again
-        For z = 0 To (lineThickness - 1)
-            Line ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), yellow
-        Next z
+        FOR z = 0 TO (lineThickness - 1)
+            LINE ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), yellow
+        NEXT z
 
         'Draw last value (the sorted one) as blue, marking as complete
-        For z = 0 To (lineThickness - 1)
-            Line ((lineThickness * i + lineThickness) + z + leftOffset, lowerOffset)-((lineThickness * i + lineThickness) + z + leftOffset, maxNum - rndNums(i + 1)), blue
-        Next z
+        FOR z = 0 TO (lineThickness - 1)
+            LINE ((lineThickness * i + lineThickness) + z + leftOffset, lowerOffset)-((lineThickness * i + lineThickness) + z + leftOffset, maxNum - rndNums(i + 1)), blue
+        NEXT z
 
 
         'Iterate array again
-    Next i
+    NEXT i
 
     'Keep track of the last sorted array element
     sorted = sorted + 1
 
     'Beep if sound enabled
-    If soundOn = 1 Then
-        Sound (rndNums(i) * 5), 1
-    End If
+    IF soundOn = 1 THEN
+        SOUND (rndNums(i) * 5), 1
+    END IF
 
-Loop While swapped = 1
+LOOP WHILE swapped = 1
 
 'Make the rest of the array BLUE when we are done to make a fully sorted liste visually
-For i = numOfValues - sorted + 1 To 0 Step -1
-    For z = 0 To (lineThickness - 1)
-        Line ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), blue
-    Next z
-    _Delay delayTime
+FOR i = numOfValues - sorted + 1 TO 0 STEP -1
+    FOR z = 0 TO (lineThickness - 1)
+        LINE ((lineThickness * i) + z + leftOffset, lowerOffset)-((lineThickness * i) + z + leftOffset, maxNum - rndNums(i)), blue
+    NEXT z
+    _DELAY delayTime
 
-Next i
+NEXT i
 
-Return
+RETURN
 
 
 '**************************************************************************************************
@@ -179,11 +179,11 @@ rngArrayFill:
 '**************************************************************************************************
 
 'For 0 to total amount of values, fill array with random numbers
-For x = 0 To numOfValues
+FOR x = 0 TO numOfValues
 
-    Randomize Timer 'Randomize timer to make sure it's random every run
-    rndNums(x) = Int(Rnd * (maxNum - 1 + 1)) + 1
+    RANDOMIZE TIMER 'Randomize timer to make sure it's random every run
+    rndNums(x) = INT(RND * (maxNum - 1 + 1)) + 1
 
-Next x
-Return
+NEXT x
+RETURN
 

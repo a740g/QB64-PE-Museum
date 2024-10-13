@@ -11,7 +11,6 @@
 ' These are some metacommands and compiler options for QB64 to write modern type-strict code
 '-----------------------------------------------------------------------------------------------------
 $CONSOLE:ONLY
-$NOPREFIX
 $VERSIONINFO:CompanyName='Samuel Gomes'
 $VERSIONINFO:FileDescription='Condense executable'
 $VERSIONINFO:InternalName='condense'
@@ -22,18 +21,18 @@ $VERSIONINFO:Web='https://github.com/a740g'
 $VERSIONINFO:Comments='https://github.com/a740g'
 $VERSIONINFO:FILEVERSION#=5,0,0,2
 $VERSIONINFO:PRODUCTVERSION#=5,0,0,2
-DEFINE A-Z AS LONG
-OPTION EXPLICIT
+_DEFINE A-Z AS LONG
+OPTION _EXPLICIT
 '-----------------------------------------------------------------------------------------------------
 
-CONSOLETITLE "Text File Condenser"
+_CONSOLETITLE "Text File Condenser"
 
 CONST FALSE = 0, TRUE = NOT FALSE
 
 ' PROGRAM ENTRY POINT
 
 ' Check the command line and then collect relevant data
-IF COMMANDCOUNT < 1 OR IsArgVPresent("?") THEN
+IF _COMMANDCOUNT < 1 OR IsArgVPresent("?") THEN
     PRINT
     PRINT "Text file condenser."
     PRINT
@@ -60,16 +59,16 @@ IF COMMANDCOUNT < 1 OR IsArgVPresent("?") THEN
 END IF
 
 DIM sTextFile AS STRING
-DIM lTextFileSizeOld AS INTEGER64, lTextFileSizeNew AS INTEGER64
+DIM lTextFileSizeOld AS _INTEGER64, lTextFileSizeNew AS _INTEGER64
 
 ' Change to the directory specified by the environment
-CHDIR STARTDIR$
+CHDIR _STARTDIR$
 
 ' Resolve the input file name
 sTextFile = COMMAND$(1)
 
 ' Check if input file is present
-IF NOT FILEEXISTS(sTextFile) THEN
+IF NOT _FILEEXISTS(sTextFile) THEN
     PRINT sTextFile; " does not exist! Specify a valid name."
     SYSTEM 1
 END IF
@@ -132,7 +131,7 @@ lTextFileSizeNew = GetFileSize(sTextFile)
 PRINT
 PRINT "Original size:"; lTextFileSizeOld; "bytes"
 PRINT "Current size:"; lTextFileSizeNew; "bytes"
-PRINT "Condensation: "; TRIM$(STR$(100 - INT(100 * (lTextFileSizeNew / lTextFileSizeOld)))); "%"
+PRINT "Condensation: "; _TRIM$(STR$(100 - INT(100 * (lTextFileSizeNew / lTextFileSizeOld)))); "%"
 
 SYSTEM
 
@@ -143,13 +142,13 @@ FUNCTION IsTextFile% (sFileName AS STRING)
 
     DIM sBuffer AS STRING: sBuffer = LoadFile(sFileName)
 
-    DIM i AS UNSIGNED LONG: FOR i = 1 TO LEN(sBuffer)
+    DIM i AS _UNSIGNED LONG: FOR i = 1 TO LEN(sBuffer)
         IF i MOD 4096 = 0 THEN
             LOCATE , 1
             PRINT USING "###% completed."; 100&& * i \ LEN(sBuffer);
         END IF
 
-        DIM sChar AS UNSIGNED BYTE: sChar = ASC(sBuffer, i)
+        DIM sChar AS _UNSIGNED _BYTE: sChar = ASC(sBuffer, i)
         IF sChar < 32 AND sChar <> 9 AND sChar <> 10 AND sChar <> 13 THEN
             LOCATE , 1
             PRINT sFileName; " is not a text file!"
@@ -170,7 +169,7 @@ SUB CleanText (sFileName AS STRING)
 
     DIM sBuffer AS STRING: sBuffer = LoadFile(sFileName)
 
-    DIM i AS UNSIGNED LONG: FOR i = 1 TO LEN(sBuffer)
+    DIM i AS _UNSIGNED LONG: FOR i = 1 TO LEN(sBuffer)
         IF i MOD 4096 = 0 THEN
             LOCATE , 1
             PRINT USING "###% completed."; 100&& * i \ LEN(sBuffer);
@@ -199,7 +198,7 @@ END SUB
 ' Condenses the source code to use minimum disk space
 SUB CondenseText (sFileName AS STRING)
     DIM sText AS STRING, iOHandle AS INTEGER
-    DIM lTotalLines AS INTEGER64, lActualLines AS INTEGER64
+    DIM lTotalLines AS _INTEGER64, lActualLines AS _INTEGER64
     DIM sTempFile AS STRING, iIHandle AS INTEGER
 
     iIHandle = FREEFILE
@@ -211,7 +210,7 @@ SUB CondenseText (sFileName AS STRING)
     DO WHILE NOT EOF(iIHandle)
         LINE INPUT #iIHandle, sText
         lTotalLines = lTotalLines + 1
-        IF TRIM$(sText) <> "" THEN lActualLines = lTotalLines
+        IF _TRIM$(sText) <> "" THEN lActualLines = lTotalLines
         LOCATE , 1
         PRINT USING "###% completed."; 128&& * 100&& * LOC(iIHandle) \ LOF(iIHandle);
     LOOP
@@ -261,7 +260,7 @@ SUB CompressTextSpace (sFileName AS STRING, iLen AS INTEGER)
     sTempFile = GetTempFileName
     OPEN sTempFile FOR OUTPUT AS iOHandle
 
-    PRINT "Compressing spaces to tabs ("; TRIM$(STR$(iLen)); ":1) in "; sFileName; " ..."
+    PRINT "Compressing spaces to tabs ("; _TRIM$(STR$(iLen)); ":1) in "; sFileName; " ..."
     DO WHILE NOT EOF(iIHandle)
         LINE INPUT #iIHandle, sIText
 
@@ -300,7 +299,7 @@ END SUB
 ' Expands tabs to spaces
 SUB ExpandTextTab (sFileName AS STRING, iLen AS INTEGER)
     DIM sBuffer1 AS STRING, sBuffer2 AS STRING
-    DIM lLastPos AS INTEGER64, iHandleD AS INTEGER
+    DIM lLastPos AS _INTEGER64, iHandleD AS INTEGER
     DIM sTempFile AS STRING, iHandleS AS INTEGER
     DIM iBytesRead AS INTEGER, i AS INTEGER
     DIM sChar AS STRING * 1
@@ -328,7 +327,7 @@ SUB ExpandTextTab (sFileName AS STRING, iLen AS INTEGER)
     sBuffer1 = SPACE$(16384)
 
     ' Start copying the file
-    PRINT "Expanding tabs to spaces (1:"; TRIM$(STR$(iLen)); ") in "; sFileName; " ..."
+    PRINT "Expanding tabs to spaces (1:"; _TRIM$(STR$(iLen)); ") in "; sFileName; " ..."
     WHILE NOT EOF(iHandleS)
         ' Read from source, noting the number of bytes read
         lLastPos = LOC(iHandleS)
@@ -371,8 +370,8 @@ END SUB
 ' Generates a temporary filename. Returns a unique name
 FUNCTION GetTempFileName$
     DO
-        DIM sName AS STRING: sName = DIR$("temp") + STR$(FIX(TIMER)) + ".tmp"
-    LOOP WHILE FILEEXISTS(sName)
+        DIM sName AS STRING: sName = _DIR$("temp") + STR$(FIX(TIMER)) + ".tmp"
+    LOOP WHILE _FILEEXISTS(sName)
 
     GetTempFileName = sName
 END FUNCTION
@@ -382,7 +381,7 @@ END FUNCTION
 FUNCTION GetFileSize&& (fileName AS STRING)
     GetFileSize = -1
 
-    IF FILEEXISTS(fileName) THEN
+    IF _FILEEXISTS(fileName) THEN
         DIM AS LONG ff: ff = FREEFILE
         OPEN fileName FOR BINARY AS ff
         GetFileSize = LOF(ff)

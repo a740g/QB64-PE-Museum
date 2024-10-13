@@ -15,86 +15,85 @@
 'Use as you want, only give me credit.
 'E-mail me to tell me about!
 '----------------------------------------------------------------------------
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
 
-$Resize:Smooth
-Screen 13
-FullScreen SquarePixels , Smooth
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-Const FALSE = 0, TRUE = Not FALSE
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-If Not LoadPCX("twolf.pcx") Then
-    Print "File twolf.pcx not Found!"
-    End
-End If
+CONST FALSE = 0, TRUE = NOT FALSE
+
+IF NOT LoadPCX("twolf.pcx") THEN
+    PRINT "File twolf.pcx not Found!"
+    END
+END IF
 
 ripples 150, .1, 2, 1
 
-System 0
+SYSTEM 0
 
 'LOADS A 320x200x256 PCX. Modified from Kurt Kuzba
-Function LoadPCX%% (PCX$)
-    Dim As Long bseg, f, fin, t, BOFS, RLE, fpos, l, pn, dat
-    Dim As String p
-    Dim done As Byte
+FUNCTION LoadPCX%% (PCX$)
+    DIM AS LONG bseg, f, fin, t, BOFS, RLE, fpos, l, pn, dat
+    DIM AS STRING p
+    DIM done AS _BYTE
 
     LoadPCX = FALSE
     bseg& = &HA000
 
-    f = FreeFile
-    Open PCX$ For Binary As #f
-    If LOF(f) = 0 Then
-        Close #f
-        Kill PCX$
-        Exit Function
-    End If
+    f = FREEFILE
+    OPEN PCX$ FOR BINARY AS #f
+    IF LOF(f) = 0 THEN
+        CLOSE #f
+        KILL PCX$
+        EXIT FUNCTION
+    END IF
 
-    fin& = LOF(1) - 767: Seek #f, fin&
-    p$ = Input$(768, 1)
+    fin& = LOF(1) - 767: SEEK #f, fin&
+    p$ = INPUT$(768, 1)
     'p% = 1
     fin& = fin& - 1
-    Out &H3C8, 0: Def Seg = VarSeg(p$)
+    OUT &H3C8, 0: DEF SEG = VARSEG(p$)
 
-    For t& = SAdd(p$) To SAdd(p$) + 767
-        Out &H3C9, Peek(t&) \ 4
-    Next
+    FOR t& = SADD(p$) TO SADD(p$) + 767
+        OUT &H3C9, PEEK(t&) \ 4
+    NEXT
 
-    Seek #f, 129
+    SEEK #f, 129
     t& = BOFS&
     RLE = 0
-    Do
-        p$ = Input$(256, f)
-        fpos& = Seek(f)
-        l = Len(p$)
-        If fpos& > fin& Then
+    DO
+        p$ = INPUT$(256, f)
+        fpos& = SEEK(f)
+        l = LEN(p$)
+        IF fpos& > fin& THEN
             l = l - (fpos& - fin&)
             done = TRUE
-        End If
-        For pn = SAdd(p$) To SAdd(p$) + l - 1
-            Def Seg = VarSeg(p$)
-            dat = Peek(pn)
-            Def Seg = bseg&
-            If RLE Then
-                For RLE = RLE To 1 Step -1:
-                    Poke t&, dat: t& = t& + 1
-                Next
-            Else
-                If (dat And 192) = 192 Then
-                    RLE = dat And 63
-                Else
-                    Poke t&, dat
+        END IF
+        FOR pn = SADD(p$) TO SADD(p$) + l - 1
+            DEF SEG = VARSEG(p$)
+            dat = PEEK(pn)
+            DEF SEG = bseg&
+            IF RLE THEN
+                FOR RLE = RLE TO 1 STEP -1:
+                    POKE t&, dat: t& = t& + 1
+                NEXT
+            ELSE
+                IF (dat AND 192) = 192 THEN
+                    RLE = dat AND 63
+                ELSE
+                    POKE t&, dat
                     t& = t& + 1
-                End If
-            End If
-        Next
-    Loop Until done
-    Close f
+                END IF
+            END IF
+        NEXT
+    LOOP UNTIL done
+    CLOSE f
 
     LoadPCX = TRUE
-End Function
+END FUNCTION
 
 '----------------------------------------------------------------------------
 'Ripples SUB, by Antoni Gual  26/1/2001   agual@eic.ictnet.es
@@ -106,34 +105,33 @@ End Function
 'amplitude!      amplitude of the distortion in pixels
 'wavelength!     distance between two ripples
 '----------------------------------------------------------------------------
-Sub ripples (waterheight, dlay!, amplitude!, wavelength!)
-    Dim As Long widh, hght
-    Dim As Single i, j, temp
+SUB ripples (waterheight, dlay!, amplitude!, wavelength!)
+    DIM AS LONG widh, hght
+    DIM AS SINGLE i, j, temp
 
     'these are screen size constants, don't touch it!
     widh = 319
     hght = 199
 
-    ReDim a%(162)
-    Dim r(0 To 200) As Integer
+    REDIM a%(162)
+    DIM r(0 TO 200) AS INTEGER
 
     'precalc a sinus table for speed
-    For i! = 0 To 200
-        r(i!) = CInt(Sin(i! / wavelength!) * amplitude!)
-    Next
+    FOR i! = 0 TO 200
+        r(i!) = CINT(SIN(i! / wavelength!) * amplitude!)
+    NEXT
     j = 0
 
     'the loop!
-    Do
+    DO
         'it must be slowed down to look real!
-        Delay dlay!
+        _DELAY dlay!
 
-        For i = 1 To hght - waterheight
-            temp = waterheight - i + r((j + i) Mod 200)
-            Get (1, temp)-(widh, temp), a%()
-            Put (1, waterheight + i), a%(), PSet
-        Next
-        If j = 200 Then j = 0 Else j = j + 1
-    Loop Until Len(InKey$)
-End Sub
-
+        FOR i = 1 TO hght - waterheight
+            temp = waterheight - i + r((j + i) MOD 200)
+            GET (1, temp)-(widh, temp), a%()
+            PUT (1, waterheight + i), a%(), PSET
+        NEXT
+        IF j = 200 THEN j = 0 ELSE j = j + 1
+    LOOP UNTIL LEN(INKEY$)
+END SUB

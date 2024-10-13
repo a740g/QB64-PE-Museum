@@ -2,33 +2,30 @@
 'for Rel's 9 LINER contest at QBASICNEWS.COM  1/2003
 '------------------------------------------------------------------------
 
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-$Resize:Smooth
-Screen 13
-FullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
 
-Dim midX As Long: midX = Width \ 2
-Dim midY As Long: midY = Height \ 2
+DIM midX AS LONG: midX = _WIDTH \ 2
+DIM midY AS LONG: midY = _HEIGHT \ 2
 
-Dim As Single Ang
-Dim As Long CS, SS, Y, X
-Do
+DIM AS SINGLE Ang, CS, SS
+DIM AS LONG Y, X
+DO
     Ang = Ang + .005
-    CS = Cos(Ang) * Abs(Sin(Ang)) * 128
-    SS = Sin(Ang) * Abs(Sin(Ang)) * 128
-    For Y = -midY To midY
-        For X = -midX To midX
-            PSet (X + midX, Y + midY), (((X * CS - Y * SS) And (Y * CS + X * SS)) \ 128)
-        Next
-    Next
+    CS = COS(Ang) * ABS(SIN(Ang)) * 128
+    SS = SIN(Ang) * ABS(SIN(Ang)) * 128
+    FOR Y = -midY TO midY
+        FOR X = -midX TO midX
+            PSET (X + midX, Y + midY), (((X * CS - Y * SS) AND (Y * CS + X * SS)) \ 128)
+        NEXT
+    NEXT
 
-    Limit 60
-Loop While Len(InKey$) = 0
+    _LIMIT 60
+LOOP WHILE LEN(INKEY$) = 0
 
-System 0
-
+SYSTEM

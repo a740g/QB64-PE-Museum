@@ -5,30 +5,27 @@
 'Tunnel effect (more or less)
 'FFIX recommended. It does compile.
 '-----------------------------------------------------------------------
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
 
-$Resize:Smooth
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-Dim As Long i, x, y
-Dim As Single a
+DIM AS LONG i, x, y
+DIM AS SINGLE a
 
-Screen 13
-FullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Do
-    If i = 1 Then Out &H3C8, 0 Else If i <= 194 Then Out &H3C9, Int((i - 2) / 3)
-    If i <= 194 Then GoTo 8
-    For y = -100 To 99
-        For x = -160 To 159
-            If x >= 0 Then If y < 0 Then a = 1.57079632679# + Atn(x / (y + .000001)) Else a = -Atn(y / (x + .000001)) Else If y < 0 Then a = 1.57079632679# + Atn(x / (y + .000001)) Else a = -1.57079632679# + Atn(x / (y + .000001))
-            PSet (x + 160, y + 100), (x * x + y * y) * .00003 * ((Int(-10000 * i + 5.2 * Sqr(x * x + y * y)) And &H3F) Xor (Int((191 * a) + 10 * i) And &H3F))
-        Next
-    Next
+DO
+    IF i = 1 THEN OUT &H3C8, 0 ELSE IF i <= 194 THEN OUT &H3C9, INT((i - 2) / 3)
+    IF i <= 194 THEN GOTO 8
+    FOR y = -100 TO 99
+        FOR x = -160 TO 159
+            IF x >= 0 THEN IF y < 0 THEN a = 1.57079632679# + ATN(x / (y + .000001)) ELSE a = -ATN(y / (x + .000001)) ELSE IF y < 0 THEN a = 1.57079632679# + ATN(x / (y + .000001)) ELSE a = -1.57079632679# + ATN(x / (y + .000001))
+            PSET (x + 160, y + 100), (x * x + y * y) * .00003 * ((INT(-10000 * i + 5.2 * SQR(x * x + y * y)) AND &H3F) XOR (INT((191 * a) + 10 * i) AND &H3F))
+        NEXT
+    NEXT
     8 i = i + 1
-Loop While Len(InKey$) = 0
+LOOP WHILE LEN(INKEY$) = 0
 
-System 0
-
+SYSTEM

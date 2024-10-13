@@ -1,9 +1,9 @@
-'$include:'../include/aKFrameWork_Global.bas'
+'$INCLUDE:'../include/aKFrameWork_Global.bas'
 
-Screen _NewImage(800, 700, 32)
+SCREEN _NEWIMAGE(800, 700, 32)
 'setting background
-_PutImage , _LoadImage("bg.jpg")
-_Title "Registration Form Demo"
+_PUTIMAGE , _LOADIMAGE("bg.jpg")
+_TITLE "Registration Form Demo"
 'creating registration form dialog
 regForm = aKNewdialog("Please fill the form", 350, 250)
 'adding textboxes which will take first-name, last-name,password no.
@@ -26,17 +26,17 @@ age = aKAddNumericUpDown(regForm, 22, 70, 132, 24)
 subBtn = aKAddButton(regForm, "Submit", 5, 180)
 resetBtn = aKAddButton(regForm, "Reset", 75, 180)
 cancelBtn = aKAddButton(regForm, "Cancel", 140, 180)
-Do
+DO
     'always use this two subs at the top of the loop with the dialog handle
     aKCheck regForm
     aKUpdate regForm
     'checking if user click cancel button
-    If aKClick(regForm, aKButton, cancelBtn) Then
+    IF aKClick(regForm, aKButton, cancelBtn) THEN
         aKHideDialog regForm
-        End
-    End If
+        END
+    END IF
     'checking if user click reset button
-    If aKClick(regForm, aKButton, resetBtn) Then
+    IF aKClick(regForm, aKButton, resetBtn) THEN
         'we'll reset values of all objects
         aKSetValue aKTextBox, firstName, ""
         aKSetValue aKTextBox, lastName, ""
@@ -54,24 +54,24 @@ Do
         aKDrawObject regForm, aKNumericUpDown, age
         aKDrawObject regForm, aKRadioButton, male
         aKDrawObject regForm, aKRadioButton, female
-    End If
+    END IF
     'checking if user hit submit btn
-    If aKClick(regForm, aKButton, subBtn) Then enter = -1: Exit Do
-    _Display
+    IF aKClick(regForm, aKButton, subBtn) THEN enter = -1: EXIT DO
+    _DISPLAY
     'checking if the user close the dialog
-    If aKDialogClose(regForm) Then System
-Loop
+    IF aKDialogClose(regForm) THEN SYSTEM
+LOOP
 
-If Not enter Then End
-Screen 0
-Print "Fist name : "; aKGetValue(aKTextBox, firstName)
-Print "Last name : "; aKGetValue(aKTextBox, lastName)
-Print "Email     : "; aKGetValue(aKTextBox, email)
-Print "Password  : "; aKGetValue(aKTextBox, password)
-Print "City      : "; aKGetValue(aKComboBox, city)
-Print "Gender    : "; aKGetRadioValue(regForm, 1)
-Print "Age       : "; aKGetValue(aKNumericUpDown, age)
+IF NOT enter THEN END
+SCREEN 0
+PRINT "Fist name : "; aKGetValue(aKTextBox, firstName)
+PRINT "Last name : "; aKGetValue(aKTextBox, lastName)
+PRINT "Email     : "; aKGetValue(aKTextBox, email)
+PRINT "Password  : "; aKGetValue(aKTextBox, password)
+PRINT "City      : "; aKGetValue(aKComboBox, city)
+PRINT "Gender    : "; aKGetRadioValue(regForm, 1)
+PRINT "Age       : "; aKGetValue(aKNumericUpDown, age)
 
  
-'$include:'../include/aKFrameWork_Method.bas'
+'$INCLUDE:'../include/aKFrameWork_Method.bas'
 

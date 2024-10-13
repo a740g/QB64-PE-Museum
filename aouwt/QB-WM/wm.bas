@@ -2,250 +2,250 @@
 '$CHECKING:OFF
 
 'ON ERROR GOTO er
-Dim temp As winType
-Dim win_Log As Integer
-Dim win_Img As Integer, win_Img_Image As Long
-Dim win_Cat As Integer, win_Cat_Text As String
-Dim win_Launcher
-Dim win_Other As Integer
+DIM temp AS winType
+DIM win_Log AS INTEGER
+DIM win_Img AS INTEGER, win_Img_Image AS LONG
+DIM win_Cat AS INTEGER, win_Cat_Text AS STRING
+DIM win_Launcher
+DIM win_Other AS INTEGER
 
-win_Img_Image = LoadImage("images/image.jpg", 32)
+win_Img_Image = _LOADIMAGE("images/image.jpg", 32)
 'SetAlpha 250, , win_Img_Image
 
 temp = __template_Win
-temp.IH = NewImage(temp.W, temp.H, 32)
+temp.IH = _NEWIMAGE(temp.W, temp.H, 32)
 temp.T = ""
 win_Launcher = newWin(temp)
 
 
 logP "INFO> main routine: Ready"
-Dim win As Integer
-Do
-    Do While MouseInput: updateMouse: Loop
+DIM win AS INTEGER
+DO
+    DO WHILE _MOUSEINPUT: updateMouse: LOOP
 
-    For win = LBound(w) To UBound(w)
-        If w(win).IH = 0 Then Continue
-        Select Case win
-
-
-            Case win_Log 'Log window
-                If w(win).NeedsRefresh Then resizeWin win_Log: logP ""
+    FOR win = LBOUND(w) TO UBOUND(w)
+        IF w(win).IH = 0 THEN _CONTINUE
+        SELECT CASE win
 
 
-            Case win_Img
-                If w(win).NeedsRefresh Then
+            CASE win_Log 'Log window
+                IF w(win).NeedsRefresh THEN resizeWin win_Log: logP ""
+
+
+            CASE win_Img
+                IF w(win).NeedsRefresh THEN
                     resizeWin win_Img
-                    PutImage , win_Img_Image, w(win).IH
-                End If
+                    _PUTIMAGE , win_Img_Image, w(win).IH
+                END IF
 
 
 
-            Case win_Cat 'Text editor window
-                $Checking:Off
-                If w(win_Cat).Z = 0 Then
+            CASE win_Cat 'Text editor window
+                $CHECKING:OFF
+                IF w(win_Cat).Z = 0 THEN
 
-                    If __inKey <> "" Then w(win_Cat).NeedsRefresh = -1
-                    Do Until __inKey = ""
-                        Select Case __inKey '__inKey is updated when upd is called.
-                            Case Chr$(8): win_Cat_Text = Left$(win_Cat_Text, Len(win_Cat_Text) - 1) 'backspace
-                            Case Chr$(13): win_Cat_Text = win_Cat_Text + " " + Chr$(13) + " "
-                            Case Else: win_Cat_Text = win_Cat_Text + __inKey 'Append keypress to window
-                        End Select
-                        __inKey = InKey$
-                    Loop
+                    IF __inKey <> "" THEN w(win_Cat).NeedsRefresh = -1
+                    DO UNTIL __inKey = ""
+                        SELECT CASE __inKey '__inKey is updated when upd is called.
+                            CASE CHR$(8): win_Cat_Text = LEFT$(win_Cat_Text, LEN(win_Cat_Text) - 1) 'backspace
+                            CASE CHR$(13): win_Cat_Text = win_Cat_Text + " " + CHR$(13) + " "
+                            CASE ELSE: win_Cat_Text = win_Cat_Text + __inKey 'Append keypress to window
+                        END SELECT
+                        __inKey = INKEY$
+                    LOOP
 
 
-                    If w(win).NeedsRefresh Then
+                    IF w(win).NeedsRefresh THEN
                         resizeWin win
                         printWithWrap win_Cat_Text, win_Cat
-                    End If
-                End If
-                $Checking:On
+                    END IF
+                END IF
+                $CHECKING:ON
 
 
 
 
-            Case win_Launcher
+            CASE win_Launcher
                 w(win).W = 100
                 w(win).H = 76
-                If (w(win).NeedsRefresh <> 0) Or (w(win_Launcher).Z = 0) Then
+                IF (w(win).NeedsRefresh <> 0) OR (w(win_Launcher).Z = 0) THEN
                     resizeWin win
-                    Dest w(win).IH
-                    Line (0, 0)-Step(100, 16), &H404040C8, BF
-                    Line (0, 20)-Step(100, 16), &H404040C8, BF
-                    Line (0, 40)-Step(100, 16), &H404040C8, BF
-                    Line (0, 60)-Step(100, 16), &H404040C8, BF
-                    If win_Log Then PrintString (2, 2), "Close log" Else PrintString (2, 2), "Open log"
-                    If win_Cat Then PrintString (2, 22), "Close text editor" Else PrintString (2, 22), "Open text editor"
-                    If win_Img Then PrintString (2, 42), "Close image" Else PrintString (2, 42), "Open image"
-                    If win_Other Then PrintString (2, 62), "Close debug" Else PrintString (2, 62), "Open debug"
-                End If
+                    _DEST w(win).IH
+                    LINE (0, 0)-STEP(100, 16), &H404040C8, BF
+                    LINE (0, 20)-STEP(100, 16), &H404040C8, BF
+                    LINE (0, 40)-STEP(100, 16), &H404040C8, BF
+                    LINE (0, 60)-STEP(100, 16), &H404040C8, BF
+                    IF win_Log THEN _PRINTSTRING (2, 2), "Close log" ELSE _PRINTSTRING (2, 2), "Open log"
+                    IF win_Cat THEN _PRINTSTRING (2, 22), "Close text editor" ELSE _PRINTSTRING (2, 22), "Open text editor"
+                    IF win_Img THEN _PRINTSTRING (2, 42), "Close image" ELSE _PRINTSTRING (2, 42), "Open image"
+                    IF win_Other THEN _PRINTSTRING (2, 62), "Close debug" ELSE _PRINTSTRING (2, 62), "Open debug"
+                END IF
 
-                If w(win_Launcher).Z = 0 Then
-                    If ((w(win).MX < 100) And (w(win).MX > 0)) Then
+                IF w(win_Launcher).Z = 0 THEN
+                    IF ((w(win).MX < 100) AND (w(win).MX > 0)) THEN
                         w(win).NeedsRefresh = True
-                        Select Case w(win).MY
-                            Case 0 To 16
-                                If MouseButton(1) Then
-                                    If win_Log Then
+                        SELECT CASE w(win).MY
+                            CASE 0 TO 16
+                                IF _MOUSEBUTTON(1) THEN
+                                    IF win_Log THEN
                                         freeWin win_Log
                                         win_Log = 0
-                                    Else
+                                    ELSE
                                         temp = __template_Win
                                         temp.X = 50
-                                        temp.IH = NewImage(320, 240, 32)
+                                        temp.IH = _NEWIMAGE(320, 240, 32)
                                         temp.T = "Log"
                                         temp.FH = __font_Mono
                                         win_Log = newWin(temp)
-                                    End If
-                                Else
-                                    Line (0, 0)-(100, 16), &H66666666, BF
-                                End If
+                                    END IF
+                                ELSE
+                                    LINE (0, 0)-(100, 16), &H66666666, BF
+                                END IF
 
-                            Case 20 To 36
-                                If MouseButton(1) Then
-                                    If win_Cat Then
+                            CASE 20 TO 36
+                                IF _MOUSEBUTTON(1) THEN
+                                    IF win_Cat THEN
                                         freeWin win_Cat
                                         win_Cat = 0
-                                    Else
+                                    ELSE
                                         temp = __template_Win
                                         temp.X = 200
-                                        temp.IH = NewImage(320, 240, 32)
+                                        temp.IH = _NEWIMAGE(320, 240, 32)
                                         temp.T = "Text editor"
                                         temp.FH = __font_Sans
                                         win_Cat = newWin(temp)
-                                    End If
-                                Else
-                                    Line (0, 20)-(100, 36), &H66666666, BF
-                                End If
+                                    END IF
+                                ELSE
+                                    LINE (0, 20)-(100, 36), &H66666666, BF
+                                END IF
 
-                            Case 40 To 56
-                                If MouseButton(1) Then
-                                    If win_Img Then
+                            CASE 40 TO 56
+                                IF _MOUSEBUTTON(1) THEN
+                                    IF win_Img THEN
                                         freeWin win_Img
                                         win_Img = 0
-                                    Else
+                                    ELSE
                                         temp = __template_Win
-                                        temp.IH = NewImage(temp.W, temp.H, 32)
+                                        temp.IH = _NEWIMAGE(temp.W, temp.H, 32)
                                         temp.T = "Image"
                                         win_Img = newWin(temp)
-                                    End If
-                                Else
-                                    Line (0, 40)-(100, 56), &H66666666, BF
-                                End If
+                                    END IF
+                                ELSE
+                                    LINE (0, 40)-(100, 56), &H66666666, BF
+                                END IF
 
-                            Case 60 To 76
-                                If MouseButton(1) Then
-                                    If win_Other Then
+                            CASE 60 TO 76
+                                IF _MOUSEBUTTON(1) THEN
+                                    IF win_Other THEN
                                         freeWin win_Other
                                         win_Other = 0
-                                    Else
+                                    ELSE
                                         temp = __template_Win
-                                        temp.IH = NewImage(temp.W, temp.H, 32)
+                                        temp.IH = _NEWIMAGE(temp.W, temp.H, 32)
                                         temp.FH = __font_Mono
                                         win_Other = newWin(temp)
-                                    End If
-                                Else
-                                    Line (0, 60)-(100, 76), &H66666666, BF
-                                End If
-                        End Select
-                    End If
-                End If
+                                    END IF
+                                ELSE
+                                    LINE (0, 60)-(100, 76), &H66666666, BF
+                                END IF
+                        END SELECT
+                    END IF
+                END IF
 
 
-            Case win_Other 'Other window
-                If w(win).NeedsRefresh Then resizeWin win_Other
+            CASE win_Other 'Other window
+                IF w(win).NeedsRefresh THEN resizeWin win_Other
                 'Window contents
-                Dest w(win).IH
-                Cls , 0
-                Print Using "X: ####  Y: ####  Z: +####"; w(win).X, w(win).Y, w(win).Z
-                Print Using "W: ####  H: ####"; w(win).W, w(win).H
-                Print Using "MX: ####  MY: ####  MS: +#  MAS: ####"; w(win).MX, w(win).MY, w(win).MS, w(win).MAS
-                Print Using "IH: ########  FH: ########  win: ###"; w(win).IH, w(win).FH, win
+                _DEST w(win).IH
+                CLS , 0
+                PRINT USING "X: ####  Y: ####  Z: +####"; w(win).X, w(win).Y, w(win).Z
+                PRINT USING "W: ####  H: ####"; w(win).W, w(win).H
+                PRINT USING "MX: ####  MY: ####  MS: +#  MAS: ####"; w(win).MX, w(win).MY, w(win).MS, w(win).MAS
+                PRINT USING "IH: ########  FH: ########  win: ###"; w(win).IH, w(win).FH, win
 
                 'Window title
-                w(win).T = "Window " + LTrim$(Str$(win)) + " (" + LTrim$(Str$(w(win).X)) + "," + LTrim$(Str$(w(win).Y)) + ")-(" + LTrim$(Str$(w(win).W + w(win).X)) + "," + LTrim$(Str$(w(win).H + w(win).Y)) + ")"
+                w(win).T = "Window " + LTRIM$(STR$(win)) + " (" + LTRIM$(STR$(w(win).X)) + "," + LTRIM$(STR$(w(win).Y)) + ")-(" + LTRIM$(STR$(w(win).W + w(win).X)) + "," + LTRIM$(STR$(w(win).H + w(win).Y)) + ")"
 
-        End Select
-    Next
+        END SELECT
+    NEXT
     upd
-    Display
-    Limit 60
-Loop
+    _DISPLAY
+    _LIMIT 60
+LOOP
 
 
 
 
 
 
-$Checking:Off
-Sub splitIntoWords (words() As String, text As String)
-    Dim sp As Unsigned Long, oldSp As Unsigned Long
-    Dim nextWord As Unsigned Long
-    ReDim words(1000) As String
-    Do
+$CHECKING:OFF
+SUB splitIntoWords (words() AS STRING, text AS STRING)
+    DIM sp AS _UNSIGNED LONG, oldSp AS _UNSIGNED LONG
+    DIM nextWord AS _UNSIGNED LONG
+    REDIM words(1000) AS STRING
+    DO
         oldSp = sp + 1
-        sp = InStr(oldSp, text, " ")
-        If sp = 0 Then Exit Do
+        sp = INSTR(oldSp, text, " ")
+        IF sp = 0 THEN EXIT DO
 
-        If nextWord > UBound(words) Then Exit Do
-        words(nextWord) = Mid$(text, oldSp, sp - oldSp) + " "
+        IF nextWord > UBOUND(words) THEN EXIT DO
+        words(nextWord) = MID$(text, oldSp, sp - oldSp) + " "
         nextWord = nextWord + 1
-    Loop
-    words(nextWord) = Mid$(text, oldSp)
-    ReDim Preserve words(nextWord + 1) As String
-End Sub
+    LOOP
+    words(nextWord) = MID$(text, oldSp)
+    REDIM _PRESERVE words(nextWord + 1) AS STRING
+END SUB
 
-Sub printWithWrap (text As String, win As Integer)
-    Shared w() As winType
+SUB printWithWrap (text AS STRING, win AS INTEGER)
+    SHARED w() AS winType
 
-    If w(win).MAS > 0 Then w(win).MAS = 0
-    Rem $DYNAMIC
-    Dim words(1) As String
-    Call splitIntoWords(words(), text)
+    IF w(win).MAS > 0 THEN w(win).MAS = 0
+    REM $DYNAMIC
+    DIM words(1) AS STRING
+    CALL splitIntoWords(words(), text)
 
-    Dest w(win).IH
-    Cls , 0
+    _DEST w(win).IH
+    CLS , 0
 
-    Dim wordCount As Unsigned Long
-    Dim current_X As Unsigned Long, current_Y As Unsigned Long
+    DIM wordCount AS _UNSIGNED LONG
+    DIM current_X AS _UNSIGNED LONG, current_Y AS _UNSIGNED LONG
     current_X = 0
     current_Y = w(win).MAS
 
-    For wordCount = 0 To UBound(words) ' for word wrapping
-        Dim wordSize As Unsigned Integer
+    FOR wordCount = 0 TO UBOUND(words) ' for word wrapping
+        DIM wordSize AS _UNSIGNED INTEGER
 
-        If words(wordCount) = "" Then Continue 'prevent Illegal function calls
+        IF words(wordCount) = "" THEN _CONTINUE 'prevent Illegal function calls
 
-        If Asc(words(wordCount)) = 13 Then 'if its a newline character
-            current_Y = current_Y + FontHeight(w(win).FH)
+        IF ASC(words(wordCount)) = 13 THEN 'if its a newline character
+            current_Y = current_Y + _FONTHEIGHT(w(win).FH)
             current_X = 0
-            Continue
-        End If
+            _CONTINUE
+        END IF
 
-        wordSize = PrintWidth(words(wordCount), w(win).IH)
+        wordSize = _PRINTWIDTH(words(wordCount), w(win).IH)
 
-        If wordSize + current_X > w(win).W Then
-            current_Y = current_Y + FontHeight(w(win).FH)
+        IF wordSize + current_X > w(win).W THEN
+            current_Y = current_Y + _FONTHEIGHT(w(win).FH)
 
-            If current_Y > w(win).H Then Exit For
+            IF current_Y > w(win).H THEN EXIT FOR
 
             current_X = 0
-        End If
+        END IF
 
-        PrintString (current_X, current_Y), words(wordCount), w(win).IH
+        _PRINTSTRING (current_X, current_Y), words(wordCount), w(win).IH
         current_X = current_X + wordSize
-    Next
-    Line (current_X, current_Y)-Step(0, FontHeight(w(win).FH))
-End Sub
+    NEXT
+    LINE (current_X, current_Y)-STEP(0, _FONTHEIGHT(w(win).FH))
+END SUB
 
-$Checking:On
+$CHECKING:ON
 
 
-$Checking:Off
-$If LIGHT = TRUE Then
+$CHECKING:OFF
+$IF LIGHT = TRUE THEN
         Sub putWin (w As winType)
-        Shared __param_TBHeight As Unsigned byte
+        Shared __param_TBHeight As _Unsigned _byte
 
         If w.IH = 0 Then Exit Sub 'Make sure the handle isn't invalid to prevent Illegal Function Call errors!
         _DontBlend
@@ -255,226 +255,226 @@ $If LIGHT = TRUE Then
         Else Line (w.X, w.Y)-Step(w.W + 2, w.H + __param_TBHeight + 1), &HFF999999, BF
         End If
 
-        PrintString ((w.W - PrintWidth(w.T, 0)) / 2 + w.X, w.Y + 1), w.T ' Title
+        _PrintString ((w.W - _PrintWidth(w.T, 0)) / 2 + w.X, w.Y + 1), w.T ' Title
 
-        PutImage (w.X + 1, w.Y + __param_TBHeight), w.IH, , (0, 0)-Step(w.W, w.H) ' Put the contents of the window down
+        _PutImage (w.X + 1, w.Y + __param_TBHeight), w.IH, , (0, 0)-Step(w.W, w.H) ' Put the contents of the window down
         End Sub
-$Else
-    Sub putWin (w As winType)
-        Shared __param_TBHeight As Unsigned Byte
+$ELSE
+    SUB putWin (w AS winType)
+        SHARED __param_TBHeight AS _UNSIGNED _BYTE
 
         'For speed
-        Rem RGBA32(0, 0, 0, 10)  = &H0A000000
-        Rem RGBA32(0, 0, 0, 200) = &HC8000000
-        Rem RGBA32(0, 0, 0, 64)  = &H40000000
+        REM RGBA32(0, 0, 0, 10)  = &H0A000000
+        REM RGBA32(0, 0, 0, 200) = &HC8000000
+        REM RGBA32(0, 0, 0, 64)  = &H40000000
 
         'LINE (w.X - 2, w.Y - 2)-STEP(w.W + 6, w.H + __param_TBHeight + 6), &H2A000000, BF 'Shadow
 
-        If w.IH = 0 Then Exit Sub 'Make sure the handle isn't invalid to prevent Illegal Function Call errors!
+        IF w.IH = 0 THEN EXIT SUB 'Make sure the handle isn't invalid to prevent Illegal Function Call errors!
 
-        If w.Z = 0 Then
-            Line (w.X, w.Y)-Step(w.W + 2, w.H + __param_TBHeight + 1), &HC8000000, BF 'Window backing
-        End If
+        IF w.Z = 0 THEN
+            LINE (w.X, w.Y)-STEP(w.W + 2, w.H + __param_TBHeight + 1), &HC8000000, BF 'Window backing
+        END IF
 
-        PrintString ((w.W - PrintWidth(w.T, 0)) / 2 + w.X, w.Y + 1), w.T ' Title
+        _PRINTSTRING ((w.W - _PRINTWIDTH(w.T, 0)) / 2 + w.X, w.Y + 1), w.T ' Title
 
-        PutImage (w.X + 1, w.Y + __param_TBHeight), w.IH, , (0, 0)-Step(w.W, w.H) ' No stretch one
+        _PUTIMAGE (w.X + 1, w.Y + __param_TBHeight), w.IH, , (0, 0)-STEP(w.W, w.H) ' No stretch one
         'PutImage (w.X + 1, w.Y + __param_TBHeight)-Step(w.W, w.H), w.IH ' Put the contents of the window down
 
-        Line (w.X, w.Y)-Step(w.W + 2, w.H + __param_TBHeight + 1), &HFF000000, B ' Outline
+        LINE (w.X, w.Y)-STEP(w.W + 2, w.H + __param_TBHeight + 1), &HFF000000, B ' Outline
 
-        If w.Z Then Line (w.X, w.Y)-Step(w.W + 2, w.H + __param_TBHeight + 1), &H40000000, BF 'Dark overlay if not focused
-    End Sub
+        IF w.Z THEN LINE (w.X, w.Y)-STEP(w.W + 2, w.H + __param_TBHeight + 1), &H40000000, BF 'Dark overlay if not focused
+    END SUB
 
-    Sub putOverlay (w As winType)
-        Shared __param_TBHeight As Unsigned Byte
-        Line (w.X, w.Y)-Step(w.W, w.H), &HFF000000, B
-        PutImage (w.X + 1, w.Y + 1), w.IH
-    End Sub
-$End If
-$Checking:On
+    SUB putOverlay (w AS winType)
+        SHARED __param_TBHeight AS _UNSIGNED _BYTE
+        LINE (w.X, w.Y)-STEP(w.W, w.H), &HFF000000, B
+        _PUTIMAGE (w.X + 1, w.Y + 1), w.IH
+    END SUB
+$END IF
+$CHECKING:ON
 
 
-$Checking:Off
-Sub upd
-    Shared w() As winType
-    Shared winZOrder() As Byte
-    Shared __image_Background As Long
-    Shared __image_Screen As Long
-    Shared __image_ScreenBuffer As Long
-    Shared __image_Cursor As Long
-    Shared __param_ScreenFont As Long
+$CHECKING:OFF
+SUB upd
+    SHARED w() AS winType
+    SHARED winZOrder() AS _BYTE
+    SHARED __image_Background AS LONG
+    SHARED __image_Screen AS LONG
+    SHARED __image_ScreenBuffer AS LONG
+    SHARED __image_Cursor AS LONG
+    SHARED __param_ScreenFont AS LONG
     'Shared __inKey$
 
-    __inKey$ = InKey$
+    __inKey$ = INKEY$
 
-    $If HW = TRUE Then
-            IF RESIZE THEN
+    $IF HW = TRUE THEN
+            IF _RESIZE THEN
             DIM tempImage AS LONG
 
-            tempImage = NEWIMAGE(RESIZEWIDTH, RESIZEHEIGHT, 32)
+            tempImage = _NEWIMAGE(_RESIZEWIDTH, _RESIZEHEIGHT, 32)
             SCREEN tempImage
 
-            FREEIMAGE __image_Screen
-            __image_Screen = NEWIMAGE(RESIZEWIDTH, RESIZEHEIGHT, 32)
+            _FREEIMAGE __image_Screen
+            __image_Screen = _NEWIMAGE(_RESIZEWIDTH, _RESIZEHEIGHT, 32)
 
-            FREEIMAGE __image_ScreenBuffer
-            __image_ScreenBuffer = COPYIMAGE(tempImage, 33)
+            _FREEIMAGE __image_ScreenBuffer
+            __image_ScreenBuffer = _COPYIMAGE(tempImage, 33)
 
-            FONT __param_ScreenFont, __image_ScreenBuffer
-            printmode keepbackground,__image_screenbuffer
+            _FONT __param_ScreenFont, __image_ScreenBuffer
+            _printmode _keepbackground,__image_screenbuffer
             SCREEN __image_Screen
 
-            FREEIMAGE tempImage
+            _FREEIMAGE tempImage
             END IF
 
-            DEST __image_ScreenBuffer
-    $Else
-        If (Resize) Then 'If the program window is resizing
-            Screen 0
-            FreeImage __image_Screen
-            __image_Screen = NewImage(ResizeWidth, ResizeHeight, 32)
-            Screen __image_Screen
-            Font __param_ScreenFont, __image_Screen
-            PrintMode KeepBackground , __image_Screen
-        End If
+            _DEST __image_ScreenBuffer
+    $ELSE
+        IF (_RESIZE) THEN 'If the program window is resizing
+            SCREEN 0
+            _FREEIMAGE __image_Screen
+            __image_Screen = _NEWIMAGE(_RESIZEWIDTH, _RESIZEHEIGHT, 32)
+            SCREEN __image_Screen
+            _FONT __param_ScreenFont, __image_Screen
+            _PRINTMODE _KEEPBACKGROUND , __image_Screen
+        END IF
 
-        Dest Display
-    $End If
+        _DEST _DISPLAY
+    $END IF
 
-    PutImage , __image_Background 'Put the background image down on top of the previous frame's contents so we don't paint the screen. (although that would be noice...)
-    PrintString (0, 0), "FPS:" + Str$(fps) 'the fps function is fps the amount of times it's called in a second.
+    _PUTIMAGE , __image_Background 'Put the background image down on top of the previous frame's contents so we don't paint the screen. (although that would be noice...)
+    _PRINTSTRING (0, 0), "FPS:" + STR$(fps) 'the fps function is fps the amount of times it's called in a second.
 
     fixFocusArray
 
-    Dim i As Integer
-    For i = UBound(winZOrder) To LBound(winZOrder) Step -1
-        If winZOrder(i) <> 0 Then
-            If w(winZOrder(i)).T = "" Then putOverlay w(winZOrder(i)) Else putWin w(winZOrder(i))
-        End If
-    Next
+    DIM i AS INTEGER
+    FOR i = UBOUND(winZOrder) TO LBOUND(winZOrder) STEP -1
+        IF winZOrder(i) <> 0 THEN
+            IF w(winZOrder(i)).T = "" THEN putOverlay w(winZOrder(i)) ELSE putWin w(winZOrder(i))
+        END IF
+    NEXT
 
-    PutImage (MouseX, MouseY), __image_Cursor
+    _PUTIMAGE (_MOUSEX, _MOUSEY), __image_Cursor
 
-    $If HW = TRUE Then
-            PUTIMAGE , __image_ScreenBuffer, __image_Screen
-    $End If
-End Sub
-$Checking:On
+    $IF HW = TRUE THEN
+            _PUTIMAGE , __image_ScreenBuffer, __image_Screen
+    $END IF
+END SUB
+$CHECKING:ON
 
 
 
 
 
 '$Checking:Off
-Function newWin% (template As winType)
-    Shared w() As winType
+FUNCTION newWin% (template AS winType)
+    SHARED w() AS winType
 
-    Font template.FH, template.IH
-    template.X = MouseX
-    template.Y = MouseY
-    Dim i As Integer
-    For i = LBound(w) To UBound(w)
+    _FONT template.FH, template.IH
+    template.X = _MOUSEX
+    template.Y = _MOUSEY
+    DIM i AS INTEGER
+    FOR i = LBOUND(w) TO UBOUND(w)
 
-        If (w(i).IH = 0) Then
-            logP "INFO> newWin: Empty slot " + Str$(i) + " now holds window with image handle of " + Str$(w(i).IH)
-            GoTo e
-        End If
+        IF (w(i).IH = 0) THEN
+            logP "INFO> newWin: Empty slot " + STR$(i) + " now holds window with image handle of " + STR$(w(i).IH)
+            GOTO e
+        END IF
 
-    Next
-    ReDim Preserve w(LBound(w) To UBound(w) + 1) As winType
-    i = UBound(w)
-    logP "INFO> newWin: Extending w() to " + Str$(i) + " for window with image handle of " + Str$(w(i).IH)
+    NEXT
+    REDIM _PRESERVE w(LBOUND(w) TO UBOUND(w) + 1) AS winType
+    i = UBOUND(w)
+    logP "INFO> newWin: Extending w() to " + STR$(i) + " for window with image handle of " + STR$(w(i).IH)
 
     e:
-    If template.T <> "" Then template.T = template.T + " (" + LTrim$(Str$(i)) + ")"
+    IF template.T <> "" THEN template.T = template.T + " (" + LTRIM$(STR$(i)) + ")"
     w(i) = template
-    If w(i).Z = 0 Then grabFocus i
+    IF w(i).Z = 0 THEN grabFocus i
     newWin% = i
-End Function
+END FUNCTION
 '$Checking:On
 
 
 
 
 '$Checking:Off
-Sub logP (s As String)
-    Shared w() As winType
-    Shared win_Log As Integer
+SUB logP (s AS STRING)
+    SHARED w() AS winType
+    SHARED win_Log AS INTEGER
 
-    Static l As String
+    STATIC l AS STRING
 
-    Dim i As Long
-    i = Dest
+    DIM i AS LONG
+    i = _DEST
 
-    If s <> "" Then l = l + s + " " + Chr$(13) + " "
+    IF s <> "" THEN l = l + s + " " + CHR$(13) + " "
 
-    If win_Log Then
-        If w(win_Log).IH Then
+    IF win_Log THEN
+        IF w(win_Log).IH THEN
             printWithWrap l, win_Log
-            Dest i 'Restore the DEST IMAGE
-        End If
-    End If
-End Sub
+            _DEST i 'Restore the DEST IMAGE
+        END IF
+    END IF
+END SUB
 '$Checking:On
 
 
 
 
-Function fps%
-    Static t As Double
-    Dim t2 As Double
+FUNCTION fps%
+    STATIC t AS DOUBLE
+    DIM t2 AS DOUBLE
 
-    t2 = Timer(0.0001)
+    t2 = TIMER(0.0001)
     fps = 1 / (t2 - t)
     t = t2
-End Function
+END FUNCTION
 
 
 
 
 
-Sub freeWin (hdl As Integer)
-    Shared w() As winType
+SUB freeWin (hdl AS INTEGER)
+    SHARED w() AS winType
 
-    If w(hdl).IH = 0 Then logP "ERROR> freeWin: Window " + LTrim$(Str$(hdl)) + " doesn't exist": Exit Sub
-    FreeImage w(hdl).IH
+    IF w(hdl).IH = 0 THEN logP "ERROR> freeWin: Window " + LTRIM$(STR$(hdl)) + " doesn't exist": EXIT SUB
+    _FREEIMAGE w(hdl).IH
     w(hdl).IH = 0
-End Sub
+END SUB
 
 
 
 
-$Checking:Off
-Sub updateMouse
-    Shared w() As winType
-    Shared winZOrder() As Byte
-    Shared __param_TBHeight As Unsigned Byte
+$CHECKING:OFF
+SUB updateMouse
+    SHARED w() AS winType
+    SHARED winZOrder() AS _BYTE
+    SHARED __param_TBHeight AS _UNSIGNED _BYTE
 
 
-    Static optMenu As Integer, optWin As Integer
-    Static mLockX As Single, mLockY As Single 'Or as I like to call it, mmmlocks and mmmlockie
-    Static mouseLatch As Bit
+    STATIC optMenu AS INTEGER, optWin AS INTEGER
+    STATIC mLockX AS SINGLE, mLockY AS SINGLE 'Or as I like to call it, mmmlocks and mmmlockie
+    STATIC mouseLatch AS _BIT
 
-    Dim win As Integer, i As Integer
-    For win = LBound(winZOrder) To UBound(winZOrder)
+    DIM win AS INTEGER, i AS INTEGER
+    FOR win = LBOUND(winZOrder) TO UBOUND(winZOrder)
         i = winZOrder(win)
 
-        If i = 0 Then Continue
+        IF i = 0 THEN _CONTINUE
 
-        If w(i).T = "" Then
-            w(i).MX = MouseX - (w(i).X + 1)
-            w(i).MY = MouseY - (w(i).Y + 1)
-        Else
-            w(i).MX = MouseX - (w(i).X + 1)
-            w(i).MY = MouseY - (w(i).Y + __param_TBHeight + 1)
-        End If
+        IF w(i).T = "" THEN
+            w(i).MX = _MOUSEX - (w(i).X + 1)
+            w(i).MY = _MOUSEY - (w(i).Y + 1)
+        ELSE
+            w(i).MX = _MOUSEX - (w(i).X + 1)
+            w(i).MY = _MOUSEY - (w(i).Y + __param_TBHeight + 1)
+        END IF
 
-        If mouseIsOver(i) Then
+        IF mouseIsOver(i) THEN
 
-            If MouseButton(1) And (__inKey$ = " ") Then 'Open options (Middle click)
-                If optMenu = 0 Then
-                    __template_WinOptions.IH = CopyImage(__template_WinOptions.IH, 32) 'So that when we inevitably freeWin the option menu, we dont erase the template's image
+            IF _MOUSEBUTTON(1) AND (__inKey$ = " ") THEN 'Open options (Middle click)
+                IF optMenu = 0 THEN
+                    __template_WinOptions.IH = _COPYIMAGE(__template_WinOptions.IH, 32) 'So that when we inevitably freeWin the option menu, we dont erase the template's image
                     __template_WinOptions.X = w(i).X
                     __template_WinOptions.Y = w(i).Y
 
@@ -483,207 +483,206 @@ Sub updateMouse
 
                     optWin = i
                     mouseLatch = True
-                End If
+                END IF
 
-            ElseIf (MouseButton(1) Or MouseButton(2)) And (mouseLatch = False) Then
+            ELSEIF (_MOUSEBUTTON(1) OR _MOUSEBUTTON(2)) AND (mouseLatch = False) THEN
                 grabFocus i
                 mouseLatch = True
 
-            ElseIf (__focusedWindow = i) And (Not MouseButton(1)) And (Not MouseButton(2)) Then mouseLatch = False
-            End If
+            ELSEIF (__focusedWindow = i) AND (NOT _MOUSEBUTTON(1)) AND (NOT _MOUSEBUTTON(2)) THEN mouseLatch = False
+            END IF
 
-            Rem ElseIf (mouseIsOver(i) = false) And (MouseButton(1)) Then __focusedWindow = 0
-            Rem ElseIf (mouseIsOver(i)) And (MouseButton(1)) Then grabFocus i
-        End If
+            REM ElseIf (mouseIsOver(i) = false) And (MouseButton(1)) Then __focusedWindow = 0
+            REM ElseIf (mouseIsOver(i)) And (MouseButton(1)) Then grabFocus i
+        END IF
 
 
-    Next
+    NEXT
 
-    If (optMenu <> 0) And (__inKey$ <> " ") Then
-        If MouseButton(1) Then
-            If mouseIsOver(optMenu) Then
+    IF (optMenu <> 0) AND (__inKey$ <> " ") THEN
+        IF _MOUSEBUTTON(1) THEN
+            IF mouseIsOver(optMenu) THEN
                 freeWin optWin
                 freeWin optMenu
                 optMenu = 0
-            Else
+            ELSE
                 freeWin optMenu
                 optMenu = 0
-            End If
-        End If
-    End If
+            END IF
+        END IF
+    END IF
 
-    If __focusedWindow Then
-        w(__focusedWindow).MS = MouseWheel
-        If w(__focusedWindow).MS <> 0 Then w(__focusedWindow).NeedsRefresh = True: w(__focusedWindow).MAS = w(__focusedWindow).MAS + w(__focusedWindow).MS
+    IF __focusedWindow THEN
+        w(__focusedWindow).MS = _MOUSEWHEEL
+        IF w(__focusedWindow).MS <> 0 THEN w(__focusedWindow).NeedsRefresh = True: w(__focusedWindow).MAS = w(__focusedWindow).MAS + w(__focusedWindow).MS
 
-        If MouseButton(1) Then 'Move (Left click)
-            w(__focusedWindow).X = w(__focusedWindow).X + (MouseX - mLockX)
-            w(__focusedWindow).Y = w(__focusedWindow).Y + (MouseY - mLockY)
+        IF _MOUSEBUTTON(1) THEN 'Move (Left click)
+            w(__focusedWindow).X = w(__focusedWindow).X + (_MOUSEX - mLockX)
+            w(__focusedWindow).Y = w(__focusedWindow).Y + (_MOUSEY - mLockY)
 
-        ElseIf MouseButton(2) Then 'Resize (Right click)
-            w(__focusedWindow).W = w(__focusedWindow).W + (MouseX - mLockX)
-            w(__focusedWindow).H = w(__focusedWindow).H + (MouseY - mLockY)
-            $If LIGHT = FALSE Then
+        ELSEIF _MOUSEBUTTON(2) THEN 'Resize (Right click)
+            w(__focusedWindow).W = w(__focusedWindow).W + (_MOUSEX - mLockX)
+            w(__focusedWindow).H = w(__focusedWindow).H + (_MOUSEY - mLockY)
+            $IF LIGHT = FALSE THEN
                 w(__focusedWindow).NeedsRefresh = True
-            $End If
+            $END IF
 
-            $If LIGHT = TRUE Then
+            $IF LIGHT = TRUE THEN
                     ElseIf (w(__focusedWindow).W <> _Width(w(__focusedWindow).IH)) Or (w(__focusedWindow).H <> _Height(w(__focusedWindow).IH)) Then
                     w(__focusedWindow).NeedsRefresh = True
-            $End If
+            $END IF
             'Else
             'w(__focusedWindow).NeedsRefresh = False
 
-    End If: End If
+    END IF: END IF
 
-    mLockX = MouseX
-    mLockY = MouseY
-End Sub
-$Checking:On
-
-
+    mLockX = _MOUSEX
+    mLockY = _MOUSEY
+END SUB
+$CHECKING:ON
 
 
 
-Sub fixFocusArray
-    Shared winZOrder() As Byte
-    Shared w() As winType
 
-    Erase winZOrder
 
-    Dim i As Integer
+SUB fixFocusArray
+    SHARED winZOrder() AS _BYTE
+    SHARED w() AS winType
+
+    ERASE winZOrder
+
+    DIM i AS INTEGER
     'For i = LBound(w) To UBound(w)
     '    If w(i).T = "" Then winZOrder(UBound(winZOrder)) = i
     'Next
 
-    For i = UBound(w) To LBound(w) Step -1 'Prioritize newer windows by going backwards
-        If w(i).IH = 0 Then Continue
-        If i = __focusedWindow Then
+    FOR i = UBOUND(w) TO LBOUND(w) STEP -1 'Prioritize newer windows by going backwards
+        IF w(i).IH = 0 THEN _CONTINUE
+        IF i = __focusedWindow THEN
             w(i).Z = 0
             winZOrder(0) = i
-            Continue
-        End If
+            _CONTINUE
+        END IF
 
-        Do Until winZOrder(w(i).Z) = 0
+        DO UNTIL winZOrder(w(i).Z) = 0
             w(i).Z = w(i).Z + 1
-        Loop
+        LOOP
         winZOrder(w(i).Z) = i
-    Next
-End Sub
+    NEXT
+END SUB
 
 
 
-Sub resizeWin (win As Integer)
-    Shared w() As winType
-    FreeImage w(win).IH
-    w(win).IH = NewImage(w(win).W, w(win).H, 32)
+SUB resizeWin (win AS INTEGER)
+    SHARED w() AS winType
+    _FREEIMAGE w(win).IH
+    w(win).IH = _NEWIMAGE(w(win).W, w(win).H, 32)
     setPM w(win).PM, w(win).IH
-    Font w(win).FH, w(win).IH
+    _FONT w(win).FH, w(win).IH
     w(win).NeedsRefresh = False
-End Sub
+END SUB
 
 
 
-Sub setPM (PM As Unsigned Byte, IH As Long)
-    Select Case PM
-        Case __PM_KeepBackground: PrintMode KeepBackground , IH
-        Case __PM_OnlyBackground: PrintMode OnlyBackground , IH
-        Case __PM_FillBackground: PrintMode FillBackground , IH
-        Case Else: logP "ERROR> setPM: Invalid mode '" + Str$(PM) + "'"
-    End Select
-End Sub
-
-
-
-
-Function mouseIsOver` (win As Integer)
-    Shared w() As winType
-    mouseIsOver` = ((MouseX >= w(win).X) And (MouseX <= (w(win).X + w(win).W)) And (MouseY >= w(win).Y) And (MouseY <= (w(win).Y + w(win).H)))
-End Function
+SUB setPM (PM AS _UNSIGNED _BYTE, IH AS LONG)
+    SELECT CASE PM
+        CASE __PM_KeepBackground: _PRINTMODE _KEEPBACKGROUND , IH
+        CASE __PM_OnlyBackground: _PRINTMODE _ONLYBACKGROUND , IH
+        CASE __PM_FillBackground: _PRINTMODE _FILLBACKGROUND , IH
+        CASE ELSE: logP "ERROR> setPM: Invalid mode '" + STR$(PM) + "'"
+    END SELECT
+END SUB
 
 
 
 
+FUNCTION mouseIsOver` (win AS INTEGER)
+    SHARED w() AS winType
+    mouseIsOver` = ((_MOUSEX >= w(win).X) AND (_MOUSEX <= (w(win).X + w(win).W)) AND (_MOUSEY >= w(win).Y) AND (_MOUSEY <= (w(win).Y + w(win).H)))
+END FUNCTION
 
 
-Sub grabFocus (win As Integer)
-    Shared w() As winType
-    Dim i As Integer
-    For i = LBound(w) To UBound(w)
-        If i = win Then w(i).Z = 0 Else w(i).Z = w(i).Z + 1
-    Next
+
+
+
+
+SUB grabFocus (win AS INTEGER)
+    SHARED w() AS winType
+    DIM i AS INTEGER
+    FOR i = LBOUND(w) TO UBOUND(w)
+        IF i = win THEN w(i).Z = 0 ELSE w(i).Z = w(i).Z + 1
+    NEXT
     __focusedWindow = win
-End Sub
+END SUB
 
 
 
 
-Sub sendWin (w As winType, c As Long)
-    Dim i As _Unsigned _Byte
+SUB sendWin (w AS winType, c AS LONG)
+    DIM i AS _UNSIGNED _BYTE
     i = 0
-    Put #c, , i
-    Put #c, , w.X
-    Put #c, , w.Y
-    Put #c, , w.Z
-    Put #c, , w.W
-    Put #c, , w.H
-    Put #c, , w.NeedsRefresh
-    _Source w.IH
+    PUT #c, , i
+    PUT #c, , w.X
+    PUT #c, , w.Y
+    PUT #c, , w.Z
+    PUT #c, , w.W
+    PUT #c, , w.H
+    PUT #c, , w.NeedsRefresh
+    _SOURCE w.IH
 
-    Dim x As Integer, y As Integer, clr As Long
+    DIM x AS INTEGER, y AS INTEGER, clr AS LONG
 
-    x = _Width(w.IH)
-    Put #c, , x
+    x = _WIDTH(w.IH)
+    PUT #c, , x
 
-    y = _Height(w.IH)
-    Put #c, , y
+    y = _HEIGHT(w.IH)
+    PUT #c, , y
 
-    For x = 0 To _Width(w.IH)
-        For y = 0 To _Height(w.IH)
-            clr = Point(x, y)
-            Put #c, , clr
-    Next y, x
-End Sub
+    FOR x = 0 TO _WIDTH(w.IH)
+        FOR y = 0 TO _HEIGHT(w.IH)
+            clr = POINT(x, y)
+            PUT #c, , clr
+    NEXT y, x
+END SUB
 
 
 
-Sub getWin (c As Long)
-    Shared temp As winType
-    Dim i As _Unsigned _Byte
-    Do
+SUB getWin (c AS LONG)
+    SHARED temp AS winType
+    DIM i AS _UNSIGNED _BYTE
+    DO
         i = 1
-        If LOF(c) Then Get #c, , i
-    Loop Until i = 0
-    Do: Loop Until LOF(c)
-    Get #c, , temp.X
-    Do: Loop Until LOF(c)
-    Get #c, , temp.Y
-    Do: Loop Until LOF(c)
-    Get #c, , temp.Z
-    Do: Loop Until LOF(c)
-    Get #c, , temp.W
-    Do: Loop Until LOF(c)
-    Get #c, , temp.H
-    Do: Loop Until LOF(c)
-    Get #c, , temp.NeedsRefresh
+        IF LOF(c) THEN GET #c, , i
+    LOOP UNTIL i = 0
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , temp.X
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , temp.Y
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , temp.Z
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , temp.W
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , temp.H
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , temp.NeedsRefresh
 
-    Dim x As Integer, y As Integer
-    Do: Loop Until LOF(c)
-    Get #c, , x
+    DIM x AS INTEGER, y AS INTEGER
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , x
 
-    Do: Loop Until LOF(c)
-    Get #c, , y
+    DO: LOOP UNTIL LOF(c)
+    GET #c, , y
 
-    If temp.IH = 0 Or temp.IH = -1 Then _FreeImage temp.IH
-    temp.IH = _NewImage(x, y, 32)
-    _Dest temp.IH
+    IF temp.IH = 0 OR temp.IH = -1 THEN _FREEIMAGE temp.IH
+    temp.IH = _NEWIMAGE(x, y, 32)
+    _DEST temp.IH
 
-    Dim clr As Long
-    For x = 0 To _Width(temp.IH)
-        For y = 0 To _Height(temp.IH)
-            Do: Loop Until LOF(c)
-            Get #c, , clr
-            PSet (x, y), clr
-    Next y, x
-End Sub
-
+    DIM clr AS LONG
+    FOR x = 0 TO _WIDTH(temp.IH)
+        FOR y = 0 TO _HEIGHT(temp.IH)
+            DO: LOOP UNTIL LOF(c)
+            GET #c, , clr
+            PSET (x, y), clr
+    NEXT y, x
+END SUB

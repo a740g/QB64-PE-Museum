@@ -16,115 +16,113 @@
 '   subpixel precision
 '   make it a game???
 
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-$Resize:Smooth
-Screen 13
-FullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Dim map(9, 9) As Integer 'the map
-Dim tex(31, 31, 4) As Integer 'texture array
-Dim foff(15) As Integer 'walk simulation vertical offset
-Dim kbd(128) As Integer 'keyboard reader array
-Dim frames As Long
-Dim persplut(200) As Single 'vertical offsets for roof and floor
-Dim d1(319) As Integer 'temporal arrays raycaster->renderer
-Dim d2(319) As Integer
-Dim tx(319) As Integer
-Dim tm(319) As Integer
-Dim dx(319) As Single
-Dim dy(319) As Single
+DIM map(9, 9) AS INTEGER 'the map
+DIM tex(31, 31, 4) AS INTEGER 'texture array
+DIM foff(15) AS INTEGER 'walk simulation vertical offset
+DIM kbd(128) AS INTEGER 'keyboard reader array
+DIM frames AS LONG
+DIM persplut(200) AS SINGLE 'vertical offsets for roof and floor
+DIM d1(319) AS INTEGER 'temporal arrays raycaster->renderer
+DIM d2(319) AS INTEGER
+DIM tx(319) AS INTEGER
+DIM tm(319) AS INTEGER
+DIM dx(319) AS SINGLE
+DIM dy(319) AS SINGLE
 
-Dim As Long i, j, i1, j1, d1, d, d2
+DIM AS LONG i, j, i1, j1, d1, d, d2
 
 'read map,do fixed part of persp lut (sky is always in the infinite)
-For i = 0 To 99
-    Read map(i \ 10, i Mod 10)
+FOR i = 0 TO 99
+    READ map(i \ 10, i MOD 10)
     persplut(i) = 25590 / (i - 100)
-Next
+NEXT
 
 'make texture maps (should be read from file)
-For i = 0 To 31
-    For j = 0 To 31
-        tex(i, j, 0) = (i Xor j) 'xor walls
+FOR i = 0 TO 31
+    FOR j = 0 TO 31
+        tex(i, j, 0) = (i XOR j) 'xor walls
         i1 = i - 16
         j1 = j - 16
-        tex(i, j, 1) = Sqr((i1 * i1) + (j1 * j1)) 'concentric ground tiles
-        tex(i, j, 2) = 16 - Sqr((i1 * i1) + (j1 * j1))
-    Next
-Next
+        tex(i, j, 1) = SQR((i1 * i1) + (j1 * j1)) 'concentric ground tiles
+        tex(i, j, 2) = 16 - SQR((i1 * i1) + (j1 * j1))
+    NEXT
+NEXT
 
 'cloudy texture 1
 d1 = 64
 d = 32
 tex(0, 0, 3) = 32
-While d > 1
+WHILE d > 1
     d2 = d \ 2
-    For i = 0 To 31 Step d
-        For j = 0 To 31 Step d
-            tex((i + d2) And 31, j, 3) = (tex(i, j, 3) + tex((i + d) And 31, j, 3) + (Rnd - .5) * d1) / 2
-            tex(i, (j + d2) And 31, 3) = (tex(i, j, 3) + tex(i, (j + d) And 31, 3) + (Rnd - .5) * d1) / 2
-            tex((i + d2) And 31, (j + d2) And 31, 3) = (tex(i, j, 3) + tex((i + d) And 31, (j + d) And 31, 3) + (Rnd - .5) * d1) / 2
-        Next
-    Next
+    FOR i = 0 TO 31 STEP d
+        FOR j = 0 TO 31 STEP d
+            tex((i + d2) AND 31, j, 3) = (tex(i, j, 3) + tex((i + d) AND 31, j, 3) + (RND - .5) * d1) / 2
+            tex(i, (j + d2) AND 31, 3) = (tex(i, j, 3) + tex(i, (j + d) AND 31, 3) + (RND - .5) * d1) / 2
+            tex((i + d2) AND 31, (j + d2) AND 31, 3) = (tex(i, j, 3) + tex((i + d) AND 31, (j + d) AND 31, 3) + (RND - .5) * d1) / 2
+        NEXT
+    NEXT
     d1 = d1 / 2
     d = d2
-Wend
+WEND
 
 'cloudy texture for sky
 d1 = 64
 d = 32
 tex(0, 0, 4) = 32
-While d > 1
+WHILE d > 1
     d2 = d \ 2
-    For i = 0 To 31 Step d
-        For j = 0 To 31 Step d
-            tex((i + d2) And 31, j, 4) = (tex(i, j, 4) + tex((i + d) And 31, j, 4) + (Rnd - .5) * d1) / 2
-            tex(i, (j + d2) And 31, 4) = (tex(i, j, 4) + tex(i, (j + d) And 31, 4) + (Rnd - .5) * d1) / 2
-            tex((i + d2) And 31, (j + d2) And 31, 4) = (tex(i, j, 4) + tex((i + d) And 31, (j + d) And 31, 4) + (Rnd - .5) * d1) / 2
-        Next
-    Next
+    FOR i = 0 TO 31 STEP d
+        FOR j = 0 TO 31 STEP d
+            tex((i + d2) AND 31, j, 4) = (tex(i, j, 4) + tex((i + d) AND 31, j, 4) + (RND - .5) * d1) / 2
+            tex(i, (j + d2) AND 31, 4) = (tex(i, j, 4) + tex(i, (j + d) AND 31, 4) + (RND - .5) * d1) / 2
+            tex((i + d2) AND 31, (j + d2) AND 31, 4) = (tex(i, j, 4) + tex((i + d) AND 31, (j + d) AND 31, 4) + (RND - .5) * d1) / 2
+        NEXT
+    NEXT
     d1 = d1 / 2
     d = d2
-Wend
+WEND
 
-Dim pioct As Single
+DIM pioct AS SINGLE
 
 'fill step-simulation vertical offset
-pioct! = Pi / 8!
-For i = 0 To 15
-    foff(i) = Abs(Cos(i * pioct!) * 64)
-Next
+pioct! = _PI / 8!
+FOR i = 0 TO 15
+    foff(i) = ABS(COS(i * pioct!) * 64)
+NEXT
 
 
 'set palette
-Out &H3C8, 0
+OUT &H3C8, 0
 'grey:walls
-For i = 0 To 63
-    Out &H3C9, i: Out &H3C9, i: Out &H3C9, i
-Next
+FOR i = 0 TO 63
+    OUT &H3C9, i: OUT &H3C9, i: OUT &H3C9, i
+NEXT
 'green:ground
-For i = 0 To 63
-    Out &H3C9, 0: Out &H3C9, 63 - i: Out &H3C9, 0
-Next
+FOR i = 0 TO 63
+    OUT &H3C9, 0: OUT &H3C9, 63 - i: OUT &H3C9, 0
+NEXT
 'blue:sky
-For i = 0 To 63
-    Out &H3C9, 63 - i / 2: Out &H3C9, 63 - i / 2: Out &H3C9, 63
-Next
+FOR i = 0 TO 63
+    OUT &H3C9, 63 - i / 2: OUT &H3C9, 63 - i / 2: OUT &H3C9, 63
+NEXT
 
 'launch raytracer
 'erase key buffer and set num lock off
-Def Seg = &H40: Poke &H1C, Peek(&H1A): Poke &H17, Peek(&H17) And Not 32
+DEF SEG = &H40: POKE &H1C, PEEK(&H1A): POKE &H17, PEEK(&H17) AND NOT 32
 
-Dim tim As Single
-tim! = Timer
+DIM tim AS SINGLE
+tim! = TIMER
 
-Dim As Long ini, k, turn, mov, f, foff, y, x, sdx, sdy, xm, ym, md1, md2, tx, d21, p, mmap, tt
-Dim As Single rtf, rtl, inf, incu, xpos, ypos, angle, xpos2, ypos2, calc, dxc, dxs, dyc, dys
-Dim As Single xpos32, xp1, ypos32, yp1, dx, dy, nextxt, dxt, nextyt, dyt, ti, pl
+DIM AS LONG ini, k, turn, mov, f, foff, y, x, sdx, sdy, xm, ym, md1, md2, tx, d21, p, mmap, tt
+DIM AS SINGLE rtf, rtl, inf, incu, xpos, ypos, angle, xpos2, ypos2, calc, dxc, dxs, dyc, dys
+DIM AS SINGLE xpos32, xp1, ypos32, yp1, dx, dy, nextxt, dxt, nextyt, dyt, ti, pl
 
 frames = 0
 
@@ -139,128 +137,128 @@ ypos = 1.5
 angle = 0
 ini = 1
 'frames loop
-Do
+DO
 
-    Wait &H3DA, 8
-    Wait &H3DA, 8, 8
+    WAIT &H3DA, 8
+    WAIT &H3DA, 8, 8
 
     frames = frames + 1
 
     'keyboard input
-    k = Inp(&H60):
-    If k Then
-        kbd(k And 127) = -((k And 128) = 0)
-        Def Seg = &H40: Poke &H1C, Peek(&H1A)
-        If kbd(1) Then GoTo EXITDO1
+    k = INP(&H60):
+    IF k THEN
+        kbd(k AND 127) = -((k AND 128) = 0)
+        DEF SEG = &H40: POKE &H1C, PEEK(&H1A)
+        IF kbd(1) THEN GOTO EXITDO1
         turn = kbd(&H4D) - kbd(&H4B): kbd(&H4D) = 0: kbd(&H4B) = 0
         mov = kbd(80) - kbd(72) + ini
-    End If
+    END IF
     'a movement has happened, update and collision detect
-    If turn Or mov Then
+    IF turn OR mov THEN
         angle = angle + turn * .1
-        xpos2 = mov * Cos(angle) * incu
-        ypos2 = mov * Sin(angle) * incu
+        xpos2 = mov * COS(angle) * incu
+        ypos2 = mov * SIN(angle) * incu
 
         'calculate walk offsets,and floor part of perspective
         f = f + mov
-        foff = foff(f And 15)
+        foff = foff(f AND 15)
         calc = 25600 - 32 * foff
-        For y = 100 To 199: persplut(y) = calc / (y - 99): Next
+        FOR y = 100 TO 199: persplut(y) = calc / (y - 99): NEXT
 
-        If ini Then ini = 0
-        dxc = Cos(angle) * incu
-        dxs = Sin(angle) * incu / 160
-        dyc = Cos(angle) * incu / 160
-        dys = Sin(angle) * incu
+        IF ini THEN ini = 0
+        dxc = COS(angle) * incu
+        dxs = SIN(angle) * incu / 160
+        dyc = COS(angle) * incu / 160
+        dys = SIN(angle) * incu
         'colision detector
 
-        If map(Int(ypos - incu), Int(xpos - xpos2 - xpos2 - incu)) = 0 Then
-            If map(Int(ypos - incu), Int(xpos - xpos2 - xpos2 + incu)) = 0 Then
-                If map(Int(ypos + incu), Int(xpos - xpos2 - xpos2 - incu)) = 0 Then
-                    If map(Int(ypos + incu), Int(xpos - xpos2 - xpos2 + incu)) = 0 Then
+        IF map(INT(ypos - incu), INT(xpos - xpos2 - xpos2 - incu)) = 0 THEN
+            IF map(INT(ypos - incu), INT(xpos - xpos2 - xpos2 + incu)) = 0 THEN
+                IF map(INT(ypos + incu), INT(xpos - xpos2 - xpos2 - incu)) = 0 THEN
+                    IF map(INT(ypos + incu), INT(xpos - xpos2 - xpos2 + incu)) = 0 THEN
                         xpos = xpos - xpos2
                         xpos32 = xpos * 32
-                        xp1! = (xpos - Int(xpos)) * rtf
-                    End If
-                End If
-            End If
-        End If
-        If map(Int(ypos - ypos2 - ypos2 - incu), Int(xpos - incu)) = 0 Then
-            If map(Int(ypos - ypos2 - ypos2 + incu), Int(xpos - incu)) = 0 Then
-                If map(Int(ypos - ypos2 - ypos2 - incu), Int(xpos + incu)) = 0 Then
-                    If map(Int(ypos - ypos2 - ypos2 + incu), Int(xpos + incu)) = 0 Then
+                        xp1! = (xpos - INT(xpos)) * rtf
+                    END IF
+                END IF
+            END IF
+        END IF
+        IF map(INT(ypos - ypos2 - ypos2 - incu), INT(xpos - incu)) = 0 THEN
+            IF map(INT(ypos - ypos2 - ypos2 + incu), INT(xpos - incu)) = 0 THEN
+                IF map(INT(ypos - ypos2 - ypos2 - incu), INT(xpos + incu)) = 0 THEN
+                    IF map(INT(ypos - ypos2 - ypos2 + incu), INT(xpos + incu)) = 0 THEN
                         ypos = ypos - ypos2
                         ypos32 = ypos * 32
-                        yp1! = (ypos - Int(ypos)) * rtf
-                    End If
-                End If
-            End If
-        End If
+                        yp1! = (ypos - INT(ypos)) * rtf
+                    END IF
+                END IF
+            END IF
+        END IF
 
 
         'raycast loop
-        For x = 0 To 319
+        FOR x = 0 TO 319
             'INIT RAYCASTER
             dx = dxc - (x - 160) * dxs
             dy = (x - 160) * dyc + dys
             dx(x) = dx
             dy(x) = dy
-            Select Case dx
-                Case Is < -rtl
+            SELECT CASE dx
+                CASE IS < -rtl
                     nextxt = -xp1! / dx
                     dxt = -rtf / dx
-                Case Is > rtl
+                CASE IS > rtl
                     nextxt = (rtf - xp1!) / dx
                     dxt = rtf / dx
-                Case Else
+                CASE ELSE
                     nextxt = inf
-            End Select
-            Select Case dy
-                Case Is < -rtl
+            END SELECT
+            SELECT CASE dy
+                CASE IS < -rtl
                     nextyt = -yp1! / dy
                     dyt = -rtf / dy
-                Case Is > rtl
+                CASE IS > rtl
                     nextyt = (rtf - yp1!) / dy
                     dyt = rtf / dy
-                Case Else
+                CASE ELSE
                     nextyt = inf
-            End Select
-            sdx = Sgn(dx): sdy = Sgn(dy)
-            xm = Int(xpos): ym = Int(ypos)
+            END SELECT
+            sdx = SGN(dx): sdy = SGN(dy)
+            xm = INT(xpos): ym = INT(ypos)
 
             'cast a ray and increase distance  until a wall is hit
-            Do
-                If nextxt < nextyt Then
+            DO
+                IF nextxt < nextyt THEN
 
                     xm = xm + sdx
-                    If map(ym, xm) Then ti = rtf / nextxt: GoTo exitdo2
+                    IF map(ym, xm) THEN ti = rtf / nextxt: GOTO exitdo2
                     nextxt = nextxt + dxt
-                Else
+                ELSE
                     'ny% = ny% + 1
                     ym = ym + sdy
-                    If map(ym, xm) Then ti = rtf / nextyt: GoTo exitdo2
+                    IF map(ym, xm) THEN ti = rtf / nextyt: GOTO exitdo2
                     nextyt = nextyt + dyt
-                End If
-            Loop
+                END IF
+            LOOP
             exitdo2:
             'Enter texture index, top, bottom into table for this direction
 
-            tm(x) = map(ym, xm) Mod 5
-            d1 = 99 - Int((800 + foff) * ti)
-            If d1 > md1 Then md1 = d1
+            tm(x) = map(ym, xm) MOD 5
+            d1 = 99 - INT((800 + foff) * ti)
+            IF d1 > md1 THEN md1 = d1
             d1(x) = d1
-            d2 = 102 + Int((800 - foff) * ti)
+            d2 = 102 + INT((800 - foff) * ti)
             d2(x) = d2
-            If d2 < md2 Then md2 = d2
-            tx(x) = ((xpos + ypos + (dx + dy) / ti) * 32) And 31
+            IF d2 < md2 THEN md2 = d2
+            tx(x) = ((xpos + ypos + (dx + dy) / ti) * 32) AND 31
 
-        Next
-    End If
+        NEXT
+    END IF
 
     'rendering  loop (too many products and divisions)
 
-    Def Seg = &HA000
-    For x = 0 To 319
+    DEF SEG = &HA000
+    FOR x = 0 TO 319
         d1 = d1(x)
         d2 = d2(x)
         tx = tx(x)
@@ -269,41 +267,40 @@ Do
         dy = dy(x)
         p = x
         mmap = tm(x)
-        For y = 0 To 199
+        FOR y = 0 TO 199
             pl = persplut(y)
-            Select Case y
+            SELECT CASE y
                 'sky
-                Case Is < d1
-                    tt = 128 + tex(dx * pl And 31, dy * pl And 31, 4)
+                CASE IS < d1
+                    tt = 128 + tex(dx * pl AND 31, dy * pl AND 31, 4)
                     'wall
-                Case Is < d2
+                CASE IS < d2
                     tt = 10 + tex(32 * (y - d1) \ d21, tx, mmap)
                     'ground
-                Case Else
-                    tt = 56 + tex((xpos32 + dx * pl) And 31, (ypos32 + dy * pl) And 31, 4)
-            End Select
-            Poke p&, tt
+                CASE ELSE
+                    tt = 56 + tex((xpos32 + dx * pl) AND 31, (ypos32 + dy * pl) AND 31, 4)
+            END SELECT
+            POKE p&, tt
             p& = p& + 320
-        Next
-    Next
-Loop
+        NEXT
+    NEXT
+LOOP
 EXITDO1:
 
-Dim a As String
-Color 12
-Locate 1, 1: Print frames / (Timer - tim!); " fps"
-a = Input$(1)
-End
+DIM a AS STRING
+COLOR 12
+LOCATE 1, 1: PRINT frames / (TIMER - tim!); " fps"
+a = INPUT$(1)
+END
 
 'map data
-Data 7,8,7,8,7,8,7,8,7,8
-Data 7,0,0,0,0,0,0,0,0,8
-Data 8,0,9,1,0,2,10,2,0,7
-Data 7,0,1,9,0,0,0,10,0,8
-Data 8,0,0,0,0,0,0,0,0,7
-Data 7,0,3,11,3,11,0,0,0,8
-Data 8,0,11,0,0,3,0,0,0,7
-Data 7,0,3,0,0,11,0,0,0,8
-Data 8,0,0,0,0,0,0,0,0,7
-Data 8,7,8,7,8,7,8,7,8,8
-
+DATA 7,8,7,8,7,8,7,8,7,8
+DATA 7,0,0,0,0,0,0,0,0,8
+DATA 8,0,9,1,0,2,10,2,0,7
+DATA 7,0,1,9,0,0,0,10,0,8
+DATA 8,0,0,0,0,0,0,0,0,7
+DATA 7,0,3,11,3,11,0,0,0,8
+DATA 8,0,11,0,0,3,0,0,0,7
+DATA 7,0,3,0,0,11,0,0,0,8
+DATA 8,0,0,0,0,0,0,0,0,7
+DATA 8,7,8,7,8,7,8,7,8,8

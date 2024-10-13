@@ -1,91 +1,89 @@
-$NoPrefix
-$Resize:On
-Option Explicit
-Option ExplicitArray
+$RESIZE:ON
+OPTION _EXPLICIT
 
-Print "Initializing..."
-Type winType 'Window type definition. QB64 is not object-oriented, so we have to use user types instead.
+PRINT "Initializing..."
+TYPE winType 'Window type definition. QB64 is not object-oriented, so we have to use user types instead.
 
-    IH As Long '            Image handle. A value of 0 indicates that this is an open window handle.
-    FH As Long '            Font handle. Not really necessarry, as you can use _FONT() but it's useful when resizing
-    PM As Unsigned Byte '   _PRINTMODE
-    T As String '           Title. Empty string means that the window is a overlay
-    X As Integer '          X position. Should be Single but for some reason QB64 doesn't like virginity :(
-    Y As Integer '          Y position
-    Z As Unsigned Byte '    Z position
-    W As Unsigned Integer ' Width
-    H As Unsigned Integer ' Height
-    NeedsRefresh As Byte '  Set to -1 if the window, well, needs refreshed. Preferrably would be BIT, but unfortunately, QB64 can't have BITs in UDTs
-    MX As Integer '         Mouse X position relative to the window
-    MY As Integer '         Mouse Y position relative to the window
-    MS As Single '          Mouse scroll (relative to last refresh)
-    MAS As Single '      Mouse scroll (absolute)
+    IH AS LONG '            Image handle. A value of 0 indicates that this is an open window handle.
+    FH AS LONG '            Font handle. Not really necessarry, as you can use _FONT() but it's useful when resizing
+    PM AS _UNSIGNED _BYTE '   _PRINTMODE
+    T AS STRING '           Title. Empty string means that the window is a overlay
+    X AS INTEGER '          X position. Should be Single but for some reason QB64 doesn't like virginity :(
+    Y AS INTEGER '          Y position
+    Z AS _UNSIGNED _BYTE '    Z position
+    W AS _UNSIGNED INTEGER ' Width
+    H AS _UNSIGNED INTEGER ' Height
+    NeedsRefresh AS _BYTE '  Set to -1 if the window, well, needs refreshed. Preferrably would be BIT, but unfortunately, QB64 can't have BITs in UDTs
+    MX AS INTEGER '         Mouse X position relative to the window
+    MY AS INTEGER '         Mouse Y position relative to the window
+    MS AS SINGLE '          Mouse scroll (relative to last refresh)
+    MAS AS SINGLE '      Mouse scroll (absolute)
 
-End Type
+END TYPE
 
 'Constants
-Const True = -1
-Const False = 0
-Const __PM_KeepBackground = 1
-Const __PM_OnlyBackground = 2
-Const __PM_FillBackground = 3
-$Let TRUE = -1
-$Let FALSE = 0
+CONST True = -1
+CONST False = 0
+CONST __PM_KeepBackground = 1
+CONST __PM_OnlyBackground = 2
+CONST __PM_FillBackground = 3
+$LET TRUE = -1
+$LET FALSE = 0
 
 
-$Let HW = FALSE
-$Let LIGHT = FALSE
+$LET HW = FALSE
+$LET LIGHT = FALSE
 
 
 
 'Initialize variables
-Rem $Dynamic
-Dim w(1 To 1) As winType
-Rem $Static
-Dim winZOrder(0 To 255) As Byte
+REM $DYNAMIC
+DIM w(1 TO 1) AS winType
+REM $STATIC
+DIM winZOrder(0 TO 255) AS _BYTE
 
-Dim Shared __template_Win As winType
-Dim Shared __template_Overlay As winType
-Dim Shared __template_WinOptions As winType
+DIM SHARED __template_Win AS winType
+DIM SHARED __template_Overlay AS winType
+DIM SHARED __template_WinOptions AS winType
 
-Dim Shared __font_Header As Long
-Dim Shared __font_Body As Long
-Dim Shared __font_Mono As Long
-Dim Shared __font_Sans As Long
-Dim Shared __font_Serif As Long
+DIM SHARED __font_Header AS LONG
+DIM SHARED __font_Body AS LONG
+DIM SHARED __font_Mono AS LONG
+DIM SHARED __font_Sans AS LONG
+DIM SHARED __font_Serif AS LONG
 
-Dim __image_Background As Long
-Dim __image_Screen As Long
-Dim __image_ScreenBuffer As Long
-Dim __image_Cursor As Long
+DIM __image_Background AS LONG
+DIM __image_Screen AS LONG
+DIM __image_ScreenBuffer AS LONG
+DIM __image_Cursor AS LONG
 
-Dim __param_ScreenFont As Long
-Dim __param_TBHeight As Unsigned Byte
+DIM __param_ScreenFont AS LONG
+DIM __param_TBHeight AS _UNSIGNED _BYTE
 
-Dim Shared __inKey As String
-Dim Shared __focusedWindow As Integer
+DIM SHARED __inKey AS STRING
+DIM SHARED __focusedWindow AS INTEGER
 
 
-Print "...Images:"
+PRINT "...Images:"
 'Initialize the IMAGEs...
-__image_Background = LoadImage("images/back.png", 32): Print , "Background: "; __image_Background
-__image_Screen = NewImage(640, 480, 32): Print , "Screen: "; __image_Screen
-__image_Cursor = LoadImage("images/cursor.png", 33): Print , "Cursor: "; __image_Cursor
-$If HW = TRUE Then
-        __image_ScreenBuffer = COPYIMAGE(__image_Screen, 33): PRINT , "ScreenBuffer: "; __image_ScreenBuffer
-$End If
+__image_Background = _LOADIMAGE("images/back.png", 32): PRINT , "Background: "; __image_Background
+__image_Screen = _NEWIMAGE(640, 480, 32): PRINT , "Screen: "; __image_Screen
+__image_Cursor = _LOADIMAGE("images/cursor.png", 33): PRINT , "Cursor: "; __image_Cursor
+$IF HW = TRUE THEN
+        __image_ScreenBuffer = _COPYIMAGE(__image_Screen, 33): PRINT , "ScreenBuffer: "; __image_ScreenBuffer
+$END IF
 
 
-Print "...Fonts:"
+PRINT "...Fonts:"
 '...and the FONTs
-$If LINUX Then
-        __font_Header = LoadFont("/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf", 14, "DONTBLEND"): Print , "Header: "; __font_Header
-        __font_Body = LoadFont("/usr/share/fonts/truetype/ubuntu/Ubuntu-L.ttf", 12, "DONTBLEND"): Print , "Body: "; __font_Body
-        __font_Mono = LoadFont("/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf", 12, "DONTBLEND"): Print , "Mono: "; __font_Mono
+$IF LINUX THEN
+        __font_Header = _LoadFont("/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf", 14, "DONTBLEND"): Print , "Header: "; __font_Header
+        __font_Body = _LoadFont("/usr/share/fonts/truetype/ubuntu/Ubuntu-L.ttf", 12, "DONTBLEND"): Print , "Body: "; __font_Body
+        __font_Mono = _LoadFont("/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf", 12, "DONTBLEND"): Print , "Mono: "; __font_Mono
 
-        __font_Serif = LoadFont("/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf", 12, "DONTBLEND"): Print , "Serif: "; __font_Serif
-        __font_Sans = LoadFont("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 12, "DONTBLEND"): Print , "Sans: "; __font_Sans
-$Else
+        __font_Serif = _LoadFont("/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf", 12, "DONTBLEND"): Print , "Serif: "; __font_Serif
+        __font_Sans = _LoadFont("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 12, "DONTBLEND"): Print , "Sans: "; __font_Sans
+$ELSE
     'TODO: integrate Windows & MacOS fonts
     __font_Header = 16
     __font_Body = 14
@@ -93,11 +91,11 @@ $Else
 
     __font_Serif = 14
     __font_Sans = 14
-$End If
+$END IF
 
 __param_ScreenFont = __font_Header
 
-Print "...Templates:"
+PRINT "...Templates:"
 'Initialize the window templates
 __template_Win.T = "Untitled window"
 __template_Win.W = 320
@@ -107,7 +105,7 @@ __template_Win.IH = 0
 __template_Win.FH = __font_Body
 __template_Win.PM = __PM_KeepBackground
 __template_Win.NeedsRefresh = True
-Print , "Win"
+PRINT , "Win"
 
 __template_Overlay.T = ""
 __template_Overlay.W = 120
@@ -117,41 +115,40 @@ __template_Overlay.IH = 0
 __template_Overlay.FH = __font_Body
 __template_Overlay.PM = __PM_KeepBackground
 __template_Overlay.NeedsRefresh = True
-Print , "Overlay"
+PRINT , "Overlay"
 
 __template_WinOptions.T = ""
 __template_WinOptions.W = 120
 __template_WinOptions.H = 60
 __template_WinOptions.Z = 0
-__template_WinOptions.IH = NewImage(120, 60, 32)
+__template_WinOptions.IH = _NEWIMAGE(120, 60, 32)
 __template_WinOptions.FH = __font_Body
 __template_WinOptions.PM = __PM_KeepBackground
 __template_WinOptions.NeedsRefresh = True
-Print , "WinOptions"
+PRINT , "WinOptions"
 
 
 'Initialize the WinOptions template's contents
-Print "WinOptions"
-Dest __template_WinOptions.IH
-Font __template_WinOptions.FH
-PrintString (0, 0), "Close"
+PRINT "WinOptions"
+_DEST __template_WinOptions.IH
+_FONT __template_WinOptions.FH
+_PRINTSTRING (0, 0), "Close"
 
-__param_TBHeight = FontHeight(__param_ScreenFont) + 2
+__param_TBHeight = _FONTHEIGHT(__param_ScreenFont) + 2
 
 
-Sleep
+SLEEP
 'And finally, initialize the SCREEN.
-Screen __image_Screen
-MouseHide
+SCREEN __image_Screen
+_MOUSEHIDE
 
-$If HW = TRUE Then
+$IF HW = TRUE THEN
         'DisplayOrder Hardware , Software
-        DEST __image_ScreenBuffer
-        FONT __param_ScreenFont, __image_ScreenBuffer
-        printmode keepbackground,__image_screenbuffer
-$Else
-    Dest Display
-    Font __param_ScreenFont, __image_Screen
-    PrintMode KeepBackground , __image_Screen
-$End If
-
+        _DEST __image_ScreenBuffer
+        _FONT __param_ScreenFont, __image_ScreenBuffer
+        _printmode _keepbackground,__image_screenbuffer
+$ELSE
+    _DEST _DISPLAY
+    _FONT __param_ScreenFont, __image_Screen
+    _PRINTMODE _KEEPBACKGROUND , __image_Screen
+$END IF
