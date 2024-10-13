@@ -7,98 +7,95 @@
 '                                       whith this but if that could help
 '                                       someone ....)
 'darokin '99
-$NoPrefix
 
-$Resize:Smooth
-Screen 13
-FullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
 etoile% = 150
-Dim x%(1 To etoile%)
-Dim y%(1 To etoile%)
-Dim c%(1 To etoile%)
-Dim v%(1 To etoile%)
-For i% = 1 To etoile%
-    x%(i%) = Int(Rnd * 320)
-    y%(i%) = Int(Rnd * 129) + 40
-    c%(i%) = Int(Rnd * 15) + 15
-    v%(i%) = Int(Rnd * 3) + 2
-Next i%
+DIM x%(1 TO etoile%)
+DIM y%(1 TO etoile%)
+DIM c%(1 TO etoile%)
+DIM v%(1 TO etoile%)
+FOR i% = 1 TO etoile%
+    x%(i%) = INT(RND * 320)
+    y%(i%) = INT(RND * 129) + 40
+    c%(i%) = INT(RND * 15) + 15
+    v%(i%) = INT(RND * 3) + 2
+NEXT i%
 
-Dim txt(97)
-Print "darokin"
-Get (0, 0)-(54, 6), txt()
+DIM txt(97)
+PRINT "darokin"
+GET (0, 0)-(54, 6), txt()
 
-Cls
+CLS
 
-Dim balle(120)
-Data 00,00,00,00,04,04,04,00,00,00,00
-Data 00,00,04,04,04,04,04,04,04,00,00
-Data 00,04,04,15,15,04,04,04,04,04,00
-Data 00,04,04,15,15,04,04,04,04,04,00
-Data 04,04,04,04,04,04,04,04,04,04,04
-Data 04,04,04,04,04,04,04,04,04,04,04
-Data 00,04,04,04,04,04,04,04,04,04,00
-Data 00,04,04,04,04,04,04,04,04,04,00
-Data 00,00,04,04,04,04,04,04,04,00,00
-Data 00,00,00,00,04,04,04,00,00,00,00
+DIM balle(120)
+DATA 00,00,00,00,04,04,04,00,00,00,00
+DATA 00,00,04,04,04,04,04,04,04,00,00
+DATA 00,04,04,15,15,04,04,04,04,04,00
+DATA 00,04,04,15,15,04,04,04,04,04,00
+DATA 04,04,04,04,04,04,04,04,04,04,04
+DATA 04,04,04,04,04,04,04,04,04,04,04
+DATA 00,04,04,04,04,04,04,04,04,04,00
+DATA 00,04,04,04,04,04,04,04,04,04,00
+DATA 00,00,04,04,04,04,04,04,04,00,00
+DATA 00,00,00,00,04,04,04,00,00,00,00
 
 xlenght = 11
 ylenght = 10
 
-For y% = 1 To ylenght
-    For x% = 1 To xlenght
-        Read z
-        PSet (x%, y%), z
-    Next x%
-Next y%
+FOR y% = 1 TO ylenght
+    FOR x% = 1 TO xlenght
+        READ z
+        PSET (x%, y%), z
+    NEXT x%
+NEXT y%
 
 
 x = 15: y = 55: xtxt = 35: ytxt = 3
 xmax = 305: ymax = 160: xtxtmax = 200: ytxtmax = 15
 a = 1: b = 1: c = 1: d = 1: e = 1
 xmin = 5: ymin = 39: xtxtmin = 30: ytxtmin = 1
-Get (0, 0)-(11, 10), balle()
-Cls
-Put (20, 5), txt()
-Randomize Timer
-Do
-    Put (x, y), balle()
-    For i% = 1 To etoile%
-        PSet (x%(i%), y%(i%)), c%(i%)
-        PSet (x%(i%), y%(i%)), 0
+GET (0, 0)-(11, 10), balle()
+CLS
+PUT (20, 5), txt()
+RANDOMIZE TIMER
+DO
+    PUT (x, y), balle()
+    FOR i% = 1 TO etoile%
+        PSET (x%(i%), y%(i%)), c%(i%)
+        PSET (x%(i%), y%(i%)), 0
         x%(i%) = x%(i%) + v%(i%)
-        If x%(i%) >= 320 Then
+        IF x%(i%) >= 320 THEN
             x%(i%) = 1
-            y%(i%) = Int(Rnd * 129) + 40
-            c%(i%) = Int(Rnd * 15) + 15
-            v%(i%) = Int(Rnd * 3) + 2
-        End If
-        PSet (x%(i%), y%(i%)), c%(i%)
-    Next i%
-    Put (xtxt, ytxt), txt()
-    If c = 1 Then Cls
+            y%(i%) = INT(RND * 129) + 40
+            c%(i%) = INT(RND * 15) + 15
+            v%(i%) = INT(RND * 3) + 2
+        END IF
+        PSET (x%(i%), y%(i%)), c%(i%)
+    NEXT i%
+    PUT (xtxt, ytxt), txt()
+    IF c = 1 THEN CLS
     c = c + 1
-    If xtxt < xtxtmin Then d = -d
-    If x < xmin Then a = -a
-    If xtxt > xtxtmax Then d = -d
-    If x > xmax Then a = -a
-    If ytxt < ytxtmin Then e = -e
-    If y < ymin Then b = -b
-    If ytxt > ytxtmax Then e = -e
-    If y > ymax Then b = -b
+    IF xtxt < xtxtmin THEN d = -d
+    IF x < xmin THEN a = -a
+    IF xtxt > xtxtmax THEN d = -d
+    IF x > xmax THEN a = -a
+    IF ytxt < ytxtmin THEN e = -e
+    IF y < ymin THEN b = -b
+    IF ytxt > ytxtmax THEN e = -e
+    IF y > ymax THEN b = -b
     x = x + a
     y = y + b
     xtxt = xtxt + d
     ytxt = ytxt + e
-    Put (x, y), balle()
-    Put (xtxt, ytxt), txt()
-    For i = 1 To 5000
-    Next i
+    PUT (x, y), balle()
+    PUT (xtxt, ytxt), txt()
+    FOR i = 1 TO 5000
+    NEXT i
 
-    Limit 60
-Loop While InKey$ = ""
+    _LIMIT 30
+LOOP WHILE INKEY$ = ""
 
-System 0
-
-
+SYSTEM

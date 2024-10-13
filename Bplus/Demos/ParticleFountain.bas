@@ -1,61 +1,58 @@
 ' Created by QB64 community member bplus
 
-$NoPrefix
-Option Explicit
-Option ExplicitArray
+OPTION _EXPLICIT
 
-Title "Particle Fountain"
+_TITLE "Particle Fountain"
 
-Const nP = 30000
+CONST nP = 30000
 
-Type particle
-    x As Single
-    y As Single
-    dx As Single
-    dy As Single
-    r As Single
-    c As Unsigned Long
-End Type
+TYPE particle
+    x AS SINGLE
+    y AS SINGLE
+    dx AS SINGLE
+    dy AS SINGLE
+    r AS SINGLE
+    c AS _UNSIGNED LONG
+END TYPE
 
-Dim Shared p(nP) As particle
+DIM SHARED p(nP) AS particle
 
-Screen NewImage(600, 600, 32)
+SCREEN _NEWIMAGE(600, 600, 32)
 
-Dim As Long i, lp
-For i = 0 To nP
+DIM AS LONG i, lp
+FOR i = 0 TO nP
     new i
-Next
+NEXT
 
-Do
-    Limit 90
-    Cls
-    If lp < nP Then
+DO
+    _LIMIT 90
+    CLS
+    IF lp < nP THEN
         lp = lp + 100
-    End If
-    For i = 0 To lp
+    END IF
+    FOR i = 0 TO lp
         p(i).dy = p(i).dy + .1
         p(i).x = p(i).x + p(i).dx
         p(i).y = p(i).y + p(i).dy
-        If p(i).x < 0 Or p(i).x > Width Then
+        IF p(i).x < 0 OR p(i).x > _WIDTH THEN
             new i
-        End If
-        If p(i).y > Height And p(i).dy > 0 Then
+        END IF
+        IF p(i).y > _HEIGHT AND p(i).dy > 0 THEN
             p(i).dy = -.75 * p(i).dy
-            p(i).y = Height - 5
-        End If
-        Circle (p(i).x, p(i).y), p(i).r, p(i).c
-    Next
-    Display
-Loop While Len(InKey$) = 0
+            p(i).y = _HEIGHT - 5
+        END IF
+        CIRCLE (p(i).x, p(i).y), p(i).r, p(i).c
+    NEXT
+    _DISPLAY
+LOOP WHILE LEN(INKEY$) = 0
 
-System 0
+SYSTEM 0
 
-Sub new (i)
-    p(i).x = Width / 2 + Rnd * 20 - 10
-    p(i).y = Height + Rnd * 5
-    p(i).dx = Rnd * 1 - .5
+SUB new (i)
+    p(i).x = _WIDTH / 2 + RND * 20 - 10
+    p(i).y = _HEIGHT + RND * 5
+    p(i).dx = RND * 1 - .5
     p(i).dy = -10
-    p(i).r = Rnd * 3
-    p(i).c = RGB32(100 * Rnd + 155, 100 * Rnd + 155, 200 + Rnd * 55)
-End Sub
-
+    p(i).r = RND * 3
+    p(i).c = _RGB32(100 * RND + 155, 100 * RND + 155, 200 + RND * 55)
+END SUB

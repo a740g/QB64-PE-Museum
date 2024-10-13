@@ -27,66 +27,65 @@
 '  see if you can give it a go ;-)
 '\=================================================================/
 
-$NoPrefix
 ' Default data type to integer for fastest processing
-DefInt A-Z
+DEFINT A-Z
 
-$Resize:Smooth
+$RESIZE:SMOOTH
 
 ' To hold sprites
-Dim Graphics(1 To 2000)
+DIM Graphics(1 TO 2000)
 
 ' The following piece of code first tries for VGA; if that fails,
 ' it tries EGA. If that fails, it leaves.
-On Error GoTo TryEGA
-Screen 13
-GoTo GraphicsSuccess
+ON ERROR GOTO TryEGA
+SCREEN 13
+GOTO GraphicsSuccess
 
 TryEGA:
-On Error GoTo NoGraphics
-Screen 7
-GoTo GraphicsSuccess
+ON ERROR GOTO NoGraphics
+SCREEN 7
+GOTO GraphicsSuccess
 
 NoGraphics:
-Color 15, 0: Cls
-Print "You don't seem to have graphics capable hardware."
-Print "There is a text version available though."
-Print
-GoTo ContactMessage
+COLOR 15, 0: CLS
+PRINT "You don't seem to have graphics capable hardware."
+PRINT "There is a text version available though."
+PRINT
+GOTO ContactMessage
 
 GraphicsSuccess:
-On Error GoTo 0
+ON ERROR GOTO 0
 
 ' Draw the graphics and GET it
-Restore GraphicsData
-For i = 0 To 23
-    For j = 0 To 10
-        For k = 0 To 10
-            Read n
-            PSet (k, j), n
-        Next k
-    Next j
-    Get (0, 0)-(10, 10), Graphics(i * 80 + 1)
-Next i
+RESTORE GraphicsData
+FOR i = 0 TO 23
+    FOR j = 0 TO 10
+        FOR k = 0 TO 10
+            READ n
+            PSET (k, j), n
+        NEXT k
+    NEXT j
+    GET (0, 0)-(10, 10), Graphics(i * 80 + 1)
+NEXT i
 
 ' Constants
-Dim Shared NUMLEVELS
+DIM SHARED NUMLEVELS
 NUMLEVELS = 90
 
-Dim Shared LEVELFILENAME As String
+DIM SHARED LEVELFILENAME AS STRING
 LEVELFILENAME$ = "djsok.dat"
-Dim Shared OFSX
+DIM SHARED OFSX
 OFSX = 6
-Dim Shared OFSY
+DIM SHARED OFSY
 OFSY = 6
 
 ' Dimensions of playing area
-Dim Shared MAXX
+DIM SHARED MAXX
 MAXX = 20
-Dim Shared MAXY
+DIM SHARED MAXY
 MAXY = 17
 ' Set this to 1 to enable cheats; then pressing "$" advances a level
-Dim Shared CHEATSENABLED
+DIM SHARED CHEATSENABLED
 CHEATSENABLED = 0
 
 ' Search string: position of a character in string is used as the
@@ -95,28 +94,28 @@ CHEATSENABLED = 0
 GameData$ = "€–∆»“∫…ÃµºÕ ªπÀŒ Ë≤"
 
 ' Offsets into GameData$ of certain important character types
-Dim Shared POSCRATE
+DIM SHARED POSCRATE
 POSCRATE = 19
-Dim Shared POSSPACE
+DIM SHARED POSSPACE
 POSSPACE = 18
-Dim Shared POSCRATEATDEST
+DIM SHARED POSCRATEATDEST
 POSCRATEATDEST = 20
-Dim Shared POSDEST
+DIM SHARED POSDEST
 POSDEST = 17
-Dim Shared POSHERO
+DIM SHARED POSHERO
 POSHERO = 21
 
 ' Certain important character types
-CharCrate$ = Mid$(GameData$, POSCRATE, 1)
-CharCrateAtDest$ = Mid$(GameData$, POSCRATEATDEST, 1)
-CharDest$ = Mid$(GameData$, POSDEST, 1)
+CharCrate$ = MID$(GameData$, POSCRATE, 1)
+CharCrateAtDest$ = MID$(GameData$, POSCRATEATDEST, 1)
+CharDest$ = MID$(GameData$, POSDEST, 1)
 
 ' Data structures
-Dim TempMap(0 To MAXY + 1) As String * 22
-Dim Map(0 To MAXY + 1) As String * 22
+DIM TempMap(0 TO MAXY + 1) AS STRING * 22
+DIM Map(0 TO MAXY + 1) AS STRING * 22
 
 ' Initialize screen
-Color 15: Cls
+COLOR 15: CLS
 
 ' Level should be set to 0 here to make entry point level 1
 Level = 0
@@ -125,189 +124,189 @@ Won = 1
 '===========================================================[ BEGIN MAIN ]==
 MainLoop:
 ' Get keypress
-a$ = InKey$
+a$ = INKEY$
 
 ' Reset level or advance level
-If Won = 1 Or UCase$(a$) = "R" Then
-    If (UCase$(a$) <> "R") And (Level >= 1) Then
-        Color 15
-        Locate 19, 2: Print "Press a key ...";
-        While InKey$ = "": Wend
-    End If
-    If (UCase$(a$) <> "R") Then Level = Level + 1
-    If (Level > NUMLEVELS) Then GoTo FinishedGame
-    GoSub LoadLevel
-    GoSub Drawlevel
-    GoTo MovePlayer
-End If
+IF Won = 1 OR UCASE$(a$) = "R" THEN
+    IF (UCASE$(a$) <> "R") AND (Level >= 1) THEN
+        COLOR 15
+        LOCATE 19, 2: PRINT "Press a key ...";
+        WHILE INKEY$ = "": WEND
+    END IF
+    IF (UCASE$(a$) <> "R") THEN Level = Level + 1
+    IF (Level > NUMLEVELS) THEN GOTO FinishedGame
+    GOSUB LoadLevel
+    GOSUB Drawlevel
+    GOTO MovePlayer
+END IF
  
 ' Player pressed nothing
-If a$ = "" Then GoTo MainLoop
+IF a$ = "" THEN GOTO MainLoop
 
 ' Player pressed escape
-If a$ = Chr$(27) Then GoTo EndGame
+IF a$ = CHR$(27) THEN GOTO EndGame
  
 ' Save game
-If UCase$(a$) = "S" Then GoSub SaveGame
+IF UCASE$(a$) = "S" THEN GOSUB SaveGame
 
 ' Cheat to advance to next level
-If a$ = "$" And CHEATSENABLED = 1 Then Won = 1: GoTo MainLoop
+IF a$ = "$" AND CHEATSENABLED = 1 THEN Won = 1: GOTO MainLoop
 
 ' Load game
-If UCase$(a$) = "L" Then GoSub LoadGame
+IF UCASE$(a$) = "L" THEN GOSUB LoadGame
 
 ' About
-If UCase$(a$) = "A" Then GoSub About
+IF UCASE$(a$) = "A" THEN GOSUB About
 
 ' Up, down, left and right respectively
-If a$ = Chr$(0) + "H" Then xd = 0: yd = -1: GoTo MovePlayer
-If a$ = Chr$(0) + "P" Then xd = 0: yd = 1: GoTo MovePlayer
-If a$ = Chr$(0) + "K" Then xd = -1: yd = 0: GoTo MovePlayer
-If a$ = Chr$(0) + "M" Then xd = 1: yd = 0: GoTo MovePlayer
-GoTo MainLoop
+IF a$ = CHR$(0) + "H" THEN xd = 0: yd = -1: GOTO MovePlayer
+IF a$ = CHR$(0) + "P" THEN xd = 0: yd = 1: GOTO MovePlayer
+IF a$ = CHR$(0) + "K" THEN xd = -1: yd = 0: GOTO MovePlayer
+IF a$ = CHR$(0) + "M" THEN xd = 1: yd = 0: GOTO MovePlayer
+GOTO MainLoop
 '=============================================================[ END MAIN ]==
 
 MovePlayer:
 ' read character directly in front of player
-character$ = Mid$(Map$(y + yd), x + xd + 1, 1)
-n = InStr(GameData$, character$)
+character$ = MID$(Map$(y + yd), x + xd + 1, 1)
+n = INSTR(GameData$, character$)
  
 ' If it's a wall, then leave
 graphicsOffset = 0
-If n <= 16 Then graphicsOffset = -1: GoTo DrawHero
+IF n <= 16 THEN graphicsOffset = -1: GOTO DrawHero
 
 ' If there is a crate in front of us, find the character two positions
 ' away in front of us
-If ((character$ = CharCrate$) Or (character$ = CharCrateAtDest$)) Then
-    character2$ = Mid$(Map$(y + yd + yd), x + xd + xd + 1, 1)
-    n2 = InStr(GameData$, character2$)
+IF ((character$ = CharCrate$) OR (character$ = CharCrateAtDest$)) THEN
+    character2$ = MID$(Map$(y + yd + yd), x + xd + xd + 1, 1)
+    n2 = INSTR(GameData$, character2$)
     ' If the character 2 away from us is a wall or a crate, leave
-    If n2 <= 16 Or character2$ = CharCrate$ Or character2$ = CharCrateAtDest$ Then GoTo MainLoop
+    IF n2 <= 16 OR character2$ = CharCrate$ OR character2$ = CharCrateAtDest$ THEN GOTO MainLoop
    
     ' Else we can move the crate in front of us
-    Locate y + yd + yd + 1, x + xd + xd + 1
+    LOCATE y + yd + yd + 1, x + xd + xd + 1
     ' If we're moving a crate onto a destination-type block
-    If (character2$ = CharDest$) Then
-        Mid$(Map$(y + yd + yd), x + xd + xd + 1, 1) = CharCrateAtDest$
-        Put ((x + xd + xd - 1) * 11 + OFSX, (y + yd + yd - 1) * 11 + OFSY), Graphics((POSCRATEATDEST - 1) * 80 + 1), PSet
-        NumPushes = NumPushes + 1: GoSub ShowNumPushes
+    IF (character2$ = CharDest$) THEN
+        MID$(Map$(y + yd + yd), x + xd + xd + 1, 1) = CharCrateAtDest$
+        PUT ((x + xd + xd - 1) * 11 + OFSX, (y + yd + yd - 1) * 11 + OFSY), Graphics((POSCRATEATDEST - 1) * 80 + 1), PSET
+        NumPushes = NumPushes + 1: GOSUB ShowNumPushes
         ' If we're moving it from a destination-type block onto another dest-type
-        If character$ = CharCrateAtDest$ Then
-            Mid$(Map$(y + yd), x + xd + 1, 1) = CharDest$
-        Else ' we're moving it onto a dest-type from a space
-            Mid$(Map$(y + yd), x + xd + 1, 1) = " "
+        IF character$ = CharCrateAtDest$ THEN
+            MID$(Map$(y + yd), x + xd + 1, 1) = CharDest$
+        ELSE ' we're moving it onto a dest-type from a space
+            MID$(Map$(y + yd), x + xd + 1, 1) = " "
             NumPlaced = NumPlaced + 1
-        End If
-        If (NumPlaced = NumCrates) Then Won = 1
-    Else ' We're moving the crate onto a blank space
-        Mid$(Map$(y + yd + yd), x + xd + xd + 1, 1) = CharCrate$
-        Put ((x + xd + xd - 1) * 11 + OFSX, (y + yd + yd - 1) * 11 + OFSY), Graphics((POSCRATE - 1) * 80 + 1), PSet
-        NumPushes = NumPushes + 1: GoSub ShowNumPushes
+        END IF
+        IF (NumPlaced = NumCrates) THEN Won = 1
+    ELSE ' We're moving the crate onto a blank space
+        MID$(Map$(y + yd + yd), x + xd + xd + 1, 1) = CharCrate$
+        PUT ((x + xd + xd - 1) * 11 + OFSX, (y + yd + yd - 1) * 11 + OFSY), Graphics((POSCRATE - 1) * 80 + 1), PSET
+        NumPushes = NumPushes + 1: GOSUB ShowNumPushes
         ' If we're moving a crate off of a destination block
-        If character$ = CharCrateAtDest$ Then
-            Mid$(Map$(y + yd), x + xd + 1, 1) = CharDest$
+        IF character$ = CharCrateAtDest$ THEN
+            MID$(Map$(y + yd), x + xd + 1, 1) = CharDest$
             NumPlaced = NumPlaced - 1
-        Else ' we're moving a crate off of a space
-            Mid$(Map$(y + yd), x + xd + 1, 1) = " "
-        End If
-    End If
-End If
+        ELSE ' we're moving a crate off of a space
+            MID$(Map$(y + yd), x + xd + 1, 1) = " "
+        END IF
+    END IF
+END IF
 
 DrawHero:
 ' Erase our hero
-Put ((x - 1) * 11 + OFSX, (y - 1) * 11 + OFSY), Graphics(((InStr(GameData$, Mid$(Map$(y), x + 1, 1))) - 1) * 80 + 1), PSet
+PUT ((x - 1) * 11 + OFSX, (y - 1) * 11 + OFSY), Graphics(((INSTR(GameData$, MID$(Map$(y), x + 1, 1))) - 1) * 80 + 1), PSET
 ' Update hero's location
-If (graphicsOffset <> -1) Then
+IF (graphicsOffset <> -1) THEN
     x = x + xd
     y = y + yd
-End If
+END IF
 ' Update NumMoves counter
-If Not (xd = 0 And yd = 0) Then NumMoves = NumMoves + 1: GoSub ShowNumMoves
+IF NOT (xd = 0 AND yd = 0) THEN NumMoves = NumMoves + 1: GOSUB ShowNumMoves
 ' Re-draw our hero
 graphicsOffset = 0
-If (xd = 0 And yd = 1) Then graphicsOffset = 1
-If (xd = -1 And yd = 0) Then graphicsOffset = 2
-If (xd = 0 And yd = -1) Then graphicsOffset = 3
-Put ((x - 1) * 11 + OFSX, (y - 1) * 11 + OFSY), Graphics((POSHERO + graphicsOffset - 1) * 80 + 1), PSet
-GoTo MainLoop
+IF (xd = 0 AND yd = 1) THEN graphicsOffset = 1
+IF (xd = -1 AND yd = 0) THEN graphicsOffset = 2
+IF (xd = 0 AND yd = -1) THEN graphicsOffset = 3
+PUT ((x - 1) * 11 + OFSX, (y - 1) * 11 + OFSY), Graphics((POSHERO + graphicsOffset - 1) * 80 + 1), PSET
+GOTO MainLoop
 
 SaveGame:
-GoSub InputFileName
-If filename$ <> "" Then
+GOSUB InputFileName
+IF filename$ <> "" THEN
     filename$ = filename$ + ".sok"
-    Open filename$ For Output As #1
-    Print #1, Level
-    Close
-    Locate 19, 1: Print "File "; filename$; " saved ...";
-    Sleep 1
-    GoSub Drawlevel
-End If
-GoSub Drawlevel
-Return
+    OPEN filename$ FOR OUTPUT AS #1
+    PRINT #1, Level
+    CLOSE
+    LOCATE 19, 1: PRINT "File "; filename$; " saved ...";
+    SLEEP 1
+    GOSUB Drawlevel
+END IF
+GOSUB Drawlevel
+RETURN
 
 LoadGame:
-GoSub InputFileName
-If filename$ <> "" Then
+GOSUB InputFileName
+IF filename$ <> "" THEN
     filename$ = filename$ + ".sok"
     Level = 0
     ' The following error handler is used to determine if a given file
     ' exists.
-    On Error GoTo NoFile
-    Open filename$ For Input As #1
+    ON ERROR GOTO NoFile
+    OPEN filename$ FOR INPUT AS #1
     ' If file exists:
-    If filename$ <> "" Then
-        Input #1, Level
-        Close
-        GoSub LoadLevel
-    End If
-End If
+    IF filename$ <> "" THEN
+        INPUT #1, Level
+        CLOSE
+        GOSUB LoadLevel
+    END IF
+END IF
 ' Disable the error handler
-On Error GoTo 0
-GoSub Drawlevel
-Return
+ON ERROR GOTO 0
+GOSUB Drawlevel
+RETURN
 
 NoFile:
-Locate 19, 1: Print "File not found! Press a key ...";
+LOCATE 19, 1: PRINT "File not found! Press a key ...";
 ' Set filename$ to "" so that we know the file doesn't exist
 filename$ = ""
 ' Clear keyboard buffer and wait for keypress
-While InKey$ <> "": Wend
-While InKey$ = "": Wend
+WHILE INKEY$ <> "": WEND
+WHILE INKEY$ = "": WEND
 ' Go back to the line after the error occured
-Resume Next
+RESUME NEXT
 
 ' Routine to allow user to enter a string of length at most 8 for
 ' getting filenames
 InputFileName:
-Color 15
+COLOR 15
 xval = 17
 filename$ = ""
-Locate 19, 1: Print "Enter filename: _";
+LOCATE 19, 1: PRINT "Enter filename: _";
 EnternameLoop:
-s$ = InKey$
-If s$ = "" Then GoTo EnternameLoop
+s$ = INKEY$
+IF s$ = "" THEN GOTO EnternameLoop
 ' Escape
-If s$ = Chr$(27) Then filename$ = "": GoTo sReturn
+IF s$ = CHR$(27) THEN filename$ = "": GOTO sReturn
 ' Enter
-If s$ = Chr$(13) Then GoTo sReturn
+IF s$ = CHR$(13) THEN GOTO sReturn
 ' Backspace
-If filename$ <> "" And s$ = Chr$(8) Then
-    filename$ = Left$(filename$, Len(filename$) - 1)
-    Locate 19, xval: Print filename$ + "_ ";
-End If
-If s$ < "0" Then GoTo EnternameLoop
-If s$ > "9" Then
-    If s$ < "A" Then GoTo EnternameLoop
-    If s$ > "Z" Then
-        If s$ < "a" Or s$ > "z" Then GoTo EnternameLoop
-    End If
-End If
-If Len(filename$) = 8 Then GoTo EnternameLoop
+IF filename$ <> "" AND s$ = CHR$(8) THEN
+    filename$ = LEFT$(filename$, LEN(filename$) - 1)
+    LOCATE 19, xval: PRINT filename$ + "_ ";
+END IF
+IF s$ < "0" THEN GOTO EnternameLoop
+IF s$ > "9" THEN
+    IF s$ < "A" THEN GOTO EnternameLoop
+    IF s$ > "Z" THEN
+        IF s$ < "a" OR s$ > "z" THEN GOTO EnternameLoop
+    END IF
+END IF
+IF LEN(filename$) = 8 THEN GOTO EnternameLoop
 filename$ = filename$ + s$
-Locate 19, xval: Print filename$ + "_ ";
-GoTo EnternameLoop
+LOCATE 19, xval: PRINT filename$ + "_ ";
+GOTO EnternameLoop
 sReturn:
-Return
+RETURN
 
 ' Loads levels from the file as it needs them because all the levels
 ' in memory at once might place a bit of strain on QBasic :-)
@@ -324,101 +323,101 @@ NumPushes = 0
 Won = 0
 
 ' Blank out the strings
-For i = 0 To MAXY + 1
-    TempMap$(i) = String$(MAXX + 2, " ")
-    Map$(i) = String$(MAXX + 2, " ")
-Next i
+FOR i = 0 TO MAXY + 1
+    TempMap$(i) = STRING$(MAXX + 2, " ")
+    Map$(i) = STRING$(MAXX + 2, " ")
+NEXT i
 
-Open LEVELFILENAME For Input As #1
-Line Input #1, f$
-LevelString$ = RTrim$(LTrim$(Str$(Level)))
+OPEN LEVELFILENAME FOR INPUT AS #1
+LINE INPUT #1, f$
+LevelString$ = RTRIM$(LTRIM$(STR$(Level)))
 ' Read until we find the string corresponding to the current Level number
-While (f$ <> LevelString$) And Not EOF(1)
-    Line Input #1, f$
-Wend
+WHILE (f$ <> LevelString$) AND NOT EOF(1)
+    LINE INPUT #1, f$
+WEND
 ' If we didn't find it, something went wrong
-If f$ <> LevelString$ Then Close: GoTo lReturn
+IF f$ <> LevelString$ THEN CLOSE: GOTO lReturn
 
 ' Read in the level
-Line Input #1, f$
+LINE INPUT #1, f$
 count = 1
-While f$ <> "~"
+WHILE f$ <> "~"
     TempMap$(count) = " " + f$
-    Line Input #1, f$
+    LINE INPUT #1, f$
     count = count + 1
-Wend
-Close
+WEND
+CLOSE
 
 ' Centre the level vertically
 ' Adding 0.5 and doing an integer divide effectively rounds upwards
 extra = ((MAXY - count) + .5) \ 2
-For i = count To 1 Step -1
+FOR i = count TO 1 STEP -1
     TempMap$(i + extra) = TempMap$(i)
-Next i
-For i = 1 To extra
-    TempMap$(i) = String$(MAXX + 2, " ")
-Next i
-For i = count + extra To MAXY
-    TempMap$(i) = String$(MAXX + 2, " ")
-Next i
+NEXT i
+FOR i = 1 TO extra
+    TempMap$(i) = STRING$(MAXX + 2, " ")
+NEXT i
+FOR i = count + extra TO MAXY
+    TempMap$(i) = STRING$(MAXX + 2, " ")
+NEXT i
  
 ' Black out the area outside of the playing arena
-For i = 1 To MAXX + 2
+FOR i = 1 TO MAXX + 2
     c = 0
-    ch$ = Mid$(TempMap$(c), i, 1)
-    While ((ch$ = " ") Or (ch$ = "%")) And (c <= MAXY)
-        Mid$(TempMap$(c), i, 1) = "%"
+    ch$ = MID$(TempMap$(c), i, 1)
+    WHILE ((ch$ = " ") OR (ch$ = "%")) AND (c <= MAXY)
+        MID$(TempMap$(c), i, 1) = "%"
         c = c + 1
-        ch$ = Mid$(TempMap$(c), i, 1)
-    Wend
+        ch$ = MID$(TempMap$(c), i, 1)
+    WEND
     c = MAXY + 1
-    ch$ = Mid$(TempMap$(c), i, 1)
-    While ((ch$ = " ") Or (ch$ = "%")) And (c >= 1)
-        Mid$(TempMap$(c), i, 1) = "%"
+    ch$ = MID$(TempMap$(c), i, 1)
+    WHILE ((ch$ = " ") OR (ch$ = "%")) AND (c >= 1)
+        MID$(TempMap$(c), i, 1) = "%"
         c = c - 1
-        ch$ = Mid$(TempMap$(c), i, 1)
-    Wend
-Next i
-For i = 0 To MAXY + 1
+        ch$ = MID$(TempMap$(c), i, 1)
+    WEND
+NEXT i
+FOR i = 0 TO MAXY + 1
     c = 1
-    ch$ = Mid$(TempMap$(i), c, 1)
-    While ((ch$ = " ") Or (ch$ = "%")) And (c <= MAXX + 1)
-        Mid$(TempMap$(i), c, 1) = "%"
+    ch$ = MID$(TempMap$(i), c, 1)
+    WHILE ((ch$ = " ") OR (ch$ = "%")) AND (c <= MAXX + 1)
+        MID$(TempMap$(i), c, 1) = "%"
         c = c + 1
-        ch$ = Mid$(TempMap$(i), c, 1)
-    Wend
+        ch$ = MID$(TempMap$(i), c, 1)
+    WEND
     c = MAXX + 2
-    ch$ = Mid$(TempMap$(i), c, 1)
-    While ((ch$ = " ") Or (ch$ = "%")) And (c >= 2)
-        Mid$(TempMap$(i), c, 1) = "%"
+    ch$ = MID$(TempMap$(i), c, 1)
+    WHILE ((ch$ = " ") OR (ch$ = "%")) AND (c >= 2)
+        MID$(TempMap$(i), c, 1) = "%"
         c = c - 1
-        ch$ = Mid$(TempMap$(i), c, 1)
-    Wend
-Next i
+        ch$ = MID$(TempMap$(i), c, 1)
+    WEND
+NEXT i
 
 ' Interpret the raw data and convert to our own format
-For i = 1 To MAXY
+FOR i = 1 TO MAXY
     Map$(i) = TempMap$(i)
-    For j = 2 To MAXX + 1
-        If (Mid$(Map$(i), j, 1) = "@") Then
-            Mid$(Map$(i), j, 1) = " "
+    FOR j = 2 TO MAXX + 1
+        IF (MID$(Map$(i), j, 1) = "@") THEN
+            MID$(Map$(i), j, 1) = " "
             x = j - 1
             y = i
-        End If
-        If (Mid$(Map$(i), j, 1) = "$") Then
-            Mid$(Map$(i), j, 1) = CharCrate$
+        END IF
+        IF (MID$(Map$(i), j, 1) = "$") THEN
+            MID$(Map$(i), j, 1) = CharCrate$
             NumCrates = NumCrates + 1
-        End If
-        If (Mid$(Map$(i), j, 1) = "*") Then
-            Mid$(Map$(i), j, 1) = CharCrateAtDest$
+        END IF
+        IF (MID$(Map$(i), j, 1) = "*") THEN
+            MID$(Map$(i), j, 1) = CharCrateAtDest$
             NumCrates = NumCrates + 1
             NumDestinations = NumDestinations + 1
             NumPlaced = NumPlaced + 1
-        End If
-        If (Mid$(Map$(i), j, 1) = ".") Then
-            Mid$(Map$(i), j, 1) = CharDest$
+        END IF
+        IF (MID$(Map$(i), j, 1) = ".") THEN
+            MID$(Map$(i), j, 1) = CharDest$
             NumDestinations = NumDestinations + 1
-        End If
+        END IF
      
         ' This is used when the walls look different depending on what walls
         ' are adjacent to them, e.g. ≥,≈,ø, etc.
@@ -426,34 +425,34 @@ For i = 1 To MAXY
         ' to above, right-of, below, and left-of. This will generate a number
         ' from 0 to 15 that is used as the offset into GameData$ to determine
         ' the character used.
-        If (Mid$(Map$(i), j, 1) = "#") Then
+        IF (MID$(Map$(i), j, 1) = "#") THEN
             code = 0
-            If (Mid$(TempMap$(i - 1), j, 1) = "#") Then code = code + 1
-            If (Mid$(TempMap$(i), j + 1, 1) = "#") Then code = code + 2
-            If (Mid$(TempMap$(i + 1), j, 1) = "#") Then code = code + 4
-            If (Mid$(TempMap$(i), j - 1, 1) = "#") Then code = code + 8
-            Mid$(Map$(i), j, 1) = Mid$(GameData$, code + 1, 1)
-        End If
-    Next j
-Next i
+            IF (MID$(TempMap$(i - 1), j, 1) = "#") THEN code = code + 1
+            IF (MID$(TempMap$(i), j + 1, 1) = "#") THEN code = code + 2
+            IF (MID$(TempMap$(i + 1), j, 1) = "#") THEN code = code + 4
+            IF (MID$(TempMap$(i), j - 1, 1) = "#") THEN code = code + 8
+            MID$(Map$(i), j, 1) = MID$(GameData$, code + 1, 1)
+        END IF
+    NEXT j
+NEXT i
 
 ' If the level is impossible, generate an error message.
-If NumCrates < NumDestinations Then
-    Screen 0: Width 80, 25
-    Color 15, 0: Cls
-    Print "Error: Level"; Level; "impossible!"
-    Print "Did you fiddle with the level file?"
-    Print "Is the level file there?"
-    Print "If this wasn't your fault please contact me."
-    Print
-    GoTo ContactMessage
-End If
+IF NumCrates < NumDestinations THEN
+    SCREEN 0: WIDTH 80, 25
+    COLOR 15, 0: CLS
+    PRINT "Error: Level"; Level; "impossible!"
+    PRINT "Did you fiddle with the level file?"
+    PRINT "Is the level file there?"
+    PRINT "If this wasn't your fault please contact me."
+    PRINT
+    GOTO ContactMessage
+END IF
 lReturn:
-Return
+RETURN
 
 Drawlevel:
 'COLOR 10, 0: CLS
-Line (0, 0)-(319, 199), 7, BF
+LINE (0, 0)-(319, 199), 7, BF
 
 DrawBox 0, 0, 319, 199, 15, 8, -1 ' Entire screen
 DrawBox 5, 5, 226, 193, 0, 15, 0 ' Game play arena
@@ -462,451 +461,450 @@ DrawBox 240, 13, 308, 26, 4, 12, 0 ' Title
 DrawBox 234, 35, 314, 58, 8, 15, 0 ' Level number
 DrawBox 234, 67, 314, 106, 8, 15, 0 ' Moves/pushes
 DrawBox 234, 115, 314, 188, 8, 15, 0 ' Keys
-Line (238, 164)-(310, 164), 13
+LINE (238, 164)-(310, 164), 13
  
-Color 12
-Locate 3, 32: Print "Sokoban";
+COLOR 12
+LOCATE 3, 32: PRINT "Sokoban";
  
-Color 11
-Locate 6, 32: Print "Level:";
-Color 9
-Locate 10, 32: Print "Moves:";
-Color 10
-Locate 12, 32: Print "Pushes:";
-GoSub ShowNumMoves
-GoSub ShowNumPushes
-GoSub ShowLevel
+COLOR 11
+LOCATE 6, 32: PRINT "Level:";
+COLOR 9
+LOCATE 10, 32: PRINT "Moves:";
+COLOR 10
+LOCATE 12, 32: PRINT "Pushes:";
+GOSUB ShowNumMoves
+GOSUB ShowNumPushes
+GOSUB ShowLevel
 
-Color 14
-Locate 16, 31: Print "R  :Reset";
-Locate 17, 31: Print "L  :Load";
-Locate 18, 31: Print "S  :Save";
-Locate 19, 31: Print "A  :About";
-Locate 20, 31: Print "Esc:Quit";
+COLOR 14
+LOCATE 16, 31: PRINT "R  :Reset";
+LOCATE 17, 31: PRINT "L  :Load";
+LOCATE 18, 31: PRINT "S  :Save";
+LOCATE 19, 31: PRINT "A  :About";
+LOCATE 20, 31: PRINT "Esc:Quit";
 
-Locate 22, 31
-Color 12: Print "D";
-Color 14: Print "J";
-Locate 23, 31
-Color 10: Print "S";
-Color 11: Print "o";
-Color 9: Print "f";
-Color 13: Print "t";
-Color 12: Print "w";
-Color 14: Print "a";
-Color 10: Print "r";
-Color 11: Print "e";
-Color 15
+LOCATE 22, 31
+COLOR 12: PRINT "D";
+COLOR 14: PRINT "J";
+LOCATE 23, 31
+COLOR 10: PRINT "S";
+COLOR 11: PRINT "o";
+COLOR 9: PRINT "f";
+COLOR 13: PRINT "t";
+COLOR 12: PRINT "w";
+COLOR 14: PRINT "a";
+COLOR 10: PRINT "r";
+COLOR 11: PRINT "e";
+COLOR 15
  
 ' Draw the playing arena
-For i = 1 To MAXY
-    For j = 2 To MAXX + 1
+FOR i = 1 TO MAXY
+    FOR j = 2 TO MAXX + 1
         ' Ignore "%" signs - they indicate pure black background
-        If Mid$(Map$(i), j, 1) <> "%" Then
-            Put ((j - 2) * 11 + OFSX, (i - 1) * 11 + OFSY), Graphics((InStr(GameData$, Mid$(Map$(i), j, 1)) - 1) * 80 + 1), PSet
-        End If
-    Next j
-Next i
+        IF MID$(Map$(i), j, 1) <> "%" THEN
+            PUT ((j - 2) * 11 + OFSX, (i - 1) * 11 + OFSY), Graphics((INSTR(GameData$, MID$(Map$(i), j, 1)) - 1) * 80 + 1), PSET
+        END IF
+    NEXT j
+NEXT i
 ' Draw the hero, taking into account the direction he's facing
 graphicsOffset = 0
-If (xd = 0 And yd = 1) Then graphicsOffset = 1
-If (xd = -1 And yd = 0) Then graphicsOffset = 2
-If (xd = 0 And yd = -1) Then graphicsOffset = 3
-Put ((x - 1) * 11 + OFSX, (y - 1) * 11 + OFSY), Graphics((POSHERO + graphicsOffset - 1) * 80 + 1), PSet
-Return
+IF (xd = 0 AND yd = 1) THEN graphicsOffset = 1
+IF (xd = -1 AND yd = 0) THEN graphicsOffset = 2
+IF (xd = 0 AND yd = -1) THEN graphicsOffset = 3
+PUT ((x - 1) * 11 + OFSX, (y - 1) * 11 + OFSY), Graphics((POSHERO + graphicsOffset - 1) * 80 + 1), PSET
+RETURN
 
 ShowLevel:
-Color 11
-Locate 7, 32: Print Level;
-Return
+COLOR 11
+LOCATE 7, 32: PRINT Level;
+RETURN
 
 ShowNumMoves:
-Color 9
-Locate 11, 32: Print NumMoves;
-Return
+COLOR 9
+LOCATE 11, 32: PRINT NumMoves;
+RETURN
 
 ShowNumPushes:
-Color 10
-Locate 13, 32: Print NumPushes;
-Return
+COLOR 10
+LOCATE 13, 32: PRINT NumPushes;
+RETURN
 
 About:
-Color 15
-Locate 1, 1
-Locate 5, 3: Print "€ﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂ€"
-Locate , 3: Print "›                                  ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›       ˛ VGA Sokoban v1.0 ˛       ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›                                  ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›         DJ Software 1997         ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›         (C) David Joffe          ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›                                  ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›     Whipped up in a few hours    ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›            for the Net           ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›                                  ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›    http://www.scorpioncity.com/  ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›                                  ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "›                                  ﬁ";: Color 8: Print "€": Color 15
-Locate , 3: Print "€‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹€";: Color 8: Print "€": Color 15
-Color 8
-Locate , 4: Print "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€";
-While InKey$ = "": Wend
+COLOR 15
+LOCATE 1, 1
+LOCATE 5, 3: PRINT "€ﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂ€"
+LOCATE , 3: PRINT "›                                  ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›       ˛ VGA Sokoban v1.0 ˛       ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›                                  ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›         DJ Software 1997         ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›         (C) David Joffe          ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›                                  ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›     Whipped up in a few hours    ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›            for the Net           ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›                                  ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›    http://www.scorpioncity.com/  ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›                                  ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "›                                  ﬁ";: COLOR 8: PRINT "€": COLOR 15
+LOCATE , 3: PRINT "€‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹€";: COLOR 8: PRINT "€": COLOR 15
+COLOR 8
+LOCATE , 4: PRINT "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€";
+WHILE INKEY$ = "": WEND
 
 ' Restore the contents of the screen
-GoSub Drawlevel
-Return
+GOSUB Drawlevel
+RETURN
 
 EndGame:
-Screen 0: Width 80, 25
-Color 15, 0: Cls
-Print "*Sniff* .. I hate goodbyes .. *sob* ..."
-Print
-Print "Feedback (and bug reports :) welcome!"
-Print
-GoTo ContactMessage
+SCREEN 0: WIDTH 80, 25
+COLOR 15, 0: CLS
+PRINT "*Sniff* .. I hate goodbyes .. *sob* ..."
+PRINT
+PRINT "Feedback (and bug reports :) welcome!"
+PRINT
+GOTO ContactMessage
 
 FinishedGame:
-Width 80, 25
-Color 15, 0: Cls
-Print "You finished the game. Yay!"
-Print "I suppose you were expecting something more spectacular then? You must be"
-Print "quite disappointed! :-)"
-Print
-Print "Actually, I would love to know if anyone actually *did* get this far (with-"
-Print "out cheating, of course), so let me know!"
-Print
-GoTo ContactMessage
+WIDTH 80, 25
+COLOR 15, 0: CLS
+PRINT "You finished the game. Yay!"
+PRINT "I suppose you were expecting something more spectacular then? You must be"
+PRINT "quite disappointed! :-)"
+PRINT
+PRINT "Actually, I would love to know if anyone actually *did* get this far (with-"
+PRINT "out cheating, of course), so let me know!"
+PRINT
+GOTO ContactMessage
 
 ContactMessage:
-Print "Try e-mail me (David Joffe) at ";: Color 14: Print "djoffe@icon.co.za";: Color 15: Print "; if that's become out-"
-Print "dated, have a look at:"
-Color 14
-Print "http://www.scorpioncity.com/"
-Color 15
-Print
-Print "I have other stuff at the above URL, with source code etc, so check it out!"
-Print
-Print "Also, if you make any new levels, I'd love to see them! Maybe I'll add them"
-Print "to the game for for a future re-release/re-write, in which case I'll give"
-Print "you appropriate credit; I'll give each level a 'Creator' field."
-Print
-Print "The 90 default levels in this version I got from XSokoban, a version of"
-Print "Sokoban for the X Window System."
-Print
-Print "Cheers from everyone here (just me :) at ";
-Color 12: Print "-+ D";
-Color 14: Print "J";
-Print " ";
-Color 10: Print "S";
-Color 11: Print "o";
-Color 9: Print "f";
-Color 13: Print "t";
-Color 12: Print "w";
-Color 14: Print "a";
-Color 10: Print "r";
-Color 11: Print "e +-"
-Color 15
+PRINT "Try e-mail me (David Joffe) at ";: COLOR 14: PRINT "djoffe@icon.co.za";: COLOR 15: PRINT "; if that's become out-"
+PRINT "dated, have a look at:"
+COLOR 14
+PRINT "http://www.scorpioncity.com/"
+COLOR 15
+PRINT
+PRINT "I have other stuff at the above URL, with source code etc, so check it out!"
+PRINT
+PRINT "Also, if you make any new levels, I'd love to see them! Maybe I'll add them"
+PRINT "to the game for for a future re-release/re-write, in which case I'll give"
+PRINT "you appropriate credit; I'll give each level a 'Creator' field."
+PRINT
+PRINT "The 90 default levels in this version I got from XSokoban, a version of"
+PRINT "Sokoban for the X Window System."
+PRINT
+PRINT "Cheers from everyone here (just me :) at ";
+COLOR 12: PRINT "-+ D";
+COLOR 14: PRINT "J";
+PRINT " ";
+COLOR 10: PRINT "S";
+COLOR 11: PRINT "o";
+COLOR 9: PRINT "f";
+COLOR 13: PRINT "t";
+COLOR 12: PRINT "w";
+COLOR 14: PRINT "a";
+COLOR 10: PRINT "r";
+COLOR 11: PRINT "e +-"
+COLOR 15
 
-Print
-Print " - David Joffe"
-End
+PRINT
+PRINT " - David Joffe"
+END
 
 GraphicsData:
 '0
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,00,00,00,00,00,00,00,00,00,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,00,00,00,00,00,00,00,00,00,00
 '1
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,00,00,00,00,00,00,00,00,00,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,00,00,00,00,00,00,00,00,00,00
 '2
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,00,00,00,00,00,00,00,00,00,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,00,00,00,00,00,00,00,00,00,00
 '3
-Data 15,07,07,07,07,07,07,07,07,07,15
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,00,00,00,00,00,00,00,00,00,00
+DATA 15,07,07,07,07,07,07,07,07,07,15
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,00,00,00,00,00,00,00,00,00,00
 '4
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
 '5
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
 '6
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,00
 '7
-Data 15,07,07,07,07,07,07,07,07,07,15
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,15
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,00
 '8
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 00,00,00,00,00,00,00,00,00,00,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 00,00,00,00,00,00,00,00,00,00,00
 '9
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 00,00,00,00,00,00,00,00,00,00,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 00,00,00,00,00,00,00,00,00,00,00
 '10
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 00,00,00,00,00,00,00,00,00,00,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 00,00,00,00,00,00,00,00,00,00,00
 '11
-Data 15,07,07,07,07,07,07,07,07,07,15
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 00,00,00,00,00,00,00,00,00,00,00
+DATA 15,07,07,07,07,07,07,07,07,07,15
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 00,00,00,00,00,00,00,00,00,00,00
 '12
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
 '13
-Data 15,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 07,07,07,07,07,07,07,07,07,07,00
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 07,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,00
 '14
-Data 15,15,15,15,15,15,15,15,15,15,15
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,15,15,15,15,15,15,15,15,15,15
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,00
 '15
-Data 15,07,07,07,07,07,07,07,07,07,15
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 07,07,07,07,07,07,07,07,07,07,07
-Data 15,07,07,07,07,07,07,07,07,07,00
+DATA 15,07,07,07,07,07,07,07,07,07,15
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 07,07,07,07,07,07,07,07,07,07,07
+DATA 15,07,07,07,07,07,07,07,07,07,00
 ' Destination
-Data 00,00,00,00,00,00,00,00,00,00,08
-Data 00,08,08,08,08,08,08,08,08,08,07
-Data 00,08,08,08,08,08,08,08,08,08,07
-Data 00,08,08,00,08,08,08,00,08,08,07
-Data 00,08,08,08,00,08,00,08,08,08,07
-Data 00,08,08,08,08,00,08,08,08,08,07
-Data 00,08,08,08,00,08,00,08,08,08,07
-Data 00,08,08,00,08,08,08,00,08,08,07
-Data 00,08,08,08,08,08,08,08,08,08,07
-Data 00,08,08,08,08,08,08,08,08,08,07
-Data 08,07,07,07,07,07,07,07,07,07,07
+DATA 00,00,00,00,00,00,00,00,00,00,08
+DATA 00,08,08,08,08,08,08,08,08,08,07
+DATA 00,08,08,08,08,08,08,08,08,08,07
+DATA 00,08,08,00,08,08,08,00,08,08,07
+DATA 00,08,08,08,00,08,00,08,08,08,07
+DATA 00,08,08,08,08,00,08,08,08,08,07
+DATA 00,08,08,08,00,08,00,08,08,08,07
+DATA 00,08,08,00,08,08,08,00,08,08,07
+DATA 00,08,08,08,08,08,08,08,08,08,07
+DATA 00,08,08,08,08,08,08,08,08,08,07
+DATA 08,07,07,07,07,07,07,07,07,07,07
 ' Blank
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
 ' Crate
-Data 08,08,08,08,08,08,08,08,08,08,08
-Data 08,15,15,15,15,15,15,15,15,15,08
-Data 08,15,12,12,12,12,12,12,12,04,08
-Data 08,15,12,12,12,12,12,12,12,04,08
-Data 08,15,12,12,12,12,12,12,12,04,08
-Data 08,15,12,12,12,12,12,12,12,04,08
-Data 08,15,12,12,12,12,12,12,12,04,08
-Data 08,15,12,12,12,12,12,12,12,04,08
-Data 08,15,12,12,12,12,12,12,12,04,08
-Data 08,15,04,04,04,04,04,04,04,04,08
-Data 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
+DATA 08,15,15,15,15,15,15,15,15,15,08
+DATA 08,15,12,12,12,12,12,12,12,04,08
+DATA 08,15,12,12,12,12,12,12,12,04,08
+DATA 08,15,12,12,12,12,12,12,12,04,08
+DATA 08,15,12,12,12,12,12,12,12,04,08
+DATA 08,15,12,12,12,12,12,12,12,04,08
+DATA 08,15,12,12,12,12,12,12,12,04,08
+DATA 08,15,12,12,12,12,12,12,12,04,08
+DATA 08,15,04,04,04,04,04,04,04,04,08
+DATA 08,08,08,08,08,08,08,08,08,08,08
 'Crate at destination
-Data 0,0,0,0,0,0,0,0,0,0,0
-Data 0,12,12,12,12,12,12,12,12,12,7
-Data 0,12,4,4,4,4,4,4,4,0,7
-Data 0,12,4,4,4,4,4,4,4,0,7
-Data 0,12,4,4,4,4,4,4,4,0,7
-Data 0,12,4,4,4,4,4,4,4,0,7
-Data 0,12,4,4,4,4,4,4,4,0,7
-Data 0,12,4,4,4,4,4,4,4,0,7
-Data 0,12,4,4,4,4,4,4,4,0,7
-Data 0,12,0,0,0,0,0,0,0,0,7
-Data 7,7,7,7,7,7,7,7,7,7,7
+DATA 0,0,0,0,0,0,0,0,0,0,0
+DATA 0,12,12,12,12,12,12,12,12,12,7
+DATA 0,12,4,4,4,4,4,4,4,0,7
+DATA 0,12,4,4,4,4,4,4,4,0,7
+DATA 0,12,4,4,4,4,4,4,4,0,7
+DATA 0,12,4,4,4,4,4,4,4,0,7
+DATA 0,12,4,4,4,4,4,4,4,0,7
+DATA 0,12,4,4,4,4,4,4,4,0,7
+DATA 0,12,4,4,4,4,4,4,4,0,7
+DATA 0,12,0,0,0,0,0,0,0,0,7
+DATA 7,7,7,7,7,7,7,7,7,7,7
 'Hero
-Data 08,08,08,14,14,14,14,14,08,08,08
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 08,14,14,14,14,14,00,00,14,14,08
-Data 14,14,14,14,14,14,00,00,14,14,14
-Data 14,14,14,14,14,14,14,14,14,14,14
-Data 14,14,14,14,08,08,08,08,08,08,08
-Data 14,14,14,14,14,14,08,08,08,08,08
-Data 14,14,14,14,14,14,14,14,08,08,08
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 08,14,14,14,14,14,14,14,14,08,08
-Data 08,08,08,14,14,14,14,14,08,08,08
+DATA 08,08,08,14,14,14,14,14,08,08,08
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 08,14,14,14,14,14,00,00,14,14,08
+DATA 14,14,14,14,14,14,00,00,14,14,14
+DATA 14,14,14,14,14,14,14,14,14,14,14
+DATA 14,14,14,14,08,08,08,08,08,08,08
+DATA 14,14,14,14,14,14,08,08,08,08,08
+DATA 14,14,14,14,14,14,14,14,08,08,08
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 08,14,14,14,14,14,14,14,14,08,08
+DATA 08,08,08,14,14,14,14,14,08,08,08
 
-Data 08,08,08,14,14,14,14,14,08,08,08
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 14,14,14,14,14,14,14,14,14,14,14
-Data 14,14,14,14,14,08,14,14,14,14,14
-Data 14,14,14,14,14,08,14,14,14,14,14
-Data 14,14,00,00,14,08,08,14,14,14,14
-Data 14,14,00,00,14,08,08,14,14,14,14
-Data 08,14,14,14,14,08,08,08,14,14,08
-Data 08,14,14,14,14,08,08,08,14,08,08
-Data 08,08,08,14,14,08,08,08,08,08,08
+DATA 08,08,08,14,14,14,14,14,08,08,08
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 14,14,14,14,14,14,14,14,14,14,14
+DATA 14,14,14,14,14,08,14,14,14,14,14
+DATA 14,14,14,14,14,08,14,14,14,14,14
+DATA 14,14,00,00,14,08,08,14,14,14,14
+DATA 14,14,00,00,14,08,08,14,14,14,14
+DATA 08,14,14,14,14,08,08,08,14,14,08
+DATA 08,14,14,14,14,08,08,08,14,08,08
+DATA 08,08,08,14,14,08,08,08,08,08,08
 
-Data 08,08,08,14,14,14,14,14,08,08,08
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 08,14,14,00,00,14,14,14,14,14,08
-Data 14,14,14,00,00,14,14,14,14,14,14
-Data 14,14,14,14,14,14,14,14,14,14,14
-Data 08,08,08,08,08,08,08,14,14,14,14
-Data 08,08,08,08,08,14,14,14,14,14,14
-Data 08,08,08,14,14,14,14,14,14,14,14
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 08,08,14,14,14,14,14,14,14,14,08
-Data 08,08,08,14,14,14,14,14,08,08,08
+DATA 08,08,08,14,14,14,14,14,08,08,08
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 08,14,14,00,00,14,14,14,14,14,08
+DATA 14,14,14,00,00,14,14,14,14,14,14
+DATA 14,14,14,14,14,14,14,14,14,14,14
+DATA 08,08,08,08,08,08,08,14,14,14,14
+DATA 08,08,08,08,08,14,14,14,14,14,14
+DATA 08,08,08,14,14,14,14,14,14,14,14
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 08,08,14,14,14,14,14,14,14,14,08
+DATA 08,08,08,14,14,14,14,14,08,08,08
 
-Data 08,08,08,08,08,08,14,14,08,08,08
-Data 08,08,14,08,08,08,14,14,14,14,08
-Data 08,14,14,08,08,08,14,14,14,14,08
-Data 14,14,14,14,08,08,14,00,00,14,14
-Data 14,14,14,14,08,08,14,00,00,14,14
-Data 14,14,14,14,14,08,14,14,14,14,14
-Data 14,14,14,14,14,08,14,14,14,14,14
-Data 14,14,14,14,14,14,14,14,14,14,14
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 08,14,14,14,14,14,14,14,14,14,08
-Data 08,08,08,14,14,14,14,14,08,08,08
+DATA 08,08,08,08,08,08,14,14,08,08,08
+DATA 08,08,14,08,08,08,14,14,14,14,08
+DATA 08,14,14,08,08,08,14,14,14,14,08
+DATA 14,14,14,14,08,08,14,00,00,14,14
+DATA 14,14,14,14,08,08,14,00,00,14,14
+DATA 14,14,14,14,14,08,14,14,14,14,14
+DATA 14,14,14,14,14,08,14,14,14,14,14
+DATA 14,14,14,14,14,14,14,14,14,14,14
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 08,14,14,14,14,14,14,14,14,14,08
+DATA 08,08,08,14,14,14,14,14,08,08,08
 
-Sub DrawBox (x1, y1, x2, y2, col1, col2, bgfill)
-    If (bgfill <> -1) Then
-        Line (x1, y1)-(x2, y2), bgfill, BF
-    End If
-    Line (x1, y1)-(x2, y1), col1
-    Line (x1, y1)-(x1, y2), col1
-    Line (x2, y1)-(x2, y2), col2
-    Line (x1, y2)-(x2, y2), col2
-End Sub
-
+SUB DrawBox (x1, y1, x2, y2, col1, col2, bgfill)
+    IF (bgfill <> -1) THEN
+        LINE (x1, y1)-(x2, y2), bgfill, BF
+    END IF
+    LINE (x1, y1)-(x2, y1), col1
+    LINE (x1, y1)-(x1, y2), col1
+    LINE (x2, y1)-(x2, y2), col2
+    LINE (x1, y2)-(x2, y2), col2
+END SUB

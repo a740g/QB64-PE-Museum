@@ -1,7 +1,7 @@
-'$INCLUDE: '3d.bi'
+'$INCLUDE:'3d.bi'
 
 DIM SHARED G_MAINSCREEN
-G_MAINSCREEN = NEWIMAGE(1024, 768, 32)
+G_MAINSCREEN = _NEWIMAGE(1024, 768, 32)
 SCREEN G_MAINSCREEN
 
 DIM obj, obj2
@@ -18,7 +18,7 @@ g_objects(2).x = -250
 SETOBJHIDDEN 2, 0
 
 DO
-    CLS , RGB(0, 0, 0)
+    CLS , _RGB(0, 0, 0)
     ROTATEOBJX 1, -1
     ROTATEOBJY 2, -2
 
@@ -28,9 +28,9 @@ DO
     DISPOBJ 1, tex()
     DISPOBJ 2, tex()
 
-    LIMIT 60
-    DISPLAY
+    _LIMIT 60
+    _DISPLAY
 LOOP
 
 END
-'$INCLUDE: '3d.bm'
+'$INCLUDE:'3d.bm'

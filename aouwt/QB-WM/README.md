@@ -35,4 +35,4 @@ Controls are:
 
 ## Compiling
 
-It requires using at least version 1.4 of [QB64](https://qb64.org) to compile, because `$NOPREFIX` is not available in versions earlier than that.
+Use the latest version of QB64-PE from <https://www.qb64phoenix.com/>

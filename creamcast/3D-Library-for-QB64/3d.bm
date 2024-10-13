@@ -2,64 +2,64 @@
 SUB SETOBJHIDDEN (objid AS INTEGER, n AS INTEGER)
     g_objects(objid).hidden = n
 END SUB
-SUB SETOBJX (objid AS INTEGER, x AS FLOAT)
+SUB SETOBJX (objid AS INTEGER, x AS _FLOAT)
     g_objects(objid).x = x
 END SUB
-SUB SETOBJY (objid AS INTEGER, y AS FLOAT)
+SUB SETOBJY (objid AS INTEGER, y AS _FLOAT)
     g_objects(objid).y = y
 END SUB
-SUB SETOBJZ (objid AS INTEGER, z AS FLOAT)
+SUB SETOBJZ (objid AS INTEGER, z AS _FLOAT)
     g_objects(objid).z = z
 END SUB
-SUB SETOBJPOS (objid AS INTEGER, x AS FLOAT, y AS FLOAT, z AS FLOAT)
+SUB SETOBJPOS (objid AS INTEGER, x AS _FLOAT, y AS _FLOAT, z AS _FLOAT)
     g_objects(objid).x = x
     g_objects(objid).y = y
     g_objects(objid).z = z
 END SUB
-SUB SETOBJROT (objid AS INTEGER, xr AS FLOAT, yr AS FLOAT, zr AS FLOAT)
+SUB SETOBJROT (objid AS INTEGER, xr AS _FLOAT, yr AS _FLOAT, zr AS _FLOAT)
     g_objects(objid).rotx = xr
     g_objects(objid).roty = yr
     g_objects(objid).rotz = zr
 END SUB
-SUB ROTATEOBJX (objid AS INTEGER, deg AS FLOAT)
+SUB ROTATEOBJX (objid AS INTEGER, deg AS _FLOAT)
     g_objects(objid).rotx = (g_objects(objid).rotx + deg) MOD 360
 END SUB
-SUB ROTATEOBJY (objid AS INTEGER, deg AS FLOAT)
+SUB ROTATEOBJY (objid AS INTEGER, deg AS _FLOAT)
     g_objects(objid).roty = (g_objects(objid).roty + deg) MOD 360
 END SUB
-SUB ROTATEOBJZ (objid AS INTEGER, deg AS FLOAT)
+SUB ROTATEOBJZ (objid AS INTEGER, deg AS _FLOAT)
     g_objects(objid).rotz = (g_objects(objid).rotz + deg) MOD 360
 END SUB
-SUB MOVEOBJX (objid AS INTEGER, n AS FLOAT)
+SUB MOVEOBJX (objid AS INTEGER, n AS _FLOAT)
     g_objects(objid).x = g_objects(objid).x + n
 END SUB
-SUB MOVEOBJY (objid AS INTEGER, n AS FLOAT)
+SUB MOVEOBJY (objid AS INTEGER, n AS _FLOAT)
     g_objects(objid).y = g_objects(objid).y + n
 END SUB
-SUB MOVEOBJZ (objid AS INTEGER, n AS FLOAT)
+SUB MOVEOBJZ (objid AS INTEGER, n AS _FLOAT)
     g_objects(objid).z = g_objects(objid).z + n
 END SUB
-SUB SETOBJSCALE (objid AS INTEGER, x AS FLOAT, y AS FLOAT, z AS FLOAT)
+SUB SETOBJSCALE (objid AS INTEGER, x AS _FLOAT, y AS _FLOAT, z AS _FLOAT)
     g_objects(objid).scalex = x
     g_objects(objid).scaley = y
     g_objects(objid).scalez = z
 END SUB
-SUB ROTATECAMX (deg AS FLOAT)
+SUB ROTATECAMX (deg AS _FLOAT)
     g_cam.rotx = (g_cam.rotx + deg) MOD 360
 END SUB
-SUB ROTATECAMY (deg AS FLOAT)
+SUB ROTATECAMY (deg AS _FLOAT)
     g_cam.roty = (g_cam.roty + deg) MOD 360
 END SUB
-SUB ROTATECAMZ (deg AS FLOAT)
+SUB ROTATECAMZ (deg AS _FLOAT)
     g_cam.rotz = (g_cam.rotz + deg) MOD 360
 END SUB
-SUB MOVECAMX (n AS FLOAT)
+SUB MOVECAMX (n AS _FLOAT)
     g_cam.x = g_cam.x + n
 END SUB
-SUB MOVECAMY (n AS FLOAT)
+SUB MOVECAMY (n AS _FLOAT)
     g_cam.y = g_cam.y + n
 END SUB
-SUB MOVECAMZ (n AS FLOAT)
+SUB MOVECAMZ (n AS _FLOAT)
     g_cam.z = g_cam.z + n
 END SUB
 
@@ -97,44 +97,44 @@ SUB createTexture (filename AS STRING, image_array() AS LONG)
     DIM imgw, imgh
     DIM i
     DIM tmp_image_array(8) AS LONG
-    REDIM PRESERVE image_array(8) AS LONG
+    REDIM _PRESERVE image_array(8) AS LONG
 
-    tmp_image_array(0) = LOADIMAGE(filename)
-    image_array(0) = COPYIMAGE(tmp_image_array(0), 33)
+    tmp_image_array(0) = _LOADIMAGE(filename)
+    image_array(0) = _COPYIMAGE(tmp_image_array(0), 33)
 
-    imgw = WIDTH(tmp_image_array(0))
-    imgh = HEIGHT(tmp_image_array(0))
-    tmp_image_array(1) = COPYIMAGE(tmp_image_array(0), 32)
-    tmp_image_array(2) = COPYIMAGE(tmp_image_array(0), 32)
-    tmp_image_array(3) = COPYIMAGE(tmp_image_array(0), 32)
-    tmp_image_array(4) = COPYIMAGE(tmp_image_array(0), 32)
-    tmp_image_array(5) = COPYIMAGE(tmp_image_array(0), 32)
-    tmp_image_array(6) = COPYIMAGE(tmp_image_array(0), 32)
-    tmp_image_array(7) = COPYIMAGE(tmp_image_array(0), 32)
-    tmp_image_array(8) = COPYIMAGE(tmp_image_array(0), 32)
+    imgw = _WIDTH(tmp_image_array(0))
+    imgh = _HEIGHT(tmp_image_array(0))
+    tmp_image_array(1) = _COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(2) = _COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(3) = _COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(4) = _COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(5) = _COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(6) = _COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(7) = _COPYIMAGE(tmp_image_array(0), 32)
+    tmp_image_array(8) = _COPYIMAGE(tmp_image_array(0), 32)
 
-    DEST tmp_image_array(1): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 10), BF , 255 '0 - transparent
-    DEST tmp_image_array(2): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 50), BF , 255
-    DEST tmp_image_array(3): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 90), BF , 255
-    DEST tmp_image_array(4): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 130), BF , 255
-    DEST tmp_image_array(5): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 160), BF , 255
-    DEST tmp_image_array(6): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 190), BF , 255
-    DEST tmp_image_array(7): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 220), BF , 255
-    DEST tmp_image_array(8): LINE (0, 0)-(imgw, imgh), RGBA(0, 0, 0, 250), BF , 255
+    _DEST tmp_image_array(1): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 10), BF , 255 '0 - transparent
+    _DEST tmp_image_array(2): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 50), BF , 255
+    _DEST tmp_image_array(3): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 90), BF , 255
+    _DEST tmp_image_array(4): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 130), BF , 255
+    _DEST tmp_image_array(5): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 160), BF , 255
+    _DEST tmp_image_array(6): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 190), BF , 255
+    _DEST tmp_image_array(7): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 220), BF , 255
+    _DEST tmp_image_array(8): LINE (0, 0)-(imgw, imgh), _RGBA(0, 0, 0, 250), BF , 255
 
-    image_array(1) = COPYIMAGE(tmp_image_array(1), 33)
-    image_array(2) = COPYIMAGE(tmp_image_array(2), 33)
-    image_array(3) = COPYIMAGE(tmp_image_array(3), 33)
-    image_array(4) = COPYIMAGE(tmp_image_array(4), 33)
-    image_array(5) = COPYIMAGE(tmp_image_array(5), 33)
-    image_array(6) = COPYIMAGE(tmp_image_array(6), 33)
-    image_array(7) = COPYIMAGE(tmp_image_array(7), 33)
-    image_array(8) = COPYIMAGE(tmp_image_array(8), 33)
+    image_array(1) = _COPYIMAGE(tmp_image_array(1), 33)
+    image_array(2) = _COPYIMAGE(tmp_image_array(2), 33)
+    image_array(3) = _COPYIMAGE(tmp_image_array(3), 33)
+    image_array(4) = _COPYIMAGE(tmp_image_array(4), 33)
+    image_array(5) = _COPYIMAGE(tmp_image_array(5), 33)
+    image_array(6) = _COPYIMAGE(tmp_image_array(6), 33)
+    image_array(7) = _COPYIMAGE(tmp_image_array(7), 33)
+    image_array(8) = _COPYIMAGE(tmp_image_array(8), 33)
 
     FOR i = 0 TO UBOUND(tmp_image_array)
-        FREEIMAGE (tmp_image_array(i))
+        _FREEIMAGE (tmp_image_array(i))
     NEXT i
-    DEST G_MAINSCREEN
+    _DEST G_MAINSCREEN
 END SUB
 
 
@@ -159,7 +159,7 @@ FUNCTION MIN (n1, n2)
 END FUNCTION
 
 SUB getSurfaceNorm (polygon_n AS INTEGER, x##(), y##(), z##(), rn() AS VEC3D)
-    DIM centerz AS FLOAT
+    DIM centerz AS _FLOAT
     DIM p AS VEC3D
     DIM q AS VEC3D
 
@@ -204,7 +204,7 @@ FUNCTION loadObj (filename AS STRING)
     OPEN filename FOR INPUT AS 1
     'create new object
     g_obj_count = g_obj_count + 1
-    REDIM PRESERVE g_objects(g_obj_count) AS OBJECT
+    REDIM _PRESERVE g_objects(g_obj_count) AS OBJECT
     g_objects(g_obj_count).id = g_obj_count
     g_objects(g_obj_count).polygon_index_start = g_last_polygon
 
@@ -213,7 +213,7 @@ FUNCTION loadObj (filename AS STRING)
         LINE INPUT #1, lin
         getTokens lin, " ", tokens()
         IF tokens(0) = "vt" THEN
-            REDIM PRESERVE vts(last_vt) AS VEC2D
+            REDIM _PRESERVE vts(last_vt) AS VEC2D
             vts(last_vt).obj_id = g_objects(g_obj_count).id
             vts(last_vt).x = VAL(tokens(1))
             vts(last_vt).y = VAL(tokens(2))
@@ -231,7 +231,7 @@ FUNCTION loadObj (filename AS STRING)
         IF tokens(0) = "mtllib" THEN
             mtllib = tokens(1)
         ELSEIF tokens(0) = "v" THEN
-            REDIM PRESERVE verts(last_vert) AS VEC3D
+            REDIM _PRESERVE verts(last_vert) AS VEC3D
             verts(last_vert).obj_id = g_objects(g_obj_count).id
             verts(last_vert).x = VAL(tokens(1))
             verts(last_vert).y = VAL(tokens(2))
@@ -253,7 +253,7 @@ FUNCTION loadObj (filename AS STRING)
         getTokens lin, " ", tokens()
 
         IF tokens(0) = "f" THEN
-            REDIM PRESERVE g_polygons(g_last_polygon) AS POLYGON
+            REDIM _PRESERVE g_polygons(g_last_polygon) AS POLYGON
             g_polygons(g_last_polygon).obj_id = g_objects(g_obj_count).id
             IF UBOUND(tokens) <= 4 THEN
                 g_polygons(g_last_polygon).maxvert = UBOUND(tokens)
@@ -317,14 +317,14 @@ SUB getTokens (lin AS STRING, delimiter AS STRING, tokens() AS STRING)
         c = MID$(lin, i, 1)
         IF c = "" THEN
             IF savec <> "" THEN
-                REDIM PRESERVE tokens(ti) AS STRING
+                REDIM _PRESERVE tokens(ti) AS STRING
                 tokens(ti) = savec
             END IF
             EXIT DO
         END IF
 
         IF c = delimiter THEN
-            REDIM PRESERVE tokens(ti) AS STRING
+            REDIM _PRESERVE tokens(ti) AS STRING
             tokens(ti) = savec
             savec = ""
             ti = ti + 1
@@ -335,10 +335,10 @@ SUB getTokens (lin AS STRING, delimiter AS STRING, tokens() AS STRING)
 END SUB
 
 SUB normalize (t AS VEC3D)
-    DIM x AS FLOAT
-    DIM y AS FLOAT
-    DIM z AS FLOAT
-    DIM scale AS FLOAT
+    DIM x AS _FLOAT
+    DIM y AS _FLOAT
+    DIM z AS _FLOAT
+    DIM scale AS _FLOAT
     x = t.x
     y = t.y
     z = t.z
@@ -568,11 +568,11 @@ SUB DISPOBJ (objid AS INTEGER, texture() AS LONG)
     DIM theight
     DIM twidth
     DIM n(1) AS VEC3D
-    DIM b(1) AS FLOAT
+    DIM b(1) AS _FLOAT
     DIM usetexture0 AS LONG
     DIM usetexture1 AS LONG
-    theight = HEIGHT(texture(0))
-    twidth = WIDTH(texture(0))
+    theight = _HEIGHT(texture(0))
+    twidth = _WIDTH(texture(0))
 
     FOR i = g_objects(objid).polygon_index_start TO g_objects(objid).polygon_index_end
         REDIM x##(3), y##(3), z##(3)
@@ -622,9 +622,9 @@ SUB DISPOBJ (objid AS INTEGER, texture() AS LONG)
             usetexture1 = texture(chooseShadeTex(b(1)))
         END IF
 
-        MAPTRIANGLE SEAMLESS(tx##(0), ty##(0))-(tx##(1), ty##(1))-(tx##(2), ty##(2)), usetexture0 TO(x##(0), y##(0), z##(0))-(x##(1), y##(1), z##(1))-(x##(2), y##(2), z##(2)), , _SMOOTH
+        _MAPTRIANGLE _SEAMLESS(tx##(0), ty##(0))-(tx##(1), ty##(1))-(tx##(2), ty##(2)), usetexture0 TO(x##(0), y##(0), z##(0))-(x##(1), y##(1), z##(1))-(x##(2), y##(2), z##(2)), , _SMOOTH
         IF g_polygons(i).maxvert = 4 THEN
-            MAPTRIANGLE SEAMLESS(tx##(2), ty##(2))-(tx##(3), ty##(3))-(tx##(0), ty##(0)), usetexture1 TO(x##(2), y##(2), z##(2))-(x##(3), y##(3), z##(3))-(x##(0), y##(0), z##(0)), , _SMOOTH
+            _MAPTRIANGLE _SEAMLESS(tx##(2), ty##(2))-(tx##(3), ty##(3))-(tx##(0), ty##(0)), usetexture1 TO(x##(2), y##(2), z##(2))-(x##(3), y##(3), z##(3))-(x##(0), y##(0), z##(0)), , _SMOOTH
         END IF
     NEXT
 

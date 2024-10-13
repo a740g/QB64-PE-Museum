@@ -3,113 +3,112 @@
 '( powell98@pacbell.net )
 '(c) 1999
 ' Fixed for QB64 by Samuel Gomes
-$NoPrefix
-$Resize:Smooth
-Title "Assault"
+
+_TITLE "Assault"
 
 'Type Definitions
-Type gametype
-    cfgfile As String * 12
-    keyfile As String * 12
-    fntfile As String * 12
-    sprfile As String * 12
-End Type
+TYPE gametype
+    cfgfile AS STRING * 12
+    keyfile AS STRING * 12
+    fntfile AS STRING * 12
+    sprfile AS STRING * 12
+END TYPE
 
-Type packtype
-    ammo As Integer
-    set As Integer
-End Type
+TYPE packtype
+    ammo AS INTEGER
+    set AS INTEGER
+END TYPE
 
-Type bullettype
-    class As Integer
-    xi As Integer
-    yi As Integer
-    x As Integer
-    y As Integer
-    a As Double
-    dir As Integer
-    p As Integer
-    tim As Double
-    set As Integer
-End Type
+TYPE bullettype
+    class AS INTEGER
+    xi AS INTEGER
+    yi AS INTEGER
+    x AS INTEGER
+    y AS INTEGER
+    a AS DOUBLE
+    dir AS INTEGER
+    p AS INTEGER
+    tim AS DOUBLE
+    set AS INTEGER
+END TYPE
 
-Type teamtype
-    nam As String * 11
-    act As Integer
-    clr As Integer
-End Type
+TYPE teamtype
+    nam AS STRING * 11
+    act AS INTEGER
+    clr AS INTEGER
+END TYPE
 
-Type playertype
-    nam As String * 10
-    tnum As Integer
-    xi As Integer
-    yi As Integer
-    x As Integer
-    y As Integer
-    a As Double
-    bul As Integer
-    dir As Integer
-    health As Integer
-    dam As Integer
-    jump As Integer
-    aj As Single
-    pj As Integer
-    tim As Double
-    glued As Double
-End Type
+TYPE playertype
+    nam AS STRING * 10
+    tnum AS INTEGER
+    xi AS INTEGER
+    yi AS INTEGER
+    x AS INTEGER
+    y AS INTEGER
+    a AS DOUBLE
+    bul AS INTEGER
+    dir AS INTEGER
+    health AS INTEGER
+    dam AS INTEGER
+    jump AS INTEGER
+    aj AS SINGLE
+    pj AS INTEGER
+    tim AS DOUBLE
+    glued AS DOUBLE
+END TYPE
 
-Type leveltype
-    nam As String * 10
-    turn As Integer
-    wind As Integer
-    jag As Integer
-    rise As Single
-    grav As Single
-    sndb As String * 12
-    nofly As Integer
-    fire As Integer
-    tim As Double
-    quit As Integer
-End Type
+TYPE leveltype
+    nam AS STRING * 10
+    turn AS INTEGER
+    wind AS INTEGER
+    jag AS INTEGER
+    rise AS SINGLE
+    grav AS SINGLE
+    sndb AS STRING * 12
+    nofly AS INTEGER
+    fire AS INTEGER
+    tim AS DOUBLE
+    quit AS INTEGER
+END TYPE
 
-Type paltype
-    r As Integer
-    g As Integer
-    B As Integer
-End Type
+TYPE paltype
+    r AS INTEGER
+    g AS INTEGER
+    B AS INTEGER
+END TYPE
 
-Type polartype
-    r As Single
-    a As Single
-End Type
+TYPE polartype
+    r AS SINGLE
+    a AS SINGLE
+END TYPE
 
-Type configtype
-    snd As Integer
-    sndb As Integer
-    ammodrop As Single
-End Type
+TYPE configtype
+    snd AS INTEGER
+    sndb AS INTEGER
+    ammodrop AS SINGLE
+END TYPE
 
-Type sndMgrType
-    act As Byte
-    nam As String
-    hnd As Long
-End Type
+TYPE sndMgrType
+    act AS _BYTE
+    nam AS STRING
+    hnd AS LONG
+END TYPE
 
 'Global Variable Definitions
-Const FALSE%% = 0, TRUE%% = Not FALSE%%
-Const bulletspd% = 2, maxpower% = 150, maxplayers% = 8
-Const menuclr% = 17, maxweapons% = 7, maxsparks% = 60, maxbullets% = 10
-Const playerstep% = 4, playeraim! = .1, playeraimsize% = 20, gunlen% = 3
+CONST FALSE%% = 0, TRUE%% = NOT FALSE%%
+CONST bulletspd% = 2, maxpower% = 150, maxplayers% = 8
+CONST menuclr% = 17, maxweapons% = 7, maxsparks% = 60, maxbullets% = 10
+CONST playerstep% = 4, playeraim! = .1, playeraimsize% = 20, gunlen% = 3
 
-ReDim Shared sndMgr(0 To 0) As sndMgrType
-Dim Shared player(maxplayers%) As playertype, level As leveltype, bullet(1 To maxbullets%) As bullettype
-Dim Shared turfbuf(32001) As Integer, backbuf(32001) As Integer, playerspr(7 + 8 * 7) As Integer
-Dim Shared ammospr(0 To maxweapons%, 7 + 8 * 7) As Integer, team(maxplayers%) As teamtype
-Dim Shared config As configtype, playpack(maxplayers%, 1 To maxweapons%) As packtype, spark(1 To maxsparks%) As polartype
-Dim Shared smallnum(9, 2 + 3 * 4) As Integer, barbuf(2561) As Integer, pal(1 To 3) As paltype
-Dim Shared keycode(1 To 11 + maxweapons%) As String, keyact(1 To 11 + maxweapons%) As String
-Dim Shared fontbuf(0) As String * 10368, menuitem(10) As String, game As gametype
-Dim Shared gamepal(0 To 255) As paltype, defpal(0 To 255) As paltype
+REDIM SHARED sndMgr(0 TO 0) AS sndMgrType
+DIM SHARED player(maxplayers%) AS playertype, level AS leveltype, bullet(1 TO maxbullets%) AS bullettype
+DIM SHARED turfbuf(32001) AS INTEGER, backbuf(32001) AS INTEGER, playerspr(7 + 8 * 7) AS INTEGER
+DIM SHARED ammospr(0 TO maxweapons%, 7 + 8 * 7) AS INTEGER, team(maxplayers%) AS teamtype
+DIM SHARED config AS configtype, playpack(maxplayers%, 1 TO maxweapons%) AS packtype, spark(1 TO maxsparks%) AS polartype
+DIM SHARED smallnum(9, 2 + 3 * 4) AS INTEGER, barbuf(2561) AS INTEGER, pal(1 TO 3) AS paltype
+DIM SHARED keycode(1 TO 11 + maxweapons%) AS STRING, keyact(1 TO 11 + maxweapons%) AS STRING
+DIM SHARED fontbuf(0) AS STRING * 10368, menuitem(10) AS STRING, game AS gametype
+DIM SHARED gamepal(0 TO 255) AS paltype, defpal(0 TO 255) AS paltype
 
 ' Initialize the sound manager
 sndMgr(0).act = FALSE
@@ -140,8 +139,8 @@ menuitem(3) = "Configure"
 menuitem(4) = "Quit"
 mnum% = 4
 Menu mnum%
-Select Case mnum%
-    Case 1
+SELECT CASE mnum%
+    CASE 1
         menuitem(0) = "ENVIRONMENT"
         menuitem(1) = "Jungle"
         menuitem(2) = "Arctic"
@@ -150,10 +149,10 @@ Select Case mnum%
         menuitem(5) = "Moon"
         mnum% = 5
         Menu mnum%
-        Select Case mnum%
-            Case -1
-                GoTo mainmenu
-            Case 1
+        SELECT CASE mnum%
+            CASE -1
+                GOTO mainmenu
+            CASE 1
                 level.nam = "Jungle"
                 pal(1).r = 20
                 pal(1).g = 10
@@ -168,7 +167,7 @@ Select Case mnum%
                 level.rise = .8
                 level.grav = 1
                 level.sndb = "jungle.wav"
-            Case 2
+            CASE 2
                 level.nam = "Arctic"
                 pal(1).r = 20
                 pal(1).g = 10
@@ -183,7 +182,7 @@ Select Case mnum%
                 level.rise = .5
                 level.grav = 1
                 level.sndb = "arctic.wav"
-            Case 3
+            CASE 3
                 level.nam = "Plains"
                 pal(1).r = 20
                 pal(1).g = 20
@@ -198,7 +197,7 @@ Select Case mnum%
                 level.rise = .15
                 level.grav = 1
                 level.sndb = "plains.wav"
-            Case 4
+            CASE 4
                 level.nam = "Volcano"
                 pal(1).r = 30
                 pal(1).g = 10
@@ -213,7 +212,7 @@ Select Case mnum%
                 level.rise = .8
                 level.grav = 1
                 level.sndb = "volcano.wav"
-            Case 5
+            CASE 5
                 level.nam = "Moon"
                 pal(1).r = 0
                 pal(1).g = 0
@@ -228,25 +227,25 @@ Select Case mnum%
                 level.rise = .3
                 level.grav = .3
                 level.sndb = "moon.wav"
-        End Select
+        END SELECT
         FadePal 0, 0, 0, 0, 0, 255
         InitGamePal
-        Def Seg = VarSeg(backbuf(0))
-        BLoad "backgrnd\" + RTrim$(level.nam) + ".bck", 0
-        Def Seg
+        DEF SEG = VARSEG(backbuf(0))
+        BLOAD "backgrnd\" + RTRIM$(level.nam) + ".bck", 0
+        DEF SEG
         BuildLevel
         Main
-        GoTo mainmenu
-    Case 2
-        Line (0, 30)-(319, 199), 0, BF
-        DrawFont "Custom Level", 160 - (Len("Custom Level") / 2) * 8, 50, 1, 1, 2, menuclr% + 5
-        DrawFont "(Enter Cancels)", 160 - (Len("(Enter Cancels)") / 2) * 8, 65, 1, 1, 2, menuclr% + 5
-        For c% = 0 To 100
+        GOTO mainmenu
+    CASE 2
+        LINE (0, 30)-(319, 199), 0, BF
+        DrawFont "Custom Level", 160 - (LEN("Custom Level") / 2) * 8, 50, 1, 1, 2, menuclr% + 5
+        DrawFont "(Enter Cancels)", 160 - (LEN("(Enter Cancels)") / 2) * 8, 65, 1, 1, 2, menuclr% + 5
+        FOR c% = 0 TO 100
             FadePal 0, 0, 0, c%, 0, 31
-        Next c%
-        Locate 11, 15
-        Input "", l$
-        If l$ = "" Then GoTo mainmenu
+        NEXT c%
+        LOCATE 11, 15
+        INPUT "", l$
+        IF l$ = "" THEN GOTO mainmenu
         pal(1).r = 10
         pal(1).g = 10
         pal(1).B = 10
@@ -254,91 +253,91 @@ Select Case mnum%
         InitGamePal
         LoadLevel l$ + ".lvl"
         Main
-        GoTo mainmenu
-    Case 3
+        GOTO mainmenu
+    CASE 3
         Configure
-        GoTo mainmenu
-    Case 4
-        System 0
-    Case Else
-        GoTo mainmenu
-End Select
+        GOTO mainmenu
+    CASE 4
+        SYSTEM 0
+    CASE ELSE
+        GOTO mainmenu
+END SELECT
 
 'Various Game Data
 teaminfo:
-Data "None",0
-Data "Red Team",4
-Data "White Team",15
-Data "Blue Team",1
-Data "Yellow Team",14
-Data "Green Team",2
-Data "Brown Team",6
-Data "Purple Team",5
-Data "Black Team",16
+DATA "None",0
+DATA "Red Team",4
+DATA "White Team",15
+DATA "Blue Team",1
+DATA "Yellow Team",14
+DATA "Green Team",2
+DATA "Brown Team",6
+DATA "Purple Team",5
+DATA "Black Team",16
 
 'Small Number Data
 smallnums:
-Data 0,1,0
-Data 1,0,1
-Data 1,0,1
-Data 1,0,1
-Data 0,1,0
+DATA 0,1,0
+DATA 1,0,1
+DATA 1,0,1
+DATA 1,0,1
+DATA 0,1,0
 
-Data 0,0,1
-Data 0,1,1
-Data 0,0,1
-Data 0,0,1
-Data 0,0,1
+DATA 0,0,1
+DATA 0,1,1
+DATA 0,0,1
+DATA 0,0,1
+DATA 0,0,1
 
-Data 0,1,0
-Data 1,0,1
-Data 0,0,1
-Data 0,1,0
-Data 1,1,1
+DATA 0,1,0
+DATA 1,0,1
+DATA 0,0,1
+DATA 0,1,0
+DATA 1,1,1
 
-Data 1,1,0
-Data 0,0,1
-Data 0,1,0
-Data 0,0,1
-Data 1,1,0
+DATA 1,1,0
+DATA 0,0,1
+DATA 0,1,0
+DATA 0,0,1
+DATA 1,1,0
 
-Data 1,0,1
-Data 1,0,1
-Data 1,1,1
-Data 0,0,1
-Data 0,0,1
+DATA 1,0,1
+DATA 1,0,1
+DATA 1,1,1
+DATA 0,0,1
+DATA 0,0,1
 
-Data 1,1,1
-Data 1,0,0
-Data 1,1,0
-Data 0,0,1
-Data 1,1,0
+DATA 1,1,1
+DATA 1,0,0
+DATA 1,1,0
+DATA 0,0,1
+DATA 1,1,0
 
-Data 0,1,1
-Data 1,0,0
-Data 1,1,0
-Data 1,0,1
-Data 0,1,1
+DATA 0,1,1
+DATA 1,0,0
+DATA 1,1,0
+DATA 1,0,1
+DATA 0,1,1
 
-Data 1,1,1
-Data 0,0,1
-Data 0,1,0
-Data 0,1,0
-Data 0,1,0
+DATA 1,1,1
+DATA 0,0,1
+DATA 0,1,0
+DATA 0,1,0
+DATA 0,1,0
 
-Data 0,1,0
-Data 1,0,1
-Data 0,1,0
-Data 1,0,1
-Data 0,1,0
+DATA 0,1,0
+DATA 1,0,1
+DATA 0,1,0
+DATA 1,0,1
+DATA 0,1,0
 
-Data 0,1,1
-Data 1,0,1
-Data 1,1,1
-Data 0,0,1
-Data 0,0,1
+DATA 0,1,1
+DATA 1,0,1
+DATA 1,1,1
+DATA 0,0,1
+DATA 0,0,1
 
-Function BPoint% (tx%, ty%, pn%)
+FUNCTION BPoint% (tx%, ty%, pn%)
     'Returns the pixel that should be displayed as background behind any
     'sprite at any time in the game. (241 represents a pixel of the background image)
     'tx% and ty% are the coordinates.
@@ -347,152 +346,152 @@ Function BPoint% (tx%, ty%, pn%)
     'You can also use -1 to not see any players.
 
     pp% = 241
-    If tx% >= 0 And tx% <= 319 Then
-        If ty% >= 0 And ty% <= 15 Then
-            Def Seg = VarSeg(barbuf(0))
-            pp% = Peek(tx% + 320& * ty% + 4)
-            Def Seg
-        ElseIf ty% >= 16 And ty% <= 199 Then
-            Def Seg = VarSeg(turfbuf(0))
-            pp% = Peek(tx% + 320& * ty% + 4)
-            Def Seg
-        End If
-        For i% = 1 To maxplayers%
-            If player(i%).health > 0 And pn% <> i% Then
-                If tx% >= player(i%).x And tx% <= player(i%).x + 7 And ty% >= player(i%).y And ty% <= player(i%).y + 7 Then
+    IF tx% >= 0 AND tx% <= 319 THEN
+        IF ty% >= 0 AND ty% <= 15 THEN
+            DEF SEG = VARSEG(barbuf(0))
+            pp% = PEEK(tx% + 320& * ty% + 4)
+            DEF SEG
+        ELSEIF ty% >= 16 AND ty% <= 199 THEN
+            DEF SEG = VARSEG(turfbuf(0))
+            pp% = PEEK(tx% + 320& * ty% + 4)
+            DEF SEG
+        END IF
+        FOR i% = 1 TO maxplayers%
+            IF player(i%).health > 0 AND pn% <> i% THEN
+                IF tx% >= player(i%).x AND tx% <= player(i%).x + 7 AND ty% >= player(i%).y AND ty% <= player(i%).y + 7 THEN
                     pp% = playerspr((player(i%).dir - 1) * -3.5 + player(i%).dir * (tx% - player(i%).x) + 8 * (ty% - player(i%).y))
-                    If pp% = -1 Then
+                    IF pp% = -1 THEN
                         pp% = team(player(i%).tnum).clr
-                    ElseIf pp% = -10 Then
-                        If player(i%).dir = 1 Then
-                            pp% = 25 - Int((tx% - player(i%).x) / 2)
-                        Else
-                            pp% = 25 - Int((7 - (tx% - player(i%).x)) / 2)
-                        End If
-                    End If
-                    If pp% > 0 Then
-                        If player(i%).glued > 0 Then pp% = 92
-                    Else
+                    ELSEIF pp% = -10 THEN
+                        IF player(i%).dir = 1 THEN
+                            pp% = 25 - INT((tx% - player(i%).x) / 2)
+                        ELSE
+                            pp% = 25 - INT((7 - (tx% - player(i%).x)) / 2)
+                        END IF
+                    END IF
+                    IF pp% > 0 THEN
+                        IF player(i%).glued > 0 THEN pp% = 92
+                    ELSE
                         pp% = 241
-                    End If
-                    For ii% = 0 To gunlen%
-                        x% = player(i%).x + 3 + (1 - player(i%).dir) / 2 + Cos(player(i%).a) * ii% * player(i%).dir
-                        y% = player(i%).y + 4 + Sin(player(i%).a) * ii%
-                        If tx% = x% And ty% = y% Then pp% = 25
-                    Next ii%
-                End If
-            End If
-        Next i%
-        If ty% >= 0 And ty% <= 199 Then
-            If pp% = 241 Then
-                Def Seg = VarSeg(backbuf(0))
-                pp% = Peek(tx% + 320& * ty%)
-                Def Seg
-            End If
-        End If
-    End If
+                    END IF
+                    FOR ii% = 0 TO gunlen%
+                        x% = player(i%).x + 3 + (1 - player(i%).dir) / 2 + COS(player(i%).a) * ii% * player(i%).dir
+                        y% = player(i%).y + 4 + SIN(player(i%).a) * ii%
+                        IF tx% = x% AND ty% = y% THEN pp% = 25
+                    NEXT ii%
+                END IF
+            END IF
+        NEXT i%
+        IF ty% >= 0 AND ty% <= 199 THEN
+            IF pp% = 241 THEN
+                DEF SEG = VARSEG(backbuf(0))
+                pp% = PEEK(tx% + 320& * ty%)
+                DEF SEG
+            END IF
+        END IF
+    END IF
     BPoint% = pp%
-End Function
+END FUNCTION
 
-Sub BuildLevel
+SUB BuildLevel
     'Builds the level's turf map.
     'It uses the LEVEL variable's data to create the map according to the
     'environment chosen. (level.jag and level.rise)
 
     'This is for the environment sprites
-    Dim backspr(1 To 2, 29 + 30 * 29) As Integer
+    DIM backspr(1 TO 2, 29 + 30 * 29) AS INTEGER
 
     'Loads the environment sprites
-    Def Seg = &HA000
-    BLoad "backgrnd\" + RTrim$(level.nam) + ".spr", 0
-    Def Seg
-    For y% = 0 To 29
-        For x% = 0 To 29
-            p% = Point(x%, y%)
+    DEF SEG = &HA000
+    BLOAD "backgrnd\" + RTRIM$(level.nam) + ".spr", 0
+    DEF SEG
+    FOR y% = 0 TO 29
+        FOR x% = 0 TO 29
+            p% = POINT(x%, y%)
             backspr(1, x% + 30 * y%) = p%
-        Next x%
-    Next y%
-    For y% = 0 To 29
-        For x% = 30 To 59
-            p% = Point(x%, y%)
+        NEXT x%
+    NEXT y%
+    FOR y% = 0 TO 29
+        FOR x% = 30 TO 59
+            p% = POINT(x%, y%)
             backspr(2, x% - 30 + 30 * y%) = p%
-        Next x%
-    Next y%
+        NEXT x%
+    NEXT y%
 
     'Draws the terrain outline
-    Cls
-    Line (0, 0)-(319, 199), 240, BF
+    CLS
+    LINE (0, 0)-(319, 199), 240, BF
     x1% = 0
-    y1% = Rnd * 100 + 30
-    a# = Rnd * 2 - 1
+    y1% = RND * 100 + 30
+    a# = RND * 2 - 1
     buildloop:
     x2% = x1%
     y2% = y1%
-    x1% = x2% + Cos(a#) * level.jag
-    y1% = y2% + Sin(a#) * level.jag
-    Line (x1%, y1%)-(x2%, y2%), 231
-    If y1% <= 30 Then
-        a# = Rnd * 1
-    ElseIf y1% >= 190 Then
-        a# = Rnd * -1
-    Else
-        a# = a# + Rnd * (level.rise * 2) - level.rise
-        If a# > 3 * Pi / 4 Then a# = 3 * Pi / 4
-        If a# < 3 * -Pi / 4 Then a# = 3 * -Pi / 4
-    End If
-    If x1% >= 319 Then GoTo paintbuild
-    GoTo buildloop
+    x1% = x2% + COS(a#) * level.jag
+    y1% = y2% + SIN(a#) * level.jag
+    LINE (x1%, y1%)-(x2%, y2%), 231
+    IF y1% <= 30 THEN
+        a# = RND * 1
+    ELSEIF y1% >= 190 THEN
+        a# = RND * -1
+    ELSE
+        a# = a# + RND * (level.rise * 2) - level.rise
+        IF a# > 3 * _PI / 4 THEN a# = 3 * _PI / 4
+        IF a# < 3 * -_PI / 4 THEN a# = 3 * -_PI / 4
+    END IF
+    IF x1% >= 319 THEN GOTO paintbuild
+    GOTO buildloop
 
     'Paints in the terrain outline
     paintbuild:
-    Paint (0, 0), 241, 231
-    For x% = 0 To 319
-        For y% = 0 To 199
-            p% = Point(x%, y%)
-            If p% = 240 Then
-                p% = Point(x%, y% - 1) + Rnd * 3 - 1
-                If p% < 231 Then p% = 231
-                If p% > 240 Then p% = 240
-                PSet (x%, y%), p%
-            End If
-        Next y%
-    Next x%
+    PAINT (0, 0), 241, 231
+    FOR x% = 0 TO 319
+        FOR y% = 0 TO 199
+            p% = POINT(x%, y%)
+            IF p% = 240 THEN
+                p% = POINT(x%, y% - 1) + RND * 3 - 1
+                IF p% < 231 THEN p% = 231
+                IF p% > 240 THEN p% = 240
+                PSET (x%, y%), p%
+            END IF
+        NEXT y%
+    NEXT x%
 
     'Places environment sprites
-    For i% = 1 To 5
-        If Rnd < .8 Then
-            x% = Rnd * 280 + 20
+    FOR i% = 1 TO 5
+        IF RND < .8 THEN
+            x% = RND * 280 + 20
             ly% = 0
-            For y% = 0 To 199
-                For xx% = x% - 15 To x% + 15
-                    p% = Point(xx%, y%)
-                    If p% = 241 Then
-                        If y% > ly% Then ly% = y%
-                    End If
-                Next xx%
-            Next y%
+            FOR y% = 0 TO 199
+                FOR xx% = x% - 15 TO x% + 15
+                    p% = POINT(xx%, y%)
+                    IF p% = 241 THEN
+                        IF y% > ly% THEN ly% = y%
+                    END IF
+                NEXT xx%
+            NEXT y%
             x% = x% - 15
             y% = ly% - 29
-            s% = Rnd + 1
-            d% = CInt(Rnd) * 2 - 1
-            For xx% = x% To x% + 29
-                For yy% = y% To y% + 29
+            s% = RND + 1
+            d% = CINT(RND) * 2 - 1
+            FOR xx% = x% TO x% + 29
+                FOR yy% = y% TO y% + 29
                     p% = backspr(s%, (d% + 1) / 2 * 29 + -d% * (xx% - x%) + 30 * (yy% - y%))
-                    bp% = Point(xx%, yy%)
-                    If bp% = 241 And p% > 0 Then PSet (xx%, yy%), p%
-                Next yy%
-            Next xx%
-        End If
-    Next i%
+                    bp% = POINT(xx%, yy%)
+                    IF bp% = 241 AND p% > 0 THEN PSET (xx%, yy%), p%
+                NEXT yy%
+            NEXT xx%
+        END IF
+    NEXT i%
 
     'Stores in Turf Buffer
-    Get (0, 0)-(319, 199), turfbuf()
-End Sub
+    GET (0, 0)-(319, 199), turfbuf()
+END SUB
 
-Sub BulletMove
+SUB BulletMove
     'Moves any and all bullets that are in action on the playfield.
 
-    For i% = 1 To maxbullets%
+    FOR i% = 1 TO maxbullets%
 
         'Explosion
         '==========
@@ -507,93 +506,93 @@ Sub BulletMove
         '                     1 = sparks
         '                     2 = sparks and nuclear flash
         'tim = flash timer (set to 0 at initialization)
-        If bullet(i%).class = -1 Then
+        IF bullet(i%).class = -1 THEN
             level.nofly = 0
             x% = bullet(i%).x
             y% = bullet(i%).y
-            If bullet(i%).p = 1 And bullet(i%).a = 0 Then
-                For pn% = 1 To maxplayers%
-                    If player(pn%).health > 0 Then
-                        pd% = Sqr((player(pn%).x - x%) ^ 2 + (player(pn%).y - y%) ^ 2)
-                        If pd% < bullet(i%).dir + 3 Then
+            IF bullet(i%).p = 1 AND bullet(i%).a = 0 THEN
+                FOR pn% = 1 TO maxplayers%
+                    IF player(pn%).health > 0 THEN
+                        pd% = SQR((player(pn%).x - x%) ^ 2 + (player(pn%).y - y%) ^ 2)
+                        IF pd% < bullet(i%).dir + 3 THEN
                             ph% = bullet(i%).dir * 2 * (1 - pd% / (bullet(i%).dir + 3))
                             Damage pn%, ph%
-                        End If
-                        If pd% < bullet(i%).dir + 13 Then
+                        END IF
+                        IF pd% < bullet(i%).dir + 13 THEN
                             ErasePlayer pn%
                             player(pn%).jump = 1
                             player(pn%).xi = player(pn%).x
                             player(pn%).yi = player(pn%).y
-                            If player(pn%).x - x% <> 0 Then
-                                pa# = Atn((player(pn%).y - y%) / Abs(player(pn%).x - x%))
-                            Else
+                            IF player(pn%).x - x% <> 0 THEN
+                                pa# = ATN((player(pn%).y - y%) / ABS(player(pn%).x - x%))
+                            ELSE
                                 pa# = 40
-                            End If
+                            END IF
                             player(pn%).aj = pa#
                             pp% = 40 * (1 - pd% / (bullet(i%).dir + 13))
                             player(pn%).pj = pp%
-                            If player(pn%).x > x% Then
+                            IF player(pn%).x > x% THEN
                                 player(pn%).dir = 1
-                            Else
+                            ELSE
                                 player(pn%).dir = -1
-                            End If
-                            player(pn%).tim = Timer - .1
-                            t# = (Timer - player(pn%).tim) * bulletspd%
-                            player(pn%).x = player(pn%).xi + t# * Cos(player(pn%).aj) * player(pn%).pj * player(pn%).dir
-                            player(pn%).y = player(pn%).yi + t# * Sin(player(pn%).aj) * player(pn%).pj + 16 * t# ^ 2
+                            END IF
+                            player(pn%).tim = TIMER - .1
+                            t# = (TIMER - player(pn%).tim) * bulletspd%
+                            player(pn%).x = player(pn%).xi + t# * COS(player(pn%).aj) * player(pn%).pj * player(pn%).dir
+                            player(pn%).y = player(pn%).yi + t# * SIN(player(pn%).aj) * player(pn%).pj + 16 * t# ^ 2
                             DrawPlayer pn%
-                        End If
-                    End If
-                Next pn%
-            End If
-            For r! = 0 To Pi * 2 Step .05 / (bullet(i%).dir / 10)
-                c% = 220 - (bullet(i%).a / bullet(i%).dir) * 20 + Rnd * 4 - 2
-                If c% < 200 Then c% = 200
-                If c% > 220 Then c% = 220
-                If bullet(i%).p = -1 Then c% = 241
-                TPset x% + Cos(r!) * bullet(i%).a + 3, y% + Sin(r!) * bullet(i%).a + 3, 241
+                        END IF
+                    END IF
+                NEXT pn%
+            END IF
+            FOR r! = 0 TO _PI * 2 STEP .05 / (bullet(i%).dir / 10)
+                c% = 220 - (bullet(i%).a / bullet(i%).dir) * 20 + RND * 4 - 2
+                IF c% < 200 THEN c% = 200
+                IF c% > 220 THEN c% = 220
+                IF bullet(i%).p = -1 THEN c% = 241
+                TPset x% + COS(r!) * bullet(i%).a + 3, y% + SIN(r!) * bullet(i%).a + 3, 241
                 bp% = c%
-                If c% = 241 Then
-                    bp% = BPoint%(x% + Cos(r!) * bullet(i%).a + 3, y% + Sin(r!) * bullet(i%).a + 3, 0)
-                End If
-                PSet (x% + Cos(r!) * bullet(i%).a + 3, y% + Sin(r!) * bullet(i%).a + 3), bp%
-            Next r!
+                IF c% = 241 THEN
+                    bp% = BPoint%(x% + COS(r!) * bullet(i%).a + 3, y% + SIN(r!) * bullet(i%).a + 3, 0)
+                END IF
+                PSET (x% + COS(r!) * bullet(i%).a + 3, y% + SIN(r!) * bullet(i%).a + 3), bp%
+            NEXT r!
             bullet(i%).a = bullet(i%).a + .5 * bullet(i%).p
-            If bullet(i%).p = 1 And bullet(i%).a >= bullet(i%).dir Then
+            IF bullet(i%).p = 1 AND bullet(i%).a >= bullet(i%).dir THEN
                 bullet(i%).p = -1
-            End If
-            If bullet(i%).set = 2 Then
+            END IF
+            IF bullet(i%).set = 2 THEN
                 cc% = -1
-                If bullet(i%).p = 1 And bullet(i%).a < 10 Then cc% = 1
+                IF bullet(i%).p = 1 AND bullet(i%).a < 10 THEN cc% = 1
                 bullet(i%).tim = bullet(i%).tim + cc%
-                If bullet(i%).tim < 0 Then bullet(i%).tim = 0
-                If bullet(i%).tim > 20 Then bullet(i%).tim = 20
+                IF bullet(i%).tim < 0 THEN bullet(i%).tim = 0
+                IF bullet(i%).tim > 20 THEN bullet(i%).tim = 20
                 ci% = 100 - (bullet(i%).tim * 3)
-                If ci% < 0 Then ci% = 0
-                If ci% > 100 Then ci% = 100
+                IF ci% < 0 THEN ci% = 0
+                IF ci% > 100 THEN ci% = 100
                 FadePal gamepal(bullet(i%).tim + 200).r, gamepal(bullet(i%).tim + 200).g, gamepal(bullet(i%).tim + 200).B, ci%, 0, 255
-            End If
-            If bullet(i%).set >= 1 Then
-                For ii% = 1 To maxsparks%
-                    sx% = bullet(i%).x + 3 + spark(ii%).r * Cos(spark(ii%).a)
-                    sy% = bullet(i%).y + 3 + .3 * (spark(ii%).r * Sin(spark(ii%).a))
-                    PSet (sx%, sy%), BPoint%(sx%, sy%, 0)
+            END IF
+            IF bullet(i%).set >= 1 THEN
+                FOR ii% = 1 TO maxsparks%
+                    sx% = bullet(i%).x + 3 + spark(ii%).r * COS(spark(ii%).a)
+                    sy% = bullet(i%).y + 3 + .3 * (spark(ii%).r * SIN(spark(ii%).a))
+                    PSET (sx%, sy%), BPoint%(sx%, sy%, 0)
                     spark(ii%).r = spark(ii%).r + 2
-                    sx% = bullet(i%).x + 3 + spark(ii%).r * Cos(spark(ii%).a)
-                    sy% = bullet(i%).y + 3 + .3 * (spark(ii%).r * Sin(spark(ii%).a))
+                    sx% = bullet(i%).x + 3 + spark(ii%).r * COS(spark(ii%).a)
+                    sy% = bullet(i%).y + 3 + .3 * (spark(ii%).r * SIN(spark(ii%).a))
                     c% = 220 - spark(ii%).r / 3
-                    If c% < 200 Then c% = 200
-                    If bullet(i%).p = -1 And bullet(i%).a < 0 Then c% = BPoint%(sx%, sy%, 0)
-                    PSet (sx%, sy%), c%
-                Next ii%
-            End If
-            If bullet(i%).p = -1 And bullet(i%).a < 0 Then
+                    IF c% < 200 THEN c% = 200
+                    IF bullet(i%).p = -1 AND bullet(i%).a < 0 THEN c% = BPoint%(sx%, sy%, 0)
+                    PSET (sx%, sy%), c%
+                NEXT ii%
+            END IF
+            IF bullet(i%).p = -1 AND bullet(i%).a < 0 THEN
                 bullet(i%).class = 0
-                GoTo nextbul
-            End If
+                GOTO nextbul
+            END IF
             x% = (bullet(i%).dir / 10 - 1) * 3000 + 1000
             EarthQuake x%
-        End If
+        END IF
 
         'Ammo crate on the ground
         '==========
@@ -605,40 +604,40 @@ Sub BulletMove
         'p = null
         'set = ammo class
         'tim = null
-        If bullet(i%).class = 100 Then
+        IF bullet(i%).class = 100 THEN
             x% = bullet(i%).x
             y% = bullet(i%).y
-            For ii% = 1 To maxplayers%
-                pd% = Sqr((player(ii%).x - x%) ^ 2 + (player(ii%).y - y%) ^ 2)
-                If pd% <= 7 Then
+            FOR ii% = 1 TO maxplayers%
+                pd% = SQR((player(ii%).x - x%) ^ 2 + (player(ii%).y - y%) ^ 2)
+                IF pd% <= 7 THEN
                     EraseSpr x%, y%, 0
                     bullet(i%).class = 0
                     playpack(ii%, bullet(i%).set).ammo = playpack(ii%, bullet(i%).set).ammo + bullet(i%).dir
                     InitBullet 101, x%, y%, 0, bullet(i%).dir, 0, bullet(i%).set
-                    If config.snd Then
+                    IF config.snd THEN
                         WAVPlay "bounce.wav"
-                    End If
-                    GoTo nextbul
-                End If
-            Next ii%
-            For ii% = 1 To maxbullets%
-                If i% <> ii% And bullet(ii%).class = -1 Then
-                    pd% = Sqr((bullet(ii%).x - x%) ^ 2 + (bullet(ii%).y - y%) ^ 2)
-                    If pd% <= bullet(ii%).a Then
+                    END IF
+                    GOTO nextbul
+                END IF
+            NEXT ii%
+            FOR ii% = 1 TO maxbullets%
+                IF i% <> ii% AND bullet(ii%).class = -1 THEN
+                    pd% = SQR((bullet(ii%).x - x%) ^ 2 + (bullet(ii%).y - y%) ^ 2)
+                    IF pd% <= bullet(ii%).a THEN
                         bullet(i%).class = -1
                         bullet(i%).a = 0
                         bullet(i%).dir = 15
                         bullet(i%).p = 1
                         bullet(i%).set = 0
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "explode.wav"
-                        End If
-                        GoTo nextbul
-                    End If
-                End If
-            Next ii%
+                        END IF
+                        GOTO nextbul
+                    END IF
+                END IF
+            NEXT ii%
             DrawSpr x%, y%, 0
-        End If
+        END IF
 
         'Ammo crate falling from sky
         '==========
@@ -650,27 +649,27 @@ Sub BulletMove
         'p = null
         'set = ammo class
         'tim = fall timer (set to TIMER at initializtion)
-        If bullet(i%).class = -100 Then
+        IF bullet(i%).class = -100 THEN
             level.nofly = 0
             x% = bullet(i%).x
             y% = bullet(i%).y
             t# = (level.tim - bullet(i%).tim) * bulletspd%
             EraseSpr x%, y%, 0
             y% = bullet(i%).yi + 16 * t# ^ 2 * level.grav
-            If x% < -7 Or x% > 326 Or y% > 206 Then
+            IF x% < -7 OR x% > 326 OR y% > 206 THEN
                 bullet(i%).class = 0
-                GoTo nextbul
-            End If
+                GOTO nextbul
+            END IF
             bullet(i%).y = y%
-            If TurfHit%(0, x%, y%) Then
+            IF TurfHit%(0, x%, y%) THEN
                 bullet(i%).class = 100
-                If config.snd Then
+                IF config.snd THEN
                     WAVPlay "crash.wav"
-                End If
-                GoTo nextbul
-            End If
+                END IF
+                GOTO nextbul
+            END IF
             DrawSpr x%, y%, 0
-        End If
+        END IF
 
         'Ammo displayed from ammo crate
         '==========
@@ -684,44 +683,44 @@ Sub BulletMove
         'p = null
         'set = ammo class
         'tim = timer (set to 0 at initialization)
-        If bullet(i%).class = 101 Then
+        IF bullet(i%).class = 101 THEN
             level.nofly = 0
-            For ii% = 1 To bullet(i%).dir
-                If bullet(i%).dir = 1 Then
+            FOR ii% = 1 TO bullet(i%).dir
+                IF bullet(i%).dir = 1 THEN
                     xc% = 0
-                ElseIf bullet(i%).dir = 2 Then
+                ELSEIF bullet(i%).dir = 2 THEN
                     xc% = -1
-                    If ii% = 2 Then xc% = 1
-                ElseIf bullet(i%).dir = 2 Then
+                    IF ii% = 2 THEN xc% = 1
+                ELSEIF bullet(i%).dir = 2 THEN
                     xc% = -1
-                    If ii% = 2 Then xc% = 0
-                    If ii% = 3 Then xc% = 1
-                End If
+                    IF ii% = 2 THEN xc% = 0
+                    IF ii% = 3 THEN xc% = 1
+                END IF
                 x% = bullet(i%).xi + xc% * bullet(i%).a
                 y% = bullet(i%).yi - bullet(i%).a
                 EraseSpr x%, y%, bullet(i%).set
-            Next ii%
-            If level.tim - bullet(i%).tim >= 1 Then
+            NEXT ii%
+            IF level.tim - bullet(i%).tim >= 1 THEN
                 bullet(i%).class = 0
-                GoTo nextbul
-            End If
+                GOTO nextbul
+            END IF
             bullet(i%).a = bullet(i%).a + .03
-            For ii% = 1 To bullet(i%).dir
-                If bullet(i%).dir = 1 Then
+            FOR ii% = 1 TO bullet(i%).dir
+                IF bullet(i%).dir = 1 THEN
                     xc% = 0
-                ElseIf bullet(i%).dir = 2 Then
+                ELSEIF bullet(i%).dir = 2 THEN
                     xc% = -1
-                    If ii% = 2 Then xc% = 1
-                ElseIf bullet(i%).dir = 2 Then
+                    IF ii% = 2 THEN xc% = 1
+                ELSEIF bullet(i%).dir = 2 THEN
                     xc% = -1
-                    If ii% = 2 Then xc% = 0
-                    If ii% = 3 Then xc% = 1
-                End If
+                    IF ii% = 2 THEN xc% = 0
+                    IF ii% = 3 THEN xc% = 1
+                END IF
                 x% = bullet(i%).xi + xc% * bullet(i%).a
                 y% = bullet(i%).yi - bullet(i%).a
                 DrawSpr x%, y%, bullet(i%).set
-            Next ii%
-        End If
+            NEXT ii%
+        END IF
 
         'Basic cannon ball
         '==========
@@ -735,7 +734,7 @@ Sub BulletMove
         'p = launch power
         'set = multiple bullets
         'tim = fly timer (set to TIMER at initialization)
-        If bullet(i%).class = 1 Then
+        IF bullet(i%).class = 1 THEN
             level.nofly = 0
             x% = bullet(i%).x
             y% = bullet(i%).y
@@ -744,27 +743,27 @@ Sub BulletMove
             d% = bullet(i%).dir
             t# = (level.tim - bullet(i%).tim) * bulletspd%
             EraseSpr x%, y%, 1
-            x% = bullet(i%).xi + t# * Cos(a#) * p% * d% + level.wind * t#
-            y% = bullet(i%).yi + t# * Sin(a#) * p% + 16 * t# ^ 2 * level.grav
-            If x% < -7 Or x% > 326 Or y% > 206 Then
+            x% = bullet(i%).xi + t# * COS(a#) * p% * d% + level.wind * t#
+            y% = bullet(i%).yi + t# * SIN(a#) * p% + 16 * t# ^ 2 * level.grav
+            IF x% < -7 OR x% > 326 OR y% > 206 THEN
                 bullet(i%).class = 0
-                GoTo nextbul
-            End If
+                GOTO nextbul
+            END IF
             bullet(i%).x = x%
             bullet(i%).y = y%
-            If TurfHit%(1, x%, y%) Then
+            IF TurfHit%(1, x%, y%) THEN
                 bullet(i%).class = -1
                 bullet(i%).a = 0
                 bullet(i%).dir = (4 - bullet(i%).set) * 3 + 7
                 bullet(i%).p = 1
                 bullet(i%).set = 0
-                If config.snd Then
+                IF config.snd THEN
                     WAVPlay "blast.wav"
-                End If
-                GoTo nextbul
-            End If
+                END IF
+                GOTO nextbul
+            END IF
             DrawSpr x%, y%, 1
-        End If
+        END IF
 
         'Grenade
         '==========
@@ -778,7 +777,7 @@ Sub BulletMove
         'p = launch power
         'set = explosion timer
         'tim = fly timer (set to TIMER at initialization)
-        If bullet(i%).class = 2 Then
+        IF bullet(i%).class = 2 THEN
             level.nofly = 0
             x% = bullet(i%).x
             y% = bullet(i%).y
@@ -787,96 +786,96 @@ Sub BulletMove
             d% = bullet(i%).dir
             t# = (level.tim - bullet(i%).tim) * bulletspd%
             EraseSpr x%, y%, 2
-            x% = bullet(i%).xi + t# * Cos(a#) * p% * d% + level.wind * t#
-            y% = bullet(i%).yi + t# * Sin(a#) * p% + 16 * t# ^ 2 * level.grav
-            If x% < -7 Or x% > 326 Or y% > 206 Then
+            x% = bullet(i%).xi + t# * COS(a#) * p% * d% + level.wind * t#
+            y% = bullet(i%).yi + t# * SIN(a#) * p% + 16 * t# ^ 2 * level.grav
+            IF x% < -7 OR x% > 326 OR y% > 206 THEN
                 bullet(i%).class = 0
-                GoTo nextbul
-            End If
+                GOTO nextbul
+            END IF
             bump$ = TurfBump$(x%, y%, level.turn)
-            Select Case bump$
+            SELECT CASE bump$
 
-                Case "00000000"
+                CASE "00000000"
 
-                Case "11111111"
+                CASE "11111111"
                     x% = bullet(i%).x
                     y% = bullet(i%).y
                     bullet(i%).xi = bullet(i%).x
                     bullet(i%).yi = bullet(i%).y
-                    bullet(i%).tim = Timer
+                    bullet(i%).tim = TIMER
 
-                Case "11100011", "11000001", "10000000", "00000010", "00000001", "00000011", "10000011", "00000111", "10000111", "11001111", "10001111", "11000111", "10000001", "11001111", "11101111", "11000001", "11000011"
-                    If bullet(i%).dir = -1 Then
-                        xc% = t# * Cos(a#) * p% * -d% + level.wind * t#
+                CASE "11100011", "11000001", "10000000", "00000010", "00000001", "00000011", "10000011", "00000111", "10000111", "11001111", "10001111", "11000111", "10000001", "11001111", "11101111", "11000001", "11000011"
+                    IF bullet(i%).dir = -1 THEN
+                        xc% = t# * COS(a#) * p% * -d% + level.wind * t#
                         bullet(i%).xi = x% - xc%
                         bullet(i%).dir = 1
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "bounce.wav"
-                        End If
-                    End If
+                        END IF
+                    END IF
 
-                Case "11110001", "11100000", "01000000", "00100000", "00010000", "00110000", "01110000", "00111000", "01111000", "11111100", "01111100", "11111000", "01100000", "11111100", "11111110", "11100000", "11110000"
-                    If bullet(i%).dir = 1 Then
-                        xc% = t# * Cos(a#) * p% * -d% + level.wind * t#
+                CASE "11110001", "11100000", "01000000", "00100000", "00010000", "00110000", "01110000", "00111000", "01111000", "11111100", "01111100", "11111000", "01100000", "11111100", "11111110", "11100000", "11110000"
+                    IF bullet(i%).dir = 1 THEN
+                        xc% = t# * COS(a#) * p% * -d% + level.wind * t#
                         bullet(i%).xi = x% - xc%
                         bullet(i%).dir = -1
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "bounce.wav"
-                        End If
-                    End If
+                        END IF
+                    END IF
 
-                Case "00000110", "00001111", "10011111"
-                    If y% > bullet(i%).y Then
+                CASE "00000110", "00001111", "10011111"
+                    IF y% > bullet(i%).y THEN
                         bullet(i%).xi = x%
                         bullet(i%).yi = y%
                         bullet(i%).p = p% / 1.5
                         bullet(i%).dir = 1
-                        bullet(i%).tim = Timer - .1
-                        If config.snd Then
+                        bullet(i%).tim = TIMER - .1
+                        IF config.snd THEN
                             WAVPlay "bounce.wav"
-                        End If
-                    End If
+                        END IF
+                    END IF
 
-                Case "00011000", "00111100", "01111110"
-                    If y% > bullet(i%).y Then
+                CASE "00011000", "00111100", "01111110"
+                    IF y% > bullet(i%).y THEN
                         bullet(i%).xi = x%
                         bullet(i%).yi = y%
                         bullet(i%).p = p% / 1.5
                         bullet(i%).dir = -1
-                        bullet(i%).tim = Timer - .1
-                        If config.snd Then
+                        bullet(i%).tim = TIMER - .1
+                        IF config.snd THEN
                             WAVPlay "bounce.wav"
-                        End If
-                    End If
+                        END IF
+                    END IF
 
-                Case Else
-                    If y% > bullet(i%).y Then
+                CASE ELSE
+                    IF y% > bullet(i%).y THEN
                         bullet(i%).xi = x%
                         bullet(i%).yi = y%
                         bullet(i%).p = p% / 1.5
-                        bullet(i%).tim = Timer - .1
-                        If config.snd Then
+                        bullet(i%).tim = TIMER - .1
+                        IF config.snd THEN
                             WAVPlay "bounce.wav"
-                        End If
-                    End If
+                        END IF
+                    END IF
 
-            End Select
+            END SELECT
             bullet(i%).x = x%
             bullet(i%).y = y%
-            If bullet(i%).set <= 0 Then
+            IF bullet(i%).set <= 0 THEN
                 bullet(i%).class = -1
                 bullet(i%).a = 0
                 bullet(i%).dir = 20
                 bullet(i%).p = 1
                 bullet(i%).set = 0
-                If config.snd Then
+                IF config.snd THEN
                     WAVPlay "blast.wav"
-                End If
-                GoTo nextbul
-            End If
+                END IF
+                GOTO nextbul
+            END IF
             DrawSpr x%, y%, 2
             bullet(i%).set = bullet(i%).set - 15
-        End If
+        END IF
 
         'Mine
         '==========
@@ -888,46 +887,46 @@ Sub BulletMove
         'p = null
         'set = trip distance setting
         'tim = null
-        If bullet(i%).class = 3 Then
-            If level.tim - bullet(i%).tim < 4 Then level.nofly = 0
-            If level.tim - bullet(i%).tim > 3 Then
+        IF bullet(i%).class = 3 THEN
+            IF level.tim - bullet(i%).tim < 4 THEN level.nofly = 0
+            IF level.tim - bullet(i%).tim > 3 THEN
                 x% = bullet(i%).x
                 y% = bullet(i%).y
-                For ii% = 1 To maxplayers%
-                    pd% = Sqr((player(ii%).x - x%) ^ 2 + (player(ii%).y - y%) ^ 2)
-                    If pd% <= 5 * bullet(i%).set Then
+                FOR ii% = 1 TO maxplayers%
+                    pd% = SQR((player(ii%).x - x%) ^ 2 + (player(ii%).y - y%) ^ 2)
+                    IF pd% <= 5 * bullet(i%).set THEN
                         bullet(i%).class = -1
                         bullet(i%).a = 0
                         bullet(i%).dir = 15
                         bullet(i%).p = 1
                         bullet(i%).y = bullet(i%).y + 3
                         bullet(i%).set = 0
-                        If ii% = level.turn Then level.fire = 1
-                        If config.snd Then
+                        IF ii% = level.turn THEN level.fire = 1
+                        IF config.snd THEN
                             WAVPlay "explode.wav"
-                        End If
-                        GoTo nextbul
-                    End If
-                Next ii%
-                For ii% = 1 To maxbullets%
-                    If i% <> ii% And bullet(ii%).class = -1 Then
-                        pd% = Sqr((bullet(ii%).x - x%) ^ 2 + (bullet(ii%).y - y%) ^ 2)
-                        If pd% <= bullet(ii%).a Then
+                        END IF
+                        GOTO nextbul
+                    END IF
+                NEXT ii%
+                FOR ii% = 1 TO maxbullets%
+                    IF i% <> ii% AND bullet(ii%).class = -1 THEN
+                        pd% = SQR((bullet(ii%).x - x%) ^ 2 + (bullet(ii%).y - y%) ^ 2)
+                        IF pd% <= bullet(ii%).a THEN
                             bullet(i%).class = -1
                             bullet(i%).a = 0
                             bullet(i%).dir = 15
                             bullet(i%).p = 1
                             bullet(i%).set = 0
-                            If config.snd Then
+                            IF config.snd THEN
                                 WAVPlay "explode.wav"
-                            End If
-                            GoTo nextbul
-                        End If
-                    End If
-                Next ii%
-            End If
+                            END IF
+                            GOTO nextbul
+                        END IF
+                    END IF
+                NEXT ii%
+            END IF
             DrawSpr bullet(i%).x, bullet(i%).y, 3
-        End If
+        END IF
 
         'Gluer
         '==========
@@ -941,7 +940,7 @@ Sub BulletMove
         'p = launch power
         'set = multiple bullets
         'tim = fly timer (set to TIMER at initialization)
-        If bullet(i%).class = 4 Then
+        IF bullet(i%).class = 4 THEN
             level.nofly = 0
             x% = bullet(i%).x
             y% = bullet(i%).y
@@ -950,27 +949,27 @@ Sub BulletMove
             d% = bullet(i%).dir
             t# = (level.tim - bullet(i%).tim) * bulletspd%
             EraseSpr x%, y%, 4
-            x% = bullet(i%).xi + t# * Cos(a#) * p% * d% + level.wind * t#
-            y% = bullet(i%).yi + t# * Sin(a#) * p% + 16 * t# ^ 2 * level.grav
-            If x% < -7 Or x% > 326 Or y% > 206 Then
+            x% = bullet(i%).xi + t# * COS(a#) * p% * d% + level.wind * t#
+            y% = bullet(i%).yi + t# * SIN(a#) * p% + 16 * t# ^ 2 * level.grav
+            IF x% < -7 OR x% > 326 OR y% > 206 THEN
                 bullet(i%).class = 0
-                GoTo nextbul
-            End If
+                GOTO nextbul
+            END IF
             bullet(i%).x = x%
             bullet(i%).y = y%
-            If TurfHit%(1, x%, y%) Then
+            IF TurfHit%(1, x%, y%) THEN
                 bullet(i%).class = -4
                 bullet(i%).a = 1
                 bullet(i%).dir = (5 - bullet(i%).set) * 5
                 bullet(i%).p = 1
                 bullet(i%).tim = 0
-                If config.snd Then
+                IF config.snd THEN
                     WAVPlay "glue.wav"
-                End If
-                GoTo nextbul
-            End If
+                END IF
+                GOTO nextbul
+            END IF
             DrawSpr x%, y%, 4
-        End If
+        END IF
 
         'Gluer Explosion
         '==========
@@ -982,43 +981,43 @@ Sub BulletMove
         'p = direction of blob growth (set to 1 at initialization)
         'set = null
         'tim = blob timer (set to 0 at initialization)
-        If bullet(i%).class = -4 Then
+        IF bullet(i%).class = -4 THEN
             level.nofly = 0
             x% = bullet(i%).x
             y% = bullet(i%).y
             a# = bullet(i%).a
             d% = bullet(i%).dir
-            For pn% = 1 To maxplayers%
-                If player(pn%).health > 0 Then
-                    pd% = Sqr((player(pn%).x - x%) ^ 2 + (player(pn%).y - y%) ^ 2)
-                    If pd% < a# Then
+            FOR pn% = 1 TO maxplayers%
+                IF player(pn%).health > 0 THEN
+                    pd% = SQR((player(pn%).x - x%) ^ 2 + (player(pn%).y - y%) ^ 2)
+                    IF pd% < a# THEN
                         player(pn%).glued = 4 - bullet(i%).set
-                    End If
-                End If
-            Next pn%
-            For ap# = .05 To Pi * 2 Step .05
-                xp% = x% + 3 + (a# - bullet(i%).p) * Cos(ap#)
-                yp% = y% + 3 + (a# - bullet(i%).p) * Sin(ap#)
-                PSet (xp%, yp%), BPoint%(xp%, yp%, 0)
-                xp% = x% + 3 + a# * Cos(ap#)
-                yp% = y% + 3 + a# * Sin(ap#)
+                    END IF
+                END IF
+            NEXT pn%
+            FOR ap# = .05 TO _PI * 2 STEP .05
+                xp% = x% + 3 + (a# - bullet(i%).p) * COS(ap#)
+                yp% = y% + 3 + (a# - bullet(i%).p) * SIN(ap#)
+                PSET (xp%, yp%), BPoint%(xp%, yp%, 0)
+                xp% = x% + 3 + a# * COS(ap#)
+                yp% = y% + 3 + a# * SIN(ap#)
                 c% = 92
-                PSet (xp%, yp%), c%
-            Next ap#
-            If a# = 0 Then
+                PSET (xp%, yp%), c%
+            NEXT ap#
+            IF a# = 0 THEN
                 bullet(i%).p = 1
                 bullet(i%).tim = bullet(i%).tim + 1
-                If bullet(i%).tim = 5 Then
+                IF bullet(i%).tim = 5 THEN
                     bullet(i%).class = 0
-                    PSet (x% + 3, y% + 3), BPoint%(x%, y%, 0)
-                    GoTo nextbul
-                End If
-            End If
-            If a# = (5 - bullet(i%).set) * 5 Then
+                    PSET (x% + 3, y% + 3), BPoint%(x%, y%, 0)
+                    GOTO nextbul
+                END IF
+            END IF
+            IF a# = (5 - bullet(i%).set) * 5 THEN
                 bullet(i%).p = -1
-            End If
+            END IF
             bullet(i%).a = bullet(i%).a + bullet(i%).p
-        End If
+        END IF
 
         'Cluster bomb
         '==========
@@ -1032,7 +1031,7 @@ Sub BulletMove
         'p = launch power
         'set = # of bombs
         'tim = fly timer (set to TIMER at initialization)
-        If bullet(i%).class = 7 Then
+        IF bullet(i%).class = 7 THEN
             level.nofly = 0
             x% = bullet(i%).x
             y% = bullet(i%).y
@@ -1041,48 +1040,48 @@ Sub BulletMove
             d% = bullet(i%).dir
             t# = (level.tim - bullet(i%).tim) * bulletspd%
             EraseSpr x%, y%, 7
-            x% = bullet(i%).xi + t# * Cos(a#) * p% * d% + level.wind * t#
-            y% = bullet(i%).yi + t# * Sin(a#) * p% + 16 * t# ^ 2 * level.grav
-            If x% < -7 Or x% > 326 Or y% > 206 Then
+            x% = bullet(i%).xi + t# * COS(a#) * p% * d% + level.wind * t#
+            y% = bullet(i%).yi + t# * SIN(a#) * p% + 16 * t# ^ 2 * level.grav
+            IF x% < -7 OR x% > 326 OR y% > 206 THEN
                 bullet(i%).class = 0
-                GoTo nextbul
-            End If
+                GOTO nextbul
+            END IF
             bullet(i%).x = x%
             bullet(i%).y = y%
-            If TurfHit%(7, x%, y%) Or t# >= 2 Then
+            IF TurfHit%(7, x%, y%) OR t# >= 2 THEN
                 bullet(i%).class = -1
                 bullet(i%).a = 0
                 bullet(i%).dir = (4 - bullet(i%).set) * 10
                 bullet(i%).p = 1
-                If bullet(i%).set = 1 Then
+                IF bullet(i%).set = 1 THEN
                     InitBullet 1, x%, y%, 1.6, -1, 50, bullet(i%).set
-                ElseIf bullet(i%).set = 2 Then
+                ELSEIF bullet(i%).set = 2 THEN
                     InitBullet 1, x%, y%, .5, -1, 50, bullet(i%).set
                     InitBullet 1, x%, y%, .5, 1, 50, bullet(i%).set
-                ElseIf bullet(i%).set = 3 Then
+                ELSEIF bullet(i%).set = 3 THEN
                     InitBullet 1, x%, y%, .5, -1, 50, bullet(i%).set
                     InitBullet 1, x%, y%, 1.6, -1, 50, bullet(i%).set
                     InitBullet 1, x%, y%, .5, 1, 50, bullet(i%).set
-                End If
+                END IF
                 bullet(i%).set = 2
                 bullet(i%).tim = 0
-                For ii% = 1 To maxsparks%
+                FOR ii% = 1 TO maxsparks%
                     spark(ii%).r = 0
-                    spark(ii%).a = ((2 * Pi) / maxsparks%) * ii%
-                Next ii%
-                If config.snd Then
+                    spark(ii%).a = ((2 * _PI) / maxsparks%) * ii%
+                NEXT ii%
+                IF config.snd THEN
                     WAVPlay "explode.wav"
-                End If
-                GoTo nextbul
-            End If
+                END IF
+                GOTO nextbul
+            END IF
             DrawSpr x%, y%, 7
-        End If
+        END IF
 
         nextbul:
-    Next i%
-End Sub
+    NEXT i%
+END SUB
 
-Sub Configure
+SUB Configure
     'The Configuration SUB.
 
     startcfg:
@@ -1094,209 +1093,209 @@ Sub Configure
     menuitem(5) = "Save"
     mnum% = 5
     Menu mnum%
-    Select Case mnum%
-        Case -1
-            Exit Sub
-        Case 1
-            GoTo players
-        Case 2
-            GoTo startpack
-        Case 3
-            GoTo keyboard
-        Case 4
-            GoTo options
-        Case 5
-            GoTo savecfg
-    End Select
+    SELECT CASE mnum%
+        CASE -1
+            EXIT SUB
+        CASE 1
+            GOTO players
+        CASE 2
+            GOTO startpack
+        CASE 3
+            GOTO keyboard
+        CASE 4
+            GOTO options
+        CASE 5
+            GOTO savecfg
+    END SELECT
 
     players:
     menuitem(0) = "PLAYERS"
-    menuitem(1) = "Health:" + Str$(player(0).health)
-    For i% = 1 To maxplayers%
+    menuitem(1) = "Health:" + STR$(player(0).health)
+    FOR i% = 1 TO maxplayers%
         menuitem(i% + 1) = player(i%).nam + ": " + team(player(i%).tnum).nam
-    Next i%
+    NEXT i%
     mnum% = maxplayers% + 1
     Menu mnum%
-    Select Case mnum%
-        Case -1
-            GoTo startcfg
-        Case 1
-            Line (0, 30)-(319, 199), 0, BF
-            DrawFont menuitem(mnum%), 160 - (Len(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
-            For c% = 0 To 100
+    SELECT CASE mnum%
+        CASE -1
+            GOTO startcfg
+        CASE 1
+            LINE (0, 30)-(319, 199), 0, BF
+            DrawFont menuitem(mnum%), 160 - (LEN(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
+            FOR c% = 0 TO 100
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
-            Locate 10, 20
-            Input "", i%
-            If i% < 1 Then i% = 1
-            If i% > 100 Then i% = 100
+            NEXT c%
+            LOCATE 10, 20
+            INPUT "", i%
+            IF i% < 1 THEN i% = 1
+            IF i% > 100 THEN i% = 100
             player(0).health = i%
-            For c% = 100 To 0 Step -1
+            FOR c% = 100 TO 0 STEP -1
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
-            GoTo players
-        Case 2 TO maxplayers% + 1
-            Line (0, 30)-(319, 199), 0, BF
-            DrawFont menuitem(mnum%), 160 - (Len(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
-            DrawFont "New Name", 160 - (Len("New Name") / 2) * 8, 65, 1, 1, 2, menuclr% + 5
-            DrawFont "(Enter Makes No Change)", 160 - (Len("(Enter Makes No Change)") / 2) * 8, 90, 1, 1, 2, menuclr% + 5
-            For c% = 0 To 100
+            NEXT c%
+            GOTO players
+        CASE 2 TO maxplayers% + 1
+            LINE (0, 30)-(319, 199), 0, BF
+            DrawFont menuitem(mnum%), 160 - (LEN(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
+            DrawFont "New Name", 160 - (LEN("New Name") / 2) * 8, 65, 1, 1, 2, menuclr% + 5
+            DrawFont "(Enter Makes No Change)", 160 - (LEN("(Enter Makes No Change)") / 2) * 8, 90, 1, 1, 2, menuclr% + 5
+            FOR c% = 0 TO 100
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
-            Locate 11, 15
-            Input "", l$
+            NEXT c%
+            LOCATE 11, 15
+            INPUT "", l$
             i% = mnum% - 1
-            If l$ <> "" Then
+            IF l$ <> "" THEN
                 player(i%).nam = l$
-            End If
-            For c% = 100 To 0 Step -1
+            END IF
+            FOR c% = 100 TO 0 STEP -1
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
+            NEXT c%
 
             menuitem(0) = "TEAM SELECT"
             menuitem(1) = team(0).nam
-            For ii% = 1 To maxplayers%
+            FOR ii% = 1 TO maxplayers%
                 menuitem(ii% + 1) = team(ii%).nam
-            Next ii%
+            NEXT ii%
             mnum% = maxplayers% + 1
             Menu mnum%
-            Select Case mnum%
-                Case -1
-                    GoTo startcfg
-                Case 1
+            SELECT CASE mnum%
+                CASE -1
+                    GOTO startcfg
+                CASE 1
                     player(i%).tnum = 0
-                Case 2 TO maxplayers% + 1
+                CASE 2 TO maxplayers% + 1
                     player(i%).tnum = mnum% - 1
-            End Select
-            GoTo players
-    End Select
+            END SELECT
+            GOTO players
+    END SELECT
 
     startpack:
     menuitem(0) = "STARTING PACK"
-    menuitem(1) = "Cannons:" + Str$(playpack(0, 1).ammo)
-    menuitem(2) = "Grenades:" + Str$(playpack(0, 2).ammo)
-    menuitem(3) = "Mines:" + Str$(playpack(0, 3).ammo)
-    menuitem(4) = "Gluers:" + Str$(playpack(0, 4).ammo)
-    menuitem(5) = "Flamers:" + Str$(playpack(0, 5).ammo)
-    menuitem(6) = "Boosters:" + Str$(playpack(0, 6).ammo)
-    menuitem(7) = "Clusters:" + Str$(playpack(0, 7).ammo)
+    menuitem(1) = "Cannons:" + STR$(playpack(0, 1).ammo)
+    menuitem(2) = "Grenades:" + STR$(playpack(0, 2).ammo)
+    menuitem(3) = "Mines:" + STR$(playpack(0, 3).ammo)
+    menuitem(4) = "Gluers:" + STR$(playpack(0, 4).ammo)
+    menuitem(5) = "Flamers:" + STR$(playpack(0, 5).ammo)
+    menuitem(6) = "Boosters:" + STR$(playpack(0, 6).ammo)
+    menuitem(7) = "Clusters:" + STR$(playpack(0, 7).ammo)
     mnum% = 7
     Menu mnum%
-    Select Case mnum%
-        Case -1
-            GoTo startcfg
-        Case 1, 2, 3, 4, 5, 6, 7
-            Line (0, 30)-(319, 199), 0, BF
-            DrawFont menuitem(mnum%), 160 - (Len(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
-            For c% = 0 To 100
+    SELECT CASE mnum%
+        CASE -1
+            GOTO startcfg
+        CASE 1, 2, 3, 4, 5, 6, 7
+            LINE (0, 30)-(319, 199), 0, BF
+            DrawFont menuitem(mnum%), 160 - (LEN(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
+            FOR c% = 0 TO 100
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
-            Locate 10, 20
-            Input "", i%
-            If mnum% = 1 Then
-                If i% < 0 Then i% = 0
-                If i% > 99 Then i% = 99
+            NEXT c%
+            LOCATE 10, 20
+            INPUT "", i%
+            IF mnum% = 1 THEN
+                IF i% < 0 THEN i% = 0
+                IF i% > 99 THEN i% = 99
                 playpack(0, 1).ammo = i%
-            End If
-            If mnum% = 2 Then
-                If i% < 0 Then i% = 0
-                If i% > 99 Then i% = 99
+            END IF
+            IF mnum% = 2 THEN
+                IF i% < 0 THEN i% = 0
+                IF i% > 99 THEN i% = 99
                 playpack(0, 2).ammo = i%
-            End If
-            If mnum% = 3 Then
-                If i% < 0 Then i% = 0
-                If i% > 99 Then i% = 99
+            END IF
+            IF mnum% = 3 THEN
+                IF i% < 0 THEN i% = 0
+                IF i% > 99 THEN i% = 99
                 playpack(0, 3).ammo = i%
-            End If
-            If mnum% = 4 Then
-                If i% < 0 Then i% = 0
-                If i% > 99 Then i% = 99
+            END IF
+            IF mnum% = 4 THEN
+                IF i% < 0 THEN i% = 0
+                IF i% > 99 THEN i% = 99
                 playpack(0, 4).ammo = i%
-            End If
-            If mnum% = 5 Then
-                If i% < 0 Then i% = 0
-                If i% > 99 Then i% = 99
+            END IF
+            IF mnum% = 5 THEN
+                IF i% < 0 THEN i% = 0
+                IF i% > 99 THEN i% = 99
                 playpack(0, 5).ammo = i%
-            End If
-            If mnum% = 6 Then
-                If i% < 0 Then i% = 0
-                If i% > 99 Then i% = 99
+            END IF
+            IF mnum% = 6 THEN
+                IF i% < 0 THEN i% = 0
+                IF i% > 99 THEN i% = 99
                 playpack(0, 6).ammo = i%
-            End If
-            If mnum% = 7 Then
-                If i% < 0 Then i% = 0
-                If i% > 99 Then i% = 99
+            END IF
+            IF mnum% = 7 THEN
+                IF i% < 0 THEN i% = 0
+                IF i% > 99 THEN i% = 99
                 playpack(0, 7).ammo = i%
-            End If
-            For c% = 100 To 0 Step -1
+            END IF
+            FOR c% = 100 TO 0 STEP -1
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
-            GoTo startpack
-    End Select
+            NEXT c%
+            GOTO startpack
+    END SELECT
 
     keyboard:
     menuitem(0) = "KEYBOARD"
-    menuitem(1) = keyact(1) + Space$(10 - Len(keyact(1))) + ": " + KeyName$(keycode(1))
-    menuitem(2) = keyact(2) + Space$(10 - Len(keyact(2))) + ": " + KeyName$(keycode(2))
-    menuitem(3) = keyact(3) + Space$(10 - Len(keyact(3))) + ": " + KeyName$(keycode(3))
-    menuitem(4) = keyact(4) + Space$(10 - Len(keyact(4))) + ": " + KeyName$(keycode(4))
-    menuitem(5) = keyact(5) + Space$(10 - Len(keyact(5))) + ": " + KeyName$(keycode(5))
-    menuitem(6) = keyact(6) + Space$(10 - Len(keyact(6))) + ": " + KeyName$(keycode(6))
+    menuitem(1) = keyact(1) + SPACE$(10 - LEN(keyact(1))) + ": " + KeyName$(keycode(1))
+    menuitem(2) = keyact(2) + SPACE$(10 - LEN(keyact(2))) + ": " + KeyName$(keycode(2))
+    menuitem(3) = keyact(3) + SPACE$(10 - LEN(keyact(3))) + ": " + KeyName$(keycode(3))
+    menuitem(4) = keyact(4) + SPACE$(10 - LEN(keyact(4))) + ": " + KeyName$(keycode(4))
+    menuitem(5) = keyact(5) + SPACE$(10 - LEN(keyact(5))) + ": " + KeyName$(keycode(5))
+    menuitem(6) = keyact(6) + SPACE$(10 - LEN(keyact(6))) + ": " + KeyName$(keycode(6))
     mnum% = 6
     Menu mnum%
-    Select Case mnum%
-        Case -1
-            GoTo startcfg
-        Case 1, 2, 3, 4, 5, 6
-            Line (0, 30)-(319, 199), 0, BF
-            DrawFont menuitem(mnum%), 160 - (Len(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
-            DrawFont "Press new key", 160 - (Len("Press new key") / 2) * 8, 70, 1, 1, 2, menuclr% + 5
-            For c% = 0 To 100
+    SELECT CASE mnum%
+        CASE -1
+            GOTO startcfg
+        CASE 1, 2, 3, 4, 5, 6
+            LINE (0, 30)-(319, 199), 0, BF
+            DrawFont menuitem(mnum%), 160 - (LEN(menuitem(mnum%)) / 2) * 8, 50, 1, 1, 2, menuclr% + 5
+            DrawFont "Press new key", 160 - (LEN("Press new key") / 2) * 8, 70, 1, 1, 2, menuclr% + 5
+            FOR c% = 0 TO 100
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
-            Do
-                key$ = InKey$
-            Loop Until key$ = ""
-            Do
-                key$ = InKey$
-            Loop Until key$ <> ""
+            NEXT c%
+            DO
+                key$ = INKEY$
+            LOOP UNTIL key$ = ""
+            DO
+                key$ = INKEY$
+            LOOP UNTIL key$ <> ""
             keycheck% = 1
-            For i% = 1 To 10 + maxweapons%
-                If i% <> mnum% And key$ = keycode(i%) Then keycheck% = 0
-            Next i%
-            If keycheck% Then
+            FOR i% = 1 TO 10 + maxweapons%
+                IF i% <> mnum% AND key$ = keycode(i%) THEN keycheck% = 0
+            NEXT i%
+            IF keycheck% THEN
                 keycode(mnum%) = key$
-            Else
-                DrawFont "Key already assigned", 160 - (Len("Key already assigned") / 2) * 8, 90, 1, 1, 2, menuclr% + 5
-                If config.snd Then
+            ELSE
+                DrawFont "Key already assigned", 160 - (LEN("Key already assigned") / 2) * 8, 90, 1, 1, 2, menuclr% + 5
+                IF config.snd THEN
                     WAVPlay "buzzer.wav"
-                End If
-            End If
-            For c% = 100 To 0 Step -1
+                END IF
+            END IF
+            FOR c% = 100 TO 0 STEP -1
                 FadePal 0, 0, 0, c%, 0, 31
-            Next c%
-            GoTo keyboard
-    End Select
+            NEXT c%
+            GOTO keyboard
+    END SELECT
 
     options:
     menuitem(0) = "OPTIONS"
-    If config.ammodrop = 0 Then ad$ = "Never"
-    If config.ammodrop = .1 Then ad$ = "Low"
-    If config.ammodrop = .2 Then ad$ = "Medium"
-    If config.ammodrop = .3 Then ad$ = "High"
+    IF config.ammodrop = 0 THEN ad$ = "Never"
+    IF config.ammodrop = .1 THEN ad$ = "Low"
+    IF config.ammodrop = .2 THEN ad$ = "Medium"
+    IF config.ammodrop = .3 THEN ad$ = "High"
     menuitem(1) = "Ammo Drops: " + ad$
-    If config.snd = 0 Then ad$ = "Off"
-    If config.snd = 1 Then ad$ = "On"
+    IF config.snd = 0 THEN ad$ = "Off"
+    IF config.snd = 1 THEN ad$ = "On"
     menuitem(2) = "Sound: " + ad$
-    If config.sndb = 0 Then ad$ = "Off"
-    If config.sndb = 1 Then ad$ = "On"
+    IF config.sndb = 0 THEN ad$ = "Off"
+    IF config.sndb = 1 THEN ad$ = "On"
     menuitem(3) = "Background Sound: " + ad$
     mnum% = 3
     Menu mnum%
-    Select Case mnum%
-        Case -1
-            GoTo startcfg
-        Case 1
+    SELECT CASE mnum%
+        CASE -1
+            GOTO startcfg
+        CASE 1
             menuitem(0) = "AMMO DROPS"
             menuitem(1) = "Never"
             menuitem(2) = "Low"
@@ -1305,351 +1304,351 @@ Sub Configure
             mnum% = 4
             Menu mnum%
             config.ammodrop = (mnum% - 1) * .1
-            GoTo options
-        Case 2
+            GOTO options
+        CASE 2
             menuitem(0) = "SOUND"
             menuitem(1) = "On"
             menuitem(2) = "Off"
             mnum% = 2
             Menu mnum%
-            If mnum% = 1 Then
+            IF mnum% = 1 THEN
                 config.snd = 1
-            Else
+            ELSE
                 config.snd = 0
-            End If
-            GoTo options
-        Case 3
+            END IF
+            GOTO options
+        CASE 3
             menuitem(0) = "BACKGROUND SOUND"
             menuitem(1) = "On"
             menuitem(2) = "Off"
             mnum% = 2
             Menu mnum%
-            If mnum% = 1 Then
+            IF mnum% = 1 THEN
                 config.sndb = 1
-            Else
+            ELSE
                 config.sndb = 0
-            End If
-            GoTo options
-    End Select
+            END IF
+            GOTO options
+    END SELECT
 
     savecfg:
-    Kill game.cfgfile
-    Open game.cfgfile For Output As #1
+    KILL game.cfgfile
+    OPEN game.cfgfile FOR OUTPUT AS #1
     l$ = ""
-    For i% = 1 To maxplayers%
-        Print #1, "player" + Str$(i%) + " " + player(i%).nam
-        l$ = l$ + " " + LTrim$(Str$(player(i%).tnum))
-    Next i%
-    Print #1, "teams" + l$
-    Print #1, "health" + Str$(player(0).health)
-    Print #1, "pack.cannon" + Str$(playpack(0, 1).ammo)
-    Print #1, "pack.grenade" + Str$(playpack(0, 2).ammo)
-    Print #1, "pack.mine" + Str$(playpack(0, 3).ammo)
-    Print #1, "pack.gluer" + Str$(playpack(0, 4).ammo)
-    Print #1, "pack.flamer" + Str$(playpack(0, 5).ammo)
-    Print #1, "pack.booster" + Str$(playpack(0, 6).ammo)
-    Print #1, "pack.cluster" + Str$(playpack(0, 7).ammo)
-    Print #1, "ammo.drops" + Str$(config.ammodrop)
-    Print #1, "sound.volume" + Str$(config.snd)
-    Print #1, "sound.back" + Str$(config.sndb)
-    Print #1, "/end"
-    Close #1
+    FOR i% = 1 TO maxplayers%
+        PRINT #1, "player" + STR$(i%) + " " + player(i%).nam
+        l$ = l$ + " " + LTRIM$(STR$(player(i%).tnum))
+    NEXT i%
+    PRINT #1, "teams" + l$
+    PRINT #1, "health" + STR$(player(0).health)
+    PRINT #1, "pack.cannon" + STR$(playpack(0, 1).ammo)
+    PRINT #1, "pack.grenade" + STR$(playpack(0, 2).ammo)
+    PRINT #1, "pack.mine" + STR$(playpack(0, 3).ammo)
+    PRINT #1, "pack.gluer" + STR$(playpack(0, 4).ammo)
+    PRINT #1, "pack.flamer" + STR$(playpack(0, 5).ammo)
+    PRINT #1, "pack.booster" + STR$(playpack(0, 6).ammo)
+    PRINT #1, "pack.cluster" + STR$(playpack(0, 7).ammo)
+    PRINT #1, "ammo.drops" + STR$(config.ammodrop)
+    PRINT #1, "sound.volume" + STR$(config.snd)
+    PRINT #1, "sound.back" + STR$(config.sndb)
+    PRINT #1, "/end"
+    CLOSE #1
 
-    Kill game.keyfile
-    Open game.keyfile For Random As #1
-    For i% = 1 To 6
-        Put #1, i%, keycode(i%)
-    Next i%
-    Close #1
-End Sub
+    KILL game.keyfile
+    OPEN game.keyfile FOR RANDOM AS #1
+    FOR i% = 1 TO 6
+        PUT #1, i%, keycode(i%)
+    NEXT i%
+    CLOSE #1
+END SUB
 
-Sub Damage (pn%, dam%)
+SUB Damage (pn%, dam%)
     'Applies damage to players.
     'pn% = player number
     'dam% = damage amount
 
     ErasePlayer pn%
     player(pn%).health = player(pn%).health - dam%
-    If player(pn%).health <= 0 Then player(pn%).health = 0
+    IF player(pn%).health <= 0 THEN player(pn%).health = 0
     DrawPlayer pn%
     player(pn%).dam = 1
-End Sub
+END SUB
 
-Sub DefaultPal
+SUB DefaultPal
     'Sets the default palette.
 
-    For c% = 0 To 255
+    FOR c% = 0 TO 255
         gamepal(c%).r = defpal(c%).r
         gamepal(c%).g = defpal(c%).g
         gamepal(c%).B = defpal(c%).B
-    Next c%
-End Sub
+    NEXT c%
+END SUB
 
 
-Sub DoneTurn
+SUB DoneTurn
     'This SUB occurs at the end of every players turn.
     'Displays the turns damage and checks if player is dead.
 
-    For i% = 1 To maxplayers%
-        If level.turn = i% And player(i%).glued > 0 Then player(i%).glued = player(i%).glued - 1
-        If player(i%).dam Then
+    FOR i% = 1 TO maxplayers%
+        IF level.turn = i% AND player(i%).glued > 0 THEN player(i%).glued = player(i%).glued - 1
+        IF player(i%).dam THEN
             DrawPlayer i%
-        End If
-    Next i%
-    For ii% = 1 To 5
-        For c% = 0 To 20
-            For i% = 1 To maxplayers%
-                If player(i%).dam = 1 Then
-                    Out &H3C8, 220 + i%
-                    Out &H3C9, c% * 3
-                    Out &H3C9, c% * 2
-                    Out &H3C9, 0
-                    For z% = -32000 To 32000
-                    Next z%
-                End If
-            Next i%
-        Next c%
-        For c% = 20 To 0 Step -1
-            For i% = 1 To maxplayers%
-                If player(i%).dam = 1 Then
-                    Out &H3C8, 220 + i%
-                    Out &H3C9, c% * 3
-                    Out &H3C9, c% * 2
-                    Out &H3C9, 0
-                    For z% = -32000 To 32000
-                    Next z%
-                End If
-            Next i%
-        Next c%
-    Next ii%
+        END IF
+    NEXT i%
+    FOR ii% = 1 TO 5
+        FOR c% = 0 TO 20
+            FOR i% = 1 TO maxplayers%
+                IF player(i%).dam = 1 THEN
+                    OUT &H3C8, 220 + i%
+                    OUT &H3C9, c% * 3
+                    OUT &H3C9, c% * 2
+                    OUT &H3C9, 0
+                    FOR z% = -32000 TO 32000
+                    NEXT z%
+                END IF
+            NEXT i%
+        NEXT c%
+        FOR c% = 20 TO 0 STEP -1
+            FOR i% = 1 TO maxplayers%
+                IF player(i%).dam = 1 THEN
+                    OUT &H3C8, 220 + i%
+                    OUT &H3C9, c% * 3
+                    OUT &H3C9, c% * 2
+                    OUT &H3C9, 0
+                    FOR z% = -32000 TO 32000
+                    NEXT z%
+                END IF
+            NEXT i%
+        NEXT c%
+    NEXT ii%
     FadePal 0, 0, 0, 100, 221, 230
-    For i% = 1 To maxplayers%
-        If player(i%).dam Then
+    FOR i% = 1 TO maxplayers%
+        IF player(i%).dam THEN
             player(i%).dam = 0
-            If player(i%).health = 0 Then
+            IF player(i%).health = 0 THEN
                 ErasePlayer i%
-                If config.snd Then
+                IF config.snd THEN
                     WAVPlay "death.wav"
-                End If
-                For r! = 0 To 15 Step .5
-                    For x% = 0 To 7
-                        For y% = 0 To 7
+                END IF
+                FOR r! = 0 TO 15 STEP .5
+                    FOR x% = 0 TO 7
+                        FOR y% = 0 TO 7
                             p% = playerspr(x% + 8 * y%)
-                            If p% <> 0 Then
-                                If x% <= 3 Then
+                            IF p% <> 0 THEN
+                                IF x% <= 3 THEN
                                     xc% = x% - 4
-                                Else
+                                ELSE
                                     xc% = x% - 3
-                                End If
-                                If y% <= 3 Then
+                                END IF
+                                IF y% <= 3 THEN
                                     yc% = y% - 4
-                                Else
+                                ELSE
                                     yc% = y% - 3
-                                End If
-                                For ii% = 0 To 5
+                                END IF
+                                FOR ii% = 0 TO 5
                                     nr! = (r! - ii%)
-                                    If nr! < 0 Then nr! = 0
-                                    If nr! <= 10 Then
+                                    IF nr! < 0 THEN nr! = 0
+                                    IF nr! <= 10 THEN
                                         px% = player(i%).x + x% + xc% * nr!
                                         py% = player(i%).y + y% + (yc% - 3) * nr! + 16 * (nr! / 10) ^ 2
-                                        If p% = -1 Then
+                                        IF p% = -1 THEN
                                             p% = team(player(i%).tnum).clr
-                                        ElseIf p% = -10 Then
-                                            If player(i%).dir = 1 Then
-                                                p% = 25 - Int(x% / 2)
-                                            Else
-                                                p% = 25 - Int((7 - x%) / 2)
-                                            End If
-                                        End If
-                                        If ii% > 0 Then p% = 220 - ii% * 3
-                                        If ii% = 5 Then p% = BPoint%(px%, py%, 0)
-                                        PSet (px%, py%), p%
-                                    End If
-                                Next ii%
-                                For z% = 0 To 32000
-                                Next z%
-                            End If
-                        Next y%
-                    Next x%
-                Next r!
-            End If
-        End If
-    Next i%
-End Sub
+                                        ELSEIF p% = -10 THEN
+                                            IF player(i%).dir = 1 THEN
+                                                p% = 25 - INT(x% / 2)
+                                            ELSE
+                                                p% = 25 - INT((7 - x%) / 2)
+                                            END IF
+                                        END IF
+                                        IF ii% > 0 THEN p% = 220 - ii% * 3
+                                        IF ii% = 5 THEN p% = BPoint%(px%, py%, 0)
+                                        PSET (px%, py%), p%
+                                    END IF
+                                NEXT ii%
+                                FOR z% = 0 TO 32000
+                                NEXT z%
+                            END IF
+                        NEXT y%
+                    NEXT x%
+                NEXT r!
+            END IF
+        END IF
+    NEXT i%
+END SUB
 
-Sub DrawBar
+SUB DrawBar
     'Redraws the Infobar for each turn.
 
-    For y% = 0 To 15
-        For x% = 0 To 319
+    FOR y% = 0 TO 15
+        FOR x% = 0 TO 319
             p% = TPoint%(x%, y%, 0)
-            If p% = 241 Then
-                Def Seg = VarSeg(backbuf(0))
-                p% = Peek(x% + 320 * y%)
-                Def Seg
-            End If
-            PSet (x%, y%), p%
-        Next x%
-    Next y%
+            IF p% = 241 THEN
+                DEF SEG = VARSEG(backbuf(0))
+                p% = PEEK(x% + 320 * y%)
+                DEF SEG
+            END IF
+            PSET (x%, y%), p%
+        NEXT x%
+    NEXT y%
     DrawFont player(level.turn).nam, 8, 4, 1, 1, 3, 24
-    Line (109, 3)-(211, 12), team(player(level.turn).tnum).clr, B
-    For i% = 4 To 11
-        Line (110, i%)-(210, i%), i% + 12
-    Next i%
-    For i% = 4 To 11
-        Line (110, i%)-(110 + player(level.turn).health, i%), 28 - i% + 4
-    Next i%
-    Line (219, 4)-(281, 7), team(player(level.turn).tnum).clr, B
-    DrawFont LTrim$(Str$(playpack(level.turn, player(level.turn).bul).ammo)), 288, 4, 1, 1, 3, 24
+    LINE (109, 3)-(211, 12), team(player(level.turn).tnum).clr, B
+    FOR i% = 4 TO 11
+        LINE (110, i%)-(210, i%), i% + 12
+    NEXT i%
+    FOR i% = 4 TO 11
+        LINE (110, i%)-(110 + player(level.turn).health, i%), 28 - i% + 4
+    NEXT i%
+    LINE (219, 4)-(281, 7), team(player(level.turn).tnum).clr, B
+    DrawFont LTRIM$(STR$(playpack(level.turn, player(level.turn).bul).ammo)), 288, 4, 1, 1, 3, 24
     DrawSpr 308, 1, player(level.turn).bul
     DrawSmallNum 311, 10, playpack(level.turn, player(level.turn).bul).set, 15
-    If level.wind = 0 Then
-        Circle (250, 11), 2, 78
-    ElseIf level.wind > 0 Then
-        Line (250 - level.wind / 2, 11)-(250 + level.wind / 2, 11), 78
-        Line (250 + level.wind / 2, 11)-(248 + level.wind / 2, 9), 78
-        Line (250 + level.wind / 2, 11)-(248 + level.wind / 2, 13), 78
-    ElseIf level.wind < 0 Then
-        Line (250 - level.wind / 2, 11)-(250 + level.wind / 2, 11), 78
-        Line (250 + level.wind / 2, 11)-(252 + level.wind / 2, 9), 78
-        Line (250 + level.wind / 2, 11)-(252 + level.wind / 2, 13), 78
-    End If
-    Line (0, 0)-(319, 15), team(player(level.turn).tnum).clr, B
-    Get (0, 0)-(319, 15), barbuf()
-End Sub
+    IF level.wind = 0 THEN
+        CIRCLE (250, 11), 2, 78
+    ELSEIF level.wind > 0 THEN
+        LINE (250 - level.wind / 2, 11)-(250 + level.wind / 2, 11), 78
+        LINE (250 + level.wind / 2, 11)-(248 + level.wind / 2, 9), 78
+        LINE (250 + level.wind / 2, 11)-(248 + level.wind / 2, 13), 78
+    ELSEIF level.wind < 0 THEN
+        LINE (250 - level.wind / 2, 11)-(250 + level.wind / 2, 11), 78
+        LINE (250 + level.wind / 2, 11)-(252 + level.wind / 2, 9), 78
+        LINE (250 + level.wind / 2, 11)-(252 + level.wind / 2, 13), 78
+    END IF
+    LINE (0, 0)-(319, 15), team(player(level.turn).tnum).clr, B
+    GET (0, 0)-(319, 15), barbuf()
+END SUB
 
-Sub DrawHealth (pn%, c%)
+SUB DrawHealth (pn%, c%)
     'Displays a players health.
     'pn% = player number
     'c% = display color
 
     n% = player(pn%).health
-    nn$ = LTrim$(RTrim$(Str$(n%)))
-    x% = player(pn%).x + 3 - Len(LTrim$(RTrim$(Str$(player(pn%).health)))) * 2
+    nn$ = LTRIM$(RTRIM$(STR$(n%)))
+    x% = player(pn%).x + 3 - LEN(LTRIM$(RTRIM$(STR$(player(pn%).health)))) * 2
     y% = player(pn%).y - 6
-    For i% = 1 To Len(nn$)
-        d$ = Mid$(nn$, i%, 1)
-        For yy% = 0 To 4
-            For xx% = 0 To 2
-                p% = smallnum(Val(d$), xx% + 3 * yy%)
-                If p% = 1 Then
-                    If c% = -1 Then
+    FOR i% = 1 TO LEN(nn$)
+        d$ = MID$(nn$, i%, 1)
+        FOR yy% = 0 TO 4
+            FOR xx% = 0 TO 2
+                p% = smallnum(VAL(d$), xx% + 3 * yy%)
+                IF p% = 1 THEN
+                    IF c% = -1 THEN
                         p% = BPoint%(x% + xx% + (i% - 1) * 4, y% + yy%, pn%)
-                    Else
+                    ELSE
                         p% = c%
-                    End If
-                    PSet (x% + xx% + (i% - 1) * 4, y% + yy%), p%
-                End If
-            Next xx%
-        Next yy%
-    Next i%
-End Sub
+                    END IF
+                    PSET (x% + xx% + (i% - 1) * 4, y% + yy%), p%
+                END IF
+            NEXT xx%
+        NEXT yy%
+    NEXT i%
+END SUB
 
-Sub DrawPlayer (pn%)
+SUB DrawPlayer (pn%)
     'Draws the player's sprite.
 
     x% = player(pn%).x
     y% = player(pn%).y
-    For yy% = 0 To 7
-        For xx% = 0 To 7
+    FOR yy% = 0 TO 7
+        FOR xx% = 0 TO 7
             p% = playerspr(xx% + 8 * yy%)
-            If p% = -1 Then
+            IF p% = -1 THEN
                 p% = team(player(pn%).tnum).clr
-            ElseIf p% = -10 Then
-                If player(pn%).dir = 1 Then
-                    p% = 25 - Int(xx% / 2)
-                Else
-                    p% = 25 - Int((7 - xx%) / 2)
-                End If
-            End If
-            If p% > 0 Then
-                If player(pn%).glued > 0 Then p% = 92
-                PSet (x% + (player(pn%).dir - 1) * -3.5 + player(pn%).dir * xx%, y% + yy%), p%
-            End If
-        Next xx%
-    Next yy%
+            ELSEIF p% = -10 THEN
+                IF player(pn%).dir = 1 THEN
+                    p% = 25 - INT(xx% / 2)
+                ELSE
+                    p% = 25 - INT((7 - xx%) / 2)
+                END IF
+            END IF
+            IF p% > 0 THEN
+                IF player(pn%).glued > 0 THEN p% = 92
+                PSET (x% + (player(pn%).dir - 1) * -3.5 + player(pn%).dir * xx%, y% + yy%), p%
+            END IF
+        NEXT xx%
+    NEXT yy%
 
     DrawHealth pn%, pn% + 220
-    For i% = 0 To gunlen%
-        x% = player(pn%).x + 3 + (1 - player(pn%).dir) / 2 + Cos(player(pn%).a) * i% * player(pn%).dir
-        y% = player(pn%).y + 4 + Sin(player(pn%).a) * i%
-        PSet (x%, y%), 25
-    Next i%
-    If level.turn = pn% Then
-        PSet (player(pn%).x + 3 + Cos(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + Sin(player(pn%).a) * playeraimsize%), 8
-        PSet (player(pn%).x + 1 + Cos(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + Sin(player(pn%).a) * playeraimsize%), 7
-        PSet (player(pn%).x + 5 + Cos(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + Sin(player(pn%).a) * playeraimsize%), 7
-        PSet (player(pn%).x + 3 + Cos(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 1 + Sin(player(pn%).a) * playeraimsize%), 7
-        PSet (player(pn%).x + 3 + Cos(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 5 + Sin(player(pn%).a) * playeraimsize%), 7
-    End If
-End Sub
+    FOR i% = 0 TO gunlen%
+        x% = player(pn%).x + 3 + (1 - player(pn%).dir) / 2 + COS(player(pn%).a) * i% * player(pn%).dir
+        y% = player(pn%).y + 4 + SIN(player(pn%).a) * i%
+        PSET (x%, y%), 25
+    NEXT i%
+    IF level.turn = pn% THEN
+        PSET (player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + SIN(player(pn%).a) * playeraimsize%), 8
+        PSET (player(pn%).x + 1 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + SIN(player(pn%).a) * playeraimsize%), 7
+        PSET (player(pn%).x + 5 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + SIN(player(pn%).a) * playeraimsize%), 7
+        PSET (player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 1 + SIN(player(pn%).a) * playeraimsize%), 7
+        PSET (player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 5 + SIN(player(pn%).a) * playeraimsize%), 7
+    END IF
+END SUB
 
-Sub DrawSmallNum (x%, y%, n%, c%)
+SUB DrawSmallNum (x%, y%, n%, c%)
     'Draws a small number.
 
-    nn$ = LTrim$(RTrim$(Str$(n%)))
-    For i% = 1 To Len(nn$)
-        d$ = Mid$(nn$, i%, 1)
-        For yy% = 0 To 4
-            For xx% = 0 To 2
-                p% = smallnum(Val(d$), xx% + 3 * yy%)
-                If p% = 1 Then
-                    PSet (x% + xx% + (i% - 1) * 4, y% + yy%), c%
-                End If
-            Next xx%
-        Next yy%
-    Next i%
-End Sub
+    nn$ = LTRIM$(RTRIM$(STR$(n%)))
+    FOR i% = 1 TO LEN(nn$)
+        d$ = MID$(nn$, i%, 1)
+        FOR yy% = 0 TO 4
+            FOR xx% = 0 TO 2
+                p% = smallnum(VAL(d$), xx% + 3 * yy%)
+                IF p% = 1 THEN
+                    PSET (x% + xx% + (i% - 1) * 4, y% + yy%), c%
+                END IF
+            NEXT xx%
+        NEXT yy%
+    NEXT i%
+END SUB
 
-Sub DrawSpr (x%, y%, sn%)
+SUB DrawSpr (x%, y%, sn%)
     'Draws a sprite such as a bullet.
     'x% and y% are coordinates.
     'sn% is the sprite number to be drawn.
 
-    For yy% = 0 To 7
-        For xx% = 0 To 7
+    FOR yy% = 0 TO 7
+        FOR xx% = 0 TO 7
             p% = ammospr(sn%, xx% + 8 * yy%)
-            If p% > 0 Then
-                PSet (x% + xx%, y% + yy%), p%
-            End If
-        Next xx%
-    Next yy%
-End Sub
+            IF p% > 0 THEN
+                PSET (x% + xx%, y% + yy%), p%
+            END IF
+        NEXT xx%
+    NEXT yy%
+END SUB
 
 
-Sub EarthQuake (x%)
+SUB EarthQuake (x%)
     'Makes the screen shake.
 
-    For i% = 1 To x%
-        Out &H3D4, 8
-        Out &H3D5, i%
-    Next i%
-    Out &H3D4, 8
-    Out &H3D5, 0
-End Sub
+    FOR i% = 1 TO x%
+        OUT &H3D4, 8
+        OUT &H3D5, i%
+    NEXT i%
+    OUT &H3D4, 8
+    OUT &H3D5, 0
+END SUB
 
-Sub ErasePlayer (pn%)
+SUB ErasePlayer (pn%)
     'Erases the player's sprite.
 
     x% = player(pn%).x
     y% = player(pn%).y
-    For yy% = 0 To 7
-        For xx% = 0 To 7
+    FOR yy% = 0 TO 7
+        FOR xx% = 0 TO 7
             p% = playerspr(xx% + 8 * yy%)
-            If p% <> 0 Then
+            IF p% <> 0 THEN
                 p% = BPoint%(x% + (player(pn%).dir - 1) * -3.5 + player(pn%).dir * xx%, y% + yy%, pn%)
-                PSet (x% + (player(pn%).dir - 1) * -3.5 + player(pn%).dir * xx%, y% + yy%), p%
-            End If
-        Next xx%
-    Next yy%
+                PSET (x% + (player(pn%).dir - 1) * -3.5 + player(pn%).dir * xx%, y% + yy%), p%
+            END IF
+        NEXT xx%
+    NEXT yy%
 
     DrawHealth pn%, -1
-    For i% = 0 To gunlen%
-        x% = player(pn%).x + 3 + (1 - player(pn%).dir) / 2 + Cos(player(pn%).a) * i% * player(pn%).dir
-        y% = player(pn%).y + 4 + Sin(player(pn%).a) * i%
+    FOR i% = 0 TO gunlen%
+        x% = player(pn%).x + 3 + (1 - player(pn%).dir) / 2 + COS(player(pn%).a) * i% * player(pn%).dir
+        y% = player(pn%).y + 4 + SIN(player(pn%).a) * i%
         p% = BPoint%(x%, y%, pn%)
-        PSet (x%, y%), p%
-    Next i%
+        PSET (x%, y%), p%
+    NEXT i%
 PSET (player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + SIN(player(pn%).a) * playeraimsize%), BPoint%(player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + SIN( _
 player(pn%).a) * playeraimsize%, pn%)
 PSET (player(pn%).x + 1 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + SIN(player(pn%).a) * playeraimsize%), BPoint%(player(pn%).x + 1 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 3 + SIN( _
@@ -1660,23 +1659,23 @@ PSET (player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir,
 player(pn%).a) * playeraimsize%, pn%)
 PSET (player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 5 + SIN(player(pn%).a) * playeraimsize%), BPoint%(player(pn%).x + 3 + COS(player(pn%).a) * playeraimsize% * player(pn%).dir, player(pn%).y + 5 + SIN( _
 player(pn%).a) * playeraimsize%, pn%)
-End Sub
+END SUB
 
-Sub EraseSpr (x%, y%, sn%)
+SUB EraseSpr (x%, y%, sn%)
     'Erases a sprite from the screen.
 
-    For yy% = 0 To 7
-        For xx% = 0 To 7
+    FOR yy% = 0 TO 7
+        FOR xx% = 0 TO 7
             p% = ammospr(sn%, xx% + 8 * yy%)
-            If p% > 0 Then
+            IF p% > 0 THEN
                 p% = BPoint%(x% + xx%, y% + yy%, 0)
-                PSet (x% + xx%, y% + yy%), p%
-            End If
-        Next xx%
-    Next yy%
-End Sub
+                PSET (x% + xx%, y% + yy%), p%
+            END IF
+        NEXT xx%
+    NEXT yy%
+END SUB
 
-Sub FadePal (fr%, fg%, fb%, i%, c1%, c2%)
+SUB FadePal (fr%, fg%, fb%, i%, c1%, c2%)
     'Create the screen's palette as a blend between the current Game Palette
     'and a given color.
     'fr%, fg%, and fb% are the values for the color to blend with.
@@ -1684,100 +1683,100 @@ Sub FadePal (fr%, fg%, fb%, i%, c1%, c2%)
     'Game Palette (so 0 would be 100% blend color and 100 would be 100% Game Palette).
     'c1% and c2% set the range of colors to be affected by the blend.
 
-    For c% = c1% To c2%
+    FOR c% = c1% TO c2%
         r% = (gamepal(c%).r / 100) * i% + (fr% / 100) * (100 - i%)
         g% = (gamepal(c%).g / 100) * i% + (fg% / 100) * (100 - i%)
         B% = (gamepal(c%).B / 100) * i% + (fb% / 100) * (100 - i%)
-        Out &H3C8, c%
-        Out &H3C9, r%
-        Out &H3C9, g%
-        Out &H3C9, B%
-    Next c%
-End Sub
+        OUT &H3C8, c%
+        OUT &H3C9, r%
+        OUT &H3C9, g%
+        OUT &H3C9, B%
+    NEXT c%
+END SUB
 
-Sub DrawFont (text$, xstart%, ystart%, xscale!, yscale!, style%, tclr%)
+SUB DrawFont (text$, xstart%, ystart%, xscale!, yscale!, style%, tclr%)
     'Draws font to the screen.
     'The styles can be seen below, more can be added easily.
 
-    Def Seg = VarSeg(fontbuf(0))
-    For h% = 1 To Len(text$)
-        fptr% = 81 * (Asc(Mid$(text$, h%, 1)) - 1)
-        For y% = 0 To 8
-            For x% = 0 To 8
-                col% = Peek(VarPtr(fontbuf(0)) + fptr% + x% + 9 * y%)
-                If col% Then
+    DEF SEG = VARSEG(fontbuf(0))
+    FOR h% = 1 TO LEN(text$)
+        fptr% = 81 * (ASC(MID$(text$, h%, 1)) - 1)
+        FOR y% = 0 TO 8
+            FOR x% = 0 TO 8
+                col% = PEEK(VARPTR(fontbuf(0)) + fptr% + x% + 9 * y%)
+                IF col% THEN
                     px% = xstart% + x% * xscale! + (h% - 1) * 8 * xscale!
                     py% = ystart% + y% * yscale!
-                    Select Case style%
+                    SELECT CASE style%
 
-                        Case 1
-                            Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr%, BF
+                        CASE 1
+                            LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr%, BF
 
-                        Case 2
-                            Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr%, BF
+                        CASE 2
+                            LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr%, BF
                             x2% = x% + 1
                             y2% = y% + 1
-                            col2% = Peek(VarPtr(fontbuf(0)) + fptr% + x2% + 9 * y2%)
-                            If x2% < 0 Or x2% > 8 Or y2% < 0 Or y2% > 8 Then col2% = 0
-                            If col2% = 0 Then
+                            col2% = PEEK(VARPTR(fontbuf(0)) + fptr% + x2% + 9 * y2%)
+                            IF x2% < 0 OR x2% > 8 OR y2% < 0 OR y2% > 8 THEN col2% = 0
+                            IF col2% = 0 THEN
                                 px% = xstart% + x2% * xscale! + (h% - 1) * 8 * xscale!
                                 py% = ystart% + y2% * yscale!
-                                Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 4, BF
-                            End If
+                                LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 4, BF
+                            END IF
                             x2% = x% + 2
                             y2% = y% + 2
-                            col2% = Peek(VarPtr(fontbuf(0)) + fptr% + x2% + 9 * y2%)
-                            If x2% < 0 Or x2% > 8 Or y2% < 0 Or y2% > 8 Then col2% = 0
-                            If col2% = 0 Then
+                            col2% = PEEK(VARPTR(fontbuf(0)) + fptr% + x2% + 9 * y2%)
+                            IF x2% < 0 OR x2% > 8 OR y2% < 0 OR y2% > 8 THEN col2% = 0
+                            IF col2% = 0 THEN
                                 px% = xstart% + x2% * xscale! + (h% - 1) * 8 * xscale!
                                 py% = ystart% + y2% * yscale!
-                                Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 8, BF
-                            End If
+                                LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 8, BF
+                            END IF
 
-                        Case 3
-                            Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr%, BF
-                            For yc% = -1 To 1
-                                For xc% = -1 To 1
+                        CASE 3
+                            LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr%, BF
+                            FOR yc% = -1 TO 1
+                                FOR xc% = -1 TO 1
                                     x2% = x% + xc%
                                     y2% = y% + yc%
-                                    col2% = Peek(VarPtr(fontbuf(0)) + fptr% + x2% + 9 * y2%)
-                                    If x2% < 0 Or x2% > 8 Or y2% < 0 Or y2% > 8 Then col2% = 0
-                                    If col2% = 0 Then
+                                    col2% = PEEK(VARPTR(fontbuf(0)) + fptr% + x2% + 9 * y2%)
+                                    IF x2% < 0 OR x2% > 8 OR y2% < 0 OR y2% > 8 THEN col2% = 0
+                                    IF col2% = 0 THEN
                                         px% = xstart% + x2% * xscale! + (h% - 1) * 8 * xscale!
                                         py% = ystart% + y2% * yscale!
-                                        Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 6, BF
-                                    End If
-                                Next xc%
-                            Next yc%
+                                        LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 6, BF
+                                    END IF
+                                NEXT xc%
+                            NEXT yc%
 
-                        Case 4
-                            Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 6, BF
-                            For yc% = -1 To 1
-                                For xc% = -1 To 1
+                        CASE 4
+                            LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), (py% - ystart%) / yscale! + tclr% - 6, BF
+                            FOR yc% = -1 TO 1
+                                FOR xc% = -1 TO 1
                                     x2% = x% + xc%
                                     y2% = y% + yc%
-                                    col2% = Peek(VarPtr(fontbuf(0)) + fptr% + x2% + 9 * y2%)
-                                    If x2% < 0 Or x2% > 8 Or y2% < 0 Or y2% > 8 Then col2% = 0
-                                    If col2% = 0 Then
+                                    col2% = PEEK(VARPTR(fontbuf(0)) + fptr% + x2% + 9 * y2%)
+                                    IF x2% < 0 OR x2% > 8 OR y2% < 0 OR y2% > 8 THEN col2% = 0
+                                    IF col2% = 0 THEN
                                         px% = xstart% + x2% * xscale! + (h% - 1) * 8 * xscale!
                                         py% = ystart% + y2% * yscale!
-                                        Line (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), 7 - 2 * yscale! - (py% - ystart%) / yscale! + tclr%, BF
-                                    End If
-                                Next xc%
-                            Next yc%
+                                        LINE (px%, py%)-(px% + xscale! - 1, py% + yscale! - 1), 7 - 2 * yscale! - (py% - ystart%) / yscale! + tclr%, BF
+                                    END IF
+                                NEXT xc%
+                            NEXT yc%
 
-                    End Select
-                End If
+                    END SELECT
+                END IF
                 py! = py! + yscale!
-            Next
+            NEXT
             px! = px! + xscale!
             py! = ystart%
-        Next
-    Next h%
-    Def Seg
-End Sub
+        NEXT
+    NEXT h%
+    DEF SEG
+END SUB
 
-Sub InitBullet (c%, x%, y%, a#, d%, p%, s%)
+SUB InitBullet (c%, x%, y%, a#, d%, p%, s%)
     'Inititializes a bullet object.
     'c% = bullet class
     'x% and y% are coordinates
@@ -1786,8 +1785,8 @@ Sub InitBullet (c%, x%, y%, a#, d%, p%, s%)
     'p% = power
     's% = setting
 
-    For i% = 1 To maxbullets%
-        If bullet(i%).class = 0 Then
+    FOR i% = 1 TO maxbullets%
+        IF bullet(i%).class = 0 THEN
             bullet(i%).class = c%
             bullet(i%).xi = x%
             bullet(i%).yi = y%
@@ -1796,74 +1795,74 @@ Sub InitBullet (c%, x%, y%, a#, d%, p%, s%)
             bullet(i%).a = a#
             bullet(i%).dir = d%
             bullet(i%).p = p%
-            bullet(i%).tim = Timer - .1
+            bullet(i%).tim = TIMER - .1
             bullet(i%).set = s%
-            Exit For
-        End If
-    Next i%
-End Sub
+            EXIT FOR
+        END IF
+    NEXT i%
+END SUB
 
-Sub InitGame
+SUB InitGame
     'Initializes the game.
 
-    Randomize Timer
+    RANDOMIZE TIMER
     LoadCfg game.cfgfile
     LoadKey game.keyfile
-    Restore teaminfo
-    For i% = 0 To maxplayers%
-        Read l$
+    RESTORE teaminfo
+    FOR i% = 0 TO maxplayers%
+        READ l$
         team(i%).nam = l$
-        Read x%
+        READ x%
         team(i%).clr = x%
-    Next i%
-End Sub
+    NEXT i%
+END SUB
 
-Sub InitGamePal
+SUB InitGamePal
     'Initializes the Game Palette.
 
-    For c% = 221 To 230
+    FOR c% = 221 TO 230
         gamepal(c%).r = 62
         gamepal(c%).g = 62
         gamepal(c%).B = 62
-    Next c%
-    For c% = 231 To 240
+    NEXT c%
+    FOR c% = 231 TO 240
         gamepal(c%).r = pal(2).r + (c% - 231) * (pal(3).r - pal(2).r) / 10
         gamepal(c%).g = pal(2).g + (c% - 231) * (pal(3).g - pal(2).g) / 10
         gamepal(c%).B = pal(2).B + (c% - 231) * (pal(3).B - pal(2).B) / 10
-    Next c%
+    NEXT c%
     gamepal(241).B = pal(1).r
     gamepal(241).B = pal(1).g
     gamepal(241).B = pal(1).B
     SetBlastPal
-End Sub
+END SUB
 
-Sub InitPlayers
+SUB InitPlayers
     'Initializes the players.
 
-    Dim playeract(1 To maxplayers%) As Integer
+    DIM playeract(1 TO maxplayers%) AS INTEGER
 
     player(0).aj = -1.2
     player(0).pj = 30
     mnum% = 0
-    For i% = 1 To maxplayers%
+    FOR i% = 1 TO maxplayers%
         playeract(i%) = 0
         player(i%).health = 0
-        If player(i%).tnum > 0 Then
+        IF player(i%).tnum > 0 THEN
             mnum% = mnum% + 1
             playeract(mnum%) = i%
-        End If
-    Next i%
-    For i% = 1 To mnum%
-        If player(playeract(i%)).tnum > 0 Then
+        END IF
+    NEXT i%
+    FOR i% = 1 TO mnum%
+        IF player(playeract(i%)).tnum > 0 THEN
             x% = 320 / (mnum% + 1) * i%
             player(playeract(i%)).x = x%
-            For y% = 0 To 200
-                For xx% = x% To x% + 7
-                    If TPoint%(xx%, y% + 7, i%) <> 241 Then
-                        GoTo playerland
-                    End If
-                Next xx%
-            Next y%
+            FOR y% = 0 TO 200
+                FOR xx% = x% TO x% + 7
+                    IF TPoint%(xx%, y% + 7, i%) <> 241 THEN
+                        GOTO playerland
+                    END IF
+                NEXT xx%
+            NEXT y%
             playerland:
             player(playeract(i%)).y = y%
             player(playeract(i%)).a = 0
@@ -1872,226 +1871,227 @@ Sub InitPlayers
             player(playeract(i%)).health = player(0).health
             player(playeract(i%)).dam = 0
             player(playeract(i%)).jump = 0
-            For ii% = 1 To maxweapons%
+            FOR ii% = 1 TO maxweapons%
                 playpack(playeract(i%), ii%).ammo = playpack(0, ii%).ammo
                 playpack(playeract(i%), ii%).set = playpack(0, ii%).set
-            Next ii%
-        End If
-    Next i%
-End Sub
+            NEXT ii%
+        END IF
+    NEXT i%
+END SUB
 
-Sub InitScr
+SUB InitScr
     'Initializes the screen.
 
-    Screen 13
-    FullScreen SquarePixels , Smooth
+    $RESIZE:SMOOTH
+    SCREEN 13
+    _FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-    Color 28
-    For c% = 0 To 255
-        Out &H3C7, c%
-        defpal(c%).r = Inp(&H3C9)
-        defpal(c%).g = Inp(&H3C9)
-        defpal(c%).B = Inp(&H3C9)
-    Next c%
+    COLOR 28
+    FOR c% = 0 TO 255
+        OUT &H3C7, c%
+        defpal(c%).r = INP(&H3C9)
+        defpal(c%).g = INP(&H3C9)
+        defpal(c%).B = INP(&H3C9)
+    NEXT c%
     FadePal 0, 0, 0, 0, 0, 255
     LoadSprites game.sprfile
     LoadGameFont game.fntfile
-End Sub
+END SUB
 
-Function KeyMark% (k$)
+FUNCTION KeyMark% (k$)
     'Returns the code for the key pressed.
 
     ii% = 0
-    For i% = 1 To 11 + maxweapons%
-        If k$ = keycode(i%) Then
+    FOR i% = 1 TO 11 + maxweapons%
+        IF k$ = keycode(i%) THEN
             ii% = i%
-            Exit For
-        End If
-    Next i%
+            EXIT FOR
+        END IF
+    NEXT i%
     KeyMark% = ii%
-End Function
+END FUNCTION
 
-Function KeyName$ (k$)
+FUNCTION KeyName$ (k$)
     'Returns the common name for the keycode.
 
-    Dim kn As String * 10
+    DIM kn AS STRING * 10
 
-    Select Case UCase$(k$)
-        Case Chr$(0) + "H"
+    SELECT CASE UCASE$(k$)
+        CASE CHR$(0) + "H"
             kn = "Up"
-        Case Chr$(0) + "P"
+        CASE CHR$(0) + "P"
             kn = "Down"
-        Case Chr$(0) + "K"
+        CASE CHR$(0) + "K"
             kn = "Left"
-        Case Chr$(0) + "M"
+        CASE CHR$(0) + "M"
             kn = "Right"
-        Case Chr$(13)
+        CASE CHR$(13)
             kn = "Enter"
-        Case Chr$(27)
+        CASE CHR$(27)
             kn = "Esc"
-        Case Chr$(32)
+        CASE CHR$(32)
             kn = "Space"
-        Case Chr$(0) + Chr$(59)
+        CASE CHR$(0) + CHR$(59)
             kn = "F1"
-        Case Chr$(0) + Chr$(60)
+        CASE CHR$(0) + CHR$(60)
             kn = "F2"
-        Case Chr$(0) + Chr$(61)
+        CASE CHR$(0) + CHR$(61)
             kn = "F3"
-        Case Chr$(0) + Chr$(62)
+        CASE CHR$(0) + CHR$(62)
             kn = "F4"
-        Case Chr$(0) + Chr$(63)
+        CASE CHR$(0) + CHR$(63)
             kn = "F5"
-        Case Chr$(0) + Chr$(64)
+        CASE CHR$(0) + CHR$(64)
             kn = "F6"
-        Case Chr$(0) + Chr$(65)
+        CASE CHR$(0) + CHR$(65)
             kn = "F7"
-        Case Chr$(0) + Chr$(66)
+        CASE CHR$(0) + CHR$(66)
             kn = "F8"
-        Case Else
-            kn = UCase$(k$)
+        CASE ELSE
+            kn = UCASE$(k$)
 
-    End Select
+    END SELECT
     KeyName$ = kn
-End Function
+END FUNCTION
 
-Sub LoadCfg (file$)
+SUB LoadCfg (file$)
     'Loads the Configuration file.
 
-    Open file$ For Input As #1
-    Cls
+    OPEN file$ FOR INPUT AS #1
+    CLS
     nextline:
-    Line Input #1, l$
-    If LCase$(l$) = "/end" Then GoTo lastline
-    s1% = InStr(l$, " ")
-    c1$ = Left$(l$, s1% - 1)
-    Select Case LCase$(c1$)
+    LINE INPUT #1, l$
+    IF LCASE$(l$) = "/end" THEN GOTO lastline
+    s1% = INSTR(l$, " ")
+    c1$ = LEFT$(l$, s1% - 1)
+    SELECT CASE LCASE$(c1$)
 
-        Case "player"
-            c2$ = Mid$(l$, s1% + 1, 1)
-            c3$ = Right$(l$, Len(l$) - s1% - 2)
-            player(Val(c2$)).nam = c3$
+        CASE "player"
+            c2$ = MID$(l$, s1% + 1, 1)
+            c3$ = RIGHT$(l$, LEN(l$) - s1% - 2)
+            player(VAL(c2$)).nam = c3$
 
-        Case "teams"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            player(1).tnum = Val(Mid$(c2$, 1, 1))
-            player(2).tnum = Val(Mid$(c2$, 3, 1))
-            player(3).tnum = Val(Mid$(c2$, 5, 1))
-            player(4).tnum = Val(Mid$(c2$, 7, 1))
-            player(5).tnum = Val(Mid$(c2$, 9, 1))
-            player(6).tnum = Val(Mid$(c2$, 11, 1))
-            player(7).tnum = Val(Mid$(c2$, 13, 1))
-            player(8).tnum = Val(Mid$(c2$, 15, 1))
+        CASE "teams"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            player(1).tnum = VAL(MID$(c2$, 1, 1))
+            player(2).tnum = VAL(MID$(c2$, 3, 1))
+            player(3).tnum = VAL(MID$(c2$, 5, 1))
+            player(4).tnum = VAL(MID$(c2$, 7, 1))
+            player(5).tnum = VAL(MID$(c2$, 9, 1))
+            player(6).tnum = VAL(MID$(c2$, 11, 1))
+            player(7).tnum = VAL(MID$(c2$, 13, 1))
+            player(8).tnum = VAL(MID$(c2$, 15, 1))
 
-        Case "health"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            player(0).health = Val(c2$)
+        CASE "health"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            player(0).health = VAL(c2$)
 
-        Case "pack.cannon"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            playpack(0, 1).ammo = Val(c2$)
+        CASE "pack.cannon"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            playpack(0, 1).ammo = VAL(c2$)
             playpack(0, 1).set = 1
 
-        Case "pack.grenade"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            playpack(0, 2).ammo = Val(c2$)
+        CASE "pack.grenade"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            playpack(0, 2).ammo = VAL(c2$)
             playpack(0, 2).set = 2
 
-        Case "pack.mine"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            playpack(0, 3).ammo = Val(c2$)
+        CASE "pack.mine"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            playpack(0, 3).ammo = VAL(c2$)
             playpack(0, 3).set = 1
 
-        Case "pack.gluer"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            playpack(0, 4).ammo = Val(c2$)
+        CASE "pack.gluer"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            playpack(0, 4).ammo = VAL(c2$)
             playpack(0, 4).set = 1
 
-        Case "pack.flamer"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            playpack(0, 5).ammo = Val(c2$)
+        CASE "pack.flamer"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            playpack(0, 5).ammo = VAL(c2$)
             playpack(0, 5).set = 1
 
-        Case "pack.booster"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            playpack(0, 6).ammo = Val(c2$)
+        CASE "pack.booster"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            playpack(0, 6).ammo = VAL(c2$)
             playpack(0, 6).set = 1
 
-        Case "pack.cluster"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            playpack(0, 7).ammo = Val(c2$)
+        CASE "pack.cluster"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            playpack(0, 7).ammo = VAL(c2$)
             playpack(0, 7).set = 3
 
-        Case "ammo.drops"
-            c2$ = Right$(l$, Len(l$) - s1%)
-            config.ammodrop = Val(c2$)
+        CASE "ammo.drops"
+            c2$ = RIGHT$(l$, LEN(l$) - s1%)
+            config.ammodrop = VAL(c2$)
 
-        Case "sound.volume"
-            c2$ = Right$(l$, 1)
-            config.snd = Val(c2$)
+        CASE "sound.volume"
+            c2$ = RIGHT$(l$, 1)
+            config.snd = VAL(c2$)
 
-        Case "sound.back"
-            c2$ = Right$(l$, 1)
-            config.sndb = Val(c2$)
+        CASE "sound.back"
+            c2$ = RIGHT$(l$, 1)
+            config.sndb = VAL(c2$)
 
-    End Select
-    GoTo nextline:
+    END SELECT
+    GOTO nextline:
     lastline:
-    Close #1
-End Sub
+    CLOSE #1
+END SUB
 
-Sub LoadGameFont (file$)
+SUB LoadGameFont (file$)
     'Loads the Font file.
 
-    Open file$ For Binary As #1
-    If LOF(1) < 2 Then
+    OPEN file$ FOR BINARY AS #1
+    IF LOF(1) < 2 THEN
         NoFile% = 1
-    End If
-    If NoFile% <> 1 Then Get #1, , fontbuf(0)
-    Close #1
-    If NoFile% Then
-        Kill file$
-        Cls
-        Print "The font data file couldn't be found!"
-        Print
-        Print "Would you like to create one? (Y/N)"
-        Input "> ", Choice$
-        If UCase$(Choice$) = "N" Then
-            Print "The program cannot run without this file!"
-            System
-        Else
-            Print "Hit a key to make the file."
-            Print "You will hear a beep if it is working."
+    END IF
+    IF NoFile% <> 1 THEN GET #1, , fontbuf(0)
+    CLOSE #1
+    IF NoFile% THEN
+        KILL file$
+        CLS
+        PRINT "The font data file couldn't be found!"
+        PRINT
+        PRINT "Would you like to create one? (Y/N)"
+        INPUT "> ", Choice$
+        IF UCASE$(Choice$) = "N" THEN
+            PRINT "The program cannot run without this file!"
+            SYSTEM
+        ELSE
+            PRINT "Hit a key to make the file."
+            PRINT "You will hear a beep if it is working."
             Pause
 
-            Open file$ For Binary As #1
-            Color 16
-            For ascii% = 1 To 128
-                Cls
-                Print Chr$(ascii%)
-                For x = 0 To 8
-                    For y = 0 To 8
-                        pnt$ = Chr$(Point(x, y))
-                        Put #1, , pnt$
+            OPEN file$ FOR BINARY AS #1
+            COLOR 16
+            FOR ascii% = 1 TO 128
+                CLS
+                PRINT CHR$(ascii%)
+                FOR x = 0 TO 8
+                    FOR y = 0 TO 8
+                        pnt$ = CHR$(POINT(x, y))
+                        PUT #1, , pnt$
                         pnt$ = ""
-                    Next
-                Next
-            Next
-            Close #1
-            Open file$ For Binary As #1
-            Get #1, , fontbuf(0)
-            Close #1
-        End If
-    End If
-End Sub
+                    NEXT
+                NEXT
+            NEXT
+            CLOSE #1
+            OPEN file$ FOR BINARY AS #1
+            GET #1, , fontbuf(0)
+            CLOSE #1
+        END IF
+    END IF
+END SUB
 
-Sub LoadKey (file$)
+SUB LoadKey (file$)
     'Loads the Key file.
 
-    Open file$ For Random As #1
-    For i% = 1 To 6
-        Get #1, i%, k$
+    OPEN file$ FOR RANDOM AS #1
+    FOR i% = 1 TO 6
+        GET #1, i%, k$
         keycode(i%) = k$
-    Next i%
+    NEXT i%
     keyact(1) = "Walk Left"
     keyact(2) = "Walk Right"
     keyact(3) = "Aim Up"
@@ -2106,191 +2106,191 @@ Sub LoadKey (file$)
     keyact(9) = "Set 3"
     keycode(9) = "3"
     keyact(10) = "Quit"
-    keycode(10) = Chr$(27)
+    keycode(10) = CHR$(27)
     keyact(11) = "Skip Turn"
-    keycode(11) = Chr$(8)
+    keycode(11) = CHR$(8)
 
     keyact(12) = "Cannon"
-    keycode(12) = Chr$(0) + Chr$(&H3B)
+    keycode(12) = CHR$(0) + CHR$(&H3B)
     keyact(13) = "Grenade"
-    keycode(13) = Chr$(0) + Chr$(&H3C)
+    keycode(13) = CHR$(0) + CHR$(&H3C)
     keyact(14) = "Mine"
-    keycode(14) = Chr$(0) + Chr$(&H3D)
+    keycode(14) = CHR$(0) + CHR$(&H3D)
     keyact(15) = "Gluer"
-    keycode(15) = Chr$(0) + Chr$(&H3E)
+    keycode(15) = CHR$(0) + CHR$(&H3E)
     keyact(16) = "Flamer"
-    keycode(16) = Chr$(0) + Chr$(&H3F)
+    keycode(16) = CHR$(0) + CHR$(&H3F)
     keyact(17) = "Booster"
-    keycode(17) = Chr$(0) + Chr$(&H40)
+    keycode(17) = CHR$(0) + CHR$(&H40)
     keyact(18) = "Cluster"
-    keycode(18) = Chr$(0) + Chr$(&H41)
-    Close #1
-End Sub
+    keycode(18) = CHR$(0) + CHR$(&H41)
+    CLOSE #1
+END SUB
 
-Sub LoadLevel (file$)
+SUB LoadLevel (file$)
     'Loads a Level file.
 
-    Open file$ For Input As #1
-    Line Input #1, l$
+    OPEN file$ FOR INPUT AS #1
+    LINE INPUT #1, l$
     level.nam = l$
-    Line Input #1, l$
+    LINE INPUT #1, l$
     turffile$ = l$
-    Line Input #1, l$
+    LINE INPUT #1, l$
     backfile$ = l$
-    Line Input #1, l$
-    level.grav = Val(l$)
-    Line Input #1, l$
+    LINE INPUT #1, l$
+    level.grav = VAL(l$)
+    LINE INPUT #1, l$
     level.sndb = l$
-    Close #1
-    Def Seg = &HA000
-    BLoad turffile$, 0
-    Def Seg
-    Get (0, 0)-(319, 199), turfbuf()
-    Def Seg = VarSeg(backbuf(0))
-    BLoad "backgrnd\" + backfile$, 0
-    Def Seg
-End Sub
+    CLOSE #1
+    DEF SEG = &HA000
+    BLOAD turffile$, 0
+    DEF SEG
+    GET (0, 0)-(319, 199), turfbuf()
+    DEF SEG = VARSEG(backbuf(0))
+    BLOAD "backgrnd\" + backfile$, 0
+    DEF SEG
+END SUB
 
-Sub LoadSprites (file$)
+SUB LoadSprites (file$)
     'Loads the Sprite file.
 
-    Open file$ For Input As #1
+    OPEN file$ FOR INPUT AS #1
     nextsprite:
-    Input #1, n%
-    If n% = -1 Then GoTo endsprite
-    For y% = 0 To 7
-        For x% = 0 To 7
-            Input #1, p%
-            If n% = 0 Then
+    INPUT #1, n%
+    IF n% = -1 THEN GOTO endsprite
+    FOR y% = 0 TO 7
+        FOR x% = 0 TO 7
+            INPUT #1, p%
+            IF n% = 0 THEN
                 playerspr(x% + 8 * y%) = p%
-            ElseIf n% = 100 Then
+            ELSEIF n% = 100 THEN
                 ammospr(0, x% + 8 * y%) = p%
-            Else
+            ELSE
                 ammospr(n%, x% + 8 * y%) = p%
-            End If
-        Next x%
-    Next y%
-    GoTo nextsprite
+            END IF
+        NEXT x%
+    NEXT y%
+    GOTO nextsprite
     endsprite:
-    Close #1
+    CLOSE #1
 
-    Restore smallnums
-    For i% = 0 To 9
-        For y% = 0 To 4
-            For x% = 0 To 2
-                Read p%
+    RESTORE smallnums
+    FOR i% = 0 TO 9
+        FOR y% = 0 TO 4
+            FOR x% = 0 TO 2
+                READ p%
                 smallnum(i%, x% + 3 * y%) = p%
-            Next x%
-        Next y%
-    Next i%
-End Sub
+            NEXT x%
+        NEXT y%
+    NEXT i%
+END SUB
 
-Sub Main
+SUB Main
     'Main game procedure.
 
-    For y% = 0 To 199
-        For x% = 0 To 319
-            Def Seg = VarSeg(turfbuf(0))
-            p% = Peek(x% + 320& * y% + 4)
-            Def Seg
-            If p% = 241 Then
-                Def Seg = VarSeg(backbuf(0))
-                p% = Peek(x% + 320& * y%)
-                Def Seg
-            End If
-            PSet (x%, y%), p%
-        Next x%
-    Next y%
+    FOR y% = 0 TO 199
+        FOR x% = 0 TO 319
+            DEF SEG = VARSEG(turfbuf(0))
+            p% = PEEK(x% + 320& * y% + 4)
+            DEF SEG
+            IF p% = 241 THEN
+                DEF SEG = VARSEG(backbuf(0))
+                p% = PEEK(x% + 320& * y%)
+                DEF SEG
+            END IF
+            PSET (x%, y%), p%
+        NEXT x%
+    NEXT y%
 
     InitPlayers
-    For i% = 1 To maxbullets%
+    FOR i% = 1 TO maxbullets%
         bullet(i%).class = 0
-    Next i%
-    For c% = 0 To 100
+    NEXT i%
+    FOR c% = 0 TO 100
         FadePal 0, 0, 0, c%, 0, 255
-    Next c%
+    NEXT c%
 
     level.turn = 0
-    level.wind = Rnd * 40 - 20
+    level.wind = RND * 40 - 20
     level.quit = 0
 
     newloop:
     nextcheck:
     level.turn = level.turn + 1
-    If level.turn > maxplayers% Then
+    IF level.turn > maxplayers% THEN
         level.turn = 1
-        level.wind = Rnd * 40 - 20
-    End If
-    If player(level.turn).health = 0 Then GoTo nextcheck
+        level.wind = RND * 40 - 20
+    END IF
+    IF player(level.turn).health = 0 THEN GOTO nextcheck
 
     level.fire = 0
-    For i% = 1 To maxplayers%
-        If player(i%).health > 0 Then
+    FOR i% = 1 TO maxplayers%
+        IF player(i%).health > 0 THEN
             DrawPlayer i%
-        End If
-    Next i%
+        END IF
+    NEXT i%
     DrawBar
-    If Rnd < config.ammodrop Then
-        x% = Rnd * 300 + 10
-        i% = CInt(Rnd * (maxweapons% - 1)) + 1
-        ii% = Rnd * 2 + 1
-        If config.snd Then
+    IF RND < config.ammodrop THEN
+        x% = RND * 300 + 10
+        i% = CINT(RND * (maxweapons% - 1)) + 1
+        ii% = RND * 2 + 1
+        IF config.snd THEN
             WAVPlay "jet.wav"
-        End If
+        END IF
         InitBullet -100, x%, 0, 0, ii%, 0, i%
-    End If
-    For i% = 1 To 4
-        key$ = InKey$
-    Next i%
+    END IF
+    FOR i% = 1 TO 4
+        key$ = INKEY$
+    NEXT i%
 
     startloop:
-    If config.snd And config.sndb Then
+    IF config.snd AND config.sndb THEN
         WAVPlay level.sndb
-    End If
+    END IF
 
     level.nofly = 1
     PlayerKey
-    level.tim = Timer
+    level.tim = TIMER
     PlayerFall
     BulletMove
 
-    If level.quit = 1 Then
-        Exit Sub
-    End If
-    If level.nofly And (level.fire Or player(level.turn).health = 0) Then GoTo nextplayer
+    IF level.quit = 1 THEN
+        EXIT SUB
+    END IF
+    IF level.nofly AND (level.fire OR player(level.turn).health = 0) THEN GOTO nextplayer
 
-    GoTo startloop
+    GOTO startloop
 
     nextplayer:
     DoneTurn
     y% = 0
-    For i% = 1 To maxplayers%
+    FOR i% = 1 TO maxplayers%
         team(i%).act = 0
-        For ii% = 1 To maxplayers%
-            If player(ii%).tnum = i% And player(ii%).health > 0 Then
+        FOR ii% = 1 TO maxplayers%
+            IF player(ii%).tnum = i% AND player(ii%).health > 0 THEN
                 team(i%).act = 1
                 y% = i%
-            End If
-        Next ii%
-    Next i%
+            END IF
+        NEXT ii%
+    NEXT i%
     x% = 0
-    For i% = 1 To maxplayers%
+    FOR i% = 1 TO maxplayers%
         x% = x% + team(i%).act
-    Next i%
-    If x% = 1 Then
+    NEXT i%
+    IF x% = 1 THEN
         Win y%
-        Exit Sub
-    ElseIf x% = 0 Then
+        EXIT SUB
+    ELSEIF x% = 0 THEN
         Win 0
-        Exit Sub
-    End If
+        EXIT SUB
+    END IF
 
     ErasePlayer level.turn
-    GoTo newloop
-End Sub
+    GOTO newloop
+END SUB
 
 
-Sub Menu (mnum%)
+SUB Menu (mnum%)
     'Creates a menu.
     'The menuitem variables (1 up to 10) are strings which are the menu items.
     'menuitem(0) is the menu title.
@@ -2298,89 +2298,89 @@ Sub Menu (mnum%)
     'is used for that menu.  It will return mnum% as the menu item chosen.
 
     moff% = 0
-    Cls
-    DrawFont menuitem(0), 160 - (Len(menuitem(0)) / 2) * 16, 10, 2, 2, 3, menuclr% + 8
+    CLS
+    DrawFont menuitem(0), 160 - (LEN(menuitem(0)) / 2) * 16, 10, 2, 2, 3, menuclr% + 8
     mmax% = mnum%
-    If mmax% > 7 Then mmax% = 7
-    For i% = 0 To 5
-        Line (i%, 45 + i%)-(319 - i%, mmax% * 20 + 63 - i%), menuclr% + i%, B
-    Next i%
+    IF mmax% > 7 THEN mmax% = 7
+    FOR i% = 0 TO 5
+        LINE (i%, 45 + i%)-(319 - i%, mmax% * 20 + 63 - i%), menuclr% + i%, B
+    NEXT i%
 
     i% = 1
-    For c% = 0 To 100
+    FOR c% = 0 TO 100
         FadePal 0, 0, 0, c%, 0, 31
-    Next c%
+    NEXT c%
     drawmenu:
-    Line (6, 51)-(313, mmax% * 20 + 57), 0, BF
-    For ii% = moff% + 1 To moff% + mmax%
+    LINE (6, 51)-(313, mmax% * 20 + 57), 0, BF
+    FOR ii% = moff% + 1 TO moff% + mmax%
         c% = menuclr%
-        If ii% = i% Then c% = menuclr% + 5
-        DrawFont menuitem(ii%), 160 - (Len(menuitem(ii%)) / 2) * 8, (ii% - moff%) * 20 + 40, 1, 1, 1, c%
-    Next ii%
-    If moff% > 0 Then
-        For ii% = 0 To 5
-            Line (300 - (5 - ii%), 60 - ii%)-(300 + (5 - ii%), 60 - ii%), 18 + ii% * 2
-        Next ii%
-    End If
-    If moff% + mmax% < mnum% Then
-        For ii% = 0 To 5
-            Line (300 - (5 - ii%), ii% + 190)-(300 + (5 - ii%), ii% + 190), 18 + ii% * 2
-        Next ii%
-    End If
-    Do
-        key$ = InKey$
-        Select Case key$
-            Case Chr$(27)
-                If config.snd Then
+        IF ii% = i% THEN c% = menuclr% + 5
+        DrawFont menuitem(ii%), 160 - (LEN(menuitem(ii%)) / 2) * 8, (ii% - moff%) * 20 + 40, 1, 1, 1, c%
+    NEXT ii%
+    IF moff% > 0 THEN
+        FOR ii% = 0 TO 5
+            LINE (300 - (5 - ii%), 60 - ii%)-(300 + (5 - ii%), 60 - ii%), 18 + ii% * 2
+        NEXT ii%
+    END IF
+    IF moff% + mmax% < mnum% THEN
+        FOR ii% = 0 TO 5
+            LINE (300 - (5 - ii%), ii% + 190)-(300 + (5 - ii%), ii% + 190), 18 + ii% * 2
+        NEXT ii%
+    END IF
+    DO
+        key$ = INKEY$
+        SELECT CASE key$
+            CASE CHR$(27)
+                IF config.snd THEN
                     WAVPlay "menua.wav"
-                End If
+                END IF
                 i% = -1
-                Exit Do
+                EXIT DO
 
-            Case Chr$(0) + "H"
+            CASE CHR$(0) + "H"
                 i% = i% - 1
-                If i% = 0 Then i% = mnum%
+                IF i% = 0 THEN i% = mnum%
                 moff% = i% - 4
-                If moff% + 7 > mnum% Then moff% = mnum% - 7
-                If moff% < 0 Then moff% = 0
-                If config.snd Then
+                IF moff% + 7 > mnum% THEN moff% = mnum% - 7
+                IF moff% < 0 THEN moff% = 0
+                IF config.snd THEN
                     WAVPlay "menub.wav"
-                End If
-                GoTo drawmenu
+                END IF
+                GOTO drawmenu
 
-            Case Chr$(0) + "P"
+            CASE CHR$(0) + "P"
                 i% = i% + 1
-                If i% = mnum% + 1 Then i% = 1
+                IF i% = mnum% + 1 THEN i% = 1
                 moff% = i% - 4
-                If moff% + 7 > mnum% Then moff% = mnum% - 7
-                If moff% < 0 Then moff% = 0
-                If config.snd Then
+                IF moff% + 7 > mnum% THEN moff% = mnum% - 7
+                IF moff% < 0 THEN moff% = 0
+                IF config.snd THEN
                     WAVPlay "menub.wav"
-                End If
-                GoTo drawmenu
+                END IF
+                GOTO drawmenu
 
-            Case Chr$(13)
-                If config.snd Then
+            CASE CHR$(13)
+                IF config.snd THEN
                     WAVPlay "menua.wav"
-                End If
-                Exit Do
+                END IF
+                EXIT DO
 
-        End Select
-        If Rnd < .00005 Then
-            x% = Rnd * 250 + 60
-            y% = Rnd * 40
-            d% = Rnd * 10 + 10
-            If Rnd < .1 Then
+        END SELECT
+        IF RND < .00005 THEN
+            x% = RND * 250 + 60
+            y% = RND * 40
+            d% = RND * 10 + 10
+            IF RND < .1 THEN
                 s% = 1
-                For ii% = 1 To maxsparks%
+                FOR ii% = 1 TO maxsparks%
                     spark(ii%).r = 0
-                    spark(ii%).a = ((2 * Pi) / maxsparks%) * ii%
-                Next ii%
-            Else
+                    spark(ii%).a = ((2 * _PI) / maxsparks%) * ii%
+                NEXT ii%
+            ELSE
                 s% = 0
-            End If
-            For ii% = 1 To maxbullets%
-                If bullet(ii%).class = 0 Then
+            END IF
+            FOR ii% = 1 TO maxbullets%
+                IF bullet(ii%).class = 0 THEN
                     bullet(ii%).class = -1
                     bullet(ii%).x = x%
                     bullet(ii%).y = y%
@@ -2388,109 +2388,109 @@ Sub Menu (mnum%)
                     bullet(ii%).dir = d%
                     bullet(ii%).p = 1
                     bullet(ii%).set = s%
-                    If config.snd Then
-                        If Rnd < .5 Then
+                    IF config.snd THEN
+                        IF RND < .5 THEN
                             WAVPlay "explode.wav"
-                        Else
+                        ELSE
                             WAVPlay "blast.wav"
-                        End If
-                    End If
-                    Exit For
-                End If
-            Next ii%
-        End If
-        For B% = 1 To maxbullets%
-            If bullet(B%).class = -1 Then
+                        END IF
+                    END IF
+                    EXIT FOR
+                END IF
+            NEXT ii%
+        END IF
+        FOR B% = 1 TO maxbullets%
+            IF bullet(B%).class = -1 THEN
                 level.nofly = 0
                 x% = bullet(B%).x
                 y% = bullet(B%).y
                 c% = 220 - (bullet(B%).a / bullet(B%).dir) * 20
-                If bullet(B%).p = -1 Then c% = 0
-                For r! = 0 To Pi * 2 Step .05
-                    p% = Point(x% + Cos(r!) * bullet(B%).a + 3, y% + Sin(r!) * bullet(B%).a + 3)
-                    If p% = 0 Or p% >= 200 Then
-                        PSet (x% + Cos(r!) * bullet(B%).a + 3, y% + Sin(r!) * bullet(B%).a + 3), c%
-                    End If
-                Next r!
+                IF bullet(B%).p = -1 THEN c% = 0
+                FOR r! = 0 TO _PI * 2 STEP .05
+                    p% = POINT(x% + COS(r!) * bullet(B%).a + 3, y% + SIN(r!) * bullet(B%).a + 3)
+                    IF p% = 0 OR p% >= 200 THEN
+                        PSET (x% + COS(r!) * bullet(B%).a + 3, y% + SIN(r!) * bullet(B%).a + 3), c%
+                    END IF
+                NEXT r!
                 bullet(B%).a = bullet(B%).a + .5 * bullet(B%).p
-                If bullet(B%).p = 1 And bullet(B%).a >= bullet(B%).dir Then
+                IF bullet(B%).p = 1 AND bullet(B%).a >= bullet(B%).dir THEN
                     bullet(B%).p = -1
-                End If
-                If bullet(B%).set = 1 Then
-                    For ii% = 1 To maxsparks%
-                        sx% = bullet(B%).x + 3 + spark(ii%).r * Cos(spark(ii%).a)
-                        sy% = bullet(B%).y + 3 + .3 * (spark(ii%).r * Sin(spark(ii%).a))
-                        p% = Point(sx%, sy%)
-                        If p% >= 200 Then
-                            PSet (sx%, sy%), 0
-                        End If
+                END IF
+                IF bullet(B%).set = 1 THEN
+                    FOR ii% = 1 TO maxsparks%
+                        sx% = bullet(B%).x + 3 + spark(ii%).r * COS(spark(ii%).a)
+                        sy% = bullet(B%).y + 3 + .3 * (spark(ii%).r * SIN(spark(ii%).a))
+                        p% = POINT(sx%, sy%)
+                        IF p% >= 200 THEN
+                            PSET (sx%, sy%), 0
+                        END IF
                         spark(ii%).r = spark(ii%).r + 2
-                        sx% = bullet(B%).x + 3 + spark(ii%).r * Cos(spark(ii%).a)
-                        sy% = bullet(B%).y + 3 + .3 * (spark(ii%).r * Sin(spark(ii%).a))
+                        sx% = bullet(B%).x + 3 + spark(ii%).r * COS(spark(ii%).a)
+                        sy% = bullet(B%).y + 3 + .3 * (spark(ii%).r * SIN(spark(ii%).a))
                         c% = 220 - spark(ii%).r / 3
-                        If c% < 200 Then c% = 200
-                        If bullet(B%).p = -1 And bullet(B%).a < 0 Then c% = 0
-                        p% = Point(sx%, sy%)
-                        If p% = 0 Then
-                            PSet (sx%, sy%), c%
-                        End If
-                    Next ii%
-                End If
-                If bullet(B%).p = -1 And bullet(B%).a < 0 Then
+                        IF c% < 200 THEN c% = 200
+                        IF bullet(B%).p = -1 AND bullet(B%).a < 0 THEN c% = 0
+                        p% = POINT(sx%, sy%)
+                        IF p% = 0 THEN
+                            PSET (sx%, sy%), c%
+                        END IF
+                    NEXT ii%
+                END IF
+                IF bullet(B%).p = -1 AND bullet(B%).a < 0 THEN
                     bullet(B%).class = 0
-                End If
-            End If
-        Next B%
+                END IF
+            END IF
+        NEXT B%
 
-        Limit 60
-    Loop
+        _LIMIT 60
+    LOOP
     mnum% = i%
-    For c% = 100 To 0 Step -1
+    FOR c% = 100 TO 0 STEP -1
         FadePal 0, 0, 0, c%, 0, 31
-    Next c%
-End Sub
+    NEXT c%
+END SUB
 
-Sub Pause
+SUB Pause
     'Pauses the game until enter is pressed.
 
-    Do
-        key$ = InKey$
-    Loop Until key$ = ""
-    Do
-        key$ = InKey$
-    Loop Until key$ = Chr$(13)
-    Do
-        key$ = InKey$
-    Loop Until key$ = ""
-End Sub
+    DO
+        key$ = INKEY$
+    LOOP UNTIL key$ = ""
+    DO
+        key$ = INKEY$
+    LOOP UNTIL key$ = CHR$(13)
+    DO
+        key$ = INKEY$
+    LOOP UNTIL key$ = ""
+END SUB
 
-Sub PlayerFall
+SUB PlayerFall
     'Makes a player fall if necessary.
 
-    For pn% = 1 To maxplayers%
-        If player(pn%).health > 0 Or player(pn%).dam Then
+    FOR pn% = 1 TO maxplayers%
+        IF player(pn%).health > 0 OR player(pn%).dam THEN
             t# = (level.tim - player(pn%).tim) * bulletspd%
             x% = player(pn%).x
             y% = player(pn%).y
-            If player(pn%).jump > 0 Then
+            IF player(pn%).jump > 0 THEN
                 level.nofly = 0
                 ErasePlayer pn%
-                player(pn%).x = player(pn%).xi + t# * Cos(player(pn%).aj) * player(pn%).pj * player(pn%).dir
-                player(pn%).y = player(pn%).yi + t# * Sin(player(pn%).aj) * player(pn%).pj + 16 * t# ^ 2 * level.grav
+                player(pn%).x = player(pn%).xi + t# * COS(player(pn%).aj) * player(pn%).pj * player(pn%).dir
+                player(pn%).y = player(pn%).yi + t# * SIN(player(pn%).aj) * player(pn%).pj + 16 * t# ^ 2 * level.grav
                 DrawPlayer pn%
-                If player(pn%).jump = 2 Then
+                IF player(pn%).jump = 2 THEN
                     c% = 220 - t# * 20
-                    Line (player(pn%).x + 1, player(pn%).y + 7)-(player(pn%).x + 6, player(pn%).y + 7), c%
-                    If t# >= 1 Then player(pn%).jump = 1
-                End If
-            End If
-            If player(pn%).x < -7 Or player(pn%).x > 320 Or player(pn%).y > 205 Then
-                If config.snd Then
+                    LINE (player(pn%).x + 1, player(pn%).y + 7)-(player(pn%).x + 6, player(pn%).y + 7), c%
+                    IF t# >= 1 THEN player(pn%).jump = 1
+                END IF
+            END IF
+            IF player(pn%).x < -7 OR player(pn%).x > 320 OR player(pn%).y > 205 THEN
+                IF config.snd THEN
                     WAVPlay "fall.wav"
-                End If
+                END IF
                 player(pn%).dam = 0
                 player(pn%).health = 0
-            End If
+            END IF
 
             bump$ = TurfBump$(x%, y%, -1)
             'Uncomment this to help you see where the player is colliding with turf
@@ -2513,42 +2513,42 @@ Sub PlayerFall
             '  IF MID$(bump$, 8, 1) = "1" THEN LINE (9, 181)-(9, 184), 15
             'END IF
 
-            Select Case bump$
-                Case "00000000"
-                    If player(pn%).jump = 0 Then
+            SELECT CASE bump$
+                CASE "00000000"
+                    IF player(pn%).jump = 0 THEN
                         player(pn%).tim = level.tim - .2
                         player(pn%).jump = 1
                         player(pn%).xi = x%
                         player(pn%).yi = y%
                         player(pn%).pj = 0
                         t# = (level.tim - player(pn%).tim) * bulletspd%
-                    End If
+                    END IF
 
-                Case "11100011", "11000001", "10000000", "00000010", "00000001", "00000011", "10000011", "00000111", "10000111", "11001111", "10001111", "11000111", "10000001", "11001111", "11101111", "11000001", "11000011"
-                    If player(pn%).jump > 0 And player(pn%).dir = -1 Then
-                        xc% = t# * Cos(player(pn%).aj) * player(pn%).pj * -player(pn%).dir
+                CASE "11100011", "11000001", "10000000", "00000010", "00000001", "00000011", "10000011", "00000111", "10000111", "11001111", "10001111", "11000111", "10000001", "11001111", "11101111", "11000001", "11000011"
+                    IF player(pn%).jump > 0 AND player(pn%).dir = -1 THEN
+                        xc% = t# * COS(player(pn%).aj) * player(pn%).pj * -player(pn%).dir
                         player(pn%).xi = x% - xc%
                         ErasePlayer pn%
                         player(pn%).dir = 1
                         DrawPlayer pn%
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "bounce.wav"
-                        End If
-                    End If
+                        END IF
+                    END IF
 
-                Case "11110001", "11100000", "01000000", "00100000", "00010000", "00110000", "01110000", "00111000", "01111000", "11111100", "01111100", "11111000", "01100000", "11111100", "11111110", "11100000", "11110000"
-                    If player(pn%).jump > 0 And player(pn%).dir = 1 Then
-                        xc% = t# * Cos(player(pn%).aj) * player(pn%).pj * -player(pn%).dir
+                CASE "11110001", "11100000", "01000000", "00100000", "00010000", "00110000", "01110000", "00111000", "01111000", "11111100", "01111100", "11111000", "01100000", "11111100", "11111110", "11100000", "11110000"
+                    IF player(pn%).jump > 0 AND player(pn%).dir = 1 THEN
+                        xc% = t# * COS(player(pn%).aj) * player(pn%).pj * -player(pn%).dir
                         player(pn%).xi = x% - xc%
                         ErasePlayer pn%
                         player(pn%).dir = -1
                         DrawPlayer pn%
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "bounce.wav"
-                        End If
-                    End If
+                        END IF
+                    END IF
 
-                Case "11000000", "11100001", "11110011"
+                CASE "11000000", "11100001", "11110011"
                     ' IF player(pn%).jump > 0 THEN
                     '  nt# = 2 * p% * SIN(player(pn%).aj) / (2 * (16 * level.grav))
                     '  xc% = t# * COS(player(pn%).aj) * player(pn%).pj * player(pn%).dir
@@ -2559,437 +2559,437 @@ Sub PlayerFall
                     ' END IF
 
                     'CASE "11111111", "01111111", "10111111", "00000100", "00000010", "00000110", "00001110", "00011100", "00011110", "00111111", "00011111", "00111110", "00001111", "10011111", "00011000", "00111100", "01111110", "11011111", "11111110"
-                Case Else
-                    If player(pn%).jump > 0 Then
+                CASE ELSE
+                    IF player(pn%).jump > 0 THEN
                         player(pn%).jump = 0
-                        If 16 * t# ^ 2 * level.grav > 140 Then
+                        IF 16 * t# ^ 2 * level.grav > 140 THEN
                             Damage pn%, (16 * t# ^ 2 * level.grav - 140) / 2
-                            If pn% = level.turn Then level.fire = 1
-                            If config.snd Then
+                            IF pn% = level.turn THEN level.fire = 1
+                            IF config.snd THEN
                                 WAVPlay "crash.wav"
-                            End If
-                        ElseIf 16 * t# ^ 2 * level.grav > 10 Then
-                            If config.snd Then
+                            END IF
+                        ELSEIF 16 * t# ^ 2 * level.grav > 10 THEN
+                            IF config.snd THEN
                                 WAVPlay "land.wav"
-                            End If
-                        End If
-                    End If
-            End Select
-        End If
-    Next pn%
-End Sub
+                            END IF
+                        END IF
+                    END IF
+            END SELECT
+        END IF
+    NEXT pn%
+END SUB
 
-Sub PlayerKey
+SUB PlayerKey
     'Gets the key that was pressed and processes it.
 
-    key$ = InKey$
+    key$ = INKEY$
     k% = KeyMark%(key$)
-    Select Case k%
-        Case 1
-            If player(level.turn).glued = 0 Then
-                If player(level.turn).jump Then
-                    If player(level.turn).dir = 1 Then
+    SELECT CASE k%
+        CASE 1
+            IF player(level.turn).glued = 0 THEN
+                IF player(level.turn).jump THEN
+                    IF player(level.turn).dir = 1 THEN
                         ErasePlayer level.turn
                         player(level.turn).xi = player(level.turn).xi + 2 * (player(level.turn).x - player(level.turn).xi)
                         player(level.turn).dir = -1
                         DrawPlayer level.turn
-                    End If
-                Else
-                    For y% = 0 To playerstep%
-                        If TPoint%(player(level.turn).x - 1, player(level.turn).y + 7 - y%, level.turn) = 241 Then Exit For
-                    Next y%
-                    If y% <= playerstep% Then
-                        If config.snd Then
-                            If config.sndb = 0 Then
+                    END IF
+                ELSE
+                    FOR y% = 0 TO playerstep%
+                        IF TPoint%(player(level.turn).x - 1, player(level.turn).y + 7 - y%, level.turn) = 241 THEN EXIT FOR
+                    NEXT y%
+                    IF y% <= playerstep% THEN
+                        IF config.snd THEN
+                            IF config.sndb = 0 THEN
                                 WAVPlay "crawl.wav"
-                            End If
-                        End If
+                            END IF
+                        END IF
                         ErasePlayer level.turn
                         player(level.turn).x = player(level.turn).x - 1
                         player(level.turn).y = player(level.turn).y - y%
                         player(level.turn).dir = -1
                         DrawPlayer level.turn
-                    End If
-                End If
-            End If
+                    END IF
+                END IF
+            END IF
 
-        Case 2
-            If player(level.turn).glued = 0 Then
-                If player(level.turn).jump Then
-                    If player(level.turn).dir = -1 Then
+        CASE 2
+            IF player(level.turn).glued = 0 THEN
+                IF player(level.turn).jump THEN
+                    IF player(level.turn).dir = -1 THEN
                         ErasePlayer level.turn
                         player(level.turn).xi = player(level.turn).xi + 2 * (player(level.turn).x - player(level.turn).xi)
                         player(level.turn).dir = 1
                         DrawPlayer level.turn
-                    End If
-                Else
-                    For y% = 0 To playerstep%
-                        If TPoint%(player(level.turn).x + 8, player(level.turn).y + 7 - y%, level.turn) = 241 Then Exit For
-                    Next y%
-                    If y% <= playerstep% Then
-                        If config.snd Then
-                            If config.sndb = 0 Then
+                    END IF
+                ELSE
+                    FOR y% = 0 TO playerstep%
+                        IF TPoint%(player(level.turn).x + 8, player(level.turn).y + 7 - y%, level.turn) = 241 THEN EXIT FOR
+                    NEXT y%
+                    IF y% <= playerstep% THEN
+                        IF config.snd THEN
+                            IF config.sndb = 0 THEN
                                 WAVPlay "crawl.wav"
-                            End If
-                        End If
+                            END IF
+                        END IF
                         ErasePlayer level.turn
                         player(level.turn).x = player(level.turn).x + 1
                         player(level.turn).y = player(level.turn).y - y%
                         player(level.turn).dir = 1
                         DrawPlayer level.turn
-                    End If
-                End If
-            End If
+                    END IF
+                END IF
+            END IF
 
-        Case 3
-            If config.snd Then
-                If config.sndb = 0 Then
+        CASE 3
+            IF config.snd THEN
+                IF config.sndb = 0 THEN
                     WAVPlay "aim.wav"
-                End If
-            End If
+                END IF
+            END IF
             ErasePlayer level.turn
             player(level.turn).a = player(level.turn).a - playeraim!
-            If player(level.turn).a < -Pi / 2 Then player(level.turn).a = -Pi / 2
+            IF player(level.turn).a < -_PI / 2 THEN player(level.turn).a = -_PI / 2
             DrawPlayer level.turn
 
-        Case 4
-            If config.snd Then
-                If config.sndb = 0 Then
+        CASE 4
+            IF config.snd THEN
+                IF config.sndb = 0 THEN
                     WAVPlay "aim.wav"
-                End If
-            End If
+                END IF
+            END IF
             ErasePlayer level.turn
             player(level.turn).a = player(level.turn).a + playeraim!
-            If player(level.turn).a > Pi / 2 Then player(level.turn).a = Pi / 2
+            IF player(level.turn).a > _PI / 2 THEN player(level.turn).a = _PI / 2
             DrawPlayer level.turn
 
-        Case 5
-            If level.fire = 0 And player(level.turn).jump = 0 Then
-                If player(level.turn).bul = 1 Then
-                    If playpack(level.turn, 1).ammo >= playpack(level.turn, 1).set Then
+        CASE 5
+            IF level.fire = 0 AND player(level.turn).jump = 0 THEN
+                IF player(level.turn).bul = 1 THEN
+                    IF playpack(level.turn, 1).ammo >= playpack(level.turn, 1).set THEN
                         playpack(level.turn, 1).ammo = playpack(level.turn, 1).ammo - playpack(level.turn, 1).set
                         power% = 0
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "power.wav"
-                        End If
-                        Do
-                            key$ = InKey$
-                            If KeyMark%(key$) = 5 Then Exit Do
-                            Line (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
+                        END IF
+                        DO
+                            key$ = INKEY$
+                            IF KeyMark%(key$) = 5 THEN EXIT DO
+                            LINE (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
                             power% = power% + 1
-                            For z& = -32000 To 32000
-                            Next z&
-                            If power% = 60 Then Exit Do
-                        Loop
-                        Line (220, 5)-(280, 6), 0, BF
+                            FOR z& = -32000 TO 32000
+                            NEXT z&
+                            IF power% = 60 THEN EXIT DO
+                        LOOP
+                        LINE (220, 5)-(280, 6), 0, BF
                         power% = maxpower% * (power% / 60)
-                        For i% = 1 To playpack(level.turn, 1).set
+                        FOR i% = 1 TO playpack(level.turn, 1).set
                             InitBullet 1, player(level.turn).x, player(level.turn).y, player(level.turn).a - ((1 / playpack(level.turn, 1).set - 1) * .05) + ((i% - 1) * .1), player(level.turn).dir, power%, playpack(level.turn, 1).set
                             DrawSpr player(level.turn).x, player(level.turn).y, 1
-                        Next i%
-                        If config.snd Then
+                        NEXT i%
+                        IF config.snd THEN
                             WAVPlay "launch.wav"
-                        End If
+                        END IF
                         level.fire = 1
-                    Else
-                        If config.snd Then
+                    ELSE
+                        IF config.snd THEN
                             WAVPlay "buzzer.wav"
-                        End If
-                    End If
-                End If
+                        END IF
+                    END IF
+                END IF
 
-                If player(level.turn).bul = 2 Then
-                    If playpack(level.turn, 2).ammo > 0 Then
+                IF player(level.turn).bul = 2 THEN
+                    IF playpack(level.turn, 2).ammo > 0 THEN
                         playpack(level.turn, 2).ammo = playpack(level.turn, 2).ammo - 1
                         power% = 0
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "power.wav"
-                        End If
-                        Do
-                            key$ = InKey$
-                            If KeyMark%(key$) = 5 Then Exit Do
-                            Line (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
+                        END IF
+                        DO
+                            key$ = INKEY$
+                            IF KeyMark%(key$) = 5 THEN EXIT DO
+                            LINE (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
                             power% = power% + 1
-                            For z& = -32000 To 32000
-                            Next z&
-                            If power% = 60 Then Exit Do
-                        Loop
-                        Line (220, 5)-(280, 6), 0, BF
+                            FOR z& = -32000 TO 32000
+                            NEXT z&
+                            IF power% = 60 THEN EXIT DO
+                        LOOP
+                        LINE (220, 5)-(280, 6), 0, BF
                         power% = maxpower% * (power% / 60)
                         InitBullet 2, player(level.turn).x, player(level.turn).y, player(level.turn).a, player(level.turn).dir, power%, playpack(level.turn, 2).set * 2500
                         DrawSpr player(level.turn).x, player(level.turn).y, 2
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "launch.wav"
-                        End If
+                        END IF
                         level.fire = 1
-                    Else
-                        If config.snd Then
+                    ELSE
+                        IF config.snd THEN
                             WAVPlay "buzzer.wav"
-                        End If
-                    End If
-                End If
+                        END IF
+                    END IF
+                END IF
 
-                If player(level.turn).bul = 3 Then
-                    If playpack(level.turn, 3).ammo > 0 Then
+                IF player(level.turn).bul = 3 THEN
+                    IF playpack(level.turn, 3).ammo > 0 THEN
                         playpack(level.turn, 3).ammo = playpack(level.turn, 3).ammo - 1
                         InitBullet 3, player(level.turn).x, player(level.turn).y, 0, 0, 0, playpack(level.turn, 3).set
                         DrawSpr player(level.turn).x, player(level.turn).y, 3
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "mine.wav"
-                        End If
+                        END IF
                         level.fire = 1
-                    Else
-                        If config.snd Then
+                    ELSE
+                        IF config.snd THEN
                             WAVPlay "buzzer.wav"
-                        End If
-                    End If
-                End If
+                        END IF
+                    END IF
+                END IF
 
-                If player(level.turn).bul = 4 Then
-                    If playpack(level.turn, 4).ammo >= playpack(level.turn, 4).set Then
+                IF player(level.turn).bul = 4 THEN
+                    IF playpack(level.turn, 4).ammo >= playpack(level.turn, 4).set THEN
                         playpack(level.turn, 4).ammo = playpack(level.turn, 4).ammo - playpack(level.turn, 4).set
                         power% = 0
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "power.wav"
-                        End If
-                        Do
-                            key$ = InKey$
-                            If KeyMark%(key$) = 5 Then Exit Do
-                            Line (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
+                        END IF
+                        DO
+                            key$ = INKEY$
+                            IF KeyMark%(key$) = 5 THEN EXIT DO
+                            LINE (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
                             power% = power% + 1
-                            For z& = -32000 To 32000
-                            Next z&
-                            If power% = 60 Then Exit Do
-                        Loop
-                        Line (220, 5)-(280, 6), 0, BF
+                            FOR z& = -32000 TO 32000
+                            NEXT z&
+                            IF power% = 60 THEN EXIT DO
+                        LOOP
+                        LINE (220, 5)-(280, 6), 0, BF
                         power% = maxpower% * (power% / 60)
-                        For i% = 1 To playpack(level.turn, 4).set
+                        FOR i% = 1 TO playpack(level.turn, 4).set
                             InitBullet 4, player(level.turn).x, player(level.turn).y, player(level.turn).a - ((1 / playpack(level.turn, 4).set - 1) * .05) + ((i% - 1) * .1), player(level.turn).dir, power%, playpack(level.turn, 4).set
                             DrawSpr player(level.turn).x, player(level.turn).y, 4
-                        Next i%
-                        If config.snd Then
+                        NEXT i%
+                        IF config.snd THEN
                             WAVPlay "launch.wav"
-                        End If
+                        END IF
                         level.fire = 1
-                    Else
-                        If config.snd Then
+                    ELSE
+                        IF config.snd THEN
                             WAVPlay "buzzer.wav"
-                        End If
-                    End If
-                End If
+                        END IF
+                    END IF
+                END IF
 
-                If player(level.turn).bul = 5 Then
-                    If playpack(level.turn, 5).ammo > 0 Then
+                IF player(level.turn).bul = 5 THEN
+                    IF playpack(level.turn, 5).ammo > 0 THEN
                         playpack(level.turn, 5).ammo = playpack(level.turn, 5).ammo - 1
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "flamer.wav"
-                        End If
-                        For i% = 1 To 20
-                            For a# = -.5 * (4 - playpack(level.turn, 5).set) To .5 * (4 - playpack(level.turn, 5).set) Step .05
-                                For r! = 0 To 1 Step .01 * (4 - playpack(level.turn, 5).set)
-                                    rr! = r! * 15 * playpack(level.turn, 5).set * (1 - Abs(a# / (.5 * (4 - playpack(level.turn, 5).set))))
-                                    c% = (1 - r! / 1) * 16 + 202 + Rnd * 4 - 2
-                                    If i% = 20 Then c% = 241
-                                    fx% = player(level.turn).x - 1 + 4 * (player(level.turn).dir + 1) + Cos(a#) * rr! * player(level.turn).dir
-                                    fy% = player(level.turn).y + 4 + Sin(a#) * rr!
+                        END IF
+                        FOR i% = 1 TO 20
+                            FOR a# = -.5 * (4 - playpack(level.turn, 5).set) TO .5 * (4 - playpack(level.turn, 5).set) STEP .05
+                                FOR r! = 0 TO 1 STEP .01 * (4 - playpack(level.turn, 5).set)
+                                    rr! = r! * 15 * playpack(level.turn, 5).set * (1 - ABS(a# / (.5 * (4 - playpack(level.turn, 5).set))))
+                                    c% = (1 - r! / 1) * 16 + 202 + RND * 4 - 2
+                                    IF i% = 20 THEN c% = 241
+                                    fx% = player(level.turn).x - 1 + 4 * (player(level.turn).dir + 1) + COS(a#) * rr! * player(level.turn).dir
+                                    fy% = player(level.turn).y + 4 + SIN(a#) * rr!
                                     TPset fx%, fy%, 241
-                                    If c% = 241 Then
+                                    IF c% = 241 THEN
                                         c% = BPoint%(fx%, fy%, 0)
-                                    End If
-                                    PSet (fx%, fy%), c%
-                                Next r!
-                            Next a#
-                        Next i%
-                        For pn% = 1 To maxplayers%
-                            If player(pn%).health > 0 And pn% <> level.turn Then
-                                If Abs(player(pn%).y - player(level.turn).y) <= 7 Then
-                                    If player(level.turn).dir * (player(pn%).x - player(level.turn).x) > 0 And player(level.turn).dir * (player(pn%).x - player(level.turn).x) <= playpack(level.turn, 5).set * 15 Then
+                                    END IF
+                                    PSET (fx%, fy%), c%
+                                NEXT r!
+                            NEXT a#
+                        NEXT i%
+                        FOR pn% = 1 TO maxplayers%
+                            IF player(pn%).health > 0 AND pn% <> level.turn THEN
+                                IF ABS(player(pn%).y - player(level.turn).y) <= 7 THEN
+                                    IF player(level.turn).dir * (player(pn%).x - player(level.turn).x) > 0 AND player(level.turn).dir * (player(pn%).x - player(level.turn).x) <= playpack(level.turn, 5).set * 15 THEN
                                         ph% = 5000 * (1 / (player(level.turn).dir * (player(pn%).x - player(level.turn).x)) ^ 2)
-                                        If ph% > 50 Then ph% = 50
+                                        IF ph% > 50 THEN ph% = 50
                                         Damage pn%, ph%
-                                    End If
-                                End If
-                            End If
-                        Next pn%
+                                    END IF
+                                END IF
+                            END IF
+                        NEXT pn%
                         level.fire = 1
                         level.nofly = 0
-                    Else
-                        If config.snd Then
+                    ELSE
+                        IF config.snd THEN
                             WAVPlay "buzzer.wav"
-                        End If
-                    End If
-                End If
+                        END IF
+                    END IF
+                END IF
 
-                If player(level.turn).bul = 7 Then
-                    If playpack(level.turn, 7).ammo > 0 Then
+                IF player(level.turn).bul = 7 THEN
+                    IF playpack(level.turn, 7).ammo > 0 THEN
                         playpack(level.turn, 7).ammo = playpack(level.turn, 7).ammo - 1
                         power% = 0
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "power.wav"
-                        End If
-                        Do
-                            key$ = InKey$
-                            If KeyMark%(key$) = 5 Then Exit Do
-                            Line (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
+                        END IF
+                        DO
+                            key$ = INKEY$
+                            IF KeyMark%(key$) = 5 THEN EXIT DO
+                            LINE (220 + power%, 5)-(220 + power%, 6), 200 + power% / 3
                             power% = power% + 1
-                            For z& = -32000 To 32000
-                            Next z&
-                            If power% = 60 Then Exit Do
-                        Loop
-                        Line (220, 5)-(280, 6), 0, BF
+                            FOR z& = -32000 TO 32000
+                            NEXT z&
+                            IF power% = 60 THEN EXIT DO
+                        LOOP
+                        LINE (220, 5)-(280, 6), 0, BF
                         power% = maxpower% * (power% / 60)
                         InitBullet 7, player(level.turn).x, player(level.turn).y, player(level.turn).a, player(level.turn).dir, power%, playpack(level.turn, 7).set
                         DrawSpr player(level.turn).x, player(level.turn).y, 7
-                        If config.snd Then
+                        IF config.snd THEN
                             WAVPlay "launch.wav"
-                        End If
+                        END IF
                         level.fire = 1
-                    Else
-                        If config.snd Then
+                    ELSE
+                        IF config.snd THEN
                             WAVPlay "buzzer.wav"
-                        End If
-                    End If
-                End If
+                        END IF
+                    END IF
+                END IF
 
                 DrawBar
-            End If
+            END IF
 
-        Case 6
-            If player(level.turn).glued = 0 Then
-                If player(level.turn).jump > 0 Then
-                    If player(level.turn).bul = 6 Then
-                        If playpack(level.turn, 6).ammo > 0 Then
+        CASE 6
+            IF player(level.turn).glued = 0 THEN
+                IF player(level.turn).jump > 0 THEN
+                    IF player(level.turn).bul = 6 THEN
+                        IF playpack(level.turn, 6).ammo > 0 THEN
                             player(level.turn).jump = 2
                             playpack(level.turn, 6).ammo = playpack(level.turn, 6).ammo - 1
-                            If config.snd Then
+                            IF config.snd THEN
                                 WAVPlay "booster.wav"
-                            End If
+                            END IF
                             DrawBar
-                        Else
-                            If config.snd Then
+                        ELSE
+                            IF config.snd THEN
                                 WAVPlay "buzzer.wav"
-                            End If
-                            GoTo nojump
-                        End If
-                    Else
-                        GoTo nojump
-                    End If
-                Else
+                            END IF
+                            GOTO nojump
+                        END IF
+                    ELSE
+                        GOTO nojump
+                    END IF
+                ELSE
                     player(level.turn).jump = 1
-                    If config.snd Then
+                    IF config.snd THEN
                         WAVPlay "jump.wav"
-                    End If
-                End If
+                    END IF
+                END IF
                 player(level.turn).xi = player(level.turn).x
                 player(level.turn).yi = player(level.turn).y
                 player(level.turn).aj = player(0).aj
                 player(level.turn).pj = player(0).pj
-                player(level.turn).tim = Timer - .1
-                t# = (Timer - player(level.turn).tim) * bulletspd%
+                player(level.turn).tim = TIMER - .1
+                t# = (TIMER - player(level.turn).tim) * bulletspd%
                 ErasePlayer level.turn
-                player(level.turn).x = player(level.turn).xi + t# * Cos(player(level.turn).aj) * player(level.turn).pj * player(level.turn).dir
-                player(level.turn).y = player(level.turn).yi + t# * Sin(player(level.turn).aj) * player(level.turn).pj + 16 * t# ^ 2
+                player(level.turn).x = player(level.turn).xi + t# * COS(player(level.turn).aj) * player(level.turn).pj * player(level.turn).dir
+                player(level.turn).y = player(level.turn).yi + t# * SIN(player(level.turn).aj) * player(level.turn).pj + 16 * t# ^ 2
                 DrawPlayer level.turn
                 nojump:
-            End If
+            END IF
 
-        Case 7, 8, 9
+        CASE 7, 8, 9
             playpack(level.turn, player(level.turn).bul).set = k% - 6
             DrawBar
-            If config.snd Then
+            IF config.snd THEN
                 WAVPlay "menua.wav"
-            End If
+            END IF
 
-        Case 10
+        CASE 10
             level.quit = 1
 
-        Case 11
+        CASE 11
             level.fire = 1
 
-        Case 12 TO 11 + maxweapons%
+        CASE 12 TO 11 + maxweapons%
             player(level.turn).bul = k% - 11
             DrawBar
-            If config.snd Then
+            IF config.snd THEN
                 WAVPlay "menub.wav"
-            End If
+            END IF
 
-    End Select
-End Sub
+    END SELECT
+END SUB
 
-Sub SetBlastPal
+SUB SetBlastPal
     'Sets the fire palette.
 
-    For c% = 200 To 220
+    FOR c% = 200 TO 220
         s% = (210 - c%) / 10 * pal(1).r
-        If s% < 0 Then s% = 0
+        IF s% < 0 THEN s% = 0
         rr% = (c% - 200) * 124 / 20 + s%
-        If rr% < 0 Then rr% = 0
-        If rr% > 62 Then rr% = 62
+        IF rr% < 0 THEN rr% = 0
+        IF rr% > 62 THEN rr% = 62
         gamepal(c%).r = rr%
         s% = (210 - c%) / 10 * pal(1).g
-        If s% < 0 Then s% = 0
+        IF s% < 0 THEN s% = 0
         gg% = (c% - 200) * 60 / 20 + s%
-        If gg% < 0 Then gg% = 0
-        If gg% > 62 Then gg% = 62
+        IF gg% < 0 THEN gg% = 0
+        IF gg% > 62 THEN gg% = 62
         gamepal(c%).g = gg%
         s% = (210 - c%) / 10 * pal(1).B
-        If s% < 0 Then s% = 0
+        IF s% < 0 THEN s% = 0
         bb% = -40 + (c% - 200) * 80 / 20 + s%
-        If bb% < 0 Then bb% = 0
-        If bb% > 62 Then bb% = 62
+        IF bb% < 0 THEN bb% = 0
+        IF bb% > 62 THEN bb% = 62
         gamepal(c%).B = bb%
-    Next c%
-End Sub
+    NEXT c%
+END SUB
 
 
-Sub DoTitle
+SUB DoTitle
     'Displays the title screen.
 
-    Dim s As String * 1
+    DIM s AS STRING * 1
 
-    Open "title.pal" For Binary As #1
-    For i% = 0 To 255
-        Get #1, , s
-        r% = Asc(s)
-        Get #1, , s
-        g% = Asc(s)
-        Get #1, , s
-        B% = Asc(s)
+    OPEN "title.pal" FOR BINARY AS #1
+    FOR i% = 0 TO 255
+        GET #1, , s
+        r% = ASC(s)
+        GET #1, , s
+        g% = ASC(s)
+        GET #1, , s
+        B% = ASC(s)
         gamepal(i%).r = r%
         gamepal(i%).g = g%
         gamepal(i%).B = B%
-    Next i%
-    Close #1
-    Palette 0, 0
+    NEXT i%
+    CLOSE #1
+    PALETTE 0, 0
 
-    If config.snd > 0 Then
+    IF config.snd > 0 THEN
         WAVPlay "title1.wav"
-    End If
-    Def Seg = &HA000
-    BLoad "title.img", 0
-    Def Seg
-    For i% = 0 To 100
-        key$ = InKey$
-        If key$ = Chr$(13) Then GoTo donetitle1
+    END IF
+    DEF SEG = &HA000
+    BLOAD "title.img", 0
+    DEF SEG
+    FOR i% = 0 TO 100
+        key$ = INKEY$
+        IF key$ = CHR$(13) THEN GOTO donetitle1
         FadePal 0, 0, 0, i%, 0, 255
-        Delay 0.05
-    Next i%
+        _DELAY 0.05
+    NEXT i%
     donetitle1:
-    If config.snd > 0 Then
+    IF config.snd > 0 THEN
         WAVPlay "title2.wav"
-    End If
-    For i% = 0 To 100
-        key$ = InKey$
-        If key$ = Chr$(13) Then GoTo donetitle2
-        c% = Rnd * 100
+    END IF
+    FOR i% = 0 TO 100
+        key$ = INKEY$
+        IF key$ = CHR$(13) THEN GOTO donetitle2
+        c% = RND * 100
         FadePal 40, 50, 60, c%, 0, 255
-    Next i%
+    NEXT i%
     FadePal 0, 0, 0, 100, 0, 255
     Pause
     donetitle2:
-End Sub
+END SUB
 
-Function TPoint% (tx%, ty%, pn%)
+FUNCTION TPoint% (tx%, ty%, pn%)
     'Returns the pixel on the turf map to see if a collision occured.
     '(241 represents a pixel of sky)
     'tx% and ty% are the coordinates.
@@ -2998,51 +2998,51 @@ Function TPoint% (tx%, ty%, pn%)
     'You can also use -1 to not see any players.
 
     pp% = 241
-    If tx% >= 0 And tx% <= 319 And ty% >= 0 And ty% <= 199 Then
-        Def Seg = VarSeg(turfbuf(0))
-        pp% = Peek(tx% + 320& * ty% + 4)
-        Def Seg
-        For i% = 1 To maxplayers%
-            If player(i%).health > 0 And pn% <> i% And pn% <> -1 Then
-                If tx% >= player(i%).x And tx% <= player(i%).x + 7 And ty% >= player(i%).y And ty% <= player(i%).y + 7 Then
+    IF tx% >= 0 AND tx% <= 319 AND ty% >= 0 AND ty% <= 199 THEN
+        DEF SEG = VARSEG(turfbuf(0))
+        pp% = PEEK(tx% + 320& * ty% + 4)
+        DEF SEG
+        FOR i% = 1 TO maxplayers%
+            IF player(i%).health > 0 AND pn% <> i% AND pn% <> -1 THEN
+                IF tx% >= player(i%).x AND tx% <= player(i%).x + 7 AND ty% >= player(i%).y AND ty% <= player(i%).y + 7 THEN
                     pp% = playerspr((player(i%).dir - 1) * -3.5 + player(i%).dir * (tx% - player(i%).x) + 8 * (ty% - player(i%).y))
-                    If pp% = -1 Then
+                    IF pp% = -1 THEN
                         pp% = team(player(i%).tnum).clr
-                    ElseIf pp% = -10 Then
-                        If player(i%).dir = 1 Then
-                            pp% = 25 - Int((tx% - player(i%).x) / 2)
-                        Else
-                            pp% = 25 - Int((7 - (tx% - player(i%).x)) / 2)
-                        End If
-                    End If
-                    If pp% > 0 Then
-                        If player(i%).glued > 0 Then pp% = 92
-                    Else
+                    ELSEIF pp% = -10 THEN
+                        IF player(i%).dir = 1 THEN
+                            pp% = 25 - INT((tx% - player(i%).x) / 2)
+                        ELSE
+                            pp% = 25 - INT((7 - (tx% - player(i%).x)) / 2)
+                        END IF
+                    END IF
+                    IF pp% > 0 THEN
+                        IF player(i%).glued > 0 THEN pp% = 92
+                    ELSE
                         pp% = 241
-                    End If
-                    For ii% = 0 To gunlen%
-                        x% = player(i%).x + 3 + (1 - player(i%).dir) / 2 + Cos(player(i%).a) * ii% * player(i%).dir
-                        y% = player(i%).y + 4 + Sin(player(i%).a) * ii%
-                        If tx% = x% And ty% = y% Then pp% = 25
-                    Next ii%
-                End If
-            End If
-        Next i%
-    End If
+                    END IF
+                    FOR ii% = 0 TO gunlen%
+                        x% = player(i%).x + 3 + (1 - player(i%).dir) / 2 + COS(player(i%).a) * ii% * player(i%).dir
+                        y% = player(i%).y + 4 + SIN(player(i%).a) * ii%
+                        IF tx% = x% AND ty% = y% THEN pp% = 25
+                    NEXT ii%
+                END IF
+            END IF
+        NEXT i%
+    END IF
     TPoint% = pp%
-End Function
+END FUNCTION
 
-Sub TPset (tx%, ty%, tp%)
+SUB TPset (tx%, ty%, tp%)
     'PSETs to the turf map.
 
-    If tx% >= 0 And tx% <= 319 And ty% >= 0 And ty% <= 199 Then
-        Def Seg = VarSeg(turfbuf(0))
-        Poke tx% + 320& * ty% + 4, tp%
-        Def Seg
-    End If
-End Sub
+    IF tx% >= 0 AND tx% <= 319 AND ty% >= 0 AND ty% <= 199 THEN
+        DEF SEG = VARSEG(turfbuf(0))
+        POKE tx% + 320& * ty% + 4, tp%
+        DEF SEG
+    END IF
+END SUB
 
-Function TurfBump$ (tx%, ty%, pn%)
+FUNCTION TurfBump$ (tx%, ty%, pn%)
     'Checks collision with turf map and bounces the sprite accordingly.
     'tx% and ty% are the coordinates of the sprite.
     'pn% is the number of player who is being "looked behind" (1-4) or
@@ -3050,135 +3050,134 @@ Function TurfBump$ (tx%, ty%, pn%)
     'You can also use -1 to not see any players.
 
     bstr$ = "00000000"
-    For cy% = ty% + 1 To ty% + 3
-        If TPoint%(tx%, cy%, pn%) <> 241 Then
-            Mid$(bstr$, 8) = "1"
-        End If
-    Next cy%
-    For cy% = ty% + 4 To ty% + 6
-        If TPoint%(tx%, cy%, pn%) <> 241 Then
-            Mid$(bstr$, 7) = "1"
-        End If
-    Next cy%
-    For cy% = ty% + 1 To ty% + 3
-        If TPoint%(tx% + 7, cy%, pn%) <> 241 Then
-            Mid$(bstr$, 3) = "1"
-        End If
-    Next cy%
-    For cy% = ty% + 4 To ty% + 6
-        If TPoint%(tx% + 7, cy%, pn%) <> 241 Then
-            Mid$(bstr$, 4) = "1"
-        End If
-    Next cy%
-    For cx% = tx% To tx% + 3
-        If TPoint%(cx%, ty%, pn%) <> 241 Then
-            Mid$(bstr$, 1) = "1"
-        End If
-    Next cx%
-    For cx% = tx% + 4 To tx% + 7
-        If TPoint%(cx%, ty%, pn%) <> 241 Then
-            Mid$(bstr$, 2) = "1"
-        End If
-    Next cx%
-    For cx% = tx% To tx% + 3
-        If TPoint%(cx%, ty% + 7, pn%) <> 241 Then
-            Mid$(bstr$, 6) = "1"
-        End If
-    Next cx%
-    For cx% = tx% + 4 To tx% + 7
-        If TPoint%(cx%, ty% + 7, pn%) <> 241 Then
-            Mid$(bstr$, 5) = "1"
-        End If
-    Next cx%
+    FOR cy% = ty% + 1 TO ty% + 3
+        IF TPoint%(tx%, cy%, pn%) <> 241 THEN
+            MID$(bstr$, 8) = "1"
+        END IF
+    NEXT cy%
+    FOR cy% = ty% + 4 TO ty% + 6
+        IF TPoint%(tx%, cy%, pn%) <> 241 THEN
+            MID$(bstr$, 7) = "1"
+        END IF
+    NEXT cy%
+    FOR cy% = ty% + 1 TO ty% + 3
+        IF TPoint%(tx% + 7, cy%, pn%) <> 241 THEN
+            MID$(bstr$, 3) = "1"
+        END IF
+    NEXT cy%
+    FOR cy% = ty% + 4 TO ty% + 6
+        IF TPoint%(tx% + 7, cy%, pn%) <> 241 THEN
+            MID$(bstr$, 4) = "1"
+        END IF
+    NEXT cy%
+    FOR cx% = tx% TO tx% + 3
+        IF TPoint%(cx%, ty%, pn%) <> 241 THEN
+            MID$(bstr$, 1) = "1"
+        END IF
+    NEXT cx%
+    FOR cx% = tx% + 4 TO tx% + 7
+        IF TPoint%(cx%, ty%, pn%) <> 241 THEN
+            MID$(bstr$, 2) = "1"
+        END IF
+    NEXT cx%
+    FOR cx% = tx% TO tx% + 3
+        IF TPoint%(cx%, ty% + 7, pn%) <> 241 THEN
+            MID$(bstr$, 6) = "1"
+        END IF
+    NEXT cx%
+    FOR cx% = tx% + 4 TO tx% + 7
+        IF TPoint%(cx%, ty% + 7, pn%) <> 241 THEN
+            MID$(bstr$, 5) = "1"
+        END IF
+    NEXT cx%
 
     TurfBump$ = bstr$
-End Function
+END FUNCTION
 
-Function TurfHit% (tb%, tx%, ty%)
+FUNCTION TurfHit% (tb%, tx%, ty%)
     'Checks collision with turf map of a sprite.
     'tb% is the sprite number.
     'tx% and ty% are the coordinates of the sprite.
 
     hit% = 0
-    For cx% = tx% To tx% + 7
-        For cy% = ty% To ty% + 7
+    FOR cx% = tx% TO tx% + 7
+        FOR cy% = ty% TO ty% + 7
             cp% = ammospr(tb%, cx% - tx% + 8 * (cy% - ty%))
-            If cp% <> 0 Then
-                If TPoint%(cx%, cy%, level.turn) <> 241 Then
+            IF cp% <> 0 THEN
+                IF TPoint%(cx%, cy%, level.turn) <> 241 THEN
                     hit% = 1
-                    GoTo donehit
-                End If
-            End If
-        Next cy%
-    Next cx%
+                    GOTO donehit
+                END IF
+            END IF
+        NEXT cy%
+    NEXT cx%
     donehit:
     TurfHit% = hit%
-End Function
+END FUNCTION
 
 
-Sub Win (pnum%)
+SUB Win (pnum%)
     'Displays winning screen.
     'pnum% = team number that won. (Can be 0 if everyone died)
 
-    If pnum% = 0 Then
+    IF pnum% = 0 THEN
         l$ = "Nobody wins!"
-        If config.snd Then
+        IF config.snd THEN
             WAVPlay "lose.wav"
-        End If
+        END IF
         c% = 23
-    Else
-        l$ = RTrim$(team(pnum%).nam) + " wins!"
-        If config.snd Then
+    ELSE
+        l$ = RTRIM$(team(pnum%).nam) + " wins!"
+        IF config.snd THEN
             WAVPlay "win.wav"
-        End If
+        END IF
         c% = team(pnum%).clr
-    End If
-    Line (30, 90)-(290, 110), c%, B
-    DrawFont l$, 160 - Len(l$) * 4, 95, 1, 1, 3, 24
+    END IF
+    LINE (30, 90)-(290, 110), c%, B
+    DrawFont l$, 160 - LEN(l$) * 4, 95, 1, 1, 3, 24
     Pause
-    For c% = 100 To 0 Step -1
+    FOR c% = 100 TO 0 STEP -1
         FadePal 0, 0, 0, c%, 0, 255
-    Next c%
-End Sub
+    NEXT c%
+END SUB
 
 
 ' a740g: This single function takes care of caching & playing all sample based audio
-Sub WAVPlay (filename As String)
-    Dim As Long i, l, u
+SUB WAVPlay (filename AS STRING)
+    DIM AS LONG i, l, u
 
-    l = LBound(sndMgr)
-    u = UBound(sndMgr)
+    l = LBOUND(sndMgr)
+    u = UBOUND(sndMgr)
 
     ' Check if file is there in the sound manager array
-    For i = l To u
+    FOR i = l TO u
         ' Check if filename is found
-        If sndMgr(i).act And sndMgr(i).nam = filename Then
+        IF sndMgr(i).act AND sndMgr(i).nam = filename THEN
             ' Play the sound if it is not playing
-            If Not SndPlaying(sndMgr(i).hnd) Then
+            IF NOT _SNDPLAYING(sndMgr(i).hnd) THEN
                 ' Replay the sound
-                SndPlay sndMgr(i).hnd
-            End If
+                _SNDPLAY sndMgr(i).hnd
+            END IF
             ' Exit
-            Exit Sub
-        End If
-    Next
+            EXIT SUB
+        END IF
+    NEXT
 
     ' So file is not there. We need to resize the sound manager array and load the sound
     ' Check if the last slot is used
-    If sndMgr(u).act Then
+    IF sndMgr(u).act THEN
         ' Expand the array preserving the contents
         u = u + 1
-        ReDim Preserve sndMgr(l To u) As sndMgrType
-    End If
+        REDIM _PRESERVE sndMgr(l TO u) AS sndMgrType
+    END IF
     i = u
 
     ' Save sound file details
     sndMgr(i).act = TRUE
     sndMgr(i).nam = filename
     ' Open the sound file and save the handle
-    sndMgr(i).hnd = SndOpen("sound\" + filename)
+    sndMgr(i).hnd = _SNDOPEN("sound\" + filename)
 
     ' Play the file
-    SndPlay sndMgr(i).hnd
-End Sub
-
+    _SNDPLAY sndMgr(i).hnd
+END SUB
