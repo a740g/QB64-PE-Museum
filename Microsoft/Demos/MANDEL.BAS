@@ -1,9 +1,5 @@
-$NOPREFIX
 DEFLNG A-Z
-OPTION EXPLICIT
-OPTION EXPLICITARRAY
-
-$RESIZE:SMOOTH
+OPTION _EXPLICIT
 
 CONST FALSE = 0, TRUE = NOT FALSE ' Boolean constants
 
@@ -14,7 +10,8 @@ DIM i AS LONG
 DIM PaletteArray(15)
 FOR i = 0 TO 15: PaletteArray(i) = i: NEXT i
 
-FULLSCREEN SQUAREPIXELS , SMOOTH
+$RESIZE:SMOOTH
+_ALLOWFULLSCREEN _SQUAREPIXELS , _SMOOTH
 
 DIM AS LONG WLeft, WRight, WTop, WBottom
 
@@ -91,7 +88,7 @@ DO
     ' Continue shifting the palette
     ' until the user presses a key:
     IF EgaMode THEN ShiftPalette
-    LIMIT 10
+    _LIMIT 10
 LOOP WHILE INKEY$ = ""
 
 SCREEN 0, 0 ' Restore the screen to text mode,

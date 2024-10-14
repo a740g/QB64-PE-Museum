@@ -1,114 +1,115 @@
-$NoPrefix
-DefSng A-Z
-$Resize:Smooth
+DEFSNG A-Z
 
-Screen 13
-FullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Randomize Timer
+RANDOMIZE TIMER
 
-Dim Shared Buffer%(32001)
+DIM SHARED Buffer%(32001)
 Buffer%(0) = 320 * 8
 Buffer%(1) = 200
 
-Dim Shared buffer1(320, 200) As Single
-Dim Shared buffer2(320, 200) As Single
+DIM SHARED buffer1(320, 200) AS SINGLE
+DIM SHARED buffer2(320, 200) AS SINGLE
 
-Dim Shared wave_nr
+DIM SHARED wave_nr
 wave_nr = 1
 set_palette 0, 0.24, 0
 fade = 0.0
-Do
+DO
     set_random_pixels 1, 256
     wave
     water
     update_screen
     swap_buffers
 
-    If (fade < 0.24) Then
+    IF (fade < 0.24) THEN
         fade = fade + 0.002
         set_palette 0, fade, 0
-    End If
-Loop Until InKey$ <> ""
+    END IF
 
-System 0
+    _LIMIT 60
+LOOP UNTIL INKEY$ <> ""
+
+SYSTEM
 
 
-Sub water
-    Dim c As Single
+SUB water
+    DIM c AS SINGLE
 
-    For x = 319 To 1 Step -1
-        For y = 1 To 199
+    FOR x = 319 TO 1 STEP -1
+        FOR y = 1 TO 199
 
             c = ((buffer2(x - 1, y) + buffer2(x + 1, y) + buffer2(x, y - 1) + buffer2(x, y + 1)) / 2) - buffer1(x, y)
             c = c * 0.99
-            If (c > 256) Then c = 256
-            If (c < 0) Then c = 0
+            IF (c > 256) THEN c = 256
+            IF (c < 0) THEN c = 0
 
             buffer1(x, y) = c * 0.95
 
-        Next
-    Next
-End Sub
+        NEXT
+    NEXT
+END SUB
 
-Sub wave
-    buffer2(160 + Sin(wave_nr / 20) * 60, 100 + Cos(wave_nr / 20) * 40) = 256
+SUB wave
+    buffer2(160 + SIN(wave_nr / 20) * 60, 100 + COS(wave_nr / 20) * 40) = 256
     wave_nr = wave_nr + 1
-End Sub
+END SUB
 
-Sub set_random_pixels (nr, col)
-    For a = 0 To nr
-        x = 1 + Rnd * 318
-        y = 1 + Rnd * 198
+SUB set_random_pixels (nr, col)
+    FOR a = 0 TO nr
+        x = 1 + RND * 318
+        y = 1 + RND * 198
         buffer2(x, y) = col
-    Next
-End Sub
+    NEXT
+END SUB
 
-Sub swap_buffers
-    Dim tmp(320, 200) As Single
-    For a = 1 To 320
-        For b = 1 To 200
+SUB swap_buffers
+    DIM tmp(320, 200) AS SINGLE
+    FOR a = 1 TO 320
+        FOR b = 1 TO 200
             tmp(a, b) = buffer1(a, b)
             buffer1(a, b) = buffer2(a, b)
             buffer2(a, b) = tmp(a, b)
-            set_pixel a, b, CInt(buffer1(a, b))
-        Next
-    Next
-End Sub
+            set_pixel a, b, CINT(buffer1(a, b))
+        NEXT
+    NEXT
+END SUB
 
-Sub update_screen
-    Put (0, 0), Buffer%(), PSet
-End Sub
+SUB update_screen
+    PUT (0, 0), Buffer%(), PSET
+END SUB
 
-Sub set_pixel (x%, y%, col%)
-    Def Seg = VarSeg(Buffer%(32001))
-    Poke 320& * y% + x% + 4, col% + 50
-    Def Seg
-End Sub
+SUB set_pixel (x%, y%, col%)
+    DEF SEG = VARSEG(Buffer%(32001))
+    POKE 320& * y% + x% + 4, col% + 50
+    DEF SEG
+END SUB
 
-Function get_pixel (x%, y%)
-    Def Seg = VarSeg(Buffer%(32001))
-    get_pixel = Peek(320& * y% + x% + 4)
-    Def Seg
-End Function
+FUNCTION get_pixel (x%, y%)
+    DEF SEG = VARSEG(Buffer%(32001))
+    get_pixel = PEEK(320& * y% + x% + 4)
+    DEF SEG
+END FUNCTION
 
 
-Sub clear_screen
-    For a = 4 To 32001
+SUB clear_screen
+    FOR a = 4 TO 32001
         Buffer%(a) = 0
-    Next
-End Sub
+    NEXT
+END SUB
 
-Sub set_palette (r, b, g)
+SUB set_palette (r, b, g)
     cr = 0.0
     cb = 0.0
     cg = 0.0
-    For p = 0 To 255
+    FOR p = 0 TO 255
         cr = cr + r
         cb = cb + b
         cg = cg + g
-        pal_col = (CInt(cb) * 65536) + (CInt(cg) * 256) + CInt(cr)
-        Palette p, pal_col
-    Next
-End Sub
+        pal_col = (CINT(cb) * 65536) + (CINT(cg) * 256) + CINT(cr)
+        PALETTE p, pal_col
+    NEXT
+END SUB
 

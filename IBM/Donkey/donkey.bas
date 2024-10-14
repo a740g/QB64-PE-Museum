@@ -6,11 +6,7 @@
 ' TODO: Fix few graphical glitches
 ' Suggestions by Taylor Autumn
 
-$NOPREFIX
-$RESIZE:SMOOTH
-
-OPTION EXPLICIT
-OPTION EXPLICITARRAY
+OPTION _EXPLICIT
 
 ' All global variables and arrays
 DIM AS STRING cmd
@@ -20,9 +16,10 @@ DIM AS INTEGER D1(150), D2(150), C1(200), C2(200)
 DIM AS INTEGER DNK(300), CAR(900), B(300)
 
 ' Welcome screen
-FULLSCREEN SQUAREPIXELS , SMOOTH
-SCREEN 0
+$RESIZE:SMOOTH
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 WIDTH 40
+
 COLOR 15, 0
 CLS
 LOCATE 5, 19
@@ -54,7 +51,9 @@ LOOP UNTIL cmd = CHR$(32)
 
 ' Main game code starts here
 RANDOMIZE TIMER
+
 SCREEN 1
+
 COLOR 8, 1
 
 ' Get the donkey bitmap
@@ -200,7 +199,7 @@ DO
                     PUT (d1x, d1y), D1()
                     PUT (d2x, d1y), D2()
                     SOUND 37 + RND * 200, 4
-                    LIMIT 17
+                    _LIMIT 17
                 NEXT
 
                 SLEEP 2
@@ -209,7 +208,7 @@ DO
             END IF
 
             IF y AND 3 THEN PUT (140, 6), B()
-            LIMIT 17
+            _LIMIT 17
         NEXT
 
         LINE (dx, 124)-(dx + 32, 149), 0, BF

@@ -1,16 +1,11 @@
-$NOPREFIX
-$IF VERSION > 3.1.0 THEN
-    $UNSTABLE:MIDI
-    $MIDISOUNDFONT:DEFAULT
-$END IF
 DEFLNG A-Z
 
 $RESIZE:SMOOTH
 SCREEN 13, , 1, 0
-FULLSCREEN SQUAREPIXELS , SMOOTH
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-SNDPLAYFILE "ps2battl.mid"
-shootsound = SNDOPEN("fireball.wav", "SYNC")
+_SNDPLAYFILE "ps2battl.mid"
+shootsound = _SNDOPEN("fireball.wav", "SYNC")
 
 'index,filename(.RAW),width,height
 DATA 1,ship1,21,27
@@ -19,7 +14,7 @@ DATA 3,evil1,93,80
 DATA 4,land1,320,56
 DATA 5,boom1,65,75
 
-DIM SHARED spritedata(1000000) AS UNSIGNED BYTE
+DIM SHARED spritedata(1000000) AS _UNSIGNED _BYTE
 DIM SHARED freespritedata AS LONG
 DIM SHARED freesprite AS LONG
 freesprite = 1
@@ -88,20 +83,20 @@ o(i).z = 50
 o(i).active = 20
 player = i
 
-MOUSEHIDE
+_MOUSEHIDE
 
 'gameloop
 DO
 
-    DO: LOOP WHILE MOUSEINPUT 'read all available mouse messages until current message
+    DO: LOOP WHILE _MOUSEINPUT 'read all available mouse messages until current message
 
     'set player's position
-    o(player).x = MOUSEX: o(player).y = MOUSEY
+    o(player).x = _MOUSEX: o(player).y = _MOUSEY
 
     'draw land
     landy = (landy + 1) MOD 56
     FOR i = -1 TO 4
-        PUT (0, i * 56 + landy), spritedata(s(4).index), CLIP PSET, 254
+        PUT (0, i * 56 + landy), spritedata(s(4).index), _CLIP PSET, 254
     NEXT
 
     'draw enemy shadows
@@ -161,13 +156,13 @@ DO
     PCOPY 1, 0
 
     'shoot?
-    IF MOUSEBUTTON(1) THEN
+    IF _MOUSEBUTTON(1) THEN
         i = newobject(o())
         o(i).sprite = 2
         o(i).x = o(player).x
         o(i).y = o(player).y - s(o(player).sprite).halfy
         o(i).my = -1
-        SNDPLAYCOPY shootsound
+        _SNDPLAYCOPY shootsound
     END IF
 
     'bullet->enemy collision
@@ -176,7 +171,7 @@ DO
             FOR i2 = 1 TO lastobject
                 IF o(i2).sprite = 3 THEN 'enemy
                     IF collision(o(i), o(i2)) THEN
-                        SNDPLAYCOPY shootsound
+                        _SNDPLAYCOPY shootsound
                         i3 = newobject(o())
                         o(i3).sprite = 5
                         o(i3).my = o(i2).my \ 2 + 1
@@ -236,16 +231,16 @@ SUB move (o AS object)
 END SUB
 
 SUB disp (o AS object)
-    PUT (o.x - s(o.sprite).halfx, o.y - s(o.sprite).halfy), spritedata(s(o.sprite).index), CLIP PSET, 254
+    PUT (o.x - s(o.sprite).halfx, o.y - s(o.sprite).halfy), spritedata(s(o.sprite).index), _CLIP PSET, 254
 END SUB
 
 SUB displayat (x AS INTEGER, y AS INTEGER, o AS object)
-    PUT (x - s(o.sprite).halfx, y - s(o.sprite).halfy), spritedata(s(o.sprite).index), CLIP PSET, 254
+    PUT (x - s(o.sprite).halfx, y - s(o.sprite).halfy), spritedata(s(o.sprite).index), _CLIP PSET, 254
 END SUB
 
 
 SUB displayshadow (o AS object)
-    PUT (o.x - s(o.sprite).halfx, o.y - s(o.sprite).halfy + o.z), spritedata(s(o.sprite).index2), CLIP PSET, 254
+    PUT (o.x - s(o.sprite).halfx, o.y - s(o.sprite).halfy + o.z), spritedata(s(o.sprite).index2), _CLIP PSET, 254
 END SUB
 
 FUNCTION newobject (o() AS object)

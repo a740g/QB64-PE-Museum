@@ -1,21 +1,19 @@
 'sinecube 2006 mennonite
 'public domain
 
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-$Resize:Smooth
-Screen 12
-FullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 12
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Dim blox(40, 40, 40) As Integer
-Dim As Long l, y, x, by, bx, z
-Dim As Single mm
-Dim As String b
+DIM blox(40, 40, 40) AS INTEGER
+DIM AS LONG l, y, x, by, bx, z
+DIM AS SINGLE mm
+DIM AS STRING b
 
-Line (0, 0)-(639, 479), , B
+LINE (0, 0)-(639, 479), , B
 
 l = 8
 
@@ -33,28 +31,27 @@ b$ = b$ + "...llllllll"
 
 blox(2, 3, 32) = 1
 
-For l = 8 * 32 To 1 Step -8
-    For y = 4 To 4 * 32 Step 4
-        For x = 8 * 32 To 1 Step -8
-            mm = Sin(x * y * l * 3.14): If mm < 0 Then mm = -1 Else If mm > 0 Then mm = 1
-            If blox(x / 8, y / 4, l / 8) = mm + 1 Then
-                For by = 1 To 11
-                    For bx = 1 To 11
-                        If Right$(Left$(b$, (by - 1) * 11 + bx), 1) <> "." Then
+FOR l = 8 * 32 TO 1 STEP -8
+    FOR y = 4 TO 4 * 32 STEP 4
+        FOR x = 8 * 32 TO 1 STEP -8
+            mm = SIN(x * y * l * 3.14): IF mm < 0 THEN mm = -1 ELSE IF mm > 0 THEN mm = 1
+            IF blox(x / 8, y / 4, l / 8) = mm + 1 THEN
+                FOR by = 1 TO 11
+                    FOR bx = 1 TO 11
+                        IF RIGHT$(LEFT$(b$, (by - 1) * 11 + bx), 1) <> "." THEN
                             z = 11
-                            PSet (x + bx - 1 + y - 3, by - 1 + y + l + 4), Asc(Right$(Left$(b$, (by - 1) * 11 + bx), 1)) Mod 16 + (y Mod 2)
-                        End If
+                            PSET (x + bx - 1 + y - 3, by - 1 + y + l + 4), ASC(RIGHT$(LEFT$(b$, (by - 1) * 11 + bx), 1)) MOD 16 + (y MOD 2)
+                        END IF
 
-                    Next bx
-                Next by
-            End If
-            If InKey$ = Chr$(27) Then End
-            Delay .001
-        Next
-    Next
-Next
+                    NEXT bx
+                NEXT by
+            END IF
+            IF INKEY$ = CHR$(27) THEN END
+            _DELAY .001
+        NEXT
+    NEXT
+NEXT
 
-Sleep
+SLEEP
 
-System 0
-
+SYSTEM

@@ -1,124 +1,123 @@
-$NoPrefix
-DefLng A-Z
-$Resize:Smooth
+DEFLNG A-Z
 
-Screen 13
-FullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Randomize Timer
+RANDOMIZE TIMER
 
-Dim Shared Buffer%(32001)
+DIM SHARED Buffer%(32001)
 Buffer%(0) = 320 * 8
 Buffer%(1) = 200
 
 b = 0
 g = 0
-For a = 150 To 100 Step -1
+FOR a = 150 TO 100 STEP -1
     r = a / 5
     set_pal a, b, g, r
-Next
+NEXT
 
-For a = 100 To 0 Step -1
+FOR a = 100 TO 0 STEP -1
     g = g - 1
     b = b - 1
     r = r - 1
     set_pal a, b, g, r
-Next
+NEXT
 
 g = 0
-For a = 150 To 255 Step 1
+FOR a = 150 TO 255 STEP 1
 
     b = 0
     g = g + 1
     r = a / 5
-    If (g > 62) Then
+    IF (g > 62) THEN
         g = 62
-    End If
+    END IF
     set_pal a, b, g, r
-Next
+NEXT
 
-Do
+DO
     l = l + 1
     fire
     update_screen
 
-    If (l > 1) Then
-        If b = 0 Then
+    IF (l > 1) THEN
+        IF b = 0 THEN
             a = a + 1
-        End If
-        If b = 1 Then
+        END IF
+        IF b = 1 THEN
             a = a - 1
-        End If
+        END IF
         set_random_pixels a, 255
-        If (a < 50) Then
+        IF (a < 50) THEN
             b = 0
-        End If
-        If (a > 200) Then
+        END IF
+        IF (a > 200) THEN
             b = 1
-        End If
+        END IF
         l = 0
-    End If
+    END IF
 
-Loop Until InKey$ <> ""
+LOOP UNTIL INKEY$ <> ""
 
-System 0
+SYSTEM 0
 
 
-Sub fire
-    For y = 200 To 1 Step -1
-        For x = 1 To 320 Step 1
+SUB fire
+    FOR y = 200 TO 1 STEP -1
+        FOR x = 1 TO 320 STEP 1
             med_col = 0
             med_col = med_col + get_pixel(x - 1, y + 1)
             med_col = med_col + get_pixel(x + 1, y + 1)
             med_col = med_col + get_pixel(x, y + 1)
             med_col = med_col + get_pixel(x, y)
-            med_col = med_col + Rnd * 3
+            med_col = med_col + RND * 3
             med_col = med_col / 4.04
             set_pixel x, y, med_col
-        Next
-    Next
-End Sub
+        NEXT
+    NEXT
+END SUB
 
-Sub set_random_pixels (nr, col)
+SUB set_random_pixels (nr, col)
     row = 201
-    For x = 1 To 320
+    FOR x = 1 TO 320
         set_pixel x, row, 0
-    Next
-    For a = 0 To nr
-        x = Rnd * 320
+    NEXT
+    FOR a = 0 TO nr
+        x = RND * 320
         set_pixel x, row, col
         set_pixel x + 1, row, col
         set_pixel x - 1, row, col
-    Next
-End Sub
+    NEXT
+END SUB
 
-Sub update_screen
-    Put (0, 0), Buffer%(), PSet
-End Sub
+SUB update_screen
+    PUT (0, 0), Buffer%(), PSET
+END SUB
 
-Sub set_pixel (x%, y%, col%)
-    Def Seg = VarSeg(Buffer%(32001))
-    Poke 320& * y% + x% + 4, col%
-    Def Seg
-End Sub
+SUB set_pixel (x%, y%, col%)
+    DEF SEG = VARSEG(Buffer%(32001))
+    POKE 320& * y% + x% + 4, col%
+    DEF SEG
+END SUB
 
-Function get_pixel (x%, y%)
-    Def Seg = VarSeg(Buffer%(32001))
-    get_pixel = Peek(320& * y% + x% + 4)
-    Def Seg
-End Function
+FUNCTION get_pixel (x%, y%)
+    DEF SEG = VARSEG(Buffer%(32001))
+    get_pixel = PEEK(320& * y% + x% + 4)
+    DEF SEG
+END FUNCTION
 
-Sub set_pal (p, b, g, r)
-    b = CInt(b)
-    g = CInt(g)
-    r = CInt(r)
+SUB set_pal (p, b, g, r)
+    b = CINT(b)
+    g = CINT(g)
+    r = CINT(r)
 
-    If (b > 62) Then b = 62
-    If (g > 62) Then g = 62
-    If (r > 62) Then r = 62
-    If (b < 0) Then b = 0
-    If (g < 0) Then g = 0
-    If (r < 0) Then r = 0
-    Palette p, 65536 * b + 256 * g + r
-End Sub
+    IF (b > 62) THEN b = 62
+    IF (g > 62) THEN g = 62
+    IF (r > 62) THEN r = 62
+    IF (b < 0) THEN b = 0
+    IF (g < 0) THEN g = 0
+    IF (r < 0) THEN r = 0
+    PALETTE p, 65536 * b + 256 * g + r
+END SUB
 

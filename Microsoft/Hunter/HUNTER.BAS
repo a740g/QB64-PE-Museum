@@ -1,31 +1,30 @@
-$NoPrefix
-DefInt A-Z
-$Resize:Smooth
+DEFINT A-Z
+$RESIZE:SMOOTH
 
 'declare types
-Type bulletType
-    row As Integer
-    col As Integer
-    direction As Integer
-    bcolor As Integer
-End Type
+TYPE bulletType
+    row AS INTEGER
+    col AS INTEGER
+    direction AS INTEGER
+    bcolor AS INTEGER
+END TYPE
 
-Type playerType
-    row As Integer
-    col As Integer
-    direction As Integer
-    score As Integer
-    icon As String * 1
-    iconColor As Integer
-End Type
+TYPE playerType
+    row AS INTEGER
+    col AS INTEGER
+    direction AS INTEGER
+    score AS INTEGER
+    icon AS STRING * 1
+    iconColor AS INTEGER
+END TYPE
 
 'declare constants
-Const FALSE = 0, TRUE = Not FALSE
+CONST FALSE = 0, TRUE = NOT FALSE
 
 'declare global arrays
-Dim Shared arena$(25) 'String representation of playing field.  Used to
+DIM SHARED arena$(25) 'String representation of playing field.  Used to
 'Make creating/drawing the field easier
-Dim Shared map(25, 80) 'Represents the screen.  There is 1 array location
+DIM SHARED map(25, 80) 'Represents the screen.  There is 1 array location
 'for every screen char.  the value of a element of
 'map(row,col) will be one of the following:
 '   0 : Nothing there
@@ -42,58 +41,58 @@ DoIntro
 DrawScreen
 Hunter
 
-System 0
+SYSTEM 0
 
 'Add bullet to bullet array
-Sub AddBullet (bullet() As bulletType, numBullets, direction, player As playerType)
-    If numBullets < 10 Then
+SUB AddBullet (bullet() AS bulletType, numBullets, direction, player AS playerType)
+    IF numBullets < 10 THEN
         numBullets = numBullets + 1
         bullet(numBullets).row = player.row
         bullet(numBullets).col = player.col
         bullet(numBullets).direction = direction
         bullet(numBullets).bcolor = player.iconColor
         MoveBullet bullet(numBullets)
-    End If
-End Sub
+    END IF
+END SUB
 
 ' Center a text string at row ROW
-Sub Center (row, text$)
-    Locate row, 41 - Len(text$) / 2
-    Print text$;
-End Sub
+SUB Center (row, text$)
+    LOCATE row, 41 - LEN(text$) / 2
+    PRINT text$;
+END SUB
 
 'Goes through bullet array, and removes any bullet with direction of 0,
-Sub DeleteBullets (bullet() As bulletType, numBullets)
+SUB DeleteBullets (bullet() AS bulletType, numBullets)
     top = 0 'num bullets in the new array
     curr = 1 'current index into the array
-    While curr <= numBullets
-        If bullet(curr).direction = 0 Then
+    WHILE curr <= numBullets
+        IF bullet(curr).direction = 0 THEN
             HideBullet bullet(curr)
-        Else
+        ELSE
             top = top + 1
             bullet(top).row = bullet(curr).row
             bullet(top).col = bullet(curr).col
             bullet(top).direction = bullet(curr).direction
             bullet(top).bcolor = bullet(curr).bcolor
-        End If
+        END IF
         curr = curr + 1
-    Wend
+    WEND
     numBullets = top
-End Sub
+END SUB
 
-Sub DoIntro
-    Width , 25
-    View Print
-    Locate , , 0
+SUB DoIntro
+    WIDTH , 25
+    VIEW PRINT
+    LOCATE , , 0
 
-    Color 12, 1
-    Cls
+    COLOR 12, 1
+    CLS
     Center 3, "Q u i c k B A S I C   M A Z E    H U N T E R"
-    Color 14
+    COLOR 14
     Center 5, "INSTRUCTIONS:  Maze Hunter is a two player game!  Your goal is to hunt down"
     Center 6, "and kill your enemy in the maze. "
 
-    Color 15
+    COLOR 15
     Center 8, "The following keys are used while playing this game"
     Center 10, "Left Player Move Up:    t      Right Player Move Up:    8"
     Center 11, "Left Player Move Left:  f      Right Player Move Left:  4"
@@ -110,49 +109,49 @@ Sub DoIntro
 
 
     Center 25, "Push Any Key To Continue"
-    Color 11
+    COLOR 11
     SparklePause
-End Sub
+END SUB
 
-Sub DrawScreen
-    Color 14, 1
-    Cls
-    View Print
-    For a = 1 To 25
-        Locate a, 1
-        Print arena$(a);
-    Next a
-End Sub
+SUB DrawScreen
+    COLOR 14, 1
+    CLS
+    VIEW PRINT
+    FOR a = 1 TO 25
+        LOCATE a, 1
+        PRINT arena$(a);
+    NEXT a
+END SUB
 
 'Prints a space over the location of the bullet
-Sub HideBullet (bullet As bulletType)
-    Locate bullet.row, bullet.col
-    Print " ";
+SUB HideBullet (bullet AS bulletType)
+    LOCATE bullet.row, bullet.col
+    PRINT " ";
     map(bullet.row, bullet.col) = 0
-End Sub
+END SUB
 
 'Draws a space over the player icon, thus hiding it
-Sub HidePlayer (player As playerType)
-    Locate player.row, player.col
-    Print " ";
+SUB HidePlayer (player AS playerType)
+    LOCATE player.row, player.col
+    PRINT " ";
     map(player.row, player.col) = 0
-End Sub
+END SUB
 
-Sub Hunter
+SUB Hunter
     'dimension bullet array and players
-    Dim bullet(100) As bulletType
-    Dim player1 As playerType
-    Dim player2 As playerType
+    DIM bullet(100) AS bulletType
+    DIM player1 AS playerType
+    DIM player2 AS playerType
 
     'initialize players
-    player1.icon = Chr$(1)
+    player1.icon = CHR$(1)
     player1.row = 12
     player1.col = 2
     player1.direction = 0
     player1.score = 0
     player1.iconColor = 12
 
-    player2.icon = Chr$(2)
+    player2.icon = CHR$(2)
     player2.row = 12
     player2.col = 79
     player2.direction = 0
@@ -167,267 +166,266 @@ Sub Hunter
     finished = FALSE
     tickMax = 25 'delay factor
 
-    Do
-        Color 15
-        Do 'Do until escape key hit
-            Do 'Action Game loop
-                tick = (tick + 2) Mod tickMax - 1
-                If tick = 0 Then
-                    Color 15, 1
-                    Center 1, Str$(player2.score) + " > score <" + Str$(player1.score) + " "
+    DO
+        COLOR 15
+        DO 'Do until escape key hit
+            DO 'Action Game loop
+                tick = (tick + 2) MOD tickMax - 1
+                IF tick = 0 THEN
+                    COLOR 15, 1
+                    Center 1, STR$(player2.score) + " > score <" + STR$(player1.score) + " "
                     MovePlayer player1
                     MovePlayer player2
                     MoveBullets bullet(), numBullets
                     DeleteBullets bullet(), numBullets
-                Else
-                    kbd$ = InKey$
-                End If
-            Loop While kbd$ = ""
+                ELSE
+                    kbd$ = INKEY$
+                END IF
+            LOOP WHILE kbd$ = ""
 
             'handle keystrokes
-            Select Case kbd$
-                Case "-": GoSub HunterDecreaseGameDelay
-                Case "+": GoSub HunterIncreaseGameDelay
-                Case "w", "W": AddBullet bullet(), numBullets, 1, player1
-                Case "a", "A": AddBullet bullet(), numBullets, 3, player1
-                Case "s", "S": AddBullet bullet(), numBullets, 2, player1
-                Case "d", "D": AddBullet bullet(), numBullets, 4, player1
-                Case "t", "T": If player1.direction = 2 Then player1.direction = 0 Else player1.direction = 1
-                Case "f", "F": If player1.direction = 4 Then player1.direction = 0 Else player1.direction = 3
-                Case "g", "G": If player1.direction = 1 Then player1.direction = 0 Else player1.direction = 2
-                Case "h", "H": If player1.direction = 3 Then player1.direction = 0 Else player1.direction = 4
-                Case "p", "P": AddBullet bullet(), numBullets, 1, player2
-                Case "l", "l": AddBullet bullet(), numBullets, 3, player2
-                Case ";": AddBullet bullet(), numBullets, 2, player2
-                Case "'": AddBullet bullet(), numBullets, 4, player2
-                Case "8": If player2.direction = 2 Then player2.direction = 0 Else player2.direction = 1
-                Case "5": If player2.direction = 1 Then player2.direction = 0 Else player2.direction = 2
-                Case "2": If player2.direction = 1 Then player2.direction = 0 Else player2.direction = 2
-                Case "4": If player2.direction = 4 Then player2.direction = 0 Else player2.direction = 3
-                Case "6": If player2.direction = 3 Then player2.direction = 0 Else player2.direction = 4
-                Case Chr$(27): finished = TRUE
-                Case Else
-            End Select
-        Loop Until finished
-    Loop Until score1 = 5 Or score2 = 5 Or finished
-    Exit Sub
+            SELECT CASE kbd$
+                CASE "-": GOSUB HunterDecreaseGameDelay
+                CASE "+": GOSUB HunterIncreaseGameDelay
+                CASE "w", "W": AddBullet bullet(), numBullets, 1, player1
+                CASE "a", "A": AddBullet bullet(), numBullets, 3, player1
+                CASE "s", "S": AddBullet bullet(), numBullets, 2, player1
+                CASE "d", "D": AddBullet bullet(), numBullets, 4, player1
+                CASE "t", "T": IF player1.direction = 2 THEN player1.direction = 0 ELSE player1.direction = 1
+                CASE "f", "F": IF player1.direction = 4 THEN player1.direction = 0 ELSE player1.direction = 3
+                CASE "g", "G": IF player1.direction = 1 THEN player1.direction = 0 ELSE player1.direction = 2
+                CASE "h", "H": IF player1.direction = 3 THEN player1.direction = 0 ELSE player1.direction = 4
+                CASE "p", "P": AddBullet bullet(), numBullets, 1, player2
+                CASE "l", "l": AddBullet bullet(), numBullets, 3, player2
+                CASE ";": AddBullet bullet(), numBullets, 2, player2
+                CASE "'": AddBullet bullet(), numBullets, 4, player2
+                CASE "8": IF player2.direction = 2 THEN player2.direction = 0 ELSE player2.direction = 1
+                CASE "5": IF player2.direction = 1 THEN player2.direction = 0 ELSE player2.direction = 2
+                CASE "2": IF player2.direction = 1 THEN player2.direction = 0 ELSE player2.direction = 2
+                CASE "4": IF player2.direction = 4 THEN player2.direction = 0 ELSE player2.direction = 3
+                CASE "6": IF player2.direction = 3 THEN player2.direction = 0 ELSE player2.direction = 4
+                CASE CHR$(27): finished = TRUE
+                CASE ELSE
+            END SELECT
+        LOOP UNTIL finished
+    LOOP UNTIL score1 = 5 OR score2 = 5 OR finished
+    EXIT SUB
 
     HunterDecreaseGameDelay:
-    If tickMax > 2 Then
+    IF tickMax > 2 THEN
         tickMax = tickMax - 1
-    End If
-    Color 15
-    Locate 1, 60
-    Print "  Delay ="; tickMax - 1; " "
-    Return
+    END IF
+    COLOR 15
+    LOCATE 1, 60
+    PRINT "  Delay ="; tickMax - 1; " "
+    RETURN
 
     HunterIncreaseGameDelay:
-    Color 15
+    COLOR 15
     tickMax = tickMax + 1
-    Locate 1, 60
-    Print "  Delay ="; tickMax - 1; " "
-    Return
-End Sub
+    LOCATE 1, 60
+    PRINT "  Delay ="; tickMax - 1; " "
+    RETURN
+END SUB
 
-Sub Initialize
+SUB Initialize
     'insure random maze
-    Randomize Timer
+    RANDOMIZE TIMER
 
     'setup boarder
-    arena$(1) = "Ú" + String$(78, "Ä") + "¿"
-    arena$(25) = "À" + String$(78, "Ä") + "Ù"
-    For a = 2 To 24
-        arena$(a) = "³" + Space$(78) + "³"
-    Next a
+    arena$(1) = "Ú" + STRING$(78, "Ä") + "¿"
+    arena$(25) = "À" + STRING$(78, "Ä") + "Ù"
+    FOR a = 2 TO 24
+        arena$(a) = "³" + SPACE$(78) + "³"
+    NEXT a
 
     'draw maze elements
-    For a = 1 To 15
-        row = Rnd(1) * 20 + 3
-        col = Rnd(1) * 70 + 5
-        Mid$(arena$(row), col, 1) = Chr$(197)
-        Mid$(arena$(row - 1), col, 1) = Chr$(179)
-        Mid$(arena$(row + 1), col, 1) = Chr$(179)
-        Mid$(arena$(row), col - 1, 1) = Chr$(196)
-        Mid$(arena$(row), col - 2, 1) = Chr$(196)
-        Mid$(arena$(row), col + 1, 1) = Chr$(196)
-        Mid$(arena$(row), col + 2, 1) = Chr$(196)
-    Next a
+    FOR a = 1 TO 15
+        row = RND(1) * 20 + 3
+        col = RND(1) * 70 + 5
+        MID$(arena$(row), col, 1) = CHR$(197)
+        MID$(arena$(row - 1), col, 1) = CHR$(179)
+        MID$(arena$(row + 1), col, 1) = CHR$(179)
+        MID$(arena$(row), col - 1, 1) = CHR$(196)
+        MID$(arena$(row), col - 2, 1) = CHR$(196)
+        MID$(arena$(row), col + 1, 1) = CHR$(196)
+        MID$(arena$(row), col + 2, 1) = CHR$(196)
+    NEXT a
 
     'Scan through arena$() and where evere there is a wall, put a
     '1 in the map array to indicate it's location.  Put a 0 wherever there
     'is a blank space
-    For row = 1 To 25
-        For col = 1 To 80
-            If Mid$(arena$(row), col, 1) = " " Then
+    FOR row = 1 TO 25
+        FOR col = 1 TO 80
+            IF MID$(arena$(row), col, 1) = " " THEN
                 map(row, col) = 0
-            Else
+            ELSE
                 map(row, col) = 1
-            End If
-        Next col
-    Next row
-End Sub
+            END IF
+        NEXT col
+    NEXT row
+END SUB
 
-Sub MoveBullet (bullet As bulletType)
+SUB MoveBullet (bullet AS bulletType)
     'Move the bullet based on the direction.
-    Select Case bullet.direction
-        Case 0
-        Case 1 'up
-            Select Case map(bullet.row - 1, bullet.col)
-                Case 0, 2, 3
+    SELECT CASE bullet.direction
+        CASE 0
+        CASE 1 'up
+            SELECT CASE map(bullet.row - 1, bullet.col)
+                CASE 0, 2, 3
                     HideBullet bullet
                     bullet.row = bullet.row - 1
                     ShowBullet bullet
-                Case 1
+                CASE 1
                     bullet.direction = 0
-            End Select
-        Case 2 'down
-            Select Case map(bullet.row + 1, bullet.col)
-                Case 0, 2, 3
+            END SELECT
+        CASE 2 'down
+            SELECT CASE map(bullet.row + 1, bullet.col)
+                CASE 0, 2, 3
                     HideBullet bullet
                     bullet.row = bullet.row + 1
                     ShowBullet bullet
-                Case 1
+                CASE 1
                     bullet.direction = 0
-            End Select
-        Case 3 'left
-            Select Case map(bullet.row, bullet.col - 1)
-                Case 0, 2, 3
+            END SELECT
+        CASE 3 'left
+            SELECT CASE map(bullet.row, bullet.col - 1)
+                CASE 0, 2, 3
                     HideBullet bullet
                     bullet.col = bullet.col - 1
                     ShowBullet bullet
-                Case 1
+                CASE 1
                     bullet.direction = 0
-            End Select
-        Case 4 'right
-            Select Case map(bullet.row, bullet.col + 1)
-                Case 0, 2, 3
+            END SELECT
+        CASE 4 'right
+            SELECT CASE map(bullet.row, bullet.col + 1)
+                CASE 0, 2, 3
                     HideBullet bullet
                     bullet.col = bullet.col + 1
                     ShowBullet bullet
-                Case 1
+                CASE 1
                     bullet.direction = 0
-            End Select
-    End Select
-End Sub
+            END SELECT
+    END SELECT
+END SUB
 
 'Move every bullet in the bullet array
-Sub MoveBullets (bullet() As bulletType, numBullets)
+SUB MoveBullets (bullet() AS bulletType, numBullets)
     a = 1
-    While a <= numBullets
+    WHILE a <= numBullets
         MoveBullet bullet(a)
         a = a + 1
-    Wend
-    Delay .03
-End Sub
+    WEND
+    _DELAY .03
+END SUB
 
 'based on the direction of the player, move the player
-Sub MovePlayer (player As playerType)
+SUB MovePlayer (player AS playerType)
     'if bullet hit the player, inc score
-    If map(player.row, player.col) = 3 Then
+    IF map(player.row, player.col) = 3 THEN
         player.score = player.score + 1
-        Beep
-    End If
+        BEEP
+    END IF
 
-    Select Case player.direction
-        Case 0 'no motion
+    SELECT CASE player.direction
+        CASE 0 'no motion
             ShowPlayer player
-        Case 1 'up
-            Select Case map(player.row - 1, player.col)
-                Case 0 'nothing
+        CASE 1 'up
+            SELECT CASE map(player.row - 1, player.col)
+                CASE 0 'nothing
                     HidePlayer player
                     player.row = player.row - 1
                     ShowPlayer player
-                Case 1, 2 'wall,enemy
+                CASE 1, 2 'wall,enemy
                     player.direction = 0
-                Case 3 'bullet
+                CASE 3 'bullet
                     player.score = player.score + 1
-                    Beep
-            End Select
-        Case 2 'down
-            Select Case map(player.row + 1, player.col)
-                Case 0 'nothing
+                    BEEP
+            END SELECT
+        CASE 2 'down
+            SELECT CASE map(player.row + 1, player.col)
+                CASE 0 'nothing
                     HidePlayer player
                     player.row = player.row + 1
                     ShowPlayer player
-                Case 1, 2 'wall,enemy
+                CASE 1, 2 'wall,enemy
                     player.direction = 0
-                Case 3 'bullet
+                CASE 3 'bullet
                     player.score = player.score + 1
-                    Beep
-            End Select
-        Case 3 'left
-            Select Case map(player.row, player.col - 1)
-                Case 0 'nothing
+                    BEEP
+            END SELECT
+        CASE 3 'left
+            SELECT CASE map(player.row, player.col - 1)
+                CASE 0 'nothing
                     HidePlayer player
                     player.col = player.col - 1
                     ShowPlayer player
-                Case 1, 2 'wall,enemy
+                CASE 1, 2 'wall,enemy
                     player.direction = 0
-                Case 3 'bullet
+                CASE 3 'bullet
                     player.score = player.score + 1
-                    Beep
-            End Select
-        Case 4 'right
-            Select Case map(player.row, player.col + 1)
-                Case 0 'nothing
+                    BEEP
+            END SELECT
+        CASE 4 'right
+            SELECT CASE map(player.row, player.col + 1)
+                CASE 0 'nothing
                     HidePlayer player
                     player.col = player.col + 1
                     ShowPlayer player
-                Case 1, 2 'wall,enemy
+                CASE 1, 2 'wall,enemy
                     player.direction = 0
-                Case 3 'bullet
+                CASE 3 'bullet
                     player.score = player.score + 1
-                    Beep
-            End Select
-    End Select
+                    BEEP
+            END SELECT
+    END SELECT
 
-    Delay .003
-End Sub
+    _DELAY .003
+END SUB
 
 'print the bullet char at bullet location
-Sub ShowBullet (bullet As bulletType)
-    Color bullet.bcolor
-    Locate bullet.row, bullet.col
-    Print Chr$(4);
+SUB ShowBullet (bullet AS bulletType)
+    COLOR bullet.bcolor
+    LOCATE bullet.row, bullet.col
+    PRINT CHR$(4);
     map(bullet.row, bullet.col) = 3
-End Sub
+END SUB
 
 'show player icon in player color at player location
-Sub ShowPlayer (player As playerType)
-    Color player.iconColor
-    Locate player.row, player.col
-    Print player.icon;
+SUB ShowPlayer (player AS playerType)
+    COLOR player.iconColor
+    LOCATE player.row, player.col
+    PRINT player.icon;
     map(player.row, player.col) = 2
-End Sub
+END SUB
 
-Sub SparklePause
+SUB SparklePause
     a$ = "*    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *    "
 
-    While InKey$ = ""
+    WHILE INKEY$ = ""
         'print horizontal sparkles
-        For a = 1 To 5
-            Locate 1, 1
-            Print Mid$(a$, a, 80);
-            Locate 20, 1
-            Print Mid$(a$, 6 - a, 80);
+        FOR a = 1 TO 5
+            LOCATE 1, 1
+            PRINT MID$(a$, a, 80);
+            LOCATE 20, 1
+            PRINT MID$(a$, 6 - a, 80);
 
             'print vertical sparkles
-            For b = 2 To 19
-                c = (a + b) Mod 5
-                If c = 1 Then
-                    Locate b, 80
-                    Print "*";
-                    Locate 21 - b, 1
-                    Print "*";
-                Else
-                    Locate b, 80
-                    Print " ";
-                    Locate 21 - b, 1
-                    Print " ";
-                End If
-            Next b
-            Delay .06
-        Next a
-    Wend
-End Sub
-
+            FOR b = 2 TO 19
+                c = (a + b) MOD 5
+                IF c = 1 THEN
+                    LOCATE b, 80
+                    PRINT "*";
+                    LOCATE 21 - b, 1
+                    PRINT "*";
+                ELSE
+                    LOCATE b, 80
+                    PRINT " ";
+                    LOCATE 21 - b, 1
+                    PRINT " ";
+                END IF
+            NEXT b
+            _DELAY .06
+        NEXT a
+    WEND
+END SUB

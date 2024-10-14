@@ -1,163 +1,159 @@
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-$Resize:Smooth
-AllowFullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+_ALLOWFULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Const NUMDISCS = 9 ' alter this line to change number of discs
+CONST NUMDISCS = 9 ' alter this line to change number of discs
 
-Dim Shared TOWERS(0 To 2, 1 To NUMDISCS), TOP(0 To 2), COLORS(1 To NUMDISCS), NUMMOVES As Long
-Dim As Long i, choice
-
-Cls
+DIM SHARED TOWERS(0 TO 2, 1 TO NUMDISCS), TOP(0 TO 2), COLORS(1 TO NUMDISCS), NUMMOVES AS LONG
+DIM AS LONG i, choice
 
 TOP(0) = NUMDISCS: TOP(1) = 0: TOP(2) = 0
-For i = 1 To NUMDISCS
+FOR i = 1 TO NUMDISCS
     TOWERS(0, i) = NUMDISCS - i + 1
-    Read COLORS(i)
-Next
-Data 6,9,4,10,11,12,13,14
-Data 6,9,4,10,11,12,13,14
-Locate 1, 26
-Print Chr$(218); String$(14, Chr$(196)); Chr$(191)
-Locate 2, 26
-Print Chr$(179); "TOWER OF HANOI"; Chr$(179)
-Locate 3, 26
-Print Chr$(192); String$(14, Chr$(196)); Chr$(217)
-Print String$(80, Chr$(196))
-Print
-Print "1: AUTO"
-Print "2: HUMAN"
-Print String$(20, Chr$(196))
-While choice <> 1 And choice <> 2
-    Input "CHOOSE ONE: ", choice
-Wend
-If choice = 1 Then Call AUTO Else Call PLAYGAME
+    READ COLORS(i)
+NEXT
+DATA 6,9,4,10,11,12,13,14
+DATA 6,9,4,10,11,12,13,14
+LOCATE 1, 26
+PRINT CHR$(218); STRING$(14, CHR$(196)); CHR$(191)
+LOCATE 2, 26
+PRINT CHR$(179); "TOWER OF HANOI"; CHR$(179)
+LOCATE 3, 26
+PRINT CHR$(192); STRING$(14, CHR$(196)); CHR$(217)
+PRINT STRING$(80, CHR$(196))
+PRINT
+PRINT "1: AUTO"
+PRINT "2: HUMAN"
+PRINT STRING$(20, CHR$(196))
+WHILE choice <> 1 AND choice <> 2
+    INPUT "CHOOSE ONE: ", choice
+WEND
+IF choice = 1 THEN CALL AUTO ELSE CALL PLAYGAME
 
-Sub AUTO
-    Call SHOWDISCS
-    Call MOVEPILE(NUMDISCS, 0, 2)
-End Sub
+SUB AUTO
+    CALL SHOWDISCS
+    CALL MOVEPILE(NUMDISCS, 0, 2)
+END SUB
 
-Sub INSTRUCT
-    Dim null As String
+SUB INSTRUCT
+    DIM null AS STRING
 
-    Print "The TOWER OF HANOI is a mathematical game or puzzle. It consists"
-    Print "of three pegs and a number of discs which can slide onto any peg."
-    Print "The puzzle starts with the discs stacked in order of size on one peg."
-    Print
-    Print "The object of the game is to move the entire stack onto another peg,"
-    Print "obeying the following rules:"
-    Print Tab(2); Chr$(248); " Only one disc may be moved at a time."
-    Print Tab(2); Chr$(248); " Each move consists of taking the upper disc from"
-    Print Tab(4); "one peg and sliding it onto another peg, on top of any discs"
-    Print Tab(4); "that may already be on that peg."
-    Print Tab(2); Chr$(248); " No disc may be placed on top of another disc."
-    Print "PRESS ANY KEY TO CONTINUE..."
-    null$ = Input$(1)
-End Sub
+    PRINT "The TOWER OF HANOI is a mathematical game or puzzle. It consists"
+    PRINT "of three pegs and a number of discs which can slide onto any peg."
+    PRINT "The puzzle starts with the discs stacked in order of size on one peg."
+    PRINT
+    PRINT "The object of the game is to move the entire stack onto another peg,"
+    PRINT "obeying the following rules:"
+    PRINT TAB(2); CHR$(248); " Only one disc may be moved at a time."
+    PRINT TAB(2); CHR$(248); " Each move consists of taking the upper disc from"
+    PRINT TAB(4); "one peg and sliding it onto another peg, on top of any discs"
+    PRINT TAB(4); "that may already be on that peg."
+    PRINT TAB(2); CHR$(248); " No disc may be placed on top of another disc."
+    PRINT "PRESS ANY KEY TO CONTINUE..."
+    null$ = INPUT$(1)
+END SUB
 
-Sub MOVEDISC (START, FINISH)
+SUB MOVEDISC (START, FINISH)
     TOWERS(FINISH, TOP(FINISH) + 1) = TOWERS(START, TOP(START))
     TOP(FINISH) = TOP(FINISH) + 1
     TOWERS(START, TOP(START)) = 0
     TOP(START) = TOP(START) - 1
     NUMMOVES = NUMMOVES + 1
-    Call SHOWDISCS
-    Delay .1
-    If InKey$ = Chr$(27) Then End
-End Sub
+    CALL SHOWDISCS
+    _DELAY .1
+    IF INKEY$ = CHR$(27) THEN END
+END SUB
 
-Sub MOVEPILE (N, START, FINISH)
-    If N > 1 Then Call MOVEPILE(N - 1, START, 3 - START - FINISH)
-    Call MOVEDISC(START, FINISH)
-    If N > 1 Then Call MOVEPILE(N - 1, 3 - START - FINISH, FINISH)
-End Sub
+SUB MOVEPILE (N, START, FINISH)
+    IF N > 1 THEN CALL MOVEPILE(N - 1, START, 3 - START - FINISH)
+    CALL MOVEDISC(START, FINISH)
+    IF N > 1 THEN CALL MOVEPILE(N - 1, 3 - START - FINISH, FINISH)
+END SUB
 
-Sub PLAYGAME
-    Dim null As String, k As String
-    Dim As Long start, finish
+SUB PLAYGAME
+    DIM null AS STRING, k AS STRING
+    DIM AS LONG start, finish
 
-    Do
-        Input "WOULD YOU LIKE INSTRUCTIONS"; null$
-        null$ = UCase$(Left$(LTrim$(null$), 1))
-        If null$ = "Y" Then Call INSTRUCT: Exit Do
-        If null$ = "N" Then Exit Do
-    Loop
-    Call SHOWDISCS
-    Do
-        Locate 1, 1
-        Color 7
-        Print "TYPE NUMBER OF START PEG FOLLOWED BY NUMBER OF END PEG"
-        Print "LEFT = 1", "MIDDLE = 2", "RIGHT=3"
-        Do
-            k$ = InKey$
-            Select Case k$
-                Case Chr$(27)
-                    End
-                Case "1"
+    DO
+        INPUT "WOULD YOU LIKE INSTRUCTIONS"; null$
+        null$ = UCASE$(LEFT$(LTRIM$(null$), 1))
+        IF null$ = "Y" THEN CALL INSTRUCT: EXIT DO
+        IF null$ = "N" THEN EXIT DO
+    LOOP
+    CALL SHOWDISCS
+    DO
+        LOCATE 1, 1
+        COLOR 7
+        PRINT "TYPE NUMBER OF START PEG FOLLOWED BY NUMBER OF END PEG"
+        PRINT "LEFT = 1", "MIDDLE = 2", "RIGHT=3"
+        DO
+            k$ = INKEY$
+            SELECT CASE k$
+                CASE CHR$(27)
+                    END
+                CASE "1"
                     start = 0
-                    Exit Do
-                Case "2"
+                    EXIT DO
+                CASE "2"
                     start = 1
-                    Exit Do
-                Case "3"
+                    EXIT DO
+                CASE "3"
                     start = 2
-                    Exit Do
-            End Select
-        Loop
-        Do
-            k$ = InKey$
-            Select Case k$
-                Case Chr$(27)
-                    End
-                Case "1"
+                    EXIT DO
+            END SELECT
+        LOOP
+        DO
+            k$ = INKEY$
+            SELECT CASE k$
+                CASE CHR$(27)
+                    END
+                CASE "1"
                     finish = 0
-                    Exit Do
-                Case "2"
+                    EXIT DO
+                CASE "2"
                     finish = 1
-                    Exit Do
-                Case "3"
+                    EXIT DO
+                CASE "3"
                     finish = 2
-                    Exit Do
-            End Select
-        Loop
-        If TOP(start) = 0 Then Print "There are no discs on that peg.": GoTo 1
-        If start = finish Then Print "The start peg is the same as the end peg.": GoTo 1
-        If TOP(finish) > 0 Then
-            If TOWERS(start, TOP(start)) > TOWERS(finish, TOP(finish)) Then Print "You may not put a larger disc on top of a smaller disc.": GoTo 1
-        End If
-        Call MOVEDISC(start, finish)
-        If TOP(0) = 0 And TOP(1) = 0 Then Exit Do
-        If TOP(0) = 0 And TOP(2) = 0 Then Exit Do
-    1 Loop
-End Sub
+                    EXIT DO
+            END SELECT
+        LOOP
+        IF TOP(start) = 0 THEN PRINT "There are no discs on that peg.": GOTO 1
+        IF start = finish THEN PRINT "The start peg is the same as the end peg.": GOTO 1
+        IF TOP(finish) > 0 THEN
+            IF TOWERS(start, TOP(start)) > TOWERS(finish, TOP(finish)) THEN PRINT "You may not put a larger disc on top of a smaller disc.": GOTO 1
+        END IF
+        CALL MOVEDISC(start, finish)
+        IF TOP(0) = 0 AND TOP(1) = 0 THEN EXIT DO
+        IF TOP(0) = 0 AND TOP(2) = 0 THEN EXIT DO
+    1 LOOP
+END SUB
 
-Sub SHOWDISCS
-    Dim As Long i, x
+SUB SHOWDISCS
+    DIM AS LONG i, x
 
-    Cls
-    Locate 1, 60: Print "MOVES: "; NUMMOVES
-    Locate 25, 1
-    Print String$(80, Chr$(196));
-    For i = 1 To TOP(0)
-        Locate 25 - i, i + 1
+    CLS
+    LOCATE 1, 60: PRINT "MOVES: "; NUMMOVES
+    LOCATE 25, 1
+    PRINT STRING$(80, CHR$(196));
+    FOR i = 1 TO TOP(0)
+        LOCATE 25 - i, i + 1
         x = TOWERS(0, i)
-        If x = 0 Then Exit For
-        Color COLORS(x): Print String$(x * 2, Chr$(219));
-    Next
-    For i = 1 To TOP(1)
-        Locate 25 - i, i + NUMDISCS * 3
+        IF x = 0 THEN EXIT FOR
+        COLOR COLORS(x): PRINT STRING$(x * 2, CHR$(219));
+    NEXT
+    FOR i = 1 TO TOP(1)
+        LOCATE 25 - i, i + NUMDISCS * 3
         x = TOWERS(1, i)
-        If x = 0 Then Exit For
-        Color COLORS(x): Print String$(x * 2, Chr$(219));
-    Next
-    For i = 1 To TOP(2)
-        Locate 25 - i, i + NUMDISCS * 6
+        IF x = 0 THEN EXIT FOR
+        COLOR COLORS(x): PRINT STRING$(x * 2, CHR$(219));
+    NEXT
+    FOR i = 1 TO TOP(2)
+        LOCATE 25 - i, i + NUMDISCS * 6
         x = TOWERS(2, i)
-        If x = 0 Then Exit For
-        Color COLORS(x): Print String$(x * 2, Chr$(219));
-    Next
-End Sub
+        IF x = 0 THEN EXIT FOR
+        COLOR COLORS(x): PRINT STRING$(x * 2, CHR$(219));
+    NEXT
+END SUB

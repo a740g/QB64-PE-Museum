@@ -43,11 +43,10 @@
 
 ' QB64 friendly changes by a740g
 
-$NOPREFIX
-DEFLNG A-Z
-OPTION EXPLICIT
 $CONSOLE:ONLY
-CONSOLETITLE "RemLine"
+
+DEFLNG A-Z
+OPTION _EXPLICIT
 
 ' Global and constant data
 CONST FALSE = 0, TRUE = NOT FALSE
@@ -65,7 +64,7 @@ KeyData:
 DATA THEN,ELSE,GOSUB,GOTO,RESUME,RETURN,RESTORE,RUN,ERL,""
 
 ' Check the command line and then collect relevant data
-IF COMMANDCOUNT < 1 THEN
+IF _COMMANDCOUNT < 1 THEN
     PRINT
     PRINT "Microsoft RemLine: Line Number Removal Utility"
     PRINT "Copyright (C) Microsoft Corporation 1985-1990"
@@ -77,7 +76,7 @@ IF COMMANDCOUNT < 1 THEN
     PRINT "Note:"
     PRINT "    - .BAS is assumed if extension is not present"
     PRINT "    - OutFile defaults to InFile.TMP if not present"
-    SYSTEM 0
+    SYSTEM
 END IF
 
 ' Start of module-level program code
@@ -95,7 +94,7 @@ GenOutFile
 PRINT "done!"
 CLOSE #1, #2
 
-SYSTEM 0
+SYSTEM
 
 '
 ' BuildTable:
@@ -208,7 +207,7 @@ END SUB
 '
 SUB GetFileNames
     ' Change to the directory specified by the environment
-    CHDIR STARTDIR$
+    CHDIR _STARTDIR$
 
     InputFile = COMMAND$(1)
 
@@ -218,7 +217,7 @@ SUB GetFileNames
     END IF
 
     ' Check if input file is present
-    IF NOT FILEEXISTS(InputFile) THEN
+    IF NOT _FILEEXISTS(InputFile) THEN
         PRINT InputFile; " does not exist! Specify a valid name."
         SYSTEM 1
     END IF
@@ -234,7 +233,7 @@ SUB GetFileNames
         OutputFile = OutputFile + ".bas"
     END IF
 
-    IF FILEEXISTS(OutputFile) THEN
+    IF _FILEEXISTS(OutputFile) THEN
         PRINT OutputFile; " already exist! Specify a valid name."
         SYSTEM 1
     END IF

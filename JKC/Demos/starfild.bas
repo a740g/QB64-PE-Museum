@@ -2,39 +2,37 @@
 'It needs a pretty fast computer...looks OK on my 1.5 GHz
 'JKC 2003
 
-$NoPrefix
+$RESIZE:SMOOTH
 
-$Resize:Smooth
+TYPE star
+    x AS INTEGER
+    y AS INTEGER
+    z AS INTEGER
+END TYPE
 
-Type star
-    x As Integer
-    y As Integer
-    z As Integer
-End Type
+DIM astar(0 TO 300) AS star
+DIM oldstar(0 TO 300) AS star
+FOR i = 0 TO 300
+    astar(i).x = RND * 640
+    astar(i).y = RND * 480
+    astar(i).z = RND * 300
+NEXT
 
-Dim astar(0 To 300) As star
-Dim oldstar(0 To 300) As star
-For i = 0 To 300
-    astar(i).x = Rnd * 640
-    astar(i).y = Rnd * 480
-    astar(i).z = Rnd * 300
-Next
+SCREEN 11
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Screen 11
-FullScreen SquarePixels , Smooth
-
-Do
-    For i = 0 To 300
-        If astar(i).z < 1 Then astar(i).z = 300 Else astar(i).z = astar(i).z - 1
-        For p% = 0 To oldstar(i).z
-            Circle (oldstar(i).x, oldstar(i).y), p%, 0
-            If astar(i).z <> 300 Then Circle (Int(2 * astar(i).z + astar(i).x / (1 + astar(i).z / 30)), Int(astar(i).z + astar(i).y / (1 + astar(i).z / 30))), p%
-        Next p%
-        oldstar(i).x = Int(2 * astar(i).z + astar(i).x / (1 + astar(i).z / 30))
-        oldstar(i).y = Int(astar(i).z + astar(i).y / (1 + astar(i).z / 30))
+DO
+    FOR i = 0 TO 300
+        IF astar(i).z < 1 THEN astar(i).z = 300 ELSE astar(i).z = astar(i).z - 1
+        FOR p% = 0 TO oldstar(i).z
+            CIRCLE (oldstar(i).x, oldstar(i).y), p%, 0
+            IF astar(i).z <> 300 THEN CIRCLE (INT(2 * astar(i).z + astar(i).x / (1 + astar(i).z / 30)), INT(astar(i).z + astar(i).y / (1 + astar(i).z / 30))), p%
+        NEXT p%
+        oldstar(i).x = INT(2 * astar(i).z + astar(i).x / (1 + astar(i).z / 30))
+        oldstar(i).y = INT(astar(i).z + astar(i).y / (1 + astar(i).z / 30))
         oldstar(i).z = 5 / (1 + astar(i).z / 20)
-    Next
-    Limit 60
-Loop Until InKey$ <> ""
+    NEXT
+    _LIMIT 60
+LOOP UNTIL INKEY$ <> ""
 
-System 0
+SYSTEM

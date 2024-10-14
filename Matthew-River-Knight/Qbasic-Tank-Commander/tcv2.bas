@@ -97,23 +97,22 @@
 '
 '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-$NoPrefix
-'$Static
-$Resize:Smooth
+'$STATIC
+$RESIZE:SMOOTH
 
 'Define variables A-Z as integers.
-DefInt A-Z
+DEFINT A-Z
 
 'Define the data TYPE, PaletteType.
-Type PaletteType
-    r As Integer
-    g As Integer
-    b As Integer
-End Type
+TYPE PaletteType
+    r AS INTEGER
+    g AS INTEGER
+    b AS INTEGER
+END TYPE
 
 'SHAREing of certain variables.
-Dim Shared Pal As PaletteType
-Dim Shared pData(0 To 255, 1 To 3)
+DIM SHARED Pal AS PaletteType
+DIM SHARED pData(0 TO 255, 1 TO 3)
 
 'Change the default directory to the one being used for TANK COMMANDER. When
 'setting this, remember to uncomment it.
@@ -123,301 +122,300 @@ Dim Shared pData(0 To 255, 1 To 3)
 D1 = 2: D2 = 4: T1H = 6: T1V = 87: T2H = 300: T2V = 102: Speed = 550
 
 'Customise the VGA color palette for the introductory text.
-Screen 13
-FullScreen SquarePixels , Smooth
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-C = 16: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * A) + (256 * 0) + 0: C = C + 1: Next
-C = 32: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * 0) + (256 * A) + 0: C = C + 1: Next
-C = 48: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * 0) + (256 * 0) + A: C = C + 1: Next
-C = 64: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * A) + (256 * A) + 0: C = C + 1: Next
-C = 80: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * A) + (256 * 0) + A: C = C + 1: Next
-C = 96: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * 0) + (256 * A) + A: C = C + 1: Next
-C = 112: B = 0: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * A) + (256 * B) + 0: B = B + 3: C = C + 1: Next
-C = 128: B = 0: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * B) + (256 * 0) + A: B = B + 3: C = C + 1: Next
-C = 144: B = 0: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * B) + (256 * A) + 0: B = B + 3: C = C + 1: Next
-C = 160: B = 0: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * B) + (256 * A) + A: B = B + 3: C = C + 1: Next
-C = 176: B = 0: For A = 16 To 61 Step 3: Palette C, (256 ^ 2 * A) + (256 * A) + A: C = C + 1: Next
-C = 192: B = 12: AA = 0: For A = 30 To 62 Step 2: Palette C, (256 ^ 2 * B) + (256 * AA) + A: B = B + 2: C = C + 1: Next
-C = 208: B = 12: AA = 0: For A = 30 To 62 Step 2: Palette C, (256 ^ 2 * B) + (256 * B) + A: B = B + 2: C = C + 1: Next
-C = 224: B = 12: AA = 0: For A = 30 To 62 Step 2: Palette C, (256 ^ 2 * AA) + (256 * B) + A: B = B + 2: C = C + 1: Next
+C = 16: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * A) + (256 * 0) + 0: C = C + 1: NEXT
+C = 32: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * 0) + (256 * A) + 0: C = C + 1: NEXT
+C = 48: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * 0) + (256 * 0) + A: C = C + 1: NEXT
+C = 64: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * A) + (256 * A) + 0: C = C + 1: NEXT
+C = 80: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * A) + (256 * 0) + A: C = C + 1: NEXT
+C = 96: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * 0) + (256 * A) + A: C = C + 1: NEXT
+C = 112: B = 0: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * A) + (256 * B) + 0: B = B + 3: C = C + 1: NEXT
+C = 128: B = 0: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * B) + (256 * 0) + A: B = B + 3: C = C + 1: NEXT
+C = 144: B = 0: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * B) + (256 * A) + 0: B = B + 3: C = C + 1: NEXT
+C = 160: B = 0: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * B) + (256 * A) + A: B = B + 3: C = C + 1: NEXT
+C = 176: B = 0: FOR A = 16 TO 61 STEP 3: PALETTE C, (256 ^ 2 * A) + (256 * A) + A: C = C + 1: NEXT
+C = 192: B = 12: AA = 0: FOR A = 30 TO 62 STEP 2: PALETTE C, (256 ^ 2 * B) + (256 * AA) + A: B = B + 2: C = C + 1: NEXT
+C = 208: B = 12: AA = 0: FOR A = 30 TO 62 STEP 2: PALETTE C, (256 ^ 2 * B) + (256 * B) + A: B = B + 2: C = C + 1: NEXT
+C = 224: B = 12: AA = 0: FOR A = 30 TO 62 STEP 2: PALETTE C, (256 ^ 2 * AA) + (256 * B) + A: B = B + 2: C = C + 1: NEXT
 
 'Do presentation text.
 Palette.FadeOut
-Color 1
-Locate 9, 16: Print "  HORIZONS Interactive Entertainment"
-Locate 13, 13: Print "P R E S E N T S"
+COLOR 1
+LOCATE 9, 16: PRINT "  HORIZONS Interactive Entertainment"
+LOCATE 13, 13: PRINT "P R E S E N T S"
 
 'Color in company name with various shades of green.
 Y = 72: C = 32
-Do
-    For X = 1 To 300
-        If Point(X, Y) > 0 Then PSet (X, Y), C + Rnd * 15
-    Next
+DO
+    FOR X = 1 TO 300
+        IF POINT(X, Y) > 0 THEN PSET (X, Y), C + RND * 15
+    NEXT
     Y = Y + 1
-Loop Until Y = 79
+LOOP UNTIL Y = 79
 
 'Color in "PRESENTS" with various shades of red. Once this has been done,
 'fade in the screen, melt it, and then fade out.
 Y = 96: C = 49
-Do
-    For X = 1 To 300
-        If Point(X, Y) > 0 Then PSet (X, Y), C + Rnd * 14
-    Next
+DO
+    FOR X = 1 TO 300
+        IF POINT(X, Y) > 0 THEN PSET (X, Y), C + RND * 14
+    NEXT
     Y = Y + 1
-Loop Until Y = 103
+LOOP UNTIL Y = 103
 Palette.FadeIn
-NOW! = Timer: While (Timer - 1) < NOW!: Wend
-Dim Melt%(1500)
-For R = 1 To 1500
-    Randomize Timer
-    X = Int(Rnd * 271)
-    Randomize Timer
-    Y = Int(Rnd * 150)
-    Get (X, Y)-(X + 48, Y + 18), Melt%()
-    Put (X, Y + 1), Melt%(), PSet
-    If InKey$ = Chr$(27) Then Exit For
-    Limit 480
-Next
+NOW! = TIMER: WHILE (TIMER - 1) < NOW!: WEND
+DIM Melt%(1500)
+FOR R = 1 TO 1500
+    RANDOMIZE TIMER
+    X = INT(RND * 271)
+    RANDOMIZE TIMER
+    Y = INT(RND * 150)
+    GET (X, Y)-(X + 48, Y + 18), Melt%()
+    PUT (X, Y + 1), Melt%(), PSET
+    IF INKEY$ = CHR$(27) THEN EXIT FOR
+    _LIMIT 480
+NEXT
 Palette.FadeOut
-Cls: Palette: Palette.FadeOut
+CLS: PALETTE: Palette.FadeOut
 
 'GET the sprite data.
-Def Seg = 40960: BLoad "sprites.bsv"
-Dim Tank1(150): Get (1, 1)-(15, 10), Tank1()
-Dim Tank2(150): Get (1, 14)-(15, 23), Tank2()
-Dim Tank3(150): Get (1, 27)-(15, 36), Tank3()
-Dim Tank4(150): Get (1, 40)-(15, 49), Tank4()
-Dim Tank5(150): Get (20, 1)-(34, 10), Tank5()
-Dim Tank6(150): Get (20, 14)-(34, 23), Tank6()
-Dim Tank7(150): Get (20, 27)-(34, 36), Tank7()
-Dim Tank8(150): Get (20, 40)-(34, 49), Tank8()
+DEF SEG = 40960: BLOAD "sprites.bsv"
+DIM Tank1(150): GET (1, 1)-(15, 10), Tank1()
+DIM Tank2(150): GET (1, 14)-(15, 23), Tank2()
+DIM Tank3(150): GET (1, 27)-(15, 36), Tank3()
+DIM Tank4(150): GET (1, 40)-(15, 49), Tank4()
+DIM Tank5(150): GET (20, 1)-(34, 10), Tank5()
+DIM Tank6(150): GET (20, 14)-(34, 23), Tank6()
+DIM Tank7(150): GET (20, 27)-(34, 36), Tank7()
+DIM Tank8(150): GET (20, 40)-(34, 49), Tank8()
 
 'Load the file ARENA.BSV, which is the graphics data for the arena, into the
 'video memory segment (segment 40960).
-BLoad "arena.bsv"
+BLOAD "arena.bsv"
 
 'Place both tanks in their initial positions and fade in the completed arena.
-Put (T1H, T1V), Tank1(), PSet
-Put (T2H, T2V), Tank6(), PSet
+PUT (T1H, T1V), Tank1(), PSET
+PUT (T2H, T2V), Tank6(), PSET
 Palette.FadeIn
 
 'Main program loop.
-Do
+DO
 
     'IF Count < Speed THEN Count = Count + 1 ELSE Count = 0
-    Limit 60
+    _LIMIT 60
 
-    If Go1 = 1 And Count = 0 Then
-        If D1 = 1 And T1V > 26 Then T1V = T1V - 1: Put (T1H, T1V), Tank3(), PSet
-        If D1 = 2 And T1H < 305 Then T1H = T1H + 1: Put (T1H, T1V), Tank1(), PSet
-        If D1 = 3 And T1V < 190 Then T1V = T1V + 1: Put (T1H, T1V), Tank4(), PSet
-        If D1 = 4 And T1H > 0 Then T1H = T1H - 1: Put (T1H, T1V), Tank2(), PSet
-    End If
-    If Go2 = 1 And Count = 0 Then
-        If D2 = 1 And T2V > 26 Then T2V = T2V - 1: Put (T2H, T2V), Tank7(), PSet
-        If D2 = 2 And T2H < 305 Then T2H = T2H + 1: Put (T2H, T2V), Tank5(), PSet
-        If D2 = 3 And T2V < 190 Then T2V = T2V + 1: Put (T2H, T2V), Tank8(), PSet
-        If D2 = 4 And T2H > 0 Then T2H = T2H - 1: Put (T2H, T2V), Tank6(), PSet
-    End If
-    If St1 = 30 Then St1 = 0: Fire1 = 0: PSet (B1H, B1V), Col
-    If St2 = 30 Then St2 = 0: Fire2 = 0: PSet (B2H, B2V), Col2
-    If Fire1 = 1 And St1 < 30 And Count = 0 Then
-        PSet (B1H, B1V), Col
-        If BD1 = 1 Then B1V = B1V - 2
-        If BD1 = 2 Then B1H = B1H + 2
-        If BD1 = 3 Then B1V = B1V + 2
-        If BD1 = 4 Then B1H = B1H - 2
-        Col = Point(B1H, B1V)
-        PSet (B1H, B1V), 14
+    IF Go1 = 1 AND Count = 0 THEN
+        IF D1 = 1 AND T1V > 26 THEN T1V = T1V - 1: PUT (T1H, T1V), Tank3(), PSET
+        IF D1 = 2 AND T1H < 305 THEN T1H = T1H + 1: PUT (T1H, T1V), Tank1(), PSET
+        IF D1 = 3 AND T1V < 190 THEN T1V = T1V + 1: PUT (T1H, T1V), Tank4(), PSET
+        IF D1 = 4 AND T1H > 0 THEN T1H = T1H - 1: PUT (T1H, T1V), Tank2(), PSET
+    END IF
+    IF Go2 = 1 AND Count = 0 THEN
+        IF D2 = 1 AND T2V > 26 THEN T2V = T2V - 1: PUT (T2H, T2V), Tank7(), PSET
+        IF D2 = 2 AND T2H < 305 THEN T2H = T2H + 1: PUT (T2H, T2V), Tank5(), PSET
+        IF D2 = 3 AND T2V < 190 THEN T2V = T2V + 1: PUT (T2H, T2V), Tank8(), PSET
+        IF D2 = 4 AND T2H > 0 THEN T2H = T2H - 1: PUT (T2H, T2V), Tank6(), PSET
+    END IF
+    IF St1 = 30 THEN St1 = 0: Fire1 = 0: PSET (B1H, B1V), Col
+    IF St2 = 30 THEN St2 = 0: Fire2 = 0: PSET (B2H, B2V), Col2
+    IF Fire1 = 1 AND St1 < 30 AND Count = 0 THEN
+        PSET (B1H, B1V), Col
+        IF BD1 = 1 THEN B1V = B1V - 2
+        IF BD1 = 2 THEN B1H = B1H + 2
+        IF BD1 = 3 THEN B1V = B1V + 2
+        IF BD1 = 4 THEN B1H = B1H - 2
+        Col = POINT(B1H, B1V)
+        PSET (B1H, B1V), 14
         St1 = St1 + 1
-        GoSub CheckBullet1
-    End If
-    If Fire2 = 1 And St2 < 30 And Count = 0 Then
-        PSet (B2H, B2V), Col2
-        If BD2 = 1 Then B2V = B2V - 2
-        If BD2 = 2 Then B2H = B2H + 2
-        If BD2 = 3 Then B2V = B2V + 2
-        If BD2 = 4 Then B2H = B2H - 2
-        Col2 = Point(B2H, B2V)
-        PSet (B2H, B2V), 14
+        GOSUB CheckBullet1
+    END IF
+    IF Fire2 = 1 AND St2 < 30 AND Count = 0 THEN
+        PSET (B2H, B2V), Col2
+        IF BD2 = 1 THEN B2V = B2V - 2
+        IF BD2 = 2 THEN B2H = B2H + 2
+        IF BD2 = 3 THEN B2V = B2V + 2
+        IF BD2 = 4 THEN B2H = B2H - 2
+        Col2 = POINT(B2H, B2V)
+        PSET (B2H, B2V), 14
         St2 = St2 + 1
-        GoSub CheckBullet2
-    End If
-    Key$ = InKey$
-    If Key$ = Chr$(27) Then Palette.FadeOut: GoTo Results
-    If Key$ = "4" Then Go1 = 1: D1 = 4
-    If Key$ = "6" Then Go1 = 1: D1 = 2
-    If Key$ = "8" Then Go1 = 1: D1 = 1
-    If Key$ = "2" Then Go1 = 1: D1 = 3
-    If Key$ = "0" Then If Fire1 = 0 Then GoSub Shoot1
-    If Key$ = "5" Then Go1 = 0
-    If Key$ = "O" Or Key$ = "o" Then Go2 = 1: D2 = 4
-    If Key$ = "P" Or Key$ = "p" Then Go2 = 1: D2 = 2
-    If Key$ = "Q" Or Key$ = "q" Then Go2 = 1: D2 = 1
-    If Key$ = "A" Or Key$ = "a" Then Go2 = 1: D2 = 3
-    If Key$ = "S" Or Key$ = "s" Then Go2 = 0
-    If Key$ = Chr$(32) Then If Fire2 = 0 Then GoSub Shoot2
-Loop
+        GOSUB CheckBullet2
+    END IF
+    Key$ = INKEY$
+    IF Key$ = CHR$(27) THEN Palette.FadeOut: GOTO Results
+    IF Key$ = "4" THEN Go1 = 1: D1 = 4
+    IF Key$ = "6" THEN Go1 = 1: D1 = 2
+    IF Key$ = "8" THEN Go1 = 1: D1 = 1
+    IF Key$ = "2" THEN Go1 = 1: D1 = 3
+    IF Key$ = "0" THEN IF Fire1 = 0 THEN GOSUB Shoot1
+    IF Key$ = "5" THEN Go1 = 0
+    IF Key$ = "O" OR Key$ = "o" THEN Go2 = 1: D2 = 4
+    IF Key$ = "P" OR Key$ = "p" THEN Go2 = 1: D2 = 2
+    IF Key$ = "Q" OR Key$ = "q" THEN Go2 = 1: D2 = 1
+    IF Key$ = "A" OR Key$ = "a" THEN Go2 = 1: D2 = 3
+    IF Key$ = "S" OR Key$ = "s" THEN Go2 = 0
+    IF Key$ = CHR$(32) THEN IF Fire2 = 0 THEN GOSUB Shoot2
+LOOP
 
 Shoot1: 'Initiates the shooting from Tank 1.
 BD1 = D1
-If BD1 = 0 Then Return
-If BD1 = 1 Then B1H = (T1H + 7): B1V = (T1V - 1)
-If BD1 = 2 Then B1H = (T1H + 14): B1V = (T1V + 5)
-If BD1 = 3 Then B1H = (T1H + 7): B1V = (T1V + 11)
-If BD1 = 4 Then B1H = (T1H - 1): B1V = (T1V + 5)
-St1 = 1: Fire1 = 1: Col = Point(B1H, B1V)
-Return
+IF BD1 = 0 THEN RETURN
+IF BD1 = 1 THEN B1H = (T1H + 7): B1V = (T1V - 1)
+IF BD1 = 2 THEN B1H = (T1H + 14): B1V = (T1V + 5)
+IF BD1 = 3 THEN B1H = (T1H + 7): B1V = (T1V + 11)
+IF BD1 = 4 THEN B1H = (T1H - 1): B1V = (T1V + 5)
+St1 = 1: Fire1 = 1: Col = POINT(B1H, B1V)
+RETURN
 
 Shoot2: 'Initiates the shooting from Tank 2.
 BD2 = D2
-If BD2 = 0 Then Return
-If BD2 = 1 Then B2H = (T2H + 7): B2V = (T2V - 1)
-If BD2 = 2 Then B2H = (T2H + 14): B2V = (T2V + 5)
-If BD2 = 3 Then B2H = (T2H + 7): B2V = (T2V + 11)
-If BD2 = 4 Then B2H = (T2H - 1): B2V = (T2V + 5)
-St2 = 1: Fire2 = 1: Col2 = Point(B2H, B2V)
-Return
+IF BD2 = 0 THEN RETURN
+IF BD2 = 1 THEN B2H = (T2H + 7): B2V = (T2V - 1)
+IF BD2 = 2 THEN B2H = (T2H + 14): B2V = (T2V + 5)
+IF BD2 = 3 THEN B2H = (T2H + 7): B2V = (T2V + 11)
+IF BD2 = 4 THEN B2H = (T2H - 1): B2V = (T2V + 5)
+St2 = 1: Fire2 = 1: Col2 = POINT(B2H, B2V)
+RETURN
 
 CheckBullet1: 'Hit detection from Tank 1 bullet.
 T2V = T2V + 2: T2H = T2H + 3
-For ScanTank2 = 1 To 7
-    For Scan = 1 To 9
-        If B1H = T2H And B1V = T2V Then Crash = 2: GoTo Explode
+FOR ScanTank2 = 1 TO 7
+    FOR Scan = 1 TO 9
+        IF B1H = T2H AND B1V = T2V THEN Crash = 2: GOTO Explode
         T2H = T2H + 1
-    Next
+    NEXT
     T2H = T2H - 9: T2V = T2V + 1
-Next
+NEXT
 T2V = T2V - 9: T2H = T2H - 3
-Return
+RETURN
 
 CheckBullet2: 'Hit detection from Tank 2 bullet.
 T1V = T1V + 2: T1H = T1H + 3
-For ScanTank1 = 1 To 7
-    For Scan = 1 To 9
-        If B2H = T1H And B2V = T1V Then Crash = 1: GoTo Explode
+FOR ScanTank1 = 1 TO 7
+    FOR Scan = 1 TO 9
+        IF B2H = T1H AND B2V = T1V THEN Crash = 1: GOTO Explode
         T1H = T1H + 1
-    Next
+    NEXT
     T1H = T1H - 9: T1V = T1V + 1
-Next
+NEXT
 T1V = T1V - 9: T1H = T1H - 3
-Return
+RETURN
 
 Explode: 'Create very cheap graphic explosion.
-If Crash = 1 Then ExplodeH = T1H: ExplodeV = T1V: T2Wins = 1
-If Crash = 2 Then ExplodeH = T2H: ExplodeV = T2V: T1Wins = 1
-For Explode = 1 To 9
-    If Explode = 1 Then Col = 14
-    If Explode = 5 Then Col = 12
-    If Explode = 7 Then Col = 4
-    Circle (ExplodeH, ExplodeV), Explode, Col
-    NOW! = Timer: While (Timer - .01) < NOW!: Wend
-Next
-NOW! = Timer: While (Timer - 1) < NOW!: Wend
+IF Crash = 1 THEN ExplodeH = T1H: ExplodeV = T1V: T2Wins = 1
+IF Crash = 2 THEN ExplodeH = T2H: ExplodeV = T2V: T1Wins = 1
+FOR Explode = 1 TO 9
+    IF Explode = 1 THEN Col = 14
+    IF Explode = 5 THEN Col = 12
+    IF Explode = 7 THEN Col = 4
+    CIRCLE (ExplodeH, ExplodeV), Explode, Col
+    NOW! = TIMER: WHILE (TIMER - .01) < NOW!: WEND
+NEXT
+NOW! = TIMER: WHILE (TIMER - 1) < NOW!: WEND
 Palette.FadeOut
 
 Results: 'Announce the winning tank and display credits.
-Screen 0: Width 80, 25
-Color 12, 4
-Print " G A M E    R E S U L T S "
-Print
-Color 4, 0
-Print "Blue tank wins:"
-Color 2
-Locate 3, 17: Print T1Wins
-Color 4
-Print "Green tank wins:"
-Color 2
-Locate 4, 18: Print T2Wins
-Print
-Color 12, 4
-Print " C R E D I T S "
-Print
-Color 4, 0
-Print "Concept:"
-Print "Programming:"
-Print "Game art:"
-Print "Fade effect:"
-Print "Testing:"
-Print "Debugging:"
-Color 2
-Locate 8, 11: Print "About a million other un-origional programmers ;)"
-Locate 9, 15: Print "Matthew Knight"
-Locate 10, 12: Print "Matthew Knight"
-Locate 11, 15: Print "Manny Najera"
-Locate 12, 11: Print "Matthew Knight"
-Locate 13, 13: Print "Matthew Knight"
-Print
-Color 9
-Print "All code in this game was programmed from scratch by Matthew Knight, with"
-Print "exception of the fade effect which was kindly supplied by Manny Najera."
-Print "No code was taken from any other games. Any similarity to another game is"
-Print "purely coincidental."
-Print
-Color 4
-Print "Thank you for trying Qbasic TANK COMMANDER v2 !!!"
-Print "Hope you liked it :)"
-Color 7
+SCREEN 0: WIDTH 80, 25
+COLOR 12, 4
+PRINT " G A M E    R E S U L T S "
+PRINT
+COLOR 4, 0
+PRINT "Blue tank wins:"
+COLOR 2
+LOCATE 3, 17: PRINT T1Wins
+COLOR 4
+PRINT "Green tank wins:"
+COLOR 2
+LOCATE 4, 18: PRINT T2Wins
+PRINT
+COLOR 12, 4
+PRINT " C R E D I T S "
+PRINT
+COLOR 4, 0
+PRINT "Concept:"
+PRINT "Programming:"
+PRINT "Game art:"
+PRINT "Fade effect:"
+PRINT "Testing:"
+PRINT "Debugging:"
+COLOR 2
+LOCATE 8, 11: PRINT "About a million other un-origional programmers ;)"
+LOCATE 9, 15: PRINT "Matthew Knight"
+LOCATE 10, 12: PRINT "Matthew Knight"
+LOCATE 11, 15: PRINT "Manny Najera"
+LOCATE 12, 11: PRINT "Matthew Knight"
+LOCATE 13, 13: PRINT "Matthew Knight"
+PRINT
+COLOR 9
+PRINT "All code in this game was programmed from scratch by Matthew Knight, with"
+PRINT "exception of the fade effect which was kindly supplied by Manny Najera."
+PRINT "No code was taken from any other games. Any similarity to another game is"
+PRINT "purely coincidental."
+PRINT
+COLOR 4
+PRINT "Thank you for trying Qbasic TANK COMMANDER v2 !!!"
+PRINT "Hope you liked it :)"
+COLOR 7
 
-Sub Palette.FadeIn
-    Dim tT(1 To 3)
-    For I = 1 To 64
-        Limit 60
-        For O = 0 To 255
+SUB Palette.FadeIn
+    DIM tT(1 TO 3)
+    FOR I = 1 TO 64
+        _LIMIT 60
+        FOR O = 0 TO 255
             Palette.Get O, Pal
             tT(1) = Pal.r
             tT(2) = Pal.g
             tT(3) = Pal.b
-            If tT(1) < pData(O, 1) Then tT(1) = tT(1) + 1
-            If tT(2) < pData(O, 2) Then tT(2) = tT(2) + 1
-            If tT(3) < pData(O, 3) Then tT(3) = tT(3) + 1
+            IF tT(1) < pData(O, 1) THEN tT(1) = tT(1) + 1
+            IF tT(2) < pData(O, 2) THEN tT(2) = tT(2) + 1
+            IF tT(3) < pData(O, 3) THEN tT(3) = tT(3) + 1
             Pal.r = tT(1)
             Pal.g = tT(2)
             Pal.b = tT(3)
             Palette.Set O, Pal
-        Next
-    Next
-End Sub
+        NEXT
+    NEXT
+END SUB
 
-Sub Palette.FadeOut
-    Dim tT(1 To 3)
-    For I = 0 To 255
+SUB Palette.FadeOut
+    DIM tT(1 TO 3)
+    FOR I = 0 TO 255
         Palette.Get I, Pal
         pData(I, 1) = Pal.r
         pData(I, 2) = Pal.g
         pData(I, 3) = Pal.b
-    Next
-    For I = 1 To 64
-        Limit 60
-        For O = 0 To 255
+    NEXT
+    FOR I = 1 TO 64
+        _LIMIT 60
+        FOR O = 0 TO 255
             Palette.Get O, Pal
             tT(1) = Pal.r
             tT(2) = Pal.g
             tT(3) = Pal.b
-            If tT(1) > 0 Then tT(1) = tT(1) - 1
-            If tT(2) > 0 Then tT(2) = tT(2) - 1
-            If tT(3) > 0 Then tT(3) = tT(3) - 1
+            IF tT(1) > 0 THEN tT(1) = tT(1) - 1
+            IF tT(2) > 0 THEN tT(2) = tT(2) - 1
+            IF tT(3) > 0 THEN tT(3) = tT(3) - 1
             Pal.r = tT(1)
             Pal.g = tT(2)
             Pal.b = tT(3)
             Palette.Set O, Pal
-        Next
-    Next
-End Sub
+        NEXT
+    NEXT
+END SUB
 
-Sub Palette.Get (nColor%, pInfo As PaletteType)
-    Out &H3C6, &HFF
-    Out &H3C7, nColor%
-    pInfo.r = Inp(&H3C9)
-    pInfo.g = Inp(&H3C9)
-    pInfo.b = Inp(&H3C9)
-End Sub
+SUB Palette.Get (nColor%, pInfo AS PaletteType)
+    OUT &H3C6, &HFF
+    OUT &H3C7, nColor%
+    pInfo.r = INP(&H3C9)
+    pInfo.g = INP(&H3C9)
+    pInfo.b = INP(&H3C9)
+END SUB
 
-Sub Palette.Set (nColor%, pInfo As PaletteType)
-    Out &H3C6, &HFF
-    Out &H3C8, nColor%
-    Out &H3C9, pInfo.r
-    Out &H3C9, pInfo.g
-    Out &H3C9, pInfo.b
-End Sub
-
+SUB Palette.Set (nColor%, pInfo AS PaletteType)
+    OUT &H3C6, &HFF
+    OUT &H3C8, nColor%
+    OUT &H3C9, pInfo.r
+    OUT &H3C9, pInfo.g
+    OUT &H3C9, pInfo.b
+END SUB

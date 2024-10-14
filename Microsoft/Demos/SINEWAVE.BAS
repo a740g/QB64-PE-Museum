@@ -1,37 +1,34 @@
-$NoPrefix
-DefLng A-Z
-Option Explicit
-Option ExplicitArray
+DEFLNG A-Z
+OPTION _EXPLICIT
 
-$Resize:Smooth
-Screen 2
-AllowFullScreen SquarePixels , Smooth
+$RESIZE:SMOOTH
+SCREEN 2
+_ALLOWFULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-Dim As Long Style, Cycles
-Dim As Single X, Y
+DIM AS LONG Style, Cycles
+DIM AS SINGLE X, Y
 
 ' Viewport sized to proper scale for graph:
-View (20, 2)-(620, 172), , 1
+VIEW (20, 2)-(620, 172), , 1
 
 ' Make window large enough to graph sine wave from
 ' 0 radians to pi radians:
-Window (0, -1.1)-(2 * Pi, 1.1)
+WINDOW (0, -1.1)-(2 * _PI, 1.1)
 Style = &HFF00 ' Use to make dashed line.
-View Print 23 To 24 ' Scroll printed output in rows 23, 24.
-Do
-    Print Tab(20);
-    Input "Number of cycles (0 to end): ", Cycles
-    Cls
-    Line (2 * Pi, 0)-(0, 0), , , Style ' Draw the x axis.
-    If Cycles > 0 Then
+VIEW PRINT 23 TO 24 ' Scroll printed output in rows 23, 24.
+DO
+    PRINT TAB(20);
+    INPUT "Number of cycles (0 to end): ", Cycles
+    CLS
+    LINE (2 * _PI, 0)-(0, 0), , , Style ' Draw the x axis.
+    IF Cycles > 0 THEN
 
         '  Start at (0,0) and plot the graph:
-        For X = 0 To 2 * Pi Step .01
-            Y = Sin(Cycles * X) ' Calculate the y coordinate.
-            Line -(X, Y) ' Draw a line to new point.
-        Next X
-    End If
-Loop While Cycles > 0
+        FOR X = 0 TO 2 * _PI STEP .01
+            Y = SIN(Cycles * X) ' Calculate the y coordinate.
+            LINE -(X, Y) ' Draw a line to new point.
+        NEXT X
+    END IF
+LOOP WHILE Cycles > 0
 
-System 0
-
+SYSTEM

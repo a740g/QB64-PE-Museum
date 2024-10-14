@@ -1,197 +1,180 @@
-$NoPrefix
+DEFINT A-Z
+OPTION BASE 1
 
-DefInt A-Z
-Option Base 1
+_TITLE "Reversi"
 
-$Resize:Smooth
-Title "Reversi"
+CONST FALSE = 0, TRUE = NOT FALSE
+CONST QUIT = 113
+CONST UP = 72
+CONST DOWN = 80
+CONST LEFT = 75
+CONST RIGHT = 77
+CONST BBLOCK = 1
+CONST EBLOCK = 8
+CONST ENTER = 13
+CONST ULEFT = 71
+CONST URIGHT = 73
+CONST DLEFT = 79
+CONST DRIGHT = 81
+CONST PASS = 112
+CONST DIFF = 100
+CONST START = 115
+CONST HELP = 104
+CONST FMOVE = 99
+CONST SPACE = 32
+CONST HUMAN = 4
+CONST COMP = 1
+CONST BG = 3
+CONST GBOARD = 8
 
-Const FALSE = 0, TRUE = Not FALSE
-Const QUIT = 113
-Const UP = 72
-Const DOWN = 80
-Const LEFT = 75
-Const RIGHT = 77
-Const BBLOCK = 1
-Const EBLOCK = 8
-Const ENTER = 13
-Const ULEFT = 71
-Const URIGHT = 73
-Const DLEFT = 79
-Const DRIGHT = 81
-Const PASS = 112
-Const DIFF = 100
-Const START = 115
-Const HELP = 104
-Const FMOVE = 99
-Const SPACE = 32
+TYPE GameGrid
+    player AS INTEGER
+    nTake AS INTEGER
+    cx AS INTEGER
+    cy AS INTEGER
+END TYPE
 
-Type GameGrid
-    player As Integer
-    nTake As Integer
-    cx As Integer
-    cy As Integer
-End Type
+TYPE GameStatus
+    curRow AS INTEGER
+    curCol AS INTEGER
+    stat AS INTEGER
+    rScore AS INTEGER
+    bScore AS INTEGER
+    mDisplay AS INTEGER
+    dLevel AS STRING * 6
+    GColor AS INTEGER
+END TYPE
 
-Type GameStatus
-    curRow As Integer
-    curCol As Integer
-    stat As Integer
-    rScore As Integer
-    bScore As Integer
-    mDisplay As Integer
-    dLevel As String * 6
-    GColor As Integer
-End Type
+DIM SHARED GS AS GameStatus
+DIM SHARED GG(8, 8) AS GameGrid
+DIM SHARED GP(8, 8, 8) AS INTEGER, GW(8, 8) AS INTEGER
 
-Dim Shared GS As GameStatus, smode As Integer
-Dim Shared GG(8, 8) As GameGrid, GBoard As Integer
-Dim Shared COMP As Integer, HUMAN As Integer, BG As Integer
-Dim Shared GP(8, 8, 8) As Integer, GW(8, 8) As Integer
+$RESIZE:SMOOTH
+SCREEN 9
+_ALLOWFULLSCREEN _SQUAREPIXELS , _SMOOTH
 
-On Error GoTo BadMode
+GS.stat = START
+GS.dLevel = "Novice"
+WHILE GS.stat <> QUIT
+    IF GS.stat = START THEN
+        InitGame
+        DrawGameBoard
+    END IF
+    IF GS.stat <> COMP THEN
+        IF ValidMove(COMP) THEN
+            UserMove
+        ELSEIF ValidMove(HUMAN) THEN
+            DO
+                DisplayMsg "You have no valid moves.  Select pass."
+                DO
+                    a$ = INKEY$
+                LOOP UNTIL a$ <> ""
+            LOOP UNTIL ASC(RIGHT$(a$, 1)) = PASS
+            LINE (0, 420)-(640, 447), 3, BF
+            GS.mDisplay = FALSE
+            GS.stat = COMP
+            ComputerMove
+        ELSE
+            GameOver
+        END IF
+    ELSE
+        IF ValidMove(HUMAN) THEN
+            ComputerMove
+        ELSEIF ValidMove(COMP) THEN
+            DisplayMsg "Computer has no valid moves.  Your Turn."
+            GS.stat = HUMAN
+            UserMove
+        ELSE
+            GameOver
+        END IF
+    END IF
+WEND
+DisplayMsg "Game Over"
 
-Do
-    Read smode
-    vmode = TRUE
-    Screen smode
-Loop Until vmode = TRUE
+SYSTEM
 
-AllowFullScreen SquarePixels , Smooth
-
-If smode = 0 Then
-    Cls
-    Locate 10, 15: Print "No graphics screen mode available; cannot run REVERSI.BAS"
-Else
-    GS.stat = START
-    GS.dLevel = "Novice"
-    While GS.stat <> QUIT
-        If GS.stat = START Then
-            InitGame
-            DrawGameBoard
-        End If
-        If GS.stat <> COMP Then
-            If ValidMove(COMP) Then
-                UserMove
-            ElseIf ValidMove(HUMAN) Then
-                Do
-                    DisplayMsg "You have no valid moves.  Select pass."
-                    Do
-                        a$ = InKey$
-                    Loop Until a$ <> ""
-                Loop Until Asc(Right$(a$, 1)) = PASS
-                Line (0, 420)-(640, 447), 3, BF
-                GS.mDisplay = FALSE
-                GS.stat = COMP
-                ComputerMove
-            Else
-                GameOver
-            End If
-        Else
-            If ValidMove(HUMAN) Then
-                ComputerMove
-            ElseIf ValidMove(COMP) Then
-                DisplayMsg "Computer has no valid moves.  Your Turn."
-                GS.stat = HUMAN
-                UserMove
-            Else
-                GameOver
-            End If
-        End If
-    Wend
-    DisplayMsg "Game Over"
-End If
-
-Data 9,10,2,3,0
-
-BadMode:
-vmode = FALSE
-Resume Next
-
-System 0
-
-Function CheckPath (i, IBound, IStep, j, JBound, JStep, Opponent)
+FUNCTION CheckPath (i, IBound, IStep, j, JBound, JStep, Opponent)
 
     done = FALSE
-    While (i <> IBound Or j <> JBound) And Not done
-        If GG(i, j).player = GBoard Then
+    WHILE (i <> IBound OR j <> JBound) AND NOT done
+        IF GG(i, j).player = GBOARD THEN
             count = 0
             done = TRUE
-        ElseIf GG(i, j).player = Opponent Then
+        ELSEIF GG(i, j).player = Opponent THEN
             count = count + 1
             i = i + IStep
             j = j + JStep
-            If (i < 1 Or i > 8) Or (j < 1 Or j > 8) Then
+            IF (i < 1 OR i > 8) OR (j < 1 OR j > 8) THEN
                 count = 0
                 done = TRUE
-            End If
-        Else
+            END IF
+        ELSE
             done = TRUE
-        End If
-    Wend
+        END IF
+    WEND
     CheckPath = count
 
-End Function
+END FUNCTION
 
-Sub ComputerMove
+SUB ComputerMove
     BestMove = -99
-    For row = 1 To 8
-        For col = 1 To 8
-            If GG(row, col).nTake > 0 Then
-                If GS.dLevel = "Novice" Then
+    FOR row = 1 TO 8
+        FOR col = 1 TO 8
+            IF GG(row, col).nTake > 0 THEN
+                IF GS.dLevel = "Novice" THEN
                     value = GG(row, col).nTake + GW(row, col)
-                Else
+                ELSE
                     value = GG(row, col).nTake + GW(row, col)
-                    Select Case row
-                        Case 1
-                            If col < 5 Then value = value + Abs(10 * GG(1, 1).player = COMP)
-                            If col > 4 Then value = value + Abs(10 * GG(1, 8).player = COMP)
-                        Case 2
-                            If GG(1, col).player <> COMP Then value = value + 5 * (GG(1, col).player = HUMAN)
-                            If col > 1 And GG(1, col - 1).player <> COMP Then value = value + 5 * (GG(1, col - 1).player = HUMAN)
-                            If col < 8 And GG(1, col + 1).player <> COMP Then value = value + 5 * (GG(1, col + 1).player = HUMAN)
-                        Case 7
-                            If GG(8, col).player <> COMP Then value = value + 5 * (GG(8, col).player = HUMAN)
-                            If col > 1 And GG(8, col - 1).player <> COMP Then value = value + 5 * (GG(8, col - 1).player = HUMAN)
-                            If col < 8 And GG(8, col + 1).player <> COMP Then value = value + 5 * (GG(8, col + 1).player = HUMAN)
-                        Case 8
-                            If col < 5 Then value = value + Abs(10 * GG(8, 1).player = COMP)
-                            If col > 4 Then value = value + Abs(10 * GG(8, 8).player = COMP)
-                    End Select
-                    Select Case col
-                        Case 1
-                            If row < 5 Then value = value + Abs(10 * GG(1, 1).player = COMP)
-                            If row > 4 Then value = value + Abs(10 * GG(8, 1).player = COMP)
-                        Case 2
-                            If GG(row, 1).player <> COMP Then value = value + 5 * (GG(row, 1).player = HUMAN)
-                            If row > 1 And GG(row - 1, 1).player <> COMP Then value = value + 5 * (GG(row - 1, 1).player = HUMAN)
-                            If row < 8 And GG(row + 1, 1).player <> COMP Then value = value + 5 * (GG(row + 1, 1).player = HUMAN)
-                        Case 7
-                            If GG(row, 8).player <> COMP Then value = value + 5 * (GG(row, 8).player = HUMAN)
-                            If row > 1 And GG(row - 1, 8).player <> COMP Then value = value + 5 * (GG(row - 1, 8).player = HUMAN)
-                            If row < 8 And GG(row + 1, 8).player <> COMP Then value = value + 5 * (GG(row + 1, 8).player = HUMAN)
-                        Case 8
-                            If row < 5 Then value = value + Abs(10 * GG(1, 8).player = COMP)
-                            If row > 4 Then value = value + Abs(10 * GG(8, 8).player = COMP)
-                    End Select
-                End If
-                If value > BestMove Then
+                    SELECT CASE row
+                        CASE 1
+                            IF col < 5 THEN value = value + ABS(10 * GG(1, 1).player = COMP)
+                            IF col > 4 THEN value = value + ABS(10 * GG(1, 8).player = COMP)
+                        CASE 2
+                            IF GG(1, col).player <> COMP THEN value = value + 5 * (GG(1, col).player = HUMAN)
+                            IF col > 1 AND GG(1, col - 1).player <> COMP THEN value = value + 5 * (GG(1, col - 1).player = HUMAN)
+                            IF col < 8 AND GG(1, col + 1).player <> COMP THEN value = value + 5 * (GG(1, col + 1).player = HUMAN)
+                        CASE 7
+                            IF GG(8, col).player <> COMP THEN value = value + 5 * (GG(8, col).player = HUMAN)
+                            IF col > 1 AND GG(8, col - 1).player <> COMP THEN value = value + 5 * (GG(8, col - 1).player = HUMAN)
+                            IF col < 8 AND GG(8, col + 1).player <> COMP THEN value = value + 5 * (GG(8, col + 1).player = HUMAN)
+                        CASE 8
+                            IF col < 5 THEN value = value + ABS(10 * GG(8, 1).player = COMP)
+                            IF col > 4 THEN value = value + ABS(10 * GG(8, 8).player = COMP)
+                    END SELECT
+                    SELECT CASE col
+                        CASE 1
+                            IF row < 5 THEN value = value + ABS(10 * GG(1, 1).player = COMP)
+                            IF row > 4 THEN value = value + ABS(10 * GG(8, 1).player = COMP)
+                        CASE 2
+                            IF GG(row, 1).player <> COMP THEN value = value + 5 * (GG(row, 1).player = HUMAN)
+                            IF row > 1 AND GG(row - 1, 1).player <> COMP THEN value = value + 5 * (GG(row - 1, 1).player = HUMAN)
+                            IF row < 8 AND GG(row + 1, 1).player <> COMP THEN value = value + 5 * (GG(row + 1, 1).player = HUMAN)
+                        CASE 7
+                            IF GG(row, 8).player <> COMP THEN value = value + 5 * (GG(row, 8).player = HUMAN)
+                            IF row > 1 AND GG(row - 1, 8).player <> COMP THEN value = value + 5 * (GG(row - 1, 8).player = HUMAN)
+                            IF row < 8 AND GG(row + 1, 8).player <> COMP THEN value = value + 5 * (GG(row + 1, 8).player = HUMAN)
+                        CASE 8
+                            IF row < 5 THEN value = value + ABS(10 * GG(1, 8).player = COMP)
+                            IF row > 4 THEN value = value + ABS(10 * GG(8, 8).player = COMP)
+                    END SELECT
+                END IF
+                IF value > BestMove THEN
                     BestMove = value
                     bestrow = row
                     bestcol = col
-                End If
-            End If
-        Next col
-    Next row
+                END IF
+            END IF
+        NEXT col
+    NEXT row
 
     TakeBlocks bestrow, bestcol, COMP
     GS.stat = HUMAN
 
-End Sub
+END SUB
 
-Sub DisplayHelp
+SUB DisplayHelp
 
-    Dim a$(1 To 18)
+    DIM a$(1 TO 18)
 
     a$(1) = "The object of Reversi is to finish the game with more of your red"
     a$(2) = "circles on the board than the computer has of blue (Monochrome"
@@ -212,167 +195,150 @@ Sub DisplayHelp
     a$(17) = "   game is over."
     a$(18) = "7) The one with the most circles wins."
 
-    Line (0, 0)-(640, 480), BG, BF
-    Line (39, 15)-(590, 450), 0, B
-    If GBoard = 85 Then
-        Paint (200, 200), Chr$(85), 0
-    Else
-        Paint (200, 200), GBoard, 0
-    End If
-    Line (590, 25)-(600, 460), 0, BF
-    Line (50, 450)-(600, 460), 0, BF
+    LINE (0, 0)-(640, 480), BG, BF
+    LINE (39, 15)-(590, 450), 0, B
+    IF GBOARD = 85 THEN
+        PAINT (200, 200), CHR$(85), 0
+    ELSE
+        PAINT (200, 200), GBOARD, 0
+    END IF
+    LINE (590, 25)-(600, 460), 0, BF
+    LINE (50, 450)-(600, 460), 0, BF
 
-    Locate 2, 35: Print "REVERSI HELP"
-    For i = 1 To 18
-        Locate 3 + i, 7
-        Print a$(i)
-    Next i
-    Locate 23, 25: Print "- Press any key to continue -"
-    Sleep: a$ = InKey$
+    LOCATE 2, 35: PRINT "REVERSI HELP"
+    FOR i = 1 TO 18
+        LOCATE 3 + i, 7
+        PRINT a$(i)
+    NEXT i
+    LOCATE 23, 25: PRINT "- Press any key to continue -"
+    SLEEP: a$ = INKEY$
     DrawGameBoard
     DrawCursor GS.curRow, GS.curCol
 
-End Sub
+END SUB
 
-Sub DisplayMsg (a$)
+SUB DisplayMsg (a$)
 
-    slen = Len(a$)
+    slen = LEN(a$)
     LX = (640 - 8 * (slen + 8)) / 2
-    Line (LX - 1, 420)-(640 - LX, 447), 0, B
-    If GBoard = 85 Then
-        Paint (LX + 10, 430), Chr$(85), 0
-    Else
-        Paint (LX + 10, 430), GBoard, 0
-    End If
-    Locate 23, (80 - slen) / 2
-    Print a$;
+    LINE (LX - 1, 420)-(640 - LX, 447), 0, B
+    IF GBOARD = 85 THEN
+        PAINT (LX + 10, 430), CHR$(85), 0
+    ELSE
+        PAINT (LX + 10, 430), GBOARD, 0
+    END IF
+    LOCATE 23, (80 - slen) / 2
+    PRINT a$;
     GS.mDisplay = TRUE
 
-End Sub
+END SUB
 
-Sub DrawCursor (row, col)
-    If GG(row, col).nTake > 0 Then
-        Circle (GG(row, col).cx, GG(row, col).cy), 15, HUMAN
-        Circle (GG(row, col).cx, GG(row, col).cy), 14, HUMAN
-    Else
+SUB DrawCursor (row, col)
+    IF GG(row, col).nTake > 0 THEN
+        CIRCLE (GG(row, col).cx, GG(row, col).cy), 15, HUMAN
+        CIRCLE (GG(row, col).cx, GG(row, col).cy), 14, HUMAN
+    ELSE
         lc = 0
-        If GG(row, col).player = 0 Then lc = 7
-        Line (GG(row, col).cx, GG(row, col).cy - 15)-(GG(row, col).cx, GG(row, col).cy + 15), lc
-        Line (GG(row, col).cx - 1, GG(row, col).cy - 15)-(GG(row, col).cx - 1, GG(row, col).cy + 15), lc
-        Line (GG(row, col).cx + 15, GG(row, col).cy)-(GG(row, col).cx - 15, GG(row, col).cy), lc
-    End If
-End Sub
+        IF GG(row, col).player = 0 THEN lc = 7
+        LINE (GG(row, col).cx, GG(row, col).cy - 15)-(GG(row, col).cx, GG(row, col).cy + 15), lc
+        LINE (GG(row, col).cx - 1, GG(row, col).cy - 15)-(GG(row, col).cx - 1, GG(row, col).cy + 15), lc
+        LINE (GG(row, col).cx + 15, GG(row, col).cy)-(GG(row, col).cx - 15, GG(row, col).cy), lc
+    END IF
+END SUB
 
-Sub DrawGameBoard
+SUB DrawGameBoard
 
-    Line (0, 0)-(640, 480), BG, BF
-    Line (239, 15)-(400, 40), 0, B
-    Line (39, 260)-(231, 390), 0, B
-    Line (39, 70)-(231, 220), 0, B
-    Line (269, 70)-(591, 390), 0, B
+    LINE (0, 0)-(640, 480), BG, BF
+    LINE (239, 15)-(400, 40), 0, B
+    LINE (39, 260)-(231, 390), 0, B
+    LINE (39, 70)-(231, 220), 0, B
+    LINE (269, 70)-(591, 390), 0, B
 
-    If GBoard = 85 Then 'If b&w
-        Paint (300, 25), Chr$(85), 0
-        Paint (150, 350), Chr$(85), 0
-        Paint (150, 124), Chr$(85), 0
-        Paint (450, 225), Chr$(85), 0
-    Else
-        Paint (300, 25), GBoard, 0
-        Paint (150, 350), GBoard, 0
-        Paint (150, 124), GBoard, 0
-        Paint (450, 225), GBoard, 0
-    End If
-    Line (400, 25)-(410, 50), 0, BF
-    Line (250, 40)-(410, 50), 0, BF
-    Line (231, 80)-(240, 230), 0, BF
-    Line (50, 220)-(240, 230), 0, BF
-    Line (590, 80)-(600, 400), 0, BF
-    Line (280, 390)-(600, 400), 0, BF
-    Line (231, 270)-(240, 400), 0, BF
-    Line (50, 390)-(240, 400), 0, BF
+    IF GBOARD = 85 THEN 'If b&w
+        PAINT (300, 25), CHR$(85), 0
+        PAINT (150, 350), CHR$(85), 0
+        PAINT (150, 124), CHR$(85), 0
+        PAINT (450, 225), CHR$(85), 0
+    ELSE
+        PAINT (300, 25), GBOARD, 0
+        PAINT (150, 350), GBOARD, 0
+        PAINT (150, 124), GBOARD, 0
+        PAINT (450, 225), GBOARD, 0
+    END IF
+    LINE (400, 25)-(410, 50), 0, BF
+    LINE (250, 40)-(410, 50), 0, BF
+    LINE (231, 80)-(240, 230), 0, BF
+    LINE (50, 220)-(240, 230), 0, BF
+    LINE (590, 80)-(600, 400), 0, BF
+    LINE (280, 390)-(600, 400), 0, BF
+    LINE (231, 270)-(240, 400), 0, BF
+    LINE (50, 390)-(240, 400), 0, BF
 
-    For i = 0 To 8
-        Line (270, 70 + i * 40)-(590, 70 + i * 40), 0
-        Line (270 + i * 40, 70)-(270 + i * 40, 390), 0
-        Line (269 + i * 40, 70)-(269 + i * 40, 390), 0
-    Next i
+    FOR i = 0 TO 8
+        LINE (270, 70 + i * 40)-(590, 70 + i * 40), 0
+        LINE (270 + i * 40, 70)-(270 + i * 40, 390), 0
+        LINE (269 + i * 40, 70)-(269 + i * 40, 390), 0
+    NEXT i
 
-    Locate 2, 35: Print "R E V E R S I"
+    LOCATE 2, 35: PRINT "R E V E R S I"
 
-    Locate 5, 11: Print "Game Controls"
-    Locate 7, 7: Print "S = Start New Game"
-    Locate 8, 7: Print "P = Pass Turn"
-    Locate 9, 7: Print "D = Set Difficulty"
-    Locate 10, 7: Print "H = Display Help"
-    Locate 11, 7: Print "Q = Quit"
-    Locate 15, 12: Print "Game Status"
-    Locate 17, 7: Print "Your Score:      "; GS.rScore; ""
-    Locate 18, 7: Print "Computer Score:  "; GS.bScore
-    Locate 20, 7: Print "Difficulty:   "; GS.dLevel
+    LOCATE 5, 11: PRINT "Game Controls"
+    LOCATE 7, 7: PRINT "S = Start New Game"
+    LOCATE 8, 7: PRINT "P = Pass Turn"
+    LOCATE 9, 7: PRINT "D = Set Difficulty"
+    LOCATE 10, 7: PRINT "H = Display Help"
+    LOCATE 11, 7: PRINT "Q = Quit"
+    LOCATE 15, 12: PRINT "Game Status"
+    LOCATE 17, 7: PRINT "Your Score:      "; GS.rScore; ""
+    LOCATE 18, 7: PRINT "Computer Score:  "; GS.bScore
+    LOCATE 20, 7: PRINT "Difficulty:   "; GS.dLevel
 
-    For row = 1 To 8
-        For col = 1 To 8
-            If GG(row, col).player <> GBoard Then
+    FOR row = 1 TO 8
+        FOR col = 1 TO 8
+            IF GG(row, col).player <> GBOARD THEN
                 DrawGamePiece row, col, GG(row, col).player
-            End If
-        Next col
-    Next row
+            END IF
+        NEXT col
+    NEXT row
 
-End Sub
+END SUB
 
-Sub DrawGamePiece (row, col, GpColor)
+SUB DrawGamePiece (row, col, GpColor)
 
-    If GBoard = 85 Then
-        Line (232 + col * 40, 33 + row * 40)-(267 + col * 40, 67 + row * 40), 7, BF
-        If GpColor <> GBoard Then
-            Circle (GG(row, col).cx, GG(row, col).cy), 15, 0
-            Paint (GG(row, col).cx, GG(row, col).cy), GpColor, 0
-        End If
-        Paint (235 + col * 40, 35 + row * 40), Chr$(85), 0
-    Else
-        Circle (GG(row, col).cx, GG(row, col).cy), 15, GpColor
-        Circle (GG(row, col).cx, GG(row, col).cy), 14, GpColor
-        Paint (GG(row, col).cx, GG(row, col).cy), GpColor, GpColor
-    End If
+    IF GBOARD = 85 THEN
+        LINE (232 + col * 40, 33 + row * 40)-(267 + col * 40, 67 + row * 40), 7, BF
+        IF GpColor <> GBOARD THEN
+            CIRCLE (GG(row, col).cx, GG(row, col).cy), 15, 0
+            PAINT (GG(row, col).cx, GG(row, col).cy), GpColor, 0
+        END IF
+        PAINT (235 + col * 40, 35 + row * 40), CHR$(85), 0
+    ELSE
+        CIRCLE (GG(row, col).cx, GG(row, col).cy), 15, GpColor
+        CIRCLE (GG(row, col).cx, GG(row, col).cy), 14, GpColor
+        PAINT (GG(row, col).cx, GG(row, col).cy), GpColor, GpColor
+    END IF
 
-End Sub
+END SUB
 
-Sub GameOver
+SUB GameOver
     Scorediff = GS.rScore - GS.bScore
-    If Scorediff = 0 Then
+    IF Scorediff = 0 THEN
         DisplayMsg "Tie Game"
-    ElseIf Scorediff < 0 Then
+    ELSEIF Scorediff < 0 THEN
         DisplayMsg "You lost by"
-        Print Abs(Scorediff)
-    Else
+        PRINT ABS(Scorediff)
+    ELSE
         DisplayMsg "You won by"
-        Print Scorediff
-    End If
-    Do
-        GS.stat = Asc(Right$(InKey$, 1))
-    Loop Until GS.stat = QUIT Or GS.stat = START
-    Line (0, 420)-(640, 447), BG, BF
-End Sub
+        PRINT Scorediff
+    END IF
+    DO
+        GS.stat = ASC(RIGHT$(INKEY$, 1))
+    LOOP UNTIL GS.stat = QUIT OR GS.stat = START
+    LINE (0, 420)-(640, 447), BG, BF
+END SUB
 
-Sub InitGame
-    Select Case smode
-        Case 9:
-            HUMAN = 4
-            COMP = 1
-            BG = 3
-            GBoard = 8
-        Case Else:
-            HUMAN = 7
-            COMP = 0
-            BG = 7
-            If smode = 10 Then
-                GBoard = 1
-            Else
-                GBoard = 85
-            End If
-    End Select
-
-    Window Screen(640, 480)-(0, 0)
+SUB InitGame
+    WINDOW SCREEN(640, 480)-(0, 0)
     GS.curCol = 5
     GS.curRow = 3
     GS.stat = FMOVE
@@ -380,202 +346,201 @@ Sub InitGame
     GS.rScore = 2
     GS.mDisplay = FALSE
 
-    For row = 1 To 8
-        For col = 1 To 8
-            GG(row, col).player = GBoard
+    FOR row = 1 TO 8
+        FOR col = 1 TO 8
+            GG(row, col).player = GBOARD
             GG(row, col).nTake = 0
             GG(row, col).cx = 270 + (col - .5) * 40
             GG(row, col).cy = 70 + (row - .5) * 40
             GW(row, col) = 2
-        Next col
-    Next row
+        NEXT col
+    NEXT row
     GW(1, 1) = 99
     GW(1, 8) = 99
     GW(8, 1) = 99
     GW(8, 8) = 99
-    For i = 3 To 6
-        For j = 1 To 8 Step 7
+    FOR i = 3 TO 6
+        FOR j = 1 TO 8 STEP 7
             GW(i, j) = 5
             GW(j, i) = 5
-        Next j
-    Next i
+        NEXT j
+    NEXT i
     GG(4, 4).player = HUMAN
     GG(5, 4).player = COMP
     GG(4, 5).player = COMP
     GG(5, 5).player = HUMAN
-End Sub
+END SUB
 
-Sub TakeBlocks (row, col, player)
+SUB TakeBlocks (row, col, player)
 
     GG(row, col).player = player
     DrawGamePiece row, col, player
 
-    For i = 1 To GP(row, col, 1)
+    FOR i = 1 TO GP(row, col, 1)
         GG(row, col - i).player = player
         DrawGamePiece row, col - i, player
-    Next i
-    For i = 1 To GP(row, col, 2)
+    NEXT i
+    FOR i = 1 TO GP(row, col, 2)
         GG(row, col + i).player = player
         DrawGamePiece row, col + i, player
-    Next i
-    For i = 1 To GP(row, col, 3)
+    NEXT i
+    FOR i = 1 TO GP(row, col, 3)
         GG(row - i, col).player = player
         DrawGamePiece row - i, col, player
-    Next i
-    For i = 1 To GP(row, col, 4)
+    NEXT i
+    FOR i = 1 TO GP(row, col, 4)
         GG(row + i, col).player = player
         DrawGamePiece row + i, col, player
-    Next i
-    For i = 1 To GP(row, col, 5)
+    NEXT i
+    FOR i = 1 TO GP(row, col, 5)
         GG(row - i, col - i).player = player
         DrawGamePiece row - i, col - i, player
-    Next i
-    For i = 1 To GP(row, col, 6)
+    NEXT i
+    FOR i = 1 TO GP(row, col, 6)
         GG(row + i, col + i).player = player
         DrawGamePiece row + i, col + i, player
-    Next i
-    For i = 1 To GP(row, col, 7)
+    NEXT i
+    FOR i = 1 TO GP(row, col, 7)
         GG(row - i, col + i).player = player
         DrawGamePiece row - i, col + i, player
-    Next i
-    For i = 1 To GP(row, col, 8)
+    NEXT i
+    FOR i = 1 TO GP(row, col, 8)
         GG(row + i, col - i).player = player
         DrawGamePiece row + i, col - i, player
-    Next i
+    NEXT i
 
-    If player = HUMAN Then
+    IF player = HUMAN THEN
         GS.rScore = GS.rScore + GG(row, col).nTake + 1
         GS.bScore = GS.bScore - GG(row, col).nTake
-    Else
+    ELSE
         GS.bScore = GS.bScore + GG(row, col).nTake + 1
         GS.rScore = GS.rScore - GG(row, col).nTake
-    End If
+    END IF
 
-    Locate 17, 7: Print "Your Score:      "; GS.rScore
-    Locate 18, 7: Print "Computer Score:  "; GS.bScore
+    LOCATE 17, 7: PRINT "Your Score:      "; GS.rScore
+    LOCATE 18, 7: PRINT "Computer Score:  "; GS.bScore
 
-End Sub
+END SUB
 
-Sub UserMove
+SUB UserMove
 
     DrawCursor GS.curRow, GS.curCol
-    Do
-        Do
-            a$ = InKey$
-        Loop Until a$ <> ""
-        move = Asc(Right$(a$, 1))
-        If GS.mDisplay Then
-            Line (0, 420)-(640, 447), BG, BF
+    DO
+        DO
+            a$ = INKEY$
+        LOOP UNTIL a$ <> ""
+        move = ASC(RIGHT$(a$, 1))
+        IF GS.mDisplay THEN
+            LINE (0, 420)-(640, 447), BG, BF
             GS.mDisplay = FALSE
-        End If
-        Select Case move
-            Case 71 To 81:
+        END IF
+        SELECT CASE move
+            CASE 71 TO 81:
                 DrawGamePiece GS.curRow, GS.curCol, GG(GS.curRow, GS.curCol).player
-                If move < 74 Then
-                    If GS.curRow = BBLOCK Then
+                IF move < 74 THEN
+                    IF GS.curRow = BBLOCK THEN
                         GS.curRow = EBLOCK
-                    Else
+                    ELSE
                         GS.curRow = GS.curRow - 1
-                    End If
-                ElseIf move > 78 Then
-                    If GS.curRow = EBLOCK Then
+                    END IF
+                ELSEIF move > 78 THEN
+                    IF GS.curRow = EBLOCK THEN
                         GS.curRow = BBLOCK
-                    Else
+                    ELSE
                         GS.curRow = GS.curRow + 1
-                    End If
-                End If
-                If move = 71 Or move = 75 Or move = 79 Then
-                    If GS.curCol = BBLOCK Then
+                    END IF
+                END IF
+                IF move = 71 OR move = 75 OR move = 79 THEN
+                    IF GS.curCol = BBLOCK THEN
                         GS.curCol = EBLOCK
-                    Else
+                    ELSE
                         GS.curCol = GS.curCol - 1
-                    End If
-                ElseIf move = 73 Or move = 77 Or move = 81 Then
-                    If GS.curCol = EBLOCK Then
+                    END IF
+                ELSEIF move = 73 OR move = 77 OR move = 81 THEN
+                    IF GS.curCol = EBLOCK THEN
                         GS.curCol = BBLOCK
-                    Else
+                    ELSE
                         GS.curCol = GS.curCol + 1
-                    End If
-                End If
+                    END IF
+                END IF
                 DrawCursor GS.curRow, GS.curCol
-            Case START:
+            CASE START:
                 GS.stat = START
-            Case PASS:
-                If GS.stat = FMOVE Then
+            CASE PASS:
+                IF GS.stat = FMOVE THEN
                     DisplayMsg "You passed.  Computer will make first move."
                     GS.stat = COMP
-                Else
+                ELSE
                     DisplayMsg "You can only pass on your first turn."
-                End If
-            Case HELP:
+                END IF
+            CASE HELP:
                 DisplayHelp
-            Case DIFF:
-                If GS.dLevel = "Novice" Then
+            CASE DIFF:
+                IF GS.dLevel = "Novice" THEN
                     GS.dLevel = "Expert"
-                Else
+                ELSE
                     GS.dLevel = "Novice"
-                End If
-                Locate 20, 7
-                Print "Difficulty:   "; GS.dLevel;
-            Case ENTER, SPACE:
-                If GG(GS.curRow, GS.curCol).nTake > 0 Then
+                END IF
+                LOCATE 20, 7
+                PRINT "Difficulty:   "; GS.dLevel;
+            CASE ENTER, SPACE:
+                IF GG(GS.curRow, GS.curCol).nTake > 0 THEN
                     TakeBlocks GS.curRow, GS.curCol, HUMAN
                     GS.stat = COMP
-                Else
+                ELSE
                     DisplayMsg "Invalid move.  Move to a space where the cursor is a circle."
-                End If
-            Case QUIT:
+                END IF
+            CASE QUIT:
                 GS.stat = QUIT
-        End Select
-    Loop Until GS.stat <> HUMAN And GS.stat <> FMOVE
+        END SELECT
+    LOOP UNTIL GS.stat <> HUMAN AND GS.stat <> FMOVE
 
-End Sub
+END SUB
 
-Function ValidMove (Opponent)
+FUNCTION ValidMove (Opponent)
 
     ValidMove = FALSE
-    Erase GP
-    For row = 1 To 8
-        For col = 1 To 8
+    ERASE GP
+    FOR row = 1 TO 8
+        FOR col = 1 TO 8
             GG(row, col).nTake = 0
 
-            If GG(row, col).player = GBoard Then
-                If col > 2 Then
+            IF GG(row, col).player = GBOARD THEN
+                IF col > 2 THEN
                     GP(row, col, 1) = CheckPath(row, row, 0, col - 1, 0, -1, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 1)
-                End If
-                If col < 7 Then
+                END IF
+                IF col < 7 THEN
                     GP(row, col, 2) = CheckPath(row, row, 0, col + 1, 9, 1, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 2)
-                End If
-                If row > 2 Then
+                END IF
+                IF row > 2 THEN
                     GP(row, col, 3) = CheckPath(row - 1, 0, -1, col, col, 0, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 3)
-                End If
-                If row < 7 Then
+                END IF
+                IF row < 7 THEN
                     GP(row, col, 4) = CheckPath(row + 1, 9, 1, col, col, 0, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 4)
-                End If
-                If col > 2 And row > 2 Then
+                END IF
+                IF col > 2 AND row > 2 THEN
                     GP(row, col, 5) = CheckPath(row - 1, 0, -1, col - 1, 0, -1, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 5)
-                End If
-                If col < 7 And row < 7 Then
+                END IF
+                IF col < 7 AND row < 7 THEN
                     GP(row, col, 6) = CheckPath(row + 1, 9, 1, col + 1, 9, 1, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 6)
-                End If
-                If col < 7 And row > 2 Then
+                END IF
+                IF col < 7 AND row > 2 THEN
                     GP(row, col, 7) = CheckPath(row - 1, 0, -1, col + 1, 9, 1, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 7)
-                End If
-                If col > 2 And row < 7 Then
+                END IF
+                IF col > 2 AND row < 7 THEN
                     GP(row, col, 8) = CheckPath(row + 1, 9, 1, col - 1, 0, -1, Opponent)
                     GG(row, col).nTake = GG(row, col).nTake + GP(row, col, 8)
-                End If
-                If GG(row, col).nTake > 0 Then ValidMove = TRUE
-            End If
-        Next col
-    Next row
+                END IF
+                IF GG(row, col).nTake > 0 THEN ValidMove = TRUE
+            END IF
+        NEXT col
+    NEXT row
 
-End Function
-
+END FUNCTION

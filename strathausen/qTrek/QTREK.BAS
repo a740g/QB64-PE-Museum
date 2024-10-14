@@ -4,60 +4,48 @@
 'https://github.com/strathausen/qtrek.bas
 '-----------------------------------------------------------------------------------------------------
 
-'-----------------------------------------------------------------------------------------------------
-' These are some metacommands and compiler options for QB64 to write modern & type-strict code
-'-----------------------------------------------------------------------------------------------------
-' This will disable prefixing all modern QB64 calls using a underscore prefix.
-$NoPrefix
-' Whatever indentifiers are not defined, should default to signed longs (ex. constants and functions).
-DefInt A-Z
-' All variables must be defined.
-Option Explicit
-' All arrays must be defined.
-Option ExplicitArray
-' Array lower bounds should always start from 1 unless explicitly specified.
-' This allows a(4) as integer to have 4 members with index 1-4.
-Option Base 1
-' All arrays should be static by default. Allocate dynamic array using ReDim
-'$Static
-' This allows the executable window & it's contents to be resized.
-$Resize:Smooth
-'FullScreen SquarePixels , Smooth
-Title "QTrek"
-'-----------------------------------------------------------------------------------------------------
+DEFINT A-Z
+OPTION _EXPLICIT
+OPTION BASE 1
+'$STATIC
+_TITLE "QTrek"
 
-Dim Shared x%, y%, xp%, yp%, lx%, ly%, kstn%
-Dim Shared ex%, ey%, enm%, ez%, ek%, eex%
-Dim Shared snd%, snp%, cb%, cf%
-Dim Shared trf%, punkte%, gshl%
-Dim ys(0 To 49) As Integer, zs(0 To 49) As Integer, xs(0 To 49) As Single
-Dim As Integer prm, lvl, str, qty, fv, pv, lv, lx2, fa
-Dim As Integer pb(0 To 2), xp(0 To 2), yp(0 To 2)
-Dim As Integer fb(0 To 5), xf(0 To 5), yf(0 To 5)
+DIM SHARED x%, y%, xp%, yp%, lx%, ly%, kstn%
+DIM SHARED ex%, ey%, enm%, ez%, ek%, eex%
+DIM SHARED snd%, snp%, cb%, cf%
+DIM SHARED trf%, punkte%, gshl%
+DIM ys(0 TO 49) AS INTEGER, zs(0 TO 49) AS INTEGER, xs(0 TO 49) AS SINGLE
+DIM AS INTEGER prm, lvl, str, qty, fv, pv, lv, lx2, fa
+DIM AS INTEGER pb(0 TO 2), xp(0 TO 2), yp(0 TO 2)
+DIM AS INTEGER fb(0 TO 5), xf(0 TO 5), yf(0 TO 5)
 
-On Error GoTo errorhandler
-Screen 13
+ON ERROR GOTO errorhandler
+
+$RESIZE:SMOOTH
+SCREEN 13
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
+
 'Umgebungsvariablen
-prm% = Point(0, 0)
-snp% = Point(1, 0)
-lvl% = Point(2, 0)
-Cls
-Randomize Timer
-Close
-Palette 6, 60
-Palette 5, 50
-Palette 4, 40
-Palette 3, 30
-Palette 2, 20
+prm% = POINT(0, 0)
+snp% = POINT(1, 0)
+lvl% = POINT(2, 0)
+CLS
+RANDOMIZE TIMER
+CLOSE
+PALETTE 6, 60
+PALETTE 5, 50
+PALETTE 4, 40
+PALETTE 3, 30
+PALETTE 2, 20
 
 'IF prm% = 0 THEN COLOR 12: PRINT : PRINT : PRINT : PRINT "  Sie mÅssen das Spiel mit der Datei": PRINT "  "; CHR$(34); "UNAD2.BAT"; CHR$(34); " starten!": SLEEP: SYSTEM
 
 'Vorberechnungen fÅr Sterne
-For str% = 0 To 49 + qty% * 10
-    xs(str%) = Rnd * 320
-    zs%(str%) = Rnd * 14 + 2
-    ys%(str%) = Rnd * 180
-Next
+FOR str% = 0 TO 49 + qty% * 10
+    xs(str%) = RND * 320
+    zs%(str%) = RND * 14 + 2
+    ys%(str%) = RND * 180
+NEXT
 
 'Variablen
 x% = 20
@@ -67,143 +55,143 @@ ey% = 102
 gshl% = 10
 enm% = 15
 
-Do
+DO
 
-    For str% = 0 To 49
-        PSet (xs(str%), ys%(str%)), 0
+    FOR str% = 0 TO 49
+        PSET (xs(str%), ys%(str%)), 0
         xs(str%) = xs(str%) - zs%(str%) / 8 - 1
-        If xs(str%) < 0 Then xs(str%) = 320
-        PSet (xs(str%), ys%(str%)), zs%(str%) + 15
-    Next
+        IF xs(str%) < 0 THEN xs(str%) = 320
+        PSET (xs(str%), ys%(str%)), zs%(str%) + 15
+    NEXT
 
     gdisplay
 
-    If KeyDown(18432) Then Line (x%, y%)-(x% + 20, y% + 9), 0, BF: y% = y% - 1
-    If KeyDown(20480) Then Line (x%, y%)-(x% + 20, y% + 9), 0, BF: y% = y% + 1
-    If KeyDown(19200) Then Line (x%, y%)-(x% + 20, y% + 9), 0, BF: x% = x% - 1
-    If KeyDown(19712) Then Line (x%, y%)-(x% + 20, y% + 9), 0, BF: x% = x% + 1
-    If KeyDown(110) Or KeyDown(78) Then fv% = 1
-    If KeyDown(103) Or KeyDown(71) Then pv% = 1
-    If KeyDown(104) Or KeyDown(72) Then If lv% = 0 Then lv% = 1
-    If KeyDown(115) Or KeyDown(83) Then If snp% = 0 Then snp% = 1 Else snp% = 0
+    IF _KEYDOWN(18432) THEN LINE (x%, y%)-(x% + 20, y% + 9), 0, BF: y% = y% - 1
+    IF _KEYDOWN(20480) THEN LINE (x%, y%)-(x% + 20, y% + 9), 0, BF: y% = y% + 1
+    IF _KEYDOWN(19200) THEN LINE (x%, y%)-(x% + 20, y% + 9), 0, BF: x% = x% - 1
+    IF _KEYDOWN(19712) THEN LINE (x%, y%)-(x% + 20, y% + 9), 0, BF: x% = x% + 1
+    IF _KEYDOWN(110) OR _KEYDOWN(78) THEN fv% = 1
+    IF _KEYDOWN(103) OR _KEYDOWN(71) THEN pv% = 1
+    IF _KEYDOWN(104) OR _KEYDOWN(72) THEN IF lv% = 0 THEN lv% = 1
+    IF _KEYDOWN(115) OR _KEYDOWN(83) THEN IF snp% = 0 THEN snp% = 1 ELSE snp% = 0
 
     bounce
 
     crash
-    If enm% = 0 Then eex% = eex% + 1
-    Line (ex%, ey%)-Step(21, 7), 0, BF 'öberzeichnen
-    If eex% > 1 Then Line (ex%, ey% - 3)-(ex% + 25, ey% + 15), 0, BF
+    IF enm% = 0 THEN eex% = eex% + 1
+    LINE (ex%, ey%)-STEP(21, 7), 0, BF 'öberzeichnen
+    IF eex% > 1 THEN LINE (ex%, ey% - 3)-(ex% + 25, ey% + 15), 0, BF
     'Fortbewegung
     ex% = ex% - 3
     'Durchlauf
-    If ex% < -25 Then ex% = 340: enm% = 15: eex% = 0: snd% = 0: ey% = Int(Rnd * 100) + 50: punkte% = punkte% - 100
+    IF ex% < -25 THEN ex% = 340: enm% = 15: eex% = 0: snd% = 0: ey% = INT(RND * 100) + 50: punkte% = punkte% - 100
     'Sicherung
-    If ey% > 170 Then ey% = 170: ez% = 0
-    If ey% < 0 Then ey% = 0: ez% = 0
+    IF ey% > 170 THEN ey% = 170: ez% = 0
+    IF ey% < 0 THEN ey% = 0: ez% = 0
 
-    If eex% = 1 Then trf% = trf% + 1: punkte% = punkte% + 400
-    Select Case Int(eex% / 2)
-        Case 0: enemy
-        Case 1: xxf1: snd% = 1
-        Case 2: xxf2
-        Case 3: xxf3
-        Case 4: xxf4
-        Case 5: xxf5
-        Case 6: xxf6
-        Case 7: xxf7
-        Case 8: xxf8
-        Case 9: xxf9
-        Case 10: xxf10
-        Case 11: xxf11
-        Case 12: xxf12
-        Case 13: Line (ex%, ey% - 3)-(ex% + 25, ey% + 15), 0, BF: ex% = -21: enm% = 15: eex% = 0
-    End Select
+    IF eex% = 1 THEN trf% = trf% + 1: punkte% = punkte% + 400
+    SELECT CASE INT(eex% / 2)
+        CASE 0: enemy
+        CASE 1: xxf1: snd% = 1
+        CASE 2: xxf2
+        CASE 3: xxf3
+        CASE 4: xxf4
+        CASE 5: xxf5
+        CASE 6: xxf6
+        CASE 7: xxf7
+        CASE 8: xxf8
+        CASE 9: xxf9
+        CASE 10: xxf10
+        CASE 11: xxf11
+        CASE 12: xxf12
+        CASE 13: LINE (ex%, ey% - 3)-(ex% + 25, ey% + 15), 0, BF: ex% = -21: enm% = 15: eex% = 0
+    END SELECT
     ship
     srnd
 
     ' Laser
-    If lv% = 1 Then lx% = x% + 20: ly% = y% + 7: If ly% >= ey% And ly% <= ey% + 7 And ex% > x% And eex% = 0 Then lx2% = ex% + 7: snd% = 17: enm% = enm% - 4: punkte% = punkte% + 10 Else lx2% = 320: snd% = 17: punkte% = punkte% - 5
-    If lv% >= 1 Then
+    IF lv% = 1 THEN lx% = x% + 20: ly% = y% + 7: IF ly% >= ey% AND ly% <= ey% + 7 AND ex% > x% AND eex% = 0 THEN lx2% = ex% + 7: snd% = 17: enm% = enm% - 4: punkte% = punkte% + 10 ELSE lx2% = 320: snd% = 17: punkte% = punkte% - 5
+    IF lv% >= 1 THEN
         lv% = lv% + 1
-        Line (lx%, ly%)-(lx2%, ly%), 46
-        If lv% = 3 Then lv% = 0: Line (lx%, ly%)-(lx2%, ly%), 0
-    End If
+        LINE (lx%, ly%)-(lx2%, ly%), 46
+        IF lv% = 3 THEN lv% = 0: LINE (lx%, ly%)-(lx2%, ly%), 0
+    END IF
 
     ' Engine - Plasma
-    For fa% = 0 To 2
-        If pv% = 1 And pb%(fa%) = 0 Then pb%(fa%) = 1: pv% = 0: snd% = 21
-        If pb%(fa%) = 1 Then xp%(fa%) = x% + 14: yp%(fa%) = y% + 7: pb%(fa%) = 2
-        If pb%(fa%) = 2 Then
+    FOR fa% = 0 TO 2
+        IF pv% = 1 AND pb%(fa%) = 0 THEN pb%(fa%) = 1: pv% = 0: snd% = 21
+        IF pb%(fa%) = 1 THEN xp%(fa%) = x% + 14: yp%(fa%) = y% + 7: pb%(fa%) = 2
+        IF pb%(fa%) = 2 THEN
             xp%(fa%) = xp%(fa%) + 9
-            Line (xp%(fa%), yp%(fa%))-(xp%(fa%) + 9, yp%(fa%)), 6
-            Line (xp%(fa%), yp%(fa%))-(xp%(fa%) - 8, yp%(fa%)), 0
-            If xp%(fa%) > 340 Then pb%(fa%) = 0: punkte% = punkte% - 7
-            If xp%(fa%) > ex% And xp%(fa%) < ex% + 17 And yp%(fa%) >= ey% And yp%(fa%) <= ey% + 7 And eex% = 0 Then pb%(fa%) = 0: Line (xp%(fa%) + 9, yp%(fa%))-(xp%(fa%) - 8, yp%(fa%)), 0: enm% = enm% - 4: punkte% = punkte% + 14
-        End If
-    Next
+            LINE (xp%(fa%), yp%(fa%))-(xp%(fa%) + 9, yp%(fa%)), 6
+            LINE (xp%(fa%), yp%(fa%))-(xp%(fa%) - 8, yp%(fa%)), 0
+            IF xp%(fa%) > 340 THEN pb%(fa%) = 0: punkte% = punkte% - 7
+            IF xp%(fa%) > ex% AND xp%(fa%) < ex% + 17 AND yp%(fa%) >= ey% AND yp%(fa%) <= ey% + 7 AND eex% = 0 THEN pb%(fa%) = 0: LINE (xp%(fa%) + 9, yp%(fa%))-(xp%(fa%) - 8, yp%(fa%)), 0: enm% = enm% - 4: punkte% = punkte% + 14
+        END IF
+    NEXT
 
     ' Photon Torpedos
-    For fa% = 0 To 5
-        If fv% = 1 And fb%(fa%) = 0 Then fb%(fa%) = 1: fv% = 0: snd% = 10
-        If fb%(fa%) = 1 Then xf%(fa%) = x% + 16: yf%(fa%) = y% + 7: fb%(fa%) = 2
-        If fb%(fa%) = 2 Then
+    FOR fa% = 0 TO 5
+        IF fv% = 1 AND fb%(fa%) = 0 THEN fb%(fa%) = 1: fv% = 0: snd% = 10
+        IF fb%(fa%) = 1 THEN xf%(fa%) = x% + 16: yf%(fa%) = y% + 7: fb%(fa%) = 2
+        IF fb%(fa%) = 2 THEN
             xf%(fa%) = xf%(fa%) + 3
             photon xf%(fa%), yf%(fa%)
-            If xf%(fa%) > 320 Then fb%(fa%) = 0: punkte% = punkte% - 8
-            If xf%(fa%) > ex% And xf%(fa%) < ex% + 21 And yf%(fa%) >= ey% And yf%(fa%) <= ey% + 7 And eex% = 0 And eex% = 0 Then fb%(fa%) = 0: Line (xf%(fa%), yf%(fa%) - 1)-(xf%(fa%) + 10, yf%(fa%) + 1), 0, BF: enm% = enm% - 5: punkte% = punkte% + 16
-        End If
-    Next
+            IF xf%(fa%) > 320 THEN fb%(fa%) = 0: punkte% = punkte% - 8
+            IF xf%(fa%) > ex% AND xf%(fa%) < ex% + 21 AND yf%(fa%) >= ey% AND yf%(fa%) <= ey% + 7 AND eex% = 0 AND eex% = 0 THEN fb%(fa%) = 0: LINE (xf%(fa%), yf%(fa%) - 1)-(xf%(fa%) + 10, yf%(fa%) + 1), 0, BF: enm% = enm% - 5: punkte% = punkte% + 16
+        END IF
+    NEXT
 
-    Limit 60
-Loop Until KeyDown(27)
+    _LIMIT 60
+LOOP UNTIL _KEYDOWN(27)
 
-System 0
+SYSTEM 0
 
 'Handle errors by not handling errors
 errorhandler:
-Resume Next
+RESUME NEXT
 
-Sub a
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB a
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+END SUB
 
-Sub ae
-    PSet Step(2, -4), cf%
-    PSet Step(3, 0), cf%
+SUB ae
+    PSET STEP(2, -4), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+END SUB
 
-Sub gdisplay
+SUB gdisplay
     cf% = 43
-    Draw "bm5,198"
+    DRAW "bm5,198"
     kra
 
     box1
@@ -216,7 +204,7 @@ Sub gdisplay
     empty 1
     cf% = 43
     : t: r: e: f: f: e: r: dpt
-    If trf% > 99 Then trf% = 99
+    IF trf% > 99 THEN trf% = 99
     cf% = 43 + 48
     prnumber trf%, 2
 
@@ -224,2912 +212,2912 @@ Sub gdisplay
     empty 1
     cf% = 43
     : s: c: h: i: l: d: e: dpt
-    Line Step(3, -4)-Step(gshl% * 2, 4), 41, BF
-    If gshl% = 10 Then Line Step(1, -4)-Step(0, 4), 41 Else Line Step(1, -4)-Step(20 - gshl% * 2, 4), 113, BF
-    Draw "bm+2,0"
+    LINE STEP(3, -4)-STEP(gshl% * 2, 4), 41, BF
+    IF gshl% = 10 THEN LINE STEP(1, -4)-STEP(0, 4), 41 ELSE LINE STEP(1, -4)-STEP(20 - gshl% * 2, 4), 113, BF
+    DRAW "bm+2,0"
 
     box 30
     empty 1
     : f: e: i: n: d
-    If enm% < 0 Then enm% = 0
-    Line Step(3, -4)-Step(enm% * 2, 4), 41, BF
-    If enm% = 15 Then Line Step(1, -4)-Step(0, 4), 41 Else Line Step(1, -4)-Step(30 - enm% * 2, 4), 113, BF
-    Draw "bm+2,0"
+    IF enm% < 0 THEN enm% = 0
+    LINE STEP(3, -4)-STEP(enm% * 2, 4), 41, BF
+    IF enm% = 15 THEN LINE STEP(1, -4)-STEP(0, 4), 41 ELSE LINE STEP(1, -4)-STEP(30 - enm% * 2, 4), 113, BF
+    DRAW "bm+2,0"
     box1
     krz
 
-End Sub
+END SUB
 
-Sub b
-    PSet Step(2, -4), cf%
-    PSet Step(1, 0), cf%
+SUB b
+    PSET STEP(2, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-1, 1), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(-1, 1), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    Draw "bm+1, 0"
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
 
-Sub box (kbox As Integer)
-    Line Step(3, -6)-Step(kbox%, 8), 104, B
-    Paint Step(-1, -1), 32, 104
-    Draw "bm+2,-1"
-End Sub
+SUB box (kbox AS INTEGER)
+    LINE STEP(3, -6)-STEP(kbox%, 8), 104, B
+    PAINT STEP(-1, -1), 32, 104
+    DRAW "bm+2,-1"
+END SUB
 
-Sub box1
-    Line Step(3, -6)-Step(4, 8), 104, B
-    Paint Step(-1, -1), 32, 104
-    Draw "bm+1,-1"
-End Sub
+SUB box1
+    LINE STEP(3, -6)-STEP(4, 8), 104, B
+    PAINT STEP(-1, -1), 32, 104
+    DRAW "bm+1,-1"
+END SUB
 
-Sub c
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB c
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
+    PSET STEP(-2, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(1, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-End Sub
+    PSET STEP(1, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+END SUB
 
-Sub crash
-    If x% >= ex% - 20 And x% <= ex% + 15 And y% >= ey% - 8 And y% <= ey% + 7 And enm% > 0 Then enm% = 0: trf% = trf% - 1: punkte% = punkte% - 400: gshl% = gshl% - 1
-End Sub
+SUB crash
+    IF x% >= ex% - 20 AND x% <= ex% + 15 AND y% >= ey% - 8 AND y% <= ey% + 7 AND enm% > 0 THEN enm% = 0: trf% = trf% - 1: punkte% = punkte% - 400: gshl% = gshl% - 1
+END SUB
 
-Sub d
-    PSet Step(2, -4), cf%
-    PSet Step(1, 0), cf%
+SUB d
+    PSET STEP(2, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-1, 1), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(-1, 1), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    Draw "bm+1, 0"
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
 
-Sub dpt
-    PSet Step(2, -3), cf%
+SUB dpt
+    PSET STEP(2, -3), cf%
 
-    PSet Step(0, 2), cf%
+    PSET STEP(0, 2), cf%
 
-    Draw "bm+0,1"
-End Sub
+    DRAW "bm+0,1"
+END SUB
 
-Sub e
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB e
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
+    PSET STEP(-2, 1), cf%
 
-    PSet Step(0, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(0, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
+    PSET STEP(-2, 1), cf%
 
-    PSet Step(0, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-End Sub
+    PSET STEP(0, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+END SUB
 
-Sub f
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB f
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
+    PSET STEP(-2, 1), cf%
 
-    PSet Step(0, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(0, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
+    PSET STEP(-2, 1), cf%
 
-    PSet Step(0, 1), cf%
-    Draw "bm+2, 0"
-End Sub
+    PSET STEP(0, 1), cf%
+    DRAW "bm+2, 0"
+END SUB
 
-Sub enemy
+SUB enemy
     'Jump line
     ez% = ez% + 1
-    If ez% = 10 Then ek% = CInt(Rnd * 2 - 1): ez% = 0
-    If ez% = 20 Then ek% = 0
+    IF ez% = 10 THEN ek% = CINT(RND * 2 - 1): ez% = 0
+    IF ez% = 20 THEN ek% = 0
     ey% = ey% + ek%
-    PSet (ex% + 8, ey%), 178
-    PSet (ex% + 9, ey%), 130
-    PSet (ex% + 10, ey%), 24
-    PSet (ex% + 11, ey%), 25
-    PSet (ex% + 12, ey%), 24
-    PSet (ex% + 13, ey%), 24
-    PSet (ex% + 14, ey%), 24
-    PSet (ex% + 15, ey%), 24
-    PSet (ex% + 16, ey%), 23
-    PSet (ex% + 17, ey%), 21
-    PSet (ex% + 18, ey%), 19
-    PSet (ex% + 5, ey% + 1), 178
-    PSet (ex% + 6, ey% + 1), 106
-    PSet (ex% + 7, ey% + 1), 106
-    PSet (ex% + 8, ey% + 1), 106
-    PSet (ex% + 9, ey% + 1), 130
-    PSet (ex% + 10, ey% + 1), 154
-    PSet (ex% + 11, ey% + 1), 25
-    PSet (ex% + 12, ey% + 1), 25
-    PSet (ex% + 13, ey% + 1), 25
-    PSet (ex% + 14, ey% + 1), 25
-    PSet (ex% + 15, ey% + 1), 25
-    PSet (ex% + 16, ey% + 1), 25
-    PSet (ex% + 17, ey% + 1), 24
-    PSet (ex% + 18, ey% + 1), 23
-    PSet (ex% + 19, ey% + 1), 22
-    PSet (ex% + 20, ey% + 1), 19
-    PSet (ex% + 2, ey% + 2), 178
-    PSet (ex% + 3, ey% + 2), 106
-    PSet (ex% + 4, ey% + 2), 106
-    PSet (ex% + 5, ey% + 2), 106
-    PSet (ex% + 6, ey% + 2), 130
-    PSet (ex% + 7, ey% + 2), 154
-    PSet (ex% + 8, ey% + 2), 24
-    PSet (ex% + 9, ey% + 2), 24
-    PSet (ex% + 10, ey% + 2), 24
-    PSet (ex% + 11, ey% + 2), 24
-    PSet (ex% + 12, ey% + 2), 21
-    PSet (ex% + 13, ey% + 2), 22
-    PSet (ex% + 14, ey% + 2), 23
-    PSet (ex% + 15, ey% + 2), 25
-    PSet (ex% + 16, ey% + 2), 25
-    PSet (ex% + 17, ey% + 2), 25
-    PSet (ex% + 18, ey% + 2), 25
-    PSet (ex% + 19, ey% + 2), 24
-    PSet (ex% + 20, ey% + 2), 23
-    PSet (ex% + 21, ey% + 2), 20
-    PSet (ex%, ey% + 3), 21
-    PSet (ex% + 1, ey% + 3), 22
-    PSet (ex% + 2, ey% + 3), 23
-    PSet (ex% + 3, ey% + 3), 23
-    PSet (ex% + 4, ey% + 3), 24
-    PSet (ex% + 5, ey% + 3), 24
-    PSet (ex% + 6, ey% + 3), 24
-    PSet (ex% + 7, ey% + 3), 24
-    PSet (ex% + 8, ey% + 3), 24
-    PSet (ex% + 9, ey% + 3), 22
-    PSet (ex% + 10, ey% + 3), 20
-    PSet (ex% + 11, ey% + 3), 19
-    PSet (ex% + 15, ey% + 3), 22
-    PSet (ex% + 16, ey% + 3), 25
-    PSet (ex% + 17, ey% + 3), 25
-    PSet (ex% + 18, ey% + 3), 25
-    PSet (ex% + 19, ey% + 3), 23
-    PSet (ex% + 20, ey% + 3), 20
-    PSet (ex% + 3, ey% + 4), 20
-    PSet (ex% + 4, ey% + 4), 22
-    PSet (ex% + 5, ey% + 4), 22
-    PSet (ex% + 6, ey% + 4), 20
-    PSet (ex% + 7, ey% + 4), 19
-    PSet (ex% + 14, ey% + 4), 23
-    PSet (ex% + 15, ey% + 4), 26
-    PSet (ex% + 16, ey% + 4), 25
-    PSet (ex% + 17, ey% + 4), 24
-    PSet (ex% + 18, ey% + 4), 21
-    PSet (ex% + 19, ey% + 4), 19
-    PSet (ex% + 20, ey% + 4), 17
-    PSet (ex% + 9, ey% + 5), 18
-    PSet (ex% + 10, ey% + 5), 21
-    PSet (ex% + 11, ey% + 5), 23
-    PSet (ex% + 12, ey% + 5), 24
-    PSet (ex% + 13, ey% + 5), 26
-    PSet (ex% + 14, ey% + 5), 27
-    PSet (ex% + 15, ey% + 5), 25
-    PSet (ex% + 16, ey% + 5), 22
-    PSet (ex% + 17, ey% + 5), 20
-    PSet (ex% + 18, ey% + 5), 18
-    PSet (ex% + 8, ey% + 6), 42
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 10, ey% + 6), 42
-    PSet (ex% + 11, ey% + 6), 43
-    PSet (ex% + 12, ey% + 6), 44
-    PSet (ex% + 13, ey% + 6), 26
-    PSet (ex% + 14, ey% + 6), 24
-    PSet (ex% + 15, ey% + 6), 20
-    PSet (ex% + 16, ey% + 6), 18
-    PSet (ex% + 10, ey% + 7), 19
-    PSet (ex% + 11, ey% + 7), 21
-    PSet (ex% + 12, ey% + 7), 23
-    PSet (ex% + 13, ey% + 7), 21
-End Sub
+    PSET (ex% + 8, ey%), 178
+    PSET (ex% + 9, ey%), 130
+    PSET (ex% + 10, ey%), 24
+    PSET (ex% + 11, ey%), 25
+    PSET (ex% + 12, ey%), 24
+    PSET (ex% + 13, ey%), 24
+    PSET (ex% + 14, ey%), 24
+    PSET (ex% + 15, ey%), 24
+    PSET (ex% + 16, ey%), 23
+    PSET (ex% + 17, ey%), 21
+    PSET (ex% + 18, ey%), 19
+    PSET (ex% + 5, ey% + 1), 178
+    PSET (ex% + 6, ey% + 1), 106
+    PSET (ex% + 7, ey% + 1), 106
+    PSET (ex% + 8, ey% + 1), 106
+    PSET (ex% + 9, ey% + 1), 130
+    PSET (ex% + 10, ey% + 1), 154
+    PSET (ex% + 11, ey% + 1), 25
+    PSET (ex% + 12, ey% + 1), 25
+    PSET (ex% + 13, ey% + 1), 25
+    PSET (ex% + 14, ey% + 1), 25
+    PSET (ex% + 15, ey% + 1), 25
+    PSET (ex% + 16, ey% + 1), 25
+    PSET (ex% + 17, ey% + 1), 24
+    PSET (ex% + 18, ey% + 1), 23
+    PSET (ex% + 19, ey% + 1), 22
+    PSET (ex% + 20, ey% + 1), 19
+    PSET (ex% + 2, ey% + 2), 178
+    PSET (ex% + 3, ey% + 2), 106
+    PSET (ex% + 4, ey% + 2), 106
+    PSET (ex% + 5, ey% + 2), 106
+    PSET (ex% + 6, ey% + 2), 130
+    PSET (ex% + 7, ey% + 2), 154
+    PSET (ex% + 8, ey% + 2), 24
+    PSET (ex% + 9, ey% + 2), 24
+    PSET (ex% + 10, ey% + 2), 24
+    PSET (ex% + 11, ey% + 2), 24
+    PSET (ex% + 12, ey% + 2), 21
+    PSET (ex% + 13, ey% + 2), 22
+    PSET (ex% + 14, ey% + 2), 23
+    PSET (ex% + 15, ey% + 2), 25
+    PSET (ex% + 16, ey% + 2), 25
+    PSET (ex% + 17, ey% + 2), 25
+    PSET (ex% + 18, ey% + 2), 25
+    PSET (ex% + 19, ey% + 2), 24
+    PSET (ex% + 20, ey% + 2), 23
+    PSET (ex% + 21, ey% + 2), 20
+    PSET (ex%, ey% + 3), 21
+    PSET (ex% + 1, ey% + 3), 22
+    PSET (ex% + 2, ey% + 3), 23
+    PSET (ex% + 3, ey% + 3), 23
+    PSET (ex% + 4, ey% + 3), 24
+    PSET (ex% + 5, ey% + 3), 24
+    PSET (ex% + 6, ey% + 3), 24
+    PSET (ex% + 7, ey% + 3), 24
+    PSET (ex% + 8, ey% + 3), 24
+    PSET (ex% + 9, ey% + 3), 22
+    PSET (ex% + 10, ey% + 3), 20
+    PSET (ex% + 11, ey% + 3), 19
+    PSET (ex% + 15, ey% + 3), 22
+    PSET (ex% + 16, ey% + 3), 25
+    PSET (ex% + 17, ey% + 3), 25
+    PSET (ex% + 18, ey% + 3), 25
+    PSET (ex% + 19, ey% + 3), 23
+    PSET (ex% + 20, ey% + 3), 20
+    PSET (ex% + 3, ey% + 4), 20
+    PSET (ex% + 4, ey% + 4), 22
+    PSET (ex% + 5, ey% + 4), 22
+    PSET (ex% + 6, ey% + 4), 20
+    PSET (ex% + 7, ey% + 4), 19
+    PSET (ex% + 14, ey% + 4), 23
+    PSET (ex% + 15, ey% + 4), 26
+    PSET (ex% + 16, ey% + 4), 25
+    PSET (ex% + 17, ey% + 4), 24
+    PSET (ex% + 18, ey% + 4), 21
+    PSET (ex% + 19, ey% + 4), 19
+    PSET (ex% + 20, ey% + 4), 17
+    PSET (ex% + 9, ey% + 5), 18
+    PSET (ex% + 10, ey% + 5), 21
+    PSET (ex% + 11, ey% + 5), 23
+    PSET (ex% + 12, ey% + 5), 24
+    PSET (ex% + 13, ey% + 5), 26
+    PSET (ex% + 14, ey% + 5), 27
+    PSET (ex% + 15, ey% + 5), 25
+    PSET (ex% + 16, ey% + 5), 22
+    PSET (ex% + 17, ey% + 5), 20
+    PSET (ex% + 18, ey% + 5), 18
+    PSET (ex% + 8, ey% + 6), 42
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 10, ey% + 6), 42
+    PSET (ex% + 11, ey% + 6), 43
+    PSET (ex% + 12, ey% + 6), 44
+    PSET (ex% + 13, ey% + 6), 26
+    PSET (ex% + 14, ey% + 6), 24
+    PSET (ex% + 15, ey% + 6), 20
+    PSET (ex% + 16, ey% + 6), 18
+    PSET (ex% + 10, ey% + 7), 19
+    PSET (ex% + 11, ey% + 7), 21
+    PSET (ex% + 12, ey% + 7), 23
+    PSET (ex% + 13, ey% + 7), 21
+END SUB
 
-Sub g
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB g
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
+    PSET STEP(-2, 1), cf%
 
-    PSet Step(0, 1), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(0, 1), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-End Sub
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+END SUB
 
-Sub h
-    PSet Step(2, -4), cf%
-    PSet Step(3, 0), cf%
+SUB h
+    PSET STEP(2, -4), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+END SUB
 
-Sub i
-    PSet Step(2, -4), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+SUB i
+    PSET STEP(2, -4), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-1, 1), cf%
+    PSET STEP(-1, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(-1, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-End Sub
+    PSET STEP(-1, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+END SUB
 
-Sub k
-    PSet Step(2, -4), cf%
-    PSet Step(2, 0), cf%
+SUB k
+    PSET STEP(2, -4), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+END SUB
 
-Sub klma1
-    PSet Step(3, -4), cf%
+SUB klma1
+    PSET STEP(3, -4), cf%
 
-    PSet Step(-1, 1), cf%
+    PSET STEP(-1, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(1, 1), cf%
-End Sub
+    PSET STEP(1, 1), cf%
+END SUB
 
-Sub klma2
-    PSet Step(4, -4), cf%
+SUB klma2
+    PSET STEP(4, -4), cf%
 
-    PSet Step(-1, 1), cf%
+    PSET STEP(-1, 1), cf%
 
-    PSet Step(-1, 1), cf%
+    PSET STEP(-1, 1), cf%
 
-    PSet Step(1, 1), cf%
+    PSET STEP(1, 1), cf%
 
-    PSet Step(1, 1), cf%
-End Sub
+    PSET STEP(1, 1), cf%
+END SUB
 
-Sub klmz1
-    PSet Step(2, -4), cf%
+SUB klmz1
+    PSET STEP(2, -4), cf%
 
-    PSet Step(1, 1), cf%
+    PSET STEP(1, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(-1, 1), cf%
-    Draw "bm+1,0"
-End Sub
+    PSET STEP(-1, 1), cf%
+    DRAW "bm+1,0"
+END SUB
 
-Sub klmz2
-    PSet Step(2, -4), cf%
+SUB klmz2
+    PSET STEP(2, -4), cf%
 
-    PSet Step(1, 1), cf%
+    PSET STEP(1, 1), cf%
 
-    PSet Step(1, 1), cf%
+    PSET STEP(1, 1), cf%
 
-    PSet Step(-1, 1), cf%
+    PSET STEP(-1, 1), cf%
 
-    PSet Step(-1, 1), cf%
-    Draw "bm+2,0"
-End Sub
+    PSET STEP(-1, 1), cf%
+    DRAW "bm+2,0"
+END SUB
 
-Sub kra
-    Circle Step(6, -3), 5, 104, Pi / 2.1, 3.1 * Pi / 2
-    Line Step(0, 4)-Step(0, -8), 104
-    Paint Step(-4, 3), 32, 104
-    Draw "bm+4, 3"
-End Sub
+SUB kra
+    CIRCLE STEP(6, -3), 5, 104, _PI / 2.1, 3.1 * _PI / 2
+    LINE STEP(0, 4)-STEP(0, -8), 104
+    PAINT STEP(-4, 3), 32, 104
+    DRAW "bm+4, 3"
+END SUB
 
-Sub krz
-    Circle Step(3, -2), 5, 104, 2.9 * Pi / 2, Pi / 2
-    Line Step(0, 4)-Step(0, -8), 104
-    Paint Step(4, 3), 32, 104
-    Draw "bm+1, 3"
-End Sub
+SUB krz
+    CIRCLE STEP(3, -2), 5, 104, 2.9 * _PI / 2, _PI / 2
+    LINE STEP(0, 4)-STEP(0, -8), 104
+    PAINT STEP(4, 3), 32, 104
+    DRAW "bm+1, 3"
+END SUB
 
-Sub l
-    PSet Step(2, -4), cf%
+SUB l
+    PSET STEP(2, -4), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(0, 1), cf%
+    PSET STEP(0, 1), cf%
 
-    PSet Step(0, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(0, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+END SUB
 
-Sub empty (lr As Integer)
-    Draw "bm +" + Str$(lr%) + ",0"
-End Sub
+SUB empty (lr AS INTEGER)
+    DRAW "bm +" + STR$(lr%) + ",0"
+END SUB
 
-Sub empty2
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
+SUB empty2
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-End Sub
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+END SUB
 
-Sub m
-    PSet Step(3, -4), cf%
-    PSet Step(2, 0), cf%
+SUB m
+    PSET STEP(3, -4), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(2, 0), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(2, 0), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-4, 1), cf%
-    PSet Step(4, 0), cf%
+    PSET STEP(-4, 1), cf%
+    PSET STEP(4, 0), cf%
 
-    PSet Step(-4, 1), cf%
-    PSet Step(4, 0), cf%
-End Sub
+    PSET STEP(-4, 1), cf%
+    PSET STEP(4, 0), cf%
+END SUB
 
-Sub minus
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
+SUB minus
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
 
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-End Sub
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+END SUB
 
-Sub n
-    PSet Step(2, -4), cf%
-    PSet Step(3, 0), cf%
+SUB n
+    PSET STEP(2, -4), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(2, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(2, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
          
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+END SUB
 
-Sub o
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB o
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    Draw "bm+1, 0"
-End Sub
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
 
-Sub oe
-    PSet Step(2, -4), cf%
-    PSet Step(3, 0), cf%
+SUB oe
+    PSET STEP(2, -4), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    Draw "bm+1, 0"
-End Sub
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
 
-Sub p
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB p
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
+    PSET STEP(-2, 1), cf%
 
-    PSet Step(0, 1), cf%
-    Draw "bm+3, 0"
-End Sub
+    PSET STEP(0, 1), cf%
+    DRAW "bm+3, 0"
+END SUB
 
-Sub photon (xf As Integer, yf As Integer)
-    PSet (xf% + 3, yf% - 1), 0
-    PSet (xf% + 4, yf% - 1), 0
-    PSet (xf% + 5, yf% - 1), 0
-    PSet (xf% + 6, yf% - 1), 185 + Int(Rnd * 3)
-    PSet (xf% + 7, yf% - 1), 113 + Int(Rnd * 3)
-    PSet (xf% + 8, yf% - 1), 41 + Int(Rnd * 3)
-    PSet (xf% + 9, yf% - 1), 113 + Int(Rnd * 3)
-    PSet (xf% + 1, yf%), 0
-    PSet (xf% + 2, yf%), 0
-    PSet (xf% + 3, yf%), 0
-    PSet (xf% + 4, yf%), 185 + Int(Rnd * 3)
-    PSet (xf% + 5, yf%), 113 + Int(Rnd * 3)
-    PSet (xf% + 6, yf%), 113 + Int(Rnd * 3)
-    PSet (xf% + 7, yf%), 41 + Int(Rnd * 3)
-    PSet (xf% + 8, yf%), 41 + Int(Rnd * 3)
-    PSet (xf% + 9, yf%), 41 + Int(Rnd * 3)
-    PSet (xf% + 10, yf%), 113 + Int(Rnd * 3)
-    PSet (xf% + 3, yf% + 1), 0
-    PSet (xf% + 4, yf% + 1), 0
-    PSet (xf% + 5, yf% + 1), 0
-    PSet (xf% + 6, yf% + 1), 185 + Int(Rnd * 3)
-    PSet (xf% + 7, yf% + 1), 113 + Int(Rnd * 3)
-    PSet (xf% + 8, yf% + 1), 41 + Int(Rnd * 3)
-    PSet (xf% + 9, yf% + 1), 113 + Int(Rnd * 3)
-End Sub
+SUB photon (xf AS INTEGER, yf AS INTEGER)
+    PSET (xf% + 3, yf% - 1), 0
+    PSET (xf% + 4, yf% - 1), 0
+    PSET (xf% + 5, yf% - 1), 0
+    PSET (xf% + 6, yf% - 1), 185 + INT(RND * 3)
+    PSET (xf% + 7, yf% - 1), 113 + INT(RND * 3)
+    PSET (xf% + 8, yf% - 1), 41 + INT(RND * 3)
+    PSET (xf% + 9, yf% - 1), 113 + INT(RND * 3)
+    PSET (xf% + 1, yf%), 0
+    PSET (xf% + 2, yf%), 0
+    PSET (xf% + 3, yf%), 0
+    PSET (xf% + 4, yf%), 185 + INT(RND * 3)
+    PSET (xf% + 5, yf%), 113 + INT(RND * 3)
+    PSET (xf% + 6, yf%), 113 + INT(RND * 3)
+    PSET (xf% + 7, yf%), 41 + INT(RND * 3)
+    PSET (xf% + 8, yf%), 41 + INT(RND * 3)
+    PSET (xf% + 9, yf%), 41 + INT(RND * 3)
+    PSET (xf% + 10, yf%), 113 + INT(RND * 3)
+    PSET (xf% + 3, yf% + 1), 0
+    PSET (xf% + 4, yf% + 1), 0
+    PSET (xf% + 5, yf% + 1), 0
+    PSET (xf% + 6, yf% + 1), 185 + INT(RND * 3)
+    PSET (xf% + 7, yf% + 1), 113 + INT(RND * 3)
+    PSET (xf% + 8, yf% + 1), 41 + INT(RND * 3)
+    PSET (xf% + 9, yf% + 1), 113 + INT(RND * 3)
+END SUB
 
-Sub punkt
-    PSet Step(2, 0), cf%
-End Sub
+SUB punkt
+    PSET STEP(2, 0), cf%
+END SUB
 
-Sub q
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB q
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-1, 1), cf%
-    PSet Step(2, 0), cf%
-End Sub
+    PSET STEP(-1, 1), cf%
+    PSET STEP(2, 0), cf%
+END SUB
 
-Sub r
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
+SUB r
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(2, 0), cf%
+    PSET STEP(-2, 1), cf%
+    PSET STEP(2, 0), cf%
 
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
-End Sub
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
+END SUB
 
-Sub s
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
+SUB s
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(-3, 1), cf%
+    PSET STEP(-3, 1), cf%
 
-    PSet Step(1, 1), cf%
-    PSet Step(1, 0), cf%
+    PSET STEP(1, 1), cf%
+    PSET STEP(1, 0), cf%
 
-    PSet Step(1, 1), cf%
+    PSET STEP(1, 1), cf%
 
-    PSet Step(-3, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    Draw "bm+1, 0"
-End Sub
+    PSET STEP(-3, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
 
-Sub ship
-    PSet (x% + 3, y%), 20
-    PSet (x% + 4, y%), 22
-    PSet (x% + 5, y%), 23
-    PSet (x% + 6, y%), 23
-    PSet (x% + 7, y%), 21
-    PSet (x% + 8, y%), 177
-    PSet (x% + 2, y% + 1), 21
-    PSet (x% + 3, y% + 1), 23
-    PSet (x% + 4, y% + 1), 23
-    PSet (x% + 5, y% + 1), 21
-    PSet (x% + 6, y% + 1), 21
-    PSet (x% + 7, y% + 1), 201
-    PSet (x% + 8, y% + 1), 105
-    PSet (x% + 9, y% + 1), 105
-    PSet (x% + 10, y% + 1), 177
-    PSet (x% + 11, y% + 1), 177
-    PSet (x% + 1, y% + 2), 21
-    PSet (x% + 2, y% + 2), 23
-    PSet (x% + 3, y% + 2), 23
-    PSet (x% + 4, y% + 2), 22
-    PSet (x% + 5, y% + 2), 21
-    PSet (x% + 6, y% + 2), 200
-    PSet (x% + 7, y% + 2), 105
-    PSet (x% + 8, y% + 2), 104
-    PSet (x% + 9, y% + 2), 104
-    PSet (x% + 10, y% + 2), 104
-    PSet (x% + 11, y% + 2), 104
-    PSet (x% + 12, y% + 2), 105
-    PSet (x% + 13, y% + 2), 177
-    PSet (x% + 14, y% + 2), 177
-    PSet (x%, y% + 3), 20
-    PSet (x% + 1, y% + 3), 23
-    PSet (x% + 2, y% + 3), 23
-    PSet (x% + 3, y% + 3), 22
-    PSet (x% + 4, y% + 3), 21
-    PSet (x% + 5, y% + 3), 21
-    PSet (x% + 6, y% + 3), 21
-    PSet (x% + 7, y% + 3), 200
-    PSet (x% + 8, y% + 3), 105
-    PSet (x% + 9, y% + 3), 105
-    PSet (x% + 10, y% + 3), 200
-    PSet (x% + 11, y% + 3), 223
-    PSet (x% + 12, y% + 3), 21
-    PSet (x% + 13, y% + 3), 21
-    PSet (x% + 14, y% + 3), 20
-    PSet (x% + 15, y% + 3), 19
-    PSet (x% + 16, y% + 3), 18
-    PSet (x%, y% + 4), 21
-    PSet (x% + 1, y% + 4), 22
-    PSet (x% + 2, y% + 4), 21
-    PSet (x% + 3, y% + 4), 20
-    PSet (x% + 4, y% + 4), 20
-    PSet (x% + 5, y% + 4), 20
-    PSet (x% + 6, y% + 4), 21
-    PSet (x% + 7, y% + 4), 21
-    PSet (x% + 8, y% + 4), 21
-    PSet (x% + 9, y% + 4), 21
-    PSet (x% + 10, y% + 4), 21
-    PSet (x% + 11, y% + 4), 21
-    PSet (x% + 12, y% + 4), 20
-    PSet (x% + 13, y% + 4), 19
-    PSet (x% + 14, y% + 4), 19
-    PSet (x% + 15, y% + 4), 18
-    PSet (x% + 16, y% + 4), 17
-    PSet (x% + 1, y% + 5), 18
-    PSet (x% + 2, y% + 5), 19
-    PSet (x% + 3, y% + 5), 19
-    PSet (x% + 4, y% + 5), 19
-    PSet (x% + 5, y% + 5), 19
-    PSet (x% + 6, y% + 5), 19
-    PSet (x% + 7, y% + 5), 20
-    PSet (x% + 8, y% + 5), 21
-    PSet (x% + 9, y% + 5), 21
-    PSet (x% + 10, y% + 5), 20
-    PSet (x% + 11, y% + 5), 19
-    PSet (x% + 12, y% + 5), 18
-    PSet (x% + 13, y% + 5), 17
-    PSet (x% + 2, y% + 6), 17
-    PSet (x% + 3, y% + 6), 18
-    PSet (x% + 4, y% + 6), 18
-    PSet (x% + 5, y% + 6), 18
-    PSet (x% + 6, y% + 6), 18
-    PSet (x% + 7, y% + 6), 18
-    PSet (x% + 8, y% + 6), 21
-    PSet (x% + 9, y% + 6), 22
-    PSet (x% + 10, y% + 6), 23
-    PSet (x% + 11, y% + 6), 23
-    PSet (x% + 12, y% + 6), 23
-    PSet (x% + 13, y% + 6), 23
-    PSet (x% + 14, y% + 6), 22
-    PSet (x% + 15, y% + 6), 23
-    PSet (x% + 16, y% + 6), 117
-    PSet (x% + 17, y% + 6), 189
-    PSet (x% + 6, y% + 7), 23
-    PSet (x% + 8, y% + 7), 24
-    PSet (x% + 10, y% + 7), 24
-    PSet (x% + 12, y% + 7), 25
-    PSet (x% + 13, y% + 7), 24
-    PSet (x% + 14, y% + 7), 24
-    PSet (x% + 15, y% + 7), 144
-    PSet (x% + 16, y% + 7), 44 + Int(Rnd * -4)
-    PSet (x% + 17, y% + 7), 43 + Int(Rnd * -4)
-    PSet (x% + 18, y% + 7), 117
-    PSet (x% + 19, y% + 7), 189
-    PSet (x% + 7, y% + 8), 19
-    PSet (x% + 8, y% + 8), 20
-    PSet (x% + 9, y% + 8), 20
-    PSet (x% + 10, y% + 8), 21
-    PSet (x% + 11, y% + 8), 21
-    PSet (x% + 12, y% + 8), 21
-    PSet (x% + 13, y% + 8), 21
-    PSet (x% + 14, y% + 8), 21
-    PSet (x% + 15, y% + 8), 22
-    PSet (x% + 16, y% + 8), 117
-    PSet (x% + 17, y% + 8), 189
+SUB ship
+    PSET (x% + 3, y%), 20
+    PSET (x% + 4, y%), 22
+    PSET (x% + 5, y%), 23
+    PSET (x% + 6, y%), 23
+    PSET (x% + 7, y%), 21
+    PSET (x% + 8, y%), 177
+    PSET (x% + 2, y% + 1), 21
+    PSET (x% + 3, y% + 1), 23
+    PSET (x% + 4, y% + 1), 23
+    PSET (x% + 5, y% + 1), 21
+    PSET (x% + 6, y% + 1), 21
+    PSET (x% + 7, y% + 1), 201
+    PSET (x% + 8, y% + 1), 105
+    PSET (x% + 9, y% + 1), 105
+    PSET (x% + 10, y% + 1), 177
+    PSET (x% + 11, y% + 1), 177
+    PSET (x% + 1, y% + 2), 21
+    PSET (x% + 2, y% + 2), 23
+    PSET (x% + 3, y% + 2), 23
+    PSET (x% + 4, y% + 2), 22
+    PSET (x% + 5, y% + 2), 21
+    PSET (x% + 6, y% + 2), 200
+    PSET (x% + 7, y% + 2), 105
+    PSET (x% + 8, y% + 2), 104
+    PSET (x% + 9, y% + 2), 104
+    PSET (x% + 10, y% + 2), 104
+    PSET (x% + 11, y% + 2), 104
+    PSET (x% + 12, y% + 2), 105
+    PSET (x% + 13, y% + 2), 177
+    PSET (x% + 14, y% + 2), 177
+    PSET (x%, y% + 3), 20
+    PSET (x% + 1, y% + 3), 23
+    PSET (x% + 2, y% + 3), 23
+    PSET (x% + 3, y% + 3), 22
+    PSET (x% + 4, y% + 3), 21
+    PSET (x% + 5, y% + 3), 21
+    PSET (x% + 6, y% + 3), 21
+    PSET (x% + 7, y% + 3), 200
+    PSET (x% + 8, y% + 3), 105
+    PSET (x% + 9, y% + 3), 105
+    PSET (x% + 10, y% + 3), 200
+    PSET (x% + 11, y% + 3), 223
+    PSET (x% + 12, y% + 3), 21
+    PSET (x% + 13, y% + 3), 21
+    PSET (x% + 14, y% + 3), 20
+    PSET (x% + 15, y% + 3), 19
+    PSET (x% + 16, y% + 3), 18
+    PSET (x%, y% + 4), 21
+    PSET (x% + 1, y% + 4), 22
+    PSET (x% + 2, y% + 4), 21
+    PSET (x% + 3, y% + 4), 20
+    PSET (x% + 4, y% + 4), 20
+    PSET (x% + 5, y% + 4), 20
+    PSET (x% + 6, y% + 4), 21
+    PSET (x% + 7, y% + 4), 21
+    PSET (x% + 8, y% + 4), 21
+    PSET (x% + 9, y% + 4), 21
+    PSET (x% + 10, y% + 4), 21
+    PSET (x% + 11, y% + 4), 21
+    PSET (x% + 12, y% + 4), 20
+    PSET (x% + 13, y% + 4), 19
+    PSET (x% + 14, y% + 4), 19
+    PSET (x% + 15, y% + 4), 18
+    PSET (x% + 16, y% + 4), 17
+    PSET (x% + 1, y% + 5), 18
+    PSET (x% + 2, y% + 5), 19
+    PSET (x% + 3, y% + 5), 19
+    PSET (x% + 4, y% + 5), 19
+    PSET (x% + 5, y% + 5), 19
+    PSET (x% + 6, y% + 5), 19
+    PSET (x% + 7, y% + 5), 20
+    PSET (x% + 8, y% + 5), 21
+    PSET (x% + 9, y% + 5), 21
+    PSET (x% + 10, y% + 5), 20
+    PSET (x% + 11, y% + 5), 19
+    PSET (x% + 12, y% + 5), 18
+    PSET (x% + 13, y% + 5), 17
+    PSET (x% + 2, y% + 6), 17
+    PSET (x% + 3, y% + 6), 18
+    PSET (x% + 4, y% + 6), 18
+    PSET (x% + 5, y% + 6), 18
+    PSET (x% + 6, y% + 6), 18
+    PSET (x% + 7, y% + 6), 18
+    PSET (x% + 8, y% + 6), 21
+    PSET (x% + 9, y% + 6), 22
+    PSET (x% + 10, y% + 6), 23
+    PSET (x% + 11, y% + 6), 23
+    PSET (x% + 12, y% + 6), 23
+    PSET (x% + 13, y% + 6), 23
+    PSET (x% + 14, y% + 6), 22
+    PSET (x% + 15, y% + 6), 23
+    PSET (x% + 16, y% + 6), 117
+    PSET (x% + 17, y% + 6), 189
+    PSET (x% + 6, y% + 7), 23
+    PSET (x% + 8, y% + 7), 24
+    PSET (x% + 10, y% + 7), 24
+    PSET (x% + 12, y% + 7), 25
+    PSET (x% + 13, y% + 7), 24
+    PSET (x% + 14, y% + 7), 24
+    PSET (x% + 15, y% + 7), 144
+    PSET (x% + 16, y% + 7), 44 + INT(RND * -4)
+    PSET (x% + 17, y% + 7), 43 + INT(RND * -4)
+    PSET (x% + 18, y% + 7), 117
+    PSET (x% + 19, y% + 7), 189
+    PSET (x% + 7, y% + 8), 19
+    PSET (x% + 8, y% + 8), 20
+    PSET (x% + 9, y% + 8), 20
+    PSET (x% + 10, y% + 8), 21
+    PSET (x% + 11, y% + 8), 21
+    PSET (x% + 12, y% + 8), 21
+    PSET (x% + 13, y% + 8), 21
+    PSET (x% + 14, y% + 8), 21
+    PSET (x% + 15, y% + 8), 22
+    PSET (x% + 16, y% + 8), 117
+    PSET (x% + 17, y% + 8), 189
 
     kstn% = kstn% + 1
-    Select Case kstn%
-        Case 1
-            PSet (x% + 4, y% + 7), 6
-            PSet (x% + 5, y% + 7), 5
-            PSet (x% + 7, y% + 7), 4
-            PSet (x% + 9, y% + 7), 3
-            PSet (x% + 11, y% + 7), 2
-        Case 2
-            PSet (x% + 4, y% + 7), 5
-            PSet (x% + 5, y% + 7), 4
-            PSet (x% + 7, y% + 7), 3
-            PSet (x% + 9, y% + 7), 2
-            PSet (x% + 11, y% + 7), 6
-        Case 3
-            PSet (x% + 4, y% + 7), 4
-            PSet (x% + 5, y% + 7), 3
-            PSet (x% + 7, y% + 7), 2
-            PSet (x% + 9, y% + 7), 6
-            PSet (x% + 11, y% + 7), 5
-        Case 4
-            PSet (x% + 4, y% + 7), 3
-            PSet (x% + 5, y% + 7), 2
-            PSet (x% + 7, y% + 7), 6
-            PSet (x% + 9, y% + 7), 5
-            PSet (x% + 11, y% + 7), 4
-        Case 5
-            PSet (x% + 4, y% + 7), 2
-            PSet (x% + 5, y% + 7), 6
-            PSet (x% + 7, y% + 7), 5
-            PSet (x% + 9, y% + 7), 4
-            PSet (x% + 11, y% + 7), 3
+    SELECT CASE kstn%
+        CASE 1
+            PSET (x% + 4, y% + 7), 6
+            PSET (x% + 5, y% + 7), 5
+            PSET (x% + 7, y% + 7), 4
+            PSET (x% + 9, y% + 7), 3
+            PSET (x% + 11, y% + 7), 2
+        CASE 2
+            PSET (x% + 4, y% + 7), 5
+            PSET (x% + 5, y% + 7), 4
+            PSET (x% + 7, y% + 7), 3
+            PSET (x% + 9, y% + 7), 2
+            PSET (x% + 11, y% + 7), 6
+        CASE 3
+            PSET (x% + 4, y% + 7), 4
+            PSET (x% + 5, y% + 7), 3
+            PSET (x% + 7, y% + 7), 2
+            PSET (x% + 9, y% + 7), 6
+            PSET (x% + 11, y% + 7), 5
+        CASE 4
+            PSET (x% + 4, y% + 7), 3
+            PSET (x% + 5, y% + 7), 2
+            PSET (x% + 7, y% + 7), 6
+            PSET (x% + 9, y% + 7), 5
+            PSET (x% + 11, y% + 7), 4
+        CASE 5
+            PSET (x% + 4, y% + 7), 2
+            PSET (x% + 5, y% + 7), 6
+            PSET (x% + 7, y% + 7), 5
+            PSET (x% + 9, y% + 7), 4
+            PSET (x% + 11, y% + 7), 3
             kstn% = 0
-    End Select
-End Sub
+    END SELECT
+END SUB
 
-Sub bounce
-    If x% > 300 Then x% = 300
-    If x% < 0 Then x% = 0
-    If y% > 180 Then y% = 180
-    If y% < 0 Then y% = 0
-End Sub
+SUB bounce
+    IF x% > 300 THEN x% = 300
+    IF x% < 0 THEN x% = 0
+    IF y% > 180 THEN y% = 180
+    IF y% < 0 THEN y% = 0
+END SUB
 
-Sub srnd
-    If snp% = 0 Then snd% = 0 Else Play "l64"
-    Select Case snd%
+SUB srnd
+    IF snp% = 0 THEN snd% = 0 ELSE PLAY "l64"
+    SELECT CASE snd%
 
-        Case 0
-            Play "p64"
+        CASE 0
+            PLAY "p64"
 
-        Case 1 'Explosion
-            Play "n15"
+        CASE 1 'Explosion
+            PLAY "n15"
             snd% = 2
-        Case 2
-            Play "n25"
+        CASE 2
+            PLAY "n25"
             snd% = 3
-        Case 3
-            Play "n10"
+        CASE 3
+            PLAY "n10"
             snd% = 4
-        Case 4
-            Play "n20"
+        CASE 4
+            PLAY "n20"
             snd% = 5
-        Case 5
-            Play "n16"
+        CASE 5
+            PLAY "n16"
             snd% = 6
-        Case 6
-            Play "n12"
+        CASE 6
+            PLAY "n12"
             snd% = 7
-        Case 7
-            Play "n29"
+        CASE 7
+            PLAY "n29"
             snd% = 8
-        Case 8
-            Play "n17"
+        CASE 8
+            PLAY "n17"
             snd% = 9
-        Case 9
-            Play "n20"
+        CASE 9
+            PLAY "n20"
             snd% = 0
 
-        Case 10 'Torpedos
-            Play "n20"
+        CASE 10 'Torpedos
+            PLAY "n20"
             snd% = 11
-        Case 11
-            Play "n22"
+        CASE 11
+            PLAY "n22"
             snd% = 12
-        Case 12
-            Play "n24"
+        CASE 12
+            PLAY "n24"
             snd% = 13
-        Case 13
-            Play "n26"
+        CASE 13
+            PLAY "n26"
             snd% = 14
-        Case 14
-            Play "n28"
+        CASE 14
+            PLAY "n28"
             snd% = 15
-        Case 15
-            Play "n30"
+        CASE 15
+            PLAY "n30"
             snd% = 0
 
-        Case 17 'Phaser
-            Play "n32"
+        CASE 17 'Phaser
+            PLAY "n32"
             snd% = 18
-        Case 18
-            Play "n31"
+        CASE 18
+            PLAY "n31"
             snd% = 19
-        Case 19
-            Play "n32"
+        CASE 19
+            PLAY "n32"
             snd% = 0
 
-        Case 21 'Plasma
-            Play "n28"
+        CASE 21 'Plasma
+            PLAY "n28"
             snd% = 22
-        Case 22
-            Play "n27"
+        CASE 22
+            PLAY "n27"
             snd% = 23
-        Case 23
-            Play "n26"
+        CASE 23
+            PLAY "n26"
             snd% = 24
-        Case 24
-            Play "n24"
+        CASE 24
+            PLAY "n24"
             snd% = 25
-        Case 25
-            Play "n22"
+        CASE 25
+            PLAY "n22"
             snd% = 26
-        Case 26
-            Play "n20"
+        CASE 26
+            PLAY "n20"
             snd% = 0
 
-    End Select
-End Sub
-
-Sub stars
-    PSet (226, 9), 23
-    PSet (245, 10), 25
-    PSet (4, 152), 29
-    PSet (207, 52), 21
-    PSet (149, 59), 26
-    PSet (92, 60), 28
-    PSet (303, 72), 24
-    PSet (225, 106), 25
-    PSet (276, 158), 22
-    PSet (307, 174), 17
-    PSet (265, 164), 25
-    PSet (315, 182), 20
-    PSet (222, 36), 20
-    PSet (170, 21), 31
-    PSet (216, 3), 25
-    PSet (32, 20), 28
-    PSet (91, 9), 21
-    PSet (122, 60), 31
-    PSet (313, 80), 21
-    PSet (51, 32), 26
-    PSet (131, 82), 27
-    PSet (104, 126), 20
-    PSet (59, 116), 18
-    PSet (146, 181), 20
-    PSet (251, 75), 21
-    PSet (294, 126), 26
-    PSet (137, 19), 25
-    PSet (222, 182), 29
-    PSet (7, 108), 30
-    PSet (137, 135), 24
-    PSet (164, 92), 22
-    PSet (129, 53), 17
-    PSet (78, 145), 17
-    PSet (124, 72), 24
-    PSet (49, 94), 20
-    PSet (201, 108), 19
-    PSet (300, 130), 24
-    PSet (124, 21), 28
-    PSet (147, 150), 25
-    PSet (266, 3), 20
-    PSet (23, 21), 21
-    PSet (41, 0), 25
-    PSet (210, 108), 29
-    PSet (26, 38), 27
-    PSet (145, 71), 19
-    PSet (225, 185), 24
-    PSet (28, 151), 23
-    PSet (147, 98), 20
-    PSet (105, 19), 25
-    PSet (54, 185), 18
-    PSet (142, 54), 30
-    PSet (240, 54), 27
-    PSet (82, 17), 17
-    PSet (103, 158), 21
-    PSet (75, 96), 20
-    PSet (108, 8), 24
-    PSet (65, 172), 25
-    PSet (241, 185), 21
-    PSet (173, 16), 26
-    PSet (131, 122), 18
-    PSet (295, 124), 22
-    PSet (47, 95), 20
-    PSet (317, 26), 17
-    PSet (110, 109), 30
-    PSet (172, 81), 29
-    PSet (264, 134), 27
-    PSet (318, 67), 24
-    PSet (132, 139), 19
-    PSet (135, 108), 29
-    PSet (173, 85), 24
-    PSet (72, 123), 24
-    PSet (217, 177), 22
-    PSet (96, 58), 19
-    PSet (169, 44), 25
-    PSet (116, 175), 24
-    PSet (61, 136), 28
-    PSet (196, 156), 19
-    PSet (258, 40), 31
-    PSet (21, 12), 28
-    PSet (121, 92), 18
-    PSet (36, 34), 17
-    PSet (228, 106), 25
-    PSet (69, 93), 28
-    PSet (240, 79), 30
-    PSet (238, 17), 26
-    PSet (228, 3), 23
-    PSet (128, 55), 31
-    PSet (256, 139), 23
-    PSet (235, 55), 22
-    PSet (138, 188), 18
-    PSet (206, 69), 18
-    PSet (59, 15), 23
-    PSet (306, 108), 24
-    PSet (311, 43), 22
-    PSet (126, 56), 24
-    PSet (44, 103), 31
-    PSet (178, 181), 26
-    PSet (141, 138), 17
-    PSet (241, 140), 24
-    PSet (49, 44), 21
-    PSet (251, 10), 24
-    PSet (242, 160), 21
-    PSet (311, 160), 27
-    PSet (289, 175), 23
-    PSet (39, 120), 28
-    PSet (222, 80), 17
-    PSet (53, 32), 24
-    PSet (129, 21), 21
-    PSet (205, 169), 24
-    PSet (60, 179), 22
-    PSet (103, 154), 20
-    PSet (143, 47), 30
-    PSet (195, 74), 22
-    PSet (275, 117), 30
-    PSet (165, 66), 30
-    PSet (82, 51), 19
-    PSet (111, 0), 28
-    PSet (269, 55), 27
-    PSet (129, 162), 28
-    PSet (140, 15), 23
-    PSet (108, 142), 21
-    PSet (255, 30), 25
-    PSet (305, 48), 31
-    PSet (36, 96), 26
-    PSet (191, 180), 25
-    PSet (78, 172), 18
-    PSet (140, 151), 20
-    PSet (121, 79), 24
-    PSet (86, 116), 20
-    PSet (25, 179), 18
-    PSet (208, 180), 20
-    PSet (303, 169), 23
-    PSet (157, 153), 29
-    PSet (122, 39), 21
-    PSet (132, 30), 26
-    PSet (31, 41), 27
-    PSet (161, 36), 31
-    PSet (150, 0), 23
-    PSet (92, 150), 30
-    PSet (263, 35), 18
-    PSet (3, 30), 22
-    PSet (60, 125), 30
-    PSet (186, 145), 19
-    PSet (82, 5), 29
-    PSet (250, 158), 21
-    PSet (144, 111), 29
-    PSet (180, 40), 20
-    PSet (116, 114), 22
-    PSet (169, 85), 25
-    PSet (16, 109), 20
-    PSet (308, 186), 31
-    PSet (268, 81), 29
-    PSet (316, 51), 19
-    PSet (222, 3), 22
-    PSet (221, 22), 18
-    PSet (92, 79), 25
-    PSet (99, 59), 29
-    PSet (99, 75), 23
-    PSet (269, 81), 27
-    PSet (210, 81), 31
-    PSet (206, 103), 20
-    PSet (186, 149), 23
-    PSet (289, 56), 27
-    PSet (284, 56), 22
-    PSet (4, 58), 31
-    PSet (243, 116), 26
-    PSet (85, 101), 28
-    PSet (274, 18), 25
-    PSet (132, 14), 23
-    PSet (223, 99), 23
-    PSet (302, 16), 25
-    PSet (170, 123), 18
-    PSet (59, 56), 17
-    PSet (48, 84), 25
-    PSet (178, 156), 17
-    PSet (129, 11), 21
-    PSet (192, 103), 25
-    PSet (105, 181), 28
-    PSet (184, 86), 27
-    PSet (52, 11), 20
-    PSet (242, 100), 22
-    PSet (218, 158), 17
-    PSet (254, 96), 20
-    PSet (192, 181), 31
-    PSet (209, 2), 26
-    PSet (308, 1), 31
-    PSet (23, 58), 25
-    PSet (258, 8), 17
-    PSet (180, 62), 23
-    PSet (163, 146), 23
-    PSet (103, 14), 23
-    PSet (183, 152), 25
-    PSet (208, 161), 23
-    PSet (255, 144), 27
-    PSet (233, 38), 28
-    PSet (22, 49), 31
-    PSet (262, 43), 19
-    PSet (75, 185), 20
-    PSet (81, 142), 26
-    PSet (247, 151), 21
-    PSet (263, 143), 30
-End Sub
-
-Sub sz
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(2, 0), cf%
-
-    PSet Step(-2, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(2, 0), cf%
-    Draw "bm+1, 0"
-End Sub
-
-Sub t
-    PSet Step(2, -4), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-2, 1), cf%
-
-    PSet Step(0, 1), cf%
-
-    PSet Step(0, 1), cf%
-
-    PSet Step(0, 1), cf%
-    Draw "bm+2, 0"
-End Sub
-
-Sub u
-    PSet Step(2, -4), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    Draw "bm+1, 0"
-End Sub
-
-Sub ue
-    PSet Step(2, -4), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 2), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-2, 1), cf%
-    PSet Step(1, 0), cf%
-    Draw "bm+1, 0"
-End Sub
-
-Sub v
-    PSet Step(2, -4), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(3, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(2, 0), cf%
-
-    PSet Step(-1, 1), cf%
-    Draw "bm+2, 0"
-End Sub
-
-Sub w
-    PSet Step(2, -4), cf%
-    PSet Step(4, 0), cf%
-
-    PSet Step(-4, 1), cf%
-    PSet Step(2, 0), cf%
-    PSet Step(2, 0), cf%
-
-    PSet Step(-4, 1), cf%
-    PSet Step(2, 0), cf%
-    PSet Step(2, 0), cf%
-
-    PSet Step(-4, 1), cf%
-    PSet Step(2, 0), cf%
-    PSet Step(2, 0), cf%
-
-    PSet Step(-3, 1), cf%
-    PSet Step(2, 0), cf%
-    Draw "bm+1, 0"
-End Sub
-
-Sub xxf1
-    PSet (ex% + 8, ey% + 0), 178
-    PSet (ex% + 9, ey% + 0), 130
-    PSet (ex% + 10, ey% + 0), 23
-    PSet (ex% + 11, ey% + 0), 24
-    PSet (ex% + 12, ey% + 0), 24
-    PSet (ex% + 13, ey% + 0), 24
-    PSet (ex% + 14, ey% + 0), 24
-    PSet (ex% + 15, ey% + 0), 25
-    PSet (ex% + 16, ey% + 0), 25
-    PSet (ex% + 17, ey% + 0), 24
-    PSet (ex% + 18, ey% + 0), 21
-    PSet (ex% + 19, ey% + 0), 19
-    PSet (ex% + 5, ey% + 1), 178
-    PSet (ex% + 6, ey% + 1), 106
-    PSet (ex% + 7, ey% + 1), 106
-    PSet (ex% + 8, ey% + 1), 106
-    PSet (ex% + 9, ey% + 1), 130
-    PSet (ex% + 10, ey% + 1), 154
-    PSet (ex% + 11, ey% + 1), 26
-    PSet (ex% + 12, ey% + 1), 26
-    PSet (ex% + 13, ey% + 1), 42
-    PSet (ex% + 14, ey% + 1), 43
-    PSet (ex% + 15, ey% + 1), 44
-    PSet (ex% + 16, ey% + 1), 43
-    PSet (ex% + 17, ey% + 1), 44
-    PSet (ex% + 18, ey% + 1), 42
-    PSet (ex% + 19, ey% + 1), 19
-    PSet (ex% + 20, ey% + 1), 19
-    PSet (ex% + 2, ey% + 2), 178
-    PSet (ex% + 3, ey% + 2), 106
-    PSet (ex% + 4, ey% + 2), 106
-    PSet (ex% + 5, ey% + 2), 106
-    PSet (ex% + 6, ey% + 2), 130
-    PSet (ex% + 7, ey% + 2), 154
-    PSet (ex% + 8, ey% + 2), 25
-    PSet (ex% + 9, ey% + 2), 25
-    PSet (ex% + 10, ey% + 2), 25
-    PSet (ex% + 11, ey% + 2), 23
-    PSet (ex% + 12, ey% + 2), 21
-    PSet (ex% + 13, ey% + 2), 21
-    PSet (ex% + 14, ey% + 2), 22
-    PSet (ex% + 15, ey% + 2), 43
-    PSet (ex% + 16, ey% + 2), 44
-    PSet (ex% + 17, ey% + 2), 44
-    PSet (ex% + 18, ey% + 2), 43
-    PSet (ex% + 19, ey% + 2), 42
-    PSet (ex% + 20, ey% + 2), 23
-    PSet (ex% + 21, ey% + 2), 21
-    PSet (ex% + 0, ey% + 3), 21
-    PSet (ex% + 1, ey% + 3), 22
-    PSet (ex% + 2, ey% + 3), 23
-    PSet (ex% + 3, ey% + 3), 23
-    PSet (ex% + 4, ey% + 3), 24
-    PSet (ex% + 5, ey% + 3), 24
-    PSet (ex% + 6, ey% + 3), 24
-    PSet (ex% + 7, ey% + 3), 24
-    PSet (ex% + 8, ey% + 3), 24
-    PSet (ex% + 9, ey% + 3), 21
-    PSet (ex% + 10, ey% + 3), 21
-    PSet (ex% + 11, ey% + 3), 20
-    PSet (ex% + 12, ey% + 3), 20
-    PSet (ex% + 14, ey% + 3), 24
-    PSet (ex% + 15, ey% + 3), 25
-    PSet (ex% + 16, ey% + 3), 25
-    PSet (ex% + 17, ey% + 3), 43
-    PSet (ex% + 18, ey% + 3), 24
-    PSet (ex% + 19, ey% + 3), 20
-    PSet (ex% + 20, ey% + 3), 19
-    PSet (ex% + 21, ey% + 3), 19
-    PSet (ex% + 3, ey% + 4), 20
-    PSet (ex% + 4, ey% + 4), 22
-    PSet (ex% + 5, ey% + 4), 22
-    PSet (ex% + 6, ey% + 4), 20
-    PSet (ex% + 7, ey% + 4), 19
-    PSet (ex% + 13, ey% + 4), 24
-    PSet (ex% + 14, ey% + 4), 25
-    PSet (ex% + 15, ey% + 4), 25
-    PSet (ex% + 16, ey% + 4), 25
-    PSet (ex% + 17, ey% + 4), 21
-    PSet (ex% + 18, ey% + 4), 20
-    PSet (ex% + 19, ey% + 4), 20
-    PSet (ex% + 20, ey% + 4), 19
-    PSet (ex% + 9, ey% + 5), 22
-    PSet (ex% + 10, ey% + 5), 24
-    PSet (ex% + 11, ey% + 5), 25
-    PSet (ex% + 12, ey% + 5), 25
-    PSet (ex% + 13, ey% + 5), 25
-    PSet (ex% + 14, ey% + 5), 25
-    PSet (ex% + 15, ey% + 5), 24
-    PSet (ex% + 16, ey% + 5), 20
-    PSet (ex% + 17, ey% + 5), 20
-    PSet (ex% + 18, ey% + 5), 19
-    PSet (ex% + 8, ey% + 6), 42
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 10, ey% + 6), 42
-    PSet (ex% + 11, ey% + 6), 43
-    PSet (ex% + 12, ey% + 6), 44
-    PSet (ex% + 13, ey% + 6), 25
-    PSet (ex% + 14, ey% + 6), 20
-    PSet (ex% + 15, ey% + 6), 19
-    PSet (ex% + 16, ey% + 6), 19
-    PSet (ex% + 9, ey% + 7), 20
-    PSet (ex% + 10, ey% + 7), 21
-    PSet (ex% + 11, ey% + 7), 22
-    PSet (ex% + 12, ey% + 7), 22
-    PSet (ex% + 13, ey% + 7), 20
-    PSet (ex% + 14, ey% + 7), 19
-End Sub
-
-Sub xxf10
-    PSet (ex% + 15, ey% + -1), 40
-    PSet (ex% + 16, ey% + -1), 41
-    PSet (ex% + 13, ey% + 0), 41
-    PSet (ex% + 14, ey% + 0), 40
-    PSet (ex% + 15, ey% + 0), 42
-    PSet (ex% + 16, ey% + 0), 40
-    PSet (ex% + 17, ey% + 0), 40
-    PSet (ex% + 8, ey% + 1), 40
-    PSet (ex% + 14, ey% + 1), 40
-    PSet (ex% + 16, ey% + 3), 40
-    PSet (ex% + 19, ey% + 3), 41
-    PSet (ex% + 21, ey% + 3), 40
-    PSet (ex% + 8, ey% + 4), 40
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 40
-    PSet (ex% + 20, ey% + 4), 41
-    PSet (ex% + 11, ey% + 5), 41
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 15, ey% + 6), 42
-    PSet (ex% + 19, ey% + 6), 42
-    PSet (ex% + 12, ey% + 7), 41
-    PSet (ex% + 14, ey% + 7), 41
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 41
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 11, ey% + 8), 41
-    PSet (ex% + 13, ey% + 8), 42
-    PSet (ex% + 14, ey% + 8), 41
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 11, ey% + 9), 40
-    PSet (ex% + 12, ey% + 9), 41
-    PSet (ex% + 13, ey% + 9), 41
-    PSet (ex% + 14, ey% + 9), 40
-    PSet (ex% + 12, ey% + 10), 40
-End Sub
-
-Sub xxf11
-    PSet (ex% + 13, ey% + 0), 41
-    PSet (ex% + 16, ey% + 0), 40
-    PSet (ex% + 14, ey% + 1), 40
-    PSet (ex% + 21, ey% + 3), 43
-    PSet (ex% + 14, ey% + 4), 40
-    PSet (ex% + 15, ey% + 6), 42
-    PSet (ex% + 12, ey% + 7), 41
-    PSet (ex% + 13, ey% + 8), 41
-    PSet (ex% + 14, ey% + 8), 43
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 11, ey% + 9), 42
-    PSet (ex% + 13, ey% + 9), 43
-    PSet (ex% + 12, ey% + 10), 40
-End Sub
-
-Sub xxf12
-    PSet (ex% + 14, ey% + 8), 40
-    PSet (ex% + 11, ey% + 9), 41
-    PSet (ex% + 13, ey% + 9), 42
-    PSet (ex% + 14, ey% + 10), 40
-End Sub
-
-Sub xxf2
-    PSet (ex% + 16, ey% + -1), 41
-    PSet (ex% + 8, ey% + 0), 178
-    PSet (ex% + 9, ey% + 0), 130
-    PSet (ex% + 10, ey% + 0), 23
-    PSet (ex% + 11, ey% + 0), 24
-    PSet (ex% + 12, ey% + 0), 42
-    PSet (ex% + 13, ey% + 0), 24
-    PSet (ex% + 14, ey% + 0), 24
-    PSet (ex% + 15, ey% + 0), 42
-    PSet (ex% + 16, ey% + 0), 42
-    PSet (ex% + 17, ey% + 0), 41
-    PSet (ex% + 18, ey% + 0), 21
-    PSet (ex% + 19, ey% + 0), 19
-    PSet (ex% + 5, ey% + 1), 178
-    PSet (ex% + 6, ey% + 1), 106
-    PSet (ex% + 7, ey% + 1), 106
-    PSet (ex% + 8, ey% + 1), 106
-    PSet (ex% + 9, ey% + 1), 130
-    PSet (ex% + 10, ey% + 1), 154
-    PSet (ex% + 11, ey% + 1), 42
-    PSet (ex% + 12, ey% + 1), 43
-    PSet (ex% + 13, ey% + 1), 43
-    PSet (ex% + 14, ey% + 1), 42
-    PSet (ex% + 15, ey% + 1), 43
-    PSet (ex% + 16, ey% + 1), 43
-    PSet (ex% + 17, ey% + 1), 44
-    PSet (ex% + 18, ey% + 1), 42
-    PSet (ex% + 19, ey% + 1), 19
-    PSet (ex% + 20, ey% + 1), 19
-    PSet (ex% + 2, ey% + 2), 178
-    PSet (ex% + 3, ey% + 2), 106
-    PSet (ex% + 4, ey% + 2), 106
-    PSet (ex% + 5, ey% + 2), 106
-    PSet (ex% + 6, ey% + 2), 130
-    PSet (ex% + 7, ey% + 2), 154
-    PSet (ex% + 8, ey% + 2), 25
-    PSet (ex% + 9, ey% + 2), 25
-    PSet (ex% + 10, ey% + 2), 25
-    PSet (ex% + 11, ey% + 2), 23
-    PSet (ex% + 12, ey% + 2), 42
-    PSet (ex% + 13, ey% + 2), 21
-    PSet (ex% + 14, ey% + 2), 44
-    PSet (ex% + 15, ey% + 2), 43
-    PSet (ex% + 16, ey% + 2), 44
-    PSet (ex% + 17, ey% + 2), 44
-    PSet (ex% + 18, ey% + 2), 43
-    PSet (ex% + 19, ey% + 2), 42
-    PSet (ex% + 20, ey% + 2), 23
-    PSet (ex% + 21, ey% + 2), 21
-    PSet (ex% + 0, ey% + 3), 21
-    PSet (ex% + 1, ey% + 3), 22
-    PSet (ex% + 2, ey% + 3), 23
-    PSet (ex% + 3, ey% + 3), 23
-    PSet (ex% + 4, ey% + 3), 24
-    PSet (ex% + 5, ey% + 3), 24
-    PSet (ex% + 6, ey% + 3), 24
-    PSet (ex% + 7, ey% + 3), 24
-    PSet (ex% + 8, ey% + 3), 24
-    PSet (ex% + 9, ey% + 3), 21
-    PSet (ex% + 10, ey% + 3), 21
-    PSet (ex% + 11, ey% + 3), 20
-    PSet (ex% + 12, ey% + 3), 20
-    PSet (ex% + 14, ey% + 3), 24
-    PSet (ex% + 15, ey% + 3), 25
-    PSet (ex% + 16, ey% + 3), 44
-    PSet (ex% + 17, ey% + 3), 43
-    PSet (ex% + 18, ey% + 3), 42
-    PSet (ex% + 19, ey% + 3), 20
-    PSet (ex% + 20, ey% + 3), 19
-    PSet (ex% + 21, ey% + 3), 19
-    PSet (ex% + 3, ey% + 4), 20
-    PSet (ex% + 4, ey% + 4), 22
-    PSet (ex% + 5, ey% + 4), 22
-    PSet (ex% + 6, ey% + 4), 20
-    PSet (ex% + 7, ey% + 4), 19
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 43
-    PSet (ex% + 15, ey% + 4), 44
-    PSet (ex% + 16, ey% + 4), 43
-    PSet (ex% + 17, ey% + 4), 42
-    PSet (ex% + 18, ey% + 4), 20
-    PSet (ex% + 19, ey% + 4), 20
-    PSet (ex% + 20, ey% + 4), 19
-    PSet (ex% + 9, ey% + 5), 19
-    PSet (ex% + 10, ey% + 5), 21
-    PSet (ex% + 11, ey% + 5), 22
-    PSet (ex% + 12, ey% + 5), 24
-    PSet (ex% + 13, ey% + 5), 25
-    PSet (ex% + 14, ey% + 5), 25
-    PSet (ex% + 15, ey% + 5), 43
-    PSet (ex% + 16, ey% + 5), 20
-    PSet (ex% + 17, ey% + 5), 20
-    PSet (ex% + 18, ey% + 5), 19
-    PSet (ex% + 8, ey% + 6), 19
-    PSet (ex% + 9, ey% + 6), 19
-    PSet (ex% + 10, ey% + 6), 42
-    PSet (ex% + 11, ey% + 6), 44
-    PSet (ex% + 12, ey% + 6), 43
-    PSet (ex% + 13, ey% + 6), 24
-    PSet (ex% + 14, ey% + 6), 20
-    PSet (ex% + 15, ey% + 6), 19
-    PSet (ex% + 16, ey% + 6), 19
-    PSet (ex% + 8, ey% + 7), 41
-    PSet (ex% + 9, ey% + 7), 42
-    PSet (ex% + 10, ey% + 7), 44
-    PSet (ex% + 11, ey% + 7), 26
-    PSet (ex% + 12, ey% + 7), 23
-    PSet (ex% + 13, ey% + 7), 21
-    PSet (ex% + 14, ey% + 7), 19
-    PSet (ex% + 8, ey% + 8), 19
-    PSet (ex% + 9, ey% + 8), 22
-    PSet (ex% + 10, ey% + 8), 24
-    PSet (ex% + 11, ey% + 8), 22
-End Sub
-
-Sub xxf3
-    PSet (ex% + 18, ey% + -3), 41
-    PSet (ex% + 11, ey% + -2), 41
-    PSet (ex% + 13, ey% + -2), 41
-    PSet (ex% + 16, ey% + -2), 42
-    PSet (ex% + 17, ey% + -2), 44
-    PSet (ex% + 18, ey% + -2), 43
-    PSet (ex% + 19, ey% + -2), 42
-    PSet (ex% + 10, ey% + -1), 41
-    PSet (ex% + 11, ey% + -1), 42
-    PSet (ex% + 12, ey% + -1), 43
-    PSet (ex% + 15, ey% + -1), 42
-    PSet (ex% + 16, ey% + -1), 44
-    PSet (ex% + 17, ey% + -1), 43
-    PSet (ex% + 18, ey% + -1), 44
-    PSet (ex% + 21, ey% + -1), 41
-    PSet (ex% + 8, ey% + 0), 178
-    PSet (ex% + 9, ey% + 0), 41
-    PSet (ex% + 10, ey% + 0), 42
-    PSet (ex% + 11, ey% + 0), 43
-    PSet (ex% + 12, ey% + 0), 43
-    PSet (ex% + 13, ey% + 0), 42
-    PSet (ex% + 14, ey% + 0), 24
-    PSet (ex% + 15, ey% + 0), 42
-    PSet (ex% + 16, ey% + 0), 44
-    PSet (ex% + 17, ey% + 0), 43
-    PSet (ex% + 18, ey% + 0), 43
-    PSet (ex% + 19, ey% + 0), 42
-    PSet (ex% + 20, ey% + 0), 42
-    PSet (ex% + 21, ey% + 0), 44
-    PSet (ex% + 22, ey% + 0), 43
-    PSet (ex% + 23, ey% + 0), 42
-    PSet (ex% + 5, ey% + 1), 42
-    PSet (ex% + 6, ey% + 1), 43
-    PSet (ex% + 7, ey% + 1), 106
-    PSet (ex% + 8, ey% + 1), 106
-    PSet (ex% + 9, ey% + 1), 130
-    PSet (ex% + 10, ey% + 1), 43
-    PSet (ex% + 11, ey% + 1), 42
-    PSet (ex% + 12, ey% + 1), 44
-    PSet (ex% + 13, ey% + 1), 43
-    PSet (ex% + 14, ey% + 1), 44
-    PSet (ex% + 15, ey% + 1), 43
-    PSet (ex% + 16, ey% + 1), 43
-    PSet (ex% + 17, ey% + 1), 44
-    PSet (ex% + 18, ey% + 1), 42
-    PSet (ex% + 19, ey% + 1), 44
-    PSet (ex% + 20, ey% + 1), 44
-    PSet (ex% + 21, ey% + 1), 43
-    PSet (ex% + 22, ey% + 1), 42
-    PSet (ex% + 2, ey% + 2), 178
-    PSet (ex% + 3, ey% + 2), 106
-    PSet (ex% + 4, ey% + 2), 42
-    PSet (ex% + 5, ey% + 2), 43
-    PSet (ex% + 6, ey% + 2), 44
-    PSet (ex% + 7, ey% + 2), 43
-    PSet (ex% + 8, ey% + 2), 25
-    PSet (ex% + 9, ey% + 2), 25
-    PSet (ex% + 10, ey% + 2), 43
-    PSet (ex% + 11, ey% + 2), 44
-    PSet (ex% + 12, ey% + 2), 43
-    PSet (ex% + 13, ey% + 2), 21
-    PSet (ex% + 14, ey% + 2), 44
-    PSet (ex% + 15, ey% + 2), 43
-    PSet (ex% + 16, ey% + 2), 44
-    PSet (ex% + 17, ey% + 2), 44
-    PSet (ex% + 18, ey% + 2), 43
-    PSet (ex% + 19, ey% + 2), 43
-    PSet (ex% + 20, ey% + 2), 43
-    PSet (ex% + 21, ey% + 2), 44
-    PSet (ex% + 0, ey% + 3), 21
-    PSet (ex% + 1, ey% + 3), 22
-    PSet (ex% + 2, ey% + 3), 23
-    PSet (ex% + 3, ey% + 3), 23
-    PSet (ex% + 4, ey% + 3), 24
-    PSet (ex% + 5, ey% + 3), 43
-    PSet (ex% + 6, ey% + 3), 43
-    PSet (ex% + 7, ey% + 3), 24
-    PSet (ex% + 8, ey% + 3), 24
-    PSet (ex% + 9, ey% + 3), 41
-    PSet (ex% + 10, ey% + 3), 42
-    PSet (ex% + 11, ey% + 3), 42
-    PSet (ex% + 12, ey% + 3), 44
-    PSet (ex% + 14, ey% + 3), 24
-    PSet (ex% + 15, ey% + 3), 25
-    PSet (ex% + 16, ey% + 3), 44
-    PSet (ex% + 17, ey% + 3), 43
-    PSet (ex% + 18, ey% + 3), 44
-    PSet (ex% + 19, ey% + 3), 42
-    PSet (ex% + 20, ey% + 3), 44
-    PSet (ex% + 21, ey% + 3), 43
-    PSet (ex% + 22, ey% + 3), 41
-    PSet (ex% + 3, ey% + 4), 20
-    PSet (ex% + 4, ey% + 4), 22
-    PSet (ex% + 5, ey% + 4), 22
-    PSet (ex% + 6, ey% + 4), 20
-    PSet (ex% + 7, ey% + 4), 19
-    PSet (ex% + 10, ey% + 4), 41
-    PSet (ex% + 12, ey% + 4), 43
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 43
-    PSet (ex% + 15, ey% + 4), 44
-    PSet (ex% + 16, ey% + 4), 43
-    PSet (ex% + 17, ey% + 4), 42
-    PSet (ex% + 18, ey% + 4), 43
-    PSet (ex% + 19, ey% + 4), 44
-    PSet (ex% + 20, ey% + 4), 43
-    PSet (ex% + 12, ey% + 5), 43
-    PSet (ex% + 13, ey% + 5), 44
-    PSet (ex% + 14, ey% + 5), 44
-    PSet (ex% + 15, ey% + 5), 43
-    PSet (ex% + 16, ey% + 5), 44
-    PSet (ex% + 17, ey% + 5), 42
-    PSet (ex% + 18, ey% + 5), 42
-    PSet (ex% + 19, ey% + 5), 41
-    PSet (ex% + 21, ey% + 5), 42
-    PSet (ex% + 11, ey% + 6), 42
-    PSet (ex% + 12, ey% + 6), 41
-    PSet (ex% + 13, ey% + 6), 43
-    PSet (ex% + 14, ey% + 6), 44
-    PSet (ex% + 15, ey% + 6), 44
-    PSet (ex% + 16, ey% + 6), 42
-    PSet (ex% + 18, ey% + 6), 41
-    PSet (ex% + 10, ey% + 7), 19
-    PSet (ex% + 11, ey% + 7), 23
-    PSet (ex% + 12, ey% + 7), 43
-    PSet (ex% + 13, ey% + 7), 42
-    PSet (ex% + 14, ey% + 7), 24
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 43
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 9, ey% + 8), 19
-    PSet (ex% + 10, ey% + 8), 24
-    PSet (ex% + 11, ey% + 8), 44
-    PSet (ex% + 12, ey% + 8), 42
-    PSet (ex% + 13, ey% + 8), 25
-    PSet (ex% + 14, ey% + 8), 23
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 10, ey% + 9), 43
-    PSet (ex% + 11, ey% + 9), 42
-    PSet (ex% + 12, ey% + 9), 22
-    PSet (ex% + 13, ey% + 9), 21
-End Sub
-
-Sub xxf4
-    PSet (ex% + 18, ey% + -3), 42
-    PSet (ex% + 20, ey% + -3), 40
-    PSet (ex% + 11, ey% + -2), 41
-    PSet (ex% + 13, ey% + -2), 41
-    PSet (ex% + 16, ey% + -2), 42
-    PSet (ex% + 17, ey% + -2), 44
-    PSet (ex% + 18, ey% + -2), 43
-    PSet (ex% + 19, ey% + -2), 44
-    PSet (ex% + 20, ey% + -2), 42
-    PSet (ex% + 10, ey% + -1), 41
-    PSet (ex% + 11, ey% + -1), 42
-    PSet (ex% + 12, ey% + -1), 43
-    PSet (ex% + 14, ey% + -1), 44
-    PSet (ex% + 15, ey% + -1), 44
-    PSet (ex% + 16, ey% + -1), 44
-    PSet (ex% + 17, ey% + -1), 43
-    PSet (ex% + 18, ey% + -1), 44
-    PSet (ex% + 19, ey% + -1), 44
-    PSet (ex% + 21, ey% + -1), 43
-    PSet (ex% + 22, ey% + -1), 43
-    PSet (ex% + 6, ey% + 0), 40
-    PSet (ex% + 7, ey% + 0), 42
-    PSet (ex% + 8, ey% + 0), 178
-    PSet (ex% + 9, ey% + 0), 41
-    PSet (ex% + 10, ey% + 0), 42
-    PSet (ex% + 11, ey% + 0), 43
-    PSet (ex% + 12, ey% + 0), 43
-    PSet (ex% + 13, ey% + 0), 42
-    PSet (ex% + 14, ey% + 0), 24
-    PSet (ex% + 15, ey% + 0), 42
-    PSet (ex% + 16, ey% + 0), 44
-    PSet (ex% + 17, ey% + 0), 43
-    PSet (ex% + 18, ey% + 0), 43
-    PSet (ex% + 19, ey% + 0), 42
-    PSet (ex% + 20, ey% + 0), 42
-    PSet (ex% + 21, ey% + 0), 44
-    PSet (ex% + 22, ey% + 0), 43
-    PSet (ex% + 23, ey% + 0), 42
-    PSet (ex% + 4, ey% + 1), 41
-    PSet (ex% + 5, ey% + 1), 43
-    PSet (ex% + 6, ey% + 1), 43
-    PSet (ex% + 7, ey% + 1), 44
-    PSet (ex% + 8, ey% + 1), 43
-    PSet (ex% + 9, ey% + 1), 130
-    PSet (ex% + 10, ey% + 1), 43
-    PSet (ex% + 11, ey% + 1), 42
-    PSet (ex% + 12, ey% + 1), 44
-    PSet (ex% + 13, ey% + 1), 43
-    PSet (ex% + 14, ey% + 1), 44
-    PSet (ex% + 15, ey% + 1), 42
-    PSet (ex% + 16, ey% + 1), 43
-    PSet (ex% + 17, ey% + 1), 42
-    PSet (ex% + 18, ey% + 1), 43
-    PSet (ex% + 19, ey% + 1), 44
-    PSet (ex% + 20, ey% + 1), 44
-    PSet (ex% + 21, ey% + 1), 43
-    PSet (ex% + 22, ey% + 1), 43
-    PSet (ex% + 23, ey% + 1), 44
-    PSet (ex% + 2, ey% + 2), 178
-    PSet (ex% + 3, ey% + 2), 43
-    PSet (ex% + 4, ey% + 2), 42
-    PSet (ex% + 5, ey% + 2), 43
-    PSet (ex% + 6, ey% + 2), 44
-    PSet (ex% + 7, ey% + 2), 43
-    PSet (ex% + 8, ey% + 2), 25
-    PSet (ex% + 9, ey% + 2), 25
-    PSet (ex% + 10, ey% + 2), 43
-    PSet (ex% + 11, ey% + 2), 44
-    PSet (ex% + 12, ey% + 2), 43
-    PSet (ex% + 13, ey% + 2), 21
-    PSet (ex% + 14, ey% + 2), 42
-    PSet (ex% + 15, ey% + 2), 43
-    PSet (ex% + 16, ey% + 2), 41
-    PSet (ex% + 17, ey% + 2), 42
-    PSet (ex% + 18, ey% + 2), 42
-    PSet (ex% + 19, ey% + 2), 43
-    PSet (ex% + 20, ey% + 2), 43
-    PSet (ex% + 21, ey% + 2), 44
-    PSet (ex% + 0, ey% + 3), 21
-    PSet (ex% + 1, ey% + 3), 22
-    PSet (ex% + 2, ey% + 3), 41
-    PSet (ex% + 3, ey% + 3), 42
-    PSet (ex% + 4, ey% + 3), 41
-    PSet (ex% + 5, ey% + 3), 43
-    PSet (ex% + 6, ey% + 3), 43
-    PSet (ex% + 7, ey% + 3), 43
-    PSet (ex% + 8, ey% + 3), 44
-    PSet (ex% + 9, ey% + 3), 43
-    PSet (ex% + 10, ey% + 3), 44
-    PSet (ex% + 11, ey% + 3), 42
-    PSet (ex% + 12, ey% + 3), 44
-    PSet (ex% + 14, ey% + 3), 24
-    PSet (ex% + 15, ey% + 3), 25
-    PSet (ex% + 16, ey% + 3), 43
-    PSet (ex% + 17, ey% + 3), 41
-    PSet (ex% + 18, ey% + 3), 44
-    PSet (ex% + 19, ey% + 3), 42
-    PSet (ex% + 20, ey% + 3), 44
-    PSet (ex% + 21, ey% + 3), 43
-    PSet (ex% + 22, ey% + 3), 42
-    PSet (ex% + 3, ey% + 4), 20
-    PSet (ex% + 4, ey% + 4), 22
-    PSet (ex% + 5, ey% + 4), 42
-    PSet (ex% + 6, ey% + 4), 42
-    PSet (ex% + 7, ey% + 4), 19
-    PSet (ex% + 8, ey% + 4), 42
-    PSet (ex% + 9, ey% + 4), 43
-    PSet (ex% + 10, ey% + 4), 41
-    PSet (ex% + 12, ey% + 4), 43
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 43
-    PSet (ex% + 15, ey% + 4), 44
-    PSet (ex% + 16, ey% + 4), 43
-    PSet (ex% + 17, ey% + 4), 43
-    PSet (ex% + 18, ey% + 4), 43
-    PSet (ex% + 19, ey% + 4), 44
-    PSet (ex% + 20, ey% + 4), 43
-    PSet (ex% + 10, ey% + 5), 44
-    PSet (ex% + 12, ey% + 5), 43
-    PSet (ex% + 13, ey% + 5), 44
-    PSet (ex% + 14, ey% + 5), 44
-    PSet (ex% + 15, ey% + 5), 43
-    PSet (ex% + 16, ey% + 5), 44
-    PSet (ex% + 17, ey% + 5), 44
-    PSet (ex% + 18, ey% + 5), 43
-    PSet (ex% + 19, ey% + 5), 42
-    PSet (ex% + 21, ey% + 5), 42
-    PSet (ex% + 22, ey% + 5), 42
-    PSet (ex% + 11, ey% + 6), 42
-    PSet (ex% + 12, ey% + 6), 41
-    PSet (ex% + 13, ey% + 6), 43
-    PSet (ex% + 14, ey% + 6), 44
-    PSet (ex% + 15, ey% + 6), 44
-    PSet (ex% + 16, ey% + 6), 42
-    PSet (ex% + 18, ey% + 6), 43
-    PSet (ex% + 19, ey% + 6), 43
-    PSet (ex% + 10, ey% + 7), 43
-    PSet (ex% + 11, ey% + 7), 44
-    PSet (ex% + 12, ey% + 7), 43
-    PSet (ex% + 13, ey% + 7), 42
-    PSet (ex% + 14, ey% + 7), 24
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 43
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 18, ey% + 7), 43
-    PSet (ex% + 20, ey% + 7), 42
-    PSet (ex% + 21, ey% + 7), 41
-    PSet (ex% + 9, ey% + 8), 43
-    PSet (ex% + 10, ey% + 8), 23
-    PSet (ex% + 11, ey% + 8), 42
-    PSet (ex% + 12, ey% + 8), 44
-    PSet (ex% + 13, ey% + 8), 43
-    PSet (ex% + 14, ey% + 8), 43
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 18, ey% + 8), 41
-    PSet (ex% + 10, ey% + 9), 43
-    PSet (ex% + 11, ey% + 9), 43
-    PSet (ex% + 12, ey% + 9), 22
-    PSet (ex% + 13, ey% + 9), 43
-    PSet (ex% + 14, ey% + 9), 42
-End Sub
-
-Sub xxf5
-    PSet (ex% + 13, ey% + -3), 42
-    PSet (ex% + 14, ey% + -3), 41
-    PSet (ex% + 15, ey% + -3), 41
-    PSet (ex% + 18, ey% + -3), 41
-    PSet (ex% + 20, ey% + -3), 40
-    PSet (ex% + 23, ey% + -3), 41
-    PSet (ex% + 11, ey% + -2), 41
-    PSet (ex% + 13, ey% + -2), 41
-    PSet (ex% + 14, ey% + -2), 42
-    PSet (ex% + 16, ey% + -2), 42
-    PSet (ex% + 17, ey% + -2), 42
-    PSet (ex% + 18, ey% + -2), 43
-    PSet (ex% + 19, ey% + -2), 41
-    PSet (ex% + 20, ey% + -2), 42
-    PSet (ex% + 21, ey% + -2), 42
-    PSet (ex% + 22, ey% + -2), 41
-    PSet (ex% + 4, ey% + -1), 40
-    PSet (ex% + 9, ey% + -1), 41
-    PSet (ex% + 10, ey% + -1), 42
-    PSet (ex% + 11, ey% + -1), 42
-    PSet (ex% + 12, ey% + -1), 41
-    PSet (ex% + 14, ey% + -1), 44
-    PSet (ex% + 15, ey% + -1), 44
-    PSet (ex% + 16, ey% + -1), 44
-    PSet (ex% + 17, ey% + -1), 43
-    PSet (ex% + 18, ey% + -1), 44
-    PSet (ex% + 19, ey% + -1), 44
-    PSet (ex% + 21, ey% + -1), 43
-    PSet (ex% + 22, ey% + -1), 43
-    PSet (ex% + 24, ey% + -1), 41
-    PSet (ex% + 6, ey% + 0), 40
-    PSet (ex% + 7, ey% + 0), 42
-    PSet (ex% + 8, ey% + 0), 44
-    PSet (ex% + 9, ey% + 0), 41
-    PSet (ex% + 10, ey% + 0), 42
-    PSet (ex% + 11, ey% + 0), 43
-    PSet (ex% + 12, ey% + 0), 43
-    PSet (ex% + 13, ey% + 0), 42
-    PSet (ex% + 14, ey% + 0), 44
-    PSet (ex% + 15, ey% + 0), 42
-    PSet (ex% + 16, ey% + 0), 44
-    PSet (ex% + 17, ey% + 0), 43
-    PSet (ex% + 18, ey% + 0), 43
-    PSet (ex% + 19, ey% + 0), 42
-    PSet (ex% + 20, ey% + 0), 42
-    PSet (ex% + 21, ey% + 0), 44
-    PSet (ex% + 22, ey% + 0), 42
-    PSet (ex% + 23, ey% + 0), 42
-    PSet (ex% + 3, ey% + 1), 40
-    PSet (ex% + 4, ey% + 1), 41
-    PSet (ex% + 5, ey% + 1), 43
-    PSet (ex% + 6, ey% + 1), 43
-    PSet (ex% + 7, ey% + 1), 44
-    PSet (ex% + 8, ey% + 1), 43
-    PSet (ex% + 9, ey% + 1), 44
-    PSet (ex% + 10, ey% + 1), 43
-    PSet (ex% + 11, ey% + 1), 42
-    PSet (ex% + 12, ey% + 1), 44
-    PSet (ex% + 13, ey% + 1), 44
-    PSet (ex% + 14, ey% + 1), 44
-    PSet (ex% + 15, ey% + 1), 42
-    PSet (ex% + 16, ey% + 1), 43
-    PSet (ex% + 17, ey% + 1), 42
-    PSet (ex% + 18, ey% + 1), 43
-    PSet (ex% + 19, ey% + 1), 44
-    PSet (ex% + 20, ey% + 1), 44
-    PSet (ex% + 21, ey% + 1), 43
-    PSet (ex% + 22, ey% + 1), 43
-    PSet (ex% + 23, ey% + 1), 43
-    PSet (ex% + 24, ey% + 1), 42
-    PSet (ex% + 25, ey% + 1), 41
-    PSet (ex% + 1, ey% + 2), 41
-    PSet (ex% + 2, ey% + 2), 42
-    PSet (ex% + 3, ey% + 2), 43
-    PSet (ex% + 4, ey% + 2), 42
-    PSet (ex% + 5, ey% + 2), 43
-    PSet (ex% + 6, ey% + 2), 44
-    PSet (ex% + 7, ey% + 2), 43
-    PSet (ex% + 8, ey% + 2), 44
-    PSet (ex% + 9, ey% + 2), 44
-    PSet (ex% + 10, ey% + 2), 44
-    PSet (ex% + 11, ey% + 2), 44
-    PSet (ex% + 12, ey% + 2), 43
-    PSet (ex% + 13, ey% + 2), 44
-    PSet (ex% + 14, ey% + 2), 42
-    PSet (ex% + 15, ey% + 2), 42
-    PSet (ex% + 16, ey% + 2), 41
-    PSet (ex% + 17, ey% + 2), 42
-    PSet (ex% + 18, ey% + 2), 41
-    PSet (ex% + 19, ey% + 2), 43
-    PSet (ex% + 20, ey% + 2), 43
-    PSet (ex% + 21, ey% + 2), 44
-    PSet (ex% + 24, ey% + 2), 40
-    PSet (ex% + 0, ey% + 3), 41
-    PSet (ex% + 1, ey% + 3), 43
-    PSet (ex% + 2, ey% + 3), 43
-    PSet (ex% + 3, ey% + 3), 42
-    PSet (ex% + 4, ey% + 3), 41
-    PSet (ex% + 5, ey% + 3), 43
-    PSet (ex% + 6, ey% + 3), 43
-    PSet (ex% + 7, ey% + 3), 43
-    PSet (ex% + 8, ey% + 3), 44
-    PSet (ex% + 9, ey% + 3), 43
-    PSet (ex% + 10, ey% + 3), 44
-    PSet (ex% + 11, ey% + 3), 42
-    PSet (ex% + 12, ey% + 3), 44
-    PSet (ex% + 13, ey% + 3), 44
-    PSet (ex% + 14, ey% + 3), 44
-    PSet (ex% + 15, ey% + 3), 43
-    PSet (ex% + 16, ey% + 3), 42
-    PSet (ex% + 17, ey% + 3), 41
-    PSet (ex% + 18, ey% + 3), 44
-    PSet (ex% + 19, ey% + 3), 42
-    PSet (ex% + 20, ey% + 3), 44
-    PSet (ex% + 21, ey% + 3), 43
-    PSet (ex% + 22, ey% + 3), 42
-    PSet (ex% + 2, ey% + 4), 41
-    PSet (ex% + 3, ey% + 4), 43
-    PSet (ex% + 4, ey% + 4), 43
-    PSet (ex% + 5, ey% + 4), 42
-    PSet (ex% + 6, ey% + 4), 42
-    PSet (ex% + 7, ey% + 4), 44
-    PSet (ex% + 8, ey% + 4), 42
-    PSet (ex% + 9, ey% + 4), 43
-    PSet (ex% + 10, ey% + 4), 41
-    PSet (ex% + 12, ey% + 4), 43
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 43
-    PSet (ex% + 15, ey% + 4), 44
-    PSet (ex% + 16, ey% + 4), 43
-    PSet (ex% + 17, ey% + 4), 43
-    PSet (ex% + 18, ey% + 4), 43
-    PSet (ex% + 19, ey% + 4), 44
-    PSet (ex% + 20, ey% + 4), 43
-    PSet (ex% + 23, ey% + 4), 41
-    PSet (ex% + 3, ey% + 5), 42
-    PSet (ex% + 4, ey% + 5), 43
-    PSet (ex% + 6, ey% + 5), 41
-    PSet (ex% + 8, ey% + 5), 42
-    PSet (ex% + 9, ey% + 5), 43
-    PSet (ex% + 10, ey% + 5), 43
-    PSet (ex% + 11, ey% + 5), 44
-    PSet (ex% + 12, ey% + 5), 43
-    PSet (ex% + 13, ey% + 5), 44
-    PSet (ex% + 14, ey% + 5), 43
-    PSet (ex% + 15, ey% + 5), 43
-    PSet (ex% + 16, ey% + 5), 44
-    PSet (ex% + 17, ey% + 5), 44
-    PSet (ex% + 18, ey% + 5), 43
-    PSet (ex% + 19, ey% + 5), 42
-    PSet (ex% + 21, ey% + 5), 42
-    PSet (ex% + 22, ey% + 5), 42
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 11, ey% + 6), 42
-    PSet (ex% + 12, ey% + 6), 41
-    PSet (ex% + 13, ey% + 6), 43
-    PSet (ex% + 14, ey% + 6), 44
-    PSet (ex% + 15, ey% + 6), 44
-    PSet (ex% + 16, ey% + 6), 42
-    PSet (ex% + 18, ey% + 6), 43
-    PSet (ex% + 19, ey% + 6), 43
-    PSet (ex% + 23, ey% + 6), 41
-    PSet (ex% + 10, ey% + 7), 41
-    PSet (ex% + 11, ey% + 7), 43
-    PSet (ex% + 12, ey% + 7), 42
-    PSet (ex% + 13, ey% + 7), 42
-    PSet (ex% + 14, ey% + 7), 44
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 43
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 18, ey% + 7), 43
-    PSet (ex% + 20, ey% + 7), 42
-    PSet (ex% + 21, ey% + 7), 41
-    PSet (ex% + 9, ey% + 8), 41
-    PSet (ex% + 10, ey% + 8), 23
-    PSet (ex% + 11, ey% + 8), 42
-    PSet (ex% + 12, ey% + 8), 43
-    PSet (ex% + 13, ey% + 8), 43
-    PSet (ex% + 14, ey% + 8), 43
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 16, ey% + 8), 40
-    PSet (ex% + 18, ey% + 8), 41
-    PSet (ex% + 22, ey% + 8), 40
-    PSet (ex% + 10, ey% + 9), 40
-    PSet (ex% + 11, ey% + 9), 42
-    PSet (ex% + 12, ey% + 9), 22
-    PSet (ex% + 13, ey% + 9), 43
-    PSet (ex% + 14, ey% + 9), 42
-    PSet (ex% + 15, ey% + 9), 41
-    PSet (ex% + 13, ey% + 10), 40
-End Sub
-
-Sub xxf6
-    PSet (ex% + 13, ey% + -3), 42
-    PSet (ex% + 14, ey% + -3), 41
-    PSet (ex% + 15, ey% + -3), 41
-    PSet (ex% + 18, ey% + -3), 41
-    PSet (ex% + 21, ey% + -3), 40
-    PSet (ex% + 11, ey% + -2), 41
-    PSet (ex% + 13, ey% + -2), 41
-    PSet (ex% + 14, ey% + -2), 42
-    PSet (ex% + 16, ey% + -2), 42
-    PSet (ex% + 17, ey% + -2), 41
-    PSet (ex% + 18, ey% + -2), 42
-    PSet (ex% + 19, ey% + -2), 40
-    PSet (ex% + 21, ey% + -2), 42
-    PSet (ex% + 22, ey% + -2), 41
-    PSet (ex% + 24, ey% + -2), 41
-    PSet (ex% + 4, ey% + -1), 43
-    PSet (ex% + 9, ey% + -1), 41
-    PSet (ex% + 10, ey% + -1), 42
-    PSet (ex% + 11, ey% + -1), 42
-    PSet (ex% + 12, ey% + -1), 41
-    PSet (ex% + 14, ey% + -1), 40
-    PSet (ex% + 15, ey% + -1), 43
-    PSet (ex% + 16, ey% + -1), 43
-    PSet (ex% + 17, ey% + -1), 43
-    PSet (ex% + 18, ey% + -1), 43
-    PSet (ex% + 19, ey% + -1), 41
-    PSet (ex% + 21, ey% + -1), 43
-    PSet (ex% + 22, ey% + -1), 43
-    PSet (ex% + 5, ey% + 0), 41
-    PSet (ex% + 6, ey% + 0), 40
-    PSet (ex% + 7, ey% + 0), 42
-    PSet (ex% + 8, ey% + 0), 44
-    PSet (ex% + 9, ey% + 0), 41
-    PSet (ex% + 10, ey% + 0), 42
-    PSet (ex% + 11, ey% + 0), 43
-    PSet (ex% + 12, ey% + 0), 43
-    PSet (ex% + 13, ey% + 0), 42
-    PSet (ex% + 14, ey% + 0), 43
-    PSet (ex% + 15, ey% + 0), 42
-    PSet (ex% + 16, ey% + 0), 44
-    PSet (ex% + 17, ey% + 0), 42
-    PSet (ex% + 18, ey% + 0), 40
-    PSet (ex% + 19, ey% + 0), 42
-    PSet (ex% + 20, ey% + 0), 42
-    PSet (ex% + 21, ey% + 0), 44
-    PSet (ex% + 22, ey% + 0), 41
-    PSet (ex% + 23, ey% + 0), 42
-    PSet (ex% + 3, ey% + 1), 41
-    PSet (ex% + 4, ey% + 1), 43
-    PSet (ex% + 5, ey% + 1), 42
-    PSet (ex% + 6, ey% + 1), 43
-    PSet (ex% + 7, ey% + 1), 44
-    PSet (ex% + 8, ey% + 1), 43
-    PSet (ex% + 9, ey% + 1), 43
-    PSet (ex% + 10, ey% + 1), 43
-    PSet (ex% + 11, ey% + 1), 42
-    PSet (ex% + 12, ey% + 1), 40
-    PSet (ex% + 13, ey% + 1), 43
-    PSet (ex% + 14, ey% + 1), 44
-    PSet (ex% + 15, ey% + 1), 43
-    PSet (ex% + 16, ey% + 1), 41
-    PSet (ex% + 17, ey% + 1), 42
-    PSet (ex% + 19, ey% + 1), 41
-    PSet (ex% + 20, ey% + 1), 43
-    PSet (ex% + 21, ey% + 1), 42
-    PSet (ex% + 22, ey% + 1), 40
-    PSet (ex% + 24, ey% + 1), 40
-    PSet (ex% + 1, ey% + 2), 41
-    PSet (ex% + 2, ey% + 2), 42
-    PSet (ex% + 3, ey% + 2), 42
-    PSet (ex% + 4, ey% + 2), 41
-    PSet (ex% + 6, ey% + 2), 41
-    PSet (ex% + 7, ey% + 2), 43
-    PSet (ex% + 8, ey% + 2), 44
-    PSet (ex% + 9, ey% + 2), 42
-    PSet (ex% + 10, ey% + 2), 41
-    PSet (ex% + 11, ey% + 2), 41
-    PSet (ex% + 13, ey% + 2), 40
-    PSet (ex% + 14, ey% + 2), 42
-    PSet (ex% + 15, ey% + 2), 41
-    PSet (ex% + 16, ey% + 2), 41
-    PSet (ex% + 19, ey% + 2), 40
-    PSet (ex% + 20, ey% + 2), 42
-    PSet (ex% + 21, ey% + 2), 44
-    PSet (ex% + 0, ey% + 3), 41
-    PSet (ex% + 1, ey% + 3), 43
-    PSet (ex% + 2, ey% + 3), 43
-    PSet (ex% + 3, ey% + 3), 41
-    PSet (ex% + 6, ey% + 3), 40
-    PSet (ex% + 7, ey% + 3), 42
-    PSet (ex% + 8, ey% + 3), 44
-    PSet (ex% + 9, ey% + 3), 43
-    PSet (ex% + 10, ey% + 3), 44
-    PSet (ex% + 11, ey% + 3), 42
-    PSet (ex% + 12, ey% + 3), 41
-    PSet (ex% + 13, ey% + 3), 41
-    PSet (ex% + 14, ey% + 3), 44
-    PSet (ex% + 15, ey% + 3), 43
-    PSet (ex% + 16, ey% + 3), 42
-    PSet (ex% + 17, ey% + 3), 41
-    PSet (ex% + 18, ey% + 3), 42
-    PSet (ex% + 19, ey% + 3), 41
-    PSet (ex% + 20, ey% + 3), 44
-    PSet (ex% + 21, ey% + 3), 40
-    PSet (ex% + 22, ey% + 3), 42
-    PSet (ex% + 2, ey% + 4), 41
-    PSet (ex% + 3, ey% + 4), 42
-    PSet (ex% + 4, ey% + 4), 41
-    PSet (ex% + 5, ey% + 4), 42
-    PSet (ex% + 6, ey% + 4), 41
-    PSet (ex% + 7, ey% + 4), 44
-    PSet (ex% + 8, ey% + 4), 42
-    PSet (ex% + 9, ey% + 4), 43
-    PSet (ex% + 10, ey% + 4), 41
-    PSet (ex% + 12, ey% + 4), 42
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 43
-    PSet (ex% + 15, ey% + 4), 44
-    PSet (ex% + 16, ey% + 4), 42
-    PSet (ex% + 17, ey% + 4), 42
-    PSet (ex% + 18, ey% + 4), 42
-    PSet (ex% + 19, ey% + 4), 44
-    PSet (ex% + 20, ey% + 4), 41
-    PSet (ex% + 24, ey% + 4), 42
-    PSet (ex% + 25, ey% + 4), 41
-    PSet (ex% + 3, ey% + 5), 42
-    PSet (ex% + 4, ey% + 5), 43
-    PSet (ex% + 6, ey% + 5), 41
-    PSet (ex% + 8, ey% + 5), 42
-    PSet (ex% + 9, ey% + 5), 43
-    PSet (ex% + 10, ey% + 5), 43
-    PSet (ex% + 11, ey% + 5), 44
-    PSet (ex% + 12, ey% + 5), 43
-    PSet (ex% + 13, ey% + 5), 44
-    PSet (ex% + 14, ey% + 5), 43
-    PSet (ex% + 15, ey% + 5), 43
-    PSet (ex% + 16, ey% + 5), 44
-    PSet (ex% + 17, ey% + 5), 41
-    PSet (ex% + 18, ey% + 5), 43
-    PSet (ex% + 19, ey% + 5), 41
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 11, ey% + 6), 42
-    PSet (ex% + 12, ey% + 6), 41
-    PSet (ex% + 13, ey% + 6), 43
-    PSet (ex% + 14, ey% + 6), 44
-    PSet (ex% + 15, ey% + 6), 44
-    PSet (ex% + 16, ey% + 6), 42
-    PSet (ex% + 18, ey% + 6), 41
-    PSet (ex% + 19, ey% + 6), 42
-    PSet (ex% + 23, ey% + 6), 41
-    PSet (ex% + 24, ey% + 6), 42
-    PSet (ex% + 10, ey% + 7), 41
-    PSet (ex% + 11, ey% + 7), 43
-    PSet (ex% + 12, ey% + 7), 42
-    PSet (ex% + 13, ey% + 7), 42
-    PSet (ex% + 14, ey% + 7), 44
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 43
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 18, ey% + 7), 43
-    PSet (ex% + 9, ey% + 8), 41
-    PSet (ex% + 10, ey% + 8), 44
-    PSet (ex% + 11, ey% + 8), 43
-    PSet (ex% + 12, ey% + 8), 44
-    PSet (ex% + 13, ey% + 8), 43
-    PSet (ex% + 14, ey% + 8), 43
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 16, ey% + 8), 40
-    PSet (ex% + 18, ey% + 8), 41
-    PSet (ex% + 22, ey% + 8), 40
-    PSet (ex% + 23, ey% + 8), 40
-    PSet (ex% + 10, ey% + 9), 40
-    PSet (ex% + 11, ey% + 9), 42
-    PSet (ex% + 12, ey% + 9), 43
-    PSet (ex% + 13, ey% + 9), 43
-    PSet (ex% + 14, ey% + 9), 42
-    PSet (ex% + 15, ey% + 9), 41
-    PSet (ex% + 11, ey% + 10), 40
-    PSet (ex% + 12, ey% + 10), 42
-    PSet (ex% + 13, ey% + 10), 40
-End Sub
-
-Sub xxf7
-    PSet (ex% + 14, ey% + -3), 39
-    PSet (ex% + 15, ey% + -3), 41
-    PSet (ex% + 18, ey% + -3), 41
-    PSet (ex% + 11, ey% + -2), 41
-    PSet (ex% + 13, ey% + -2), 41
-    PSet (ex% + 14, ey% + -2), 42
-    PSet (ex% + 16, ey% + -2), 42
-    PSet (ex% + 17, ey% + -2), 41
-    PSet (ex% + 18, ey% + -2), 42
-    PSet (ex% + 19, ey% + -2), 40
-    PSet (ex% + 21, ey% + -2), 40
-    PSet (ex% + 25, ey% + -2), 41
-    PSet (ex% + 4, ey% + -1), 43
-    PSet (ex% + 9, ey% + -1), 41
-    PSet (ex% + 10, ey% + -1), 42
-    PSet (ex% + 11, ey% + -1), 42
-    PSet (ex% + 12, ey% + -1), 41
-    PSet (ex% + 14, ey% + -1), 40
-    PSet (ex% + 15, ey% + -1), 43
-    PSet (ex% + 16, ey% + -1), 43
-    PSet (ex% + 17, ey% + -1), 43
-    PSet (ex% + 18, ey% + -1), 42
-    PSet (ex% + 19, ey% + -1), 41
-    PSet (ex% + 21, ey% + -1), 41
-    PSet (ex% + 22, ey% + -1), 40
-    PSet (ex% + 5, ey% + 0), 41
-    PSet (ex% + 6, ey% + 0), 40
-    PSet (ex% + 7, ey% + 0), 42
-    PSet (ex% + 8, ey% + 0), 42
-    PSet (ex% + 9, ey% + 0), 41
-    PSet (ex% + 10, ey% + 0), 42
-    PSet (ex% + 11, ey% + 0), 43
-    PSet (ex% + 12, ey% + 0), 42
-    PSet (ex% + 13, ey% + 0), 41
-    PSet (ex% + 14, ey% + 0), 43
-    PSet (ex% + 15, ey% + 0), 42
-    PSet (ex% + 16, ey% + 0), 44
-    PSet (ex% + 17, ey% + 0), 42
-    PSet (ex% + 19, ey% + 0), 40
-    PSet (ex% + 20, ey% + 0), 42
-    PSet (ex% + 22, ey% + 0), 43
-    PSet (ex% + 23, ey% + 0), 42
-    PSet (ex% + 3, ey% + 1), 41
-    PSet (ex% + 4, ey% + 1), 43
-    PSet (ex% + 5, ey% + 1), 42
-    PSet (ex% + 6, ey% + 1), 43
-    PSet (ex% + 7, ey% + 1), 42
-    PSet (ex% + 8, ey% + 1), 43
-    PSet (ex% + 9, ey% + 1), 42
-    PSet (ex% + 10, ey% + 1), 41
-    PSet (ex% + 11, ey% + 1), 40
-    PSet (ex% + 14, ey% + 1), 40
-    PSet (ex% + 15, ey% + 1), 43
-    PSet (ex% + 16, ey% + 1), 41
-    PSet (ex% + 20, ey% + 1), 42
-    PSet (ex% + 21, ey% + 1), 41
-    PSet (ex% + 22, ey% + 1), 40
-    PSet (ex% + 1, ey% + 2), 41
-    PSet (ex% + 2, ey% + 2), 42
-    PSet (ex% + 3, ey% + 2), 42
-    PSet (ex% + 6, ey% + 2), 41
-    PSet (ex% + 7, ey% + 2), 42
-    PSet (ex% + 8, ey% + 2), 41
-    PSet (ex% + 14, ey% + 2), 42
-    PSet (ex% + 15, ey% + 2), 41
-    PSet (ex% + 20, ey% + 2), 42
-    PSet (ex% + 21, ey% + 2), 44
-    PSet (ex% + 0, ey% + 3), 41
-    PSet (ex% + 1, ey% + 3), 43
-    PSet (ex% + 2, ey% + 3), 43
-    PSet (ex% + 8, ey% + 3), 42
-    PSet (ex% + 9, ey% + 3), 41
-    PSet (ex% + 13, ey% + 3), 41
-    PSet (ex% + 14, ey% + 3), 42
-    PSet (ex% + 15, ey% + 3), 43
-    PSet (ex% + 16, ey% + 3), 42
-    PSet (ex% + 17, ey% + 3), 41
-    PSet (ex% + 19, ey% + 3), 41
-    PSet (ex% + 20, ey% + 3), 44
-    PSet (ex% + 21, ey% + 3), 40
-    PSet (ex% + 22, ey% + 3), 42
-    PSet (ex% + 2, ey% + 4), 41
-    PSet (ex% + 3, ey% + 4), 42
-    PSet (ex% + 5, ey% + 4), 42
-    PSet (ex% + 6, ey% + 4), 41
-    PSet (ex% + 7, ey% + 4), 42
-    PSet (ex% + 8, ey% + 4), 42
-    PSet (ex% + 9, ey% + 4), 42
-    PSet (ex% + 10, ey% + 4), 41
-    PSet (ex% + 12, ey% + 4), 42
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 43
-    PSet (ex% + 15, ey% + 4), 41
-    PSet (ex% + 16, ey% + 4), 42
-    PSet (ex% + 17, ey% + 4), 42
-    PSet (ex% + 18, ey% + 4), 42
-    PSet (ex% + 19, ey% + 4), 44
-    PSet (ex% + 20, ey% + 4), 41
-    PSet (ex% + 3, ey% + 5), 42
-    PSet (ex% + 4, ey% + 5), 43
-    PSet (ex% + 6, ey% + 5), 41
-    PSet (ex% + 8, ey% + 5), 42
-    PSet (ex% + 9, ey% + 5), 43
-    PSet (ex% + 10, ey% + 5), 42
-    PSet (ex% + 11, ey% + 5), 41
-    PSet (ex% + 12, ey% + 5), 42
-    PSet (ex% + 13, ey% + 5), 43
-    PSet (ex% + 14, ey% + 5), 43
-    PSet (ex% + 16, ey% + 5), 40
-    PSet (ex% + 18, ey% + 5), 43
-    PSet (ex% + 19, ey% + 5), 41
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 11, ey% + 6), 42
-    PSet (ex% + 12, ey% + 6), 41
-    PSet (ex% + 13, ey% + 6), 43
-    PSet (ex% + 14, ey% + 6), 42
-    PSet (ex% + 15, ey% + 6), 42
-    PSet (ex% + 16, ey% + 6), 42
-    PSet (ex% + 18, ey% + 6), 41
-    PSet (ex% + 19, ey% + 6), 42
-    PSet (ex% + 10, ey% + 7), 41
-    PSet (ex% + 11, ey% + 7), 43
-    PSet (ex% + 12, ey% + 7), 42
-    PSet (ex% + 13, ey% + 7), 42
-    PSet (ex% + 14, ey% + 7), 44
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 43
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 18, ey% + 7), 43
-    PSet (ex% + 24, ey% + 7), 40
-    PSet (ex% + 9, ey% + 8), 41
-    PSet (ex% + 10, ey% + 8), 44
-    PSet (ex% + 11, ey% + 8), 43
-    PSet (ex% + 12, ey% + 8), 44
-    PSet (ex% + 13, ey% + 8), 43
-    PSet (ex% + 14, ey% + 8), 43
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 16, ey% + 8), 40
-    PSet (ex% + 18, ey% + 8), 41
-    PSet (ex% + 10, ey% + 9), 40
-    PSet (ex% + 11, ey% + 9), 42
-    PSet (ex% + 12, ey% + 9), 43
-    PSet (ex% + 13, ey% + 9), 43
-    PSet (ex% + 14, ey% + 9), 42
-    PSet (ex% + 15, ey% + 9), 41
-    PSet (ex% + 11, ey% + 10), 40
-    PSet (ex% + 12, ey% + 10), 42
-    PSet (ex% + 13, ey% + 10), 40
-End Sub
-
-Sub xxf8
-    PSet (ex% + 15, ey% + -3), 41
-    PSet (ex% + 18, ey% + -3), 41
-    PSet (ex% + 13, ey% + -2), 41
-    PSet (ex% + 17, ey% + -2), 41
-    PSet (ex% + 18, ey% + -2), 42
-    PSet (ex% + 19, ey% + -2), 40
-    PSet (ex% + 21, ey% + -2), 40
-    PSet (ex% + 4, ey% + -1), 42
-    PSet (ex% + 9, ey% + -1), 41
-    PSet (ex% + 10, ey% + -1), 42
-    PSet (ex% + 11, ey% + -1), 42
-    PSet (ex% + 12, ey% + -1), 41
-    PSet (ex% + 15, ey% + -1), 40
-    PSet (ex% + 16, ey% + -1), 42
-    PSet (ex% + 17, ey% + -1), 42
-    PSet (ex% + 18, ey% + -1), 42
-    PSet (ex% + 22, ey% + -1), 40
-    PSet (ex% + 7, ey% + 0), 40
-    PSet (ex% + 8, ey% + 0), 42
-    PSet (ex% + 9, ey% + 0), 41
-    PSet (ex% + 10, ey% + 0), 41
-    PSet (ex% + 12, ey% + 0), 41
-    PSet (ex% + 13, ey% + 0), 41
-    PSet (ex% + 14, ey% + 0), 43
-    PSet (ex% + 15, ey% + 0), 41
-    PSet (ex% + 16, ey% + 0), 44
-    PSet (ex% + 17, ey% + 0), 42
-    PSet (ex% + 20, ey% + 0), 42
-    PSet (ex% + 22, ey% + 0), 42
-    PSet (ex% + 23, ey% + 0), 40
-    PSet (ex% + 4, ey% + 1), 41
-    PSet (ex% + 6, ey% + 1), 40
-    PSet (ex% + 7, ey% + 1), 41
-    PSet (ex% + 8, ey% + 1), 41
-    PSet (ex% + 9, ey% + 1), 42
-    PSet (ex% + 14, ey% + 1), 40
-    PSet (ex% + 15, ey% + 1), 43
-    PSet (ex% + 16, ey% + 1), 41
-    PSet (ex% + 21, ey% + 1), 41
-    PSet (ex% + 1, ey% + 2), 40
-    PSet (ex% + 7, ey% + 2), 41
-    PSet (ex% + 14, ey% + 2), 42
-    PSet (ex% + 15, ey% + 2), 41
-    PSet (ex% + 20, ey% + 2), 42
-    PSet (ex% + 21, ey% + 2), 44
-    PSet (ex% + 0, ey% + 3), 41
-    PSet (ex% + 1, ey% + 3), 42
-    PSet (ex% + 8, ey% + 3), 42
-    PSet (ex% + 9, ey% + 3), 41
-    PSet (ex% + 13, ey% + 3), 41
-    PSet (ex% + 14, ey% + 3), 41
-    PSet (ex% + 15, ey% + 3), 41
-    PSet (ex% + 16, ey% + 3), 42
-    PSet (ex% + 17, ey% + 3), 41
-    PSet (ex% + 19, ey% + 3), 41
-    PSet (ex% + 20, ey% + 3), 44
-    PSet (ex% + 21, ey% + 3), 40
-    PSet (ex% + 22, ey% + 3), 42
-    PSet (ex% + 3, ey% + 4), 42
-    PSet (ex% + 7, ey% + 4), 42
-    PSet (ex% + 8, ey% + 4), 42
-    PSet (ex% + 9, ey% + 4), 42
-    PSet (ex% + 10, ey% + 4), 41
-    PSet (ex% + 12, ey% + 4), 42
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 42
-    PSet (ex% + 17, ey% + 4), 42
-    PSet (ex% + 18, ey% + 4), 42
-    PSet (ex% + 19, ey% + 4), 42
-    PSet (ex% + 20, ey% + 4), 41
-    PSet (ex% + 4, ey% + 5), 43
-    PSet (ex% + 6, ey% + 5), 41
-    PSet (ex% + 8, ey% + 5), 42
-    PSet (ex% + 9, ey% + 5), 43
-    PSet (ex% + 10, ey% + 5), 42
-    PSet (ex% + 11, ey% + 5), 41
-    PSet (ex% + 12, ey% + 5), 42
-    PSet (ex% + 13, ey% + 5), 40
-    PSet (ex% + 18, ey% + 5), 43
-    PSet (ex% + 19, ey% + 5), 41
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 15, ey% + 6), 42
-    PSet (ex% + 18, ey% + 6), 41
-    PSet (ex% + 19, ey% + 6), 42
-    PSet (ex% + 12, ey% + 7), 41
-    PSet (ex% + 13, ey% + 7), 41
-    PSet (ex% + 14, ey% + 7), 41
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 43
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 11, ey% + 8), 41
-    PSet (ex% + 12, ey% + 8), 43
-    PSet (ex% + 13, ey% + 8), 43
-    PSet (ex% + 14, ey% + 8), 43
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 16, ey% + 8), 40
-    PSet (ex% + 10, ey% + 9), 40
-    PSet (ex% + 11, ey% + 9), 42
-    PSet (ex% + 12, ey% + 9), 43
-    PSet (ex% + 13, ey% + 9), 44
-    PSet (ex% + 14, ey% + 9), 42
-    PSet (ex% + 15, ey% + 9), 41
-    PSet (ex% + 11, ey% + 10), 40
-    PSet (ex% + 12, ey% + 10), 42
-    PSet (ex% + 13, ey% + 10), 40
-End Sub
-
-Sub xxf9
-    PSet (ex% + 16, ey% + -3), 40
-    PSet (ex% + 13, ey% + -2), 41
-    PSet (ex% + 18, ey% + -2), 42
-    PSet (ex% + 9, ey% + -1), 41
-    PSet (ex% + 10, ey% + -1), 42
-    PSet (ex% + 11, ey% + -1), 42
-    PSet (ex% + 12, ey% + -1), 41
-    PSet (ex% + 15, ey% + -1), 40
-    PSet (ex% + 16, ey% + -1), 42
-    PSet (ex% + 17, ey% + -1), 42
-    PSet (ex% + 18, ey% + -1), 42
-    PSet (ex% + 8, ey% + 0), 42
-    PSet (ex% + 12, ey% + 0), 41
-    PSet (ex% + 13, ey% + 0), 41
-    PSet (ex% + 14, ey% + 0), 43
-    PSet (ex% + 15, ey% + 0), 41
-    PSet (ex% + 16, ey% + 0), 44
-    PSet (ex% + 17, ey% + 0), 42
-    PSet (ex% + 22, ey% + 0), 42
-    PSet (ex% + 8, ey% + 1), 40
-    PSet (ex% + 9, ey% + 1), 42
-    PSet (ex% + 14, ey% + 1), 40
-    PSet (ex% + 15, ey% + 1), 43
-    PSet (ex% + 16, ey% + 1), 41
-    PSet (ex% + 14, ey% + 2), 42
-    PSet (ex% + 15, ey% + 2), 41
-    PSet (ex% + 20, ey% + 2), 40
-    PSet (ex% + 21, ey% + 2), 41
-    PSet (ex% + 13, ey% + 3), 41
-    PSet (ex% + 14, ey% + 3), 41
-    PSet (ex% + 15, ey% + 3), 42
-    PSet (ex% + 16, ey% + 3), 40
-    PSet (ex% + 19, ey% + 3), 41
-    PSet (ex% + 20, ey% + 3), 42
-    PSet (ex% + 21, ey% + 3), 40
-    PSet (ex% + 22, ey% + 3), 42
-    PSet (ex% + 7, ey% + 4), 41
-    PSet (ex% + 8, ey% + 4), 40
-    PSet (ex% + 12, ey% + 4), 42
-    PSet (ex% + 13, ey% + 4), 42
-    PSet (ex% + 14, ey% + 4), 40
-    PSet (ex% + 17, ey% + 4), 42
-    PSet (ex% + 18, ey% + 4), 42
-    PSet (ex% + 19, ey% + 4), 42
-    PSet (ex% + 20, ey% + 4), 41
-    PSet (ex% + 8, ey% + 5), 41
-    PSet (ex% + 9, ey% + 5), 42
-    PSet (ex% + 10, ey% + 5), 42
-    PSet (ex% + 11, ey% + 5), 41
-    PSet (ex% + 12, ey% + 5), 41
-    PSet (ex% + 18, ey% + 5), 41
-    PSet (ex% + 19, ey% + 5), 41
-    PSet (ex% + 9, ey% + 6), 41
-    PSet (ex% + 15, ey% + 6), 42
-    PSet (ex% + 18, ey% + 6), 41
-    PSet (ex% + 19, ey% + 6), 42
-    PSet (ex% + 12, ey% + 7), 41
-    PSet (ex% + 14, ey% + 7), 41
-    PSet (ex% + 15, ey% + 7), 42
-    PSet (ex% + 16, ey% + 7), 43
-    PSet (ex% + 17, ey% + 7), 42
-    PSet (ex% + 11, ey% + 8), 41
-    PSet (ex% + 12, ey% + 8), 42
-    PSet (ex% + 13, ey% + 8), 42
-    PSet (ex% + 14, ey% + 8), 43
-    PSet (ex% + 15, ey% + 8), 41
-    PSet (ex% + 11, ey% + 9), 40
-    PSet (ex% + 12, ey% + 9), 43
-    PSet (ex% + 13, ey% + 9), 41
-    PSet (ex% + 14, ey% + 9), 42
-    PSet (ex% + 12, ey% + 10), 40
-End Sub
-
-Sub z
-    PSet Step(3, -4), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-1, 1), cf%
-
-    PSet Step(-1, 1), cf%
-
-    PSet Step(-1, 1), cf%
-
-    PSet Step(-1, 1), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-End Sub
-
-Sub z0
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-End Sub
-
-Sub z1
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-End Sub
-
-Sub z2
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-End Sub
-
-Sub z3
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-End Sub
-
-Sub z4
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-End Sub
-
-Sub z5
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-End Sub
-
-Sub z6
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-End Sub
-
-Sub z7
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-End Sub
-
-Sub z8
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-End Sub
-
-Sub z9
-    PSet Step(1, -4), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cb%
-    PSet Step(1, 0), cf%
-
-    PSet Step(-4, 1), cb%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cf%
-    PSet Step(1, 0), cb%
-End Sub
+    END SELECT
+END SUB
+
+SUB stars
+    PSET (226, 9), 23
+    PSET (245, 10), 25
+    PSET (4, 152), 29
+    PSET (207, 52), 21
+    PSET (149, 59), 26
+    PSET (92, 60), 28
+    PSET (303, 72), 24
+    PSET (225, 106), 25
+    PSET (276, 158), 22
+    PSET (307, 174), 17
+    PSET (265, 164), 25
+    PSET (315, 182), 20
+    PSET (222, 36), 20
+    PSET (170, 21), 31
+    PSET (216, 3), 25
+    PSET (32, 20), 28
+    PSET (91, 9), 21
+    PSET (122, 60), 31
+    PSET (313, 80), 21
+    PSET (51, 32), 26
+    PSET (131, 82), 27
+    PSET (104, 126), 20
+    PSET (59, 116), 18
+    PSET (146, 181), 20
+    PSET (251, 75), 21
+    PSET (294, 126), 26
+    PSET (137, 19), 25
+    PSET (222, 182), 29
+    PSET (7, 108), 30
+    PSET (137, 135), 24
+    PSET (164, 92), 22
+    PSET (129, 53), 17
+    PSET (78, 145), 17
+    PSET (124, 72), 24
+    PSET (49, 94), 20
+    PSET (201, 108), 19
+    PSET (300, 130), 24
+    PSET (124, 21), 28
+    PSET (147, 150), 25
+    PSET (266, 3), 20
+    PSET (23, 21), 21
+    PSET (41, 0), 25
+    PSET (210, 108), 29
+    PSET (26, 38), 27
+    PSET (145, 71), 19
+    PSET (225, 185), 24
+    PSET (28, 151), 23
+    PSET (147, 98), 20
+    PSET (105, 19), 25
+    PSET (54, 185), 18
+    PSET (142, 54), 30
+    PSET (240, 54), 27
+    PSET (82, 17), 17
+    PSET (103, 158), 21
+    PSET (75, 96), 20
+    PSET (108, 8), 24
+    PSET (65, 172), 25
+    PSET (241, 185), 21
+    PSET (173, 16), 26
+    PSET (131, 122), 18
+    PSET (295, 124), 22
+    PSET (47, 95), 20
+    PSET (317, 26), 17
+    PSET (110, 109), 30
+    PSET (172, 81), 29
+    PSET (264, 134), 27
+    PSET (318, 67), 24
+    PSET (132, 139), 19
+    PSET (135, 108), 29
+    PSET (173, 85), 24
+    PSET (72, 123), 24
+    PSET (217, 177), 22
+    PSET (96, 58), 19
+    PSET (169, 44), 25
+    PSET (116, 175), 24
+    PSET (61, 136), 28
+    PSET (196, 156), 19
+    PSET (258, 40), 31
+    PSET (21, 12), 28
+    PSET (121, 92), 18
+    PSET (36, 34), 17
+    PSET (228, 106), 25
+    PSET (69, 93), 28
+    PSET (240, 79), 30
+    PSET (238, 17), 26
+    PSET (228, 3), 23
+    PSET (128, 55), 31
+    PSET (256, 139), 23
+    PSET (235, 55), 22
+    PSET (138, 188), 18
+    PSET (206, 69), 18
+    PSET (59, 15), 23
+    PSET (306, 108), 24
+    PSET (311, 43), 22
+    PSET (126, 56), 24
+    PSET (44, 103), 31
+    PSET (178, 181), 26
+    PSET (141, 138), 17
+    PSET (241, 140), 24
+    PSET (49, 44), 21
+    PSET (251, 10), 24
+    PSET (242, 160), 21
+    PSET (311, 160), 27
+    PSET (289, 175), 23
+    PSET (39, 120), 28
+    PSET (222, 80), 17
+    PSET (53, 32), 24
+    PSET (129, 21), 21
+    PSET (205, 169), 24
+    PSET (60, 179), 22
+    PSET (103, 154), 20
+    PSET (143, 47), 30
+    PSET (195, 74), 22
+    PSET (275, 117), 30
+    PSET (165, 66), 30
+    PSET (82, 51), 19
+    PSET (111, 0), 28
+    PSET (269, 55), 27
+    PSET (129, 162), 28
+    PSET (140, 15), 23
+    PSET (108, 142), 21
+    PSET (255, 30), 25
+    PSET (305, 48), 31
+    PSET (36, 96), 26
+    PSET (191, 180), 25
+    PSET (78, 172), 18
+    PSET (140, 151), 20
+    PSET (121, 79), 24
+    PSET (86, 116), 20
+    PSET (25, 179), 18
+    PSET (208, 180), 20
+    PSET (303, 169), 23
+    PSET (157, 153), 29
+    PSET (122, 39), 21
+    PSET (132, 30), 26
+    PSET (31, 41), 27
+    PSET (161, 36), 31
+    PSET (150, 0), 23
+    PSET (92, 150), 30
+    PSET (263, 35), 18
+    PSET (3, 30), 22
+    PSET (60, 125), 30
+    PSET (186, 145), 19
+    PSET (82, 5), 29
+    PSET (250, 158), 21
+    PSET (144, 111), 29
+    PSET (180, 40), 20
+    PSET (116, 114), 22
+    PSET (169, 85), 25
+    PSET (16, 109), 20
+    PSET (308, 186), 31
+    PSET (268, 81), 29
+    PSET (316, 51), 19
+    PSET (222, 3), 22
+    PSET (221, 22), 18
+    PSET (92, 79), 25
+    PSET (99, 59), 29
+    PSET (99, 75), 23
+    PSET (269, 81), 27
+    PSET (210, 81), 31
+    PSET (206, 103), 20
+    PSET (186, 149), 23
+    PSET (289, 56), 27
+    PSET (284, 56), 22
+    PSET (4, 58), 31
+    PSET (243, 116), 26
+    PSET (85, 101), 28
+    PSET (274, 18), 25
+    PSET (132, 14), 23
+    PSET (223, 99), 23
+    PSET (302, 16), 25
+    PSET (170, 123), 18
+    PSET (59, 56), 17
+    PSET (48, 84), 25
+    PSET (178, 156), 17
+    PSET (129, 11), 21
+    PSET (192, 103), 25
+    PSET (105, 181), 28
+    PSET (184, 86), 27
+    PSET (52, 11), 20
+    PSET (242, 100), 22
+    PSET (218, 158), 17
+    PSET (254, 96), 20
+    PSET (192, 181), 31
+    PSET (209, 2), 26
+    PSET (308, 1), 31
+    PSET (23, 58), 25
+    PSET (258, 8), 17
+    PSET (180, 62), 23
+    PSET (163, 146), 23
+    PSET (103, 14), 23
+    PSET (183, 152), 25
+    PSET (208, 161), 23
+    PSET (255, 144), 27
+    PSET (233, 38), 28
+    PSET (22, 49), 31
+    PSET (262, 43), 19
+    PSET (75, 185), 20
+    PSET (81, 142), 26
+    PSET (247, 151), 21
+    PSET (263, 143), 30
+END SUB
+
+SUB sz
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(2, 0), cf%
+
+    PSET STEP(-2, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(2, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
+
+SUB t
+    PSET STEP(2, -4), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-2, 1), cf%
+
+    PSET STEP(0, 1), cf%
+
+    PSET STEP(0, 1), cf%
+
+    PSET STEP(0, 1), cf%
+    DRAW "bm+2, 0"
+END SUB
+
+SUB u
+    PSET STEP(2, -4), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
+
+SUB ue
+    PSET STEP(2, -4), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 2), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-2, 1), cf%
+    PSET STEP(1, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
+
+SUB v
+    PSET STEP(2, -4), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(3, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(2, 0), cf%
+
+    PSET STEP(-1, 1), cf%
+    DRAW "bm+2, 0"
+END SUB
+
+SUB w
+    PSET STEP(2, -4), cf%
+    PSET STEP(4, 0), cf%
+
+    PSET STEP(-4, 1), cf%
+    PSET STEP(2, 0), cf%
+    PSET STEP(2, 0), cf%
+
+    PSET STEP(-4, 1), cf%
+    PSET STEP(2, 0), cf%
+    PSET STEP(2, 0), cf%
+
+    PSET STEP(-4, 1), cf%
+    PSET STEP(2, 0), cf%
+    PSET STEP(2, 0), cf%
+
+    PSET STEP(-3, 1), cf%
+    PSET STEP(2, 0), cf%
+    DRAW "bm+1, 0"
+END SUB
+
+SUB xxf1
+    PSET (ex% + 8, ey% + 0), 178
+    PSET (ex% + 9, ey% + 0), 130
+    PSET (ex% + 10, ey% + 0), 23
+    PSET (ex% + 11, ey% + 0), 24
+    PSET (ex% + 12, ey% + 0), 24
+    PSET (ex% + 13, ey% + 0), 24
+    PSET (ex% + 14, ey% + 0), 24
+    PSET (ex% + 15, ey% + 0), 25
+    PSET (ex% + 16, ey% + 0), 25
+    PSET (ex% + 17, ey% + 0), 24
+    PSET (ex% + 18, ey% + 0), 21
+    PSET (ex% + 19, ey% + 0), 19
+    PSET (ex% + 5, ey% + 1), 178
+    PSET (ex% + 6, ey% + 1), 106
+    PSET (ex% + 7, ey% + 1), 106
+    PSET (ex% + 8, ey% + 1), 106
+    PSET (ex% + 9, ey% + 1), 130
+    PSET (ex% + 10, ey% + 1), 154
+    PSET (ex% + 11, ey% + 1), 26
+    PSET (ex% + 12, ey% + 1), 26
+    PSET (ex% + 13, ey% + 1), 42
+    PSET (ex% + 14, ey% + 1), 43
+    PSET (ex% + 15, ey% + 1), 44
+    PSET (ex% + 16, ey% + 1), 43
+    PSET (ex% + 17, ey% + 1), 44
+    PSET (ex% + 18, ey% + 1), 42
+    PSET (ex% + 19, ey% + 1), 19
+    PSET (ex% + 20, ey% + 1), 19
+    PSET (ex% + 2, ey% + 2), 178
+    PSET (ex% + 3, ey% + 2), 106
+    PSET (ex% + 4, ey% + 2), 106
+    PSET (ex% + 5, ey% + 2), 106
+    PSET (ex% + 6, ey% + 2), 130
+    PSET (ex% + 7, ey% + 2), 154
+    PSET (ex% + 8, ey% + 2), 25
+    PSET (ex% + 9, ey% + 2), 25
+    PSET (ex% + 10, ey% + 2), 25
+    PSET (ex% + 11, ey% + 2), 23
+    PSET (ex% + 12, ey% + 2), 21
+    PSET (ex% + 13, ey% + 2), 21
+    PSET (ex% + 14, ey% + 2), 22
+    PSET (ex% + 15, ey% + 2), 43
+    PSET (ex% + 16, ey% + 2), 44
+    PSET (ex% + 17, ey% + 2), 44
+    PSET (ex% + 18, ey% + 2), 43
+    PSET (ex% + 19, ey% + 2), 42
+    PSET (ex% + 20, ey% + 2), 23
+    PSET (ex% + 21, ey% + 2), 21
+    PSET (ex% + 0, ey% + 3), 21
+    PSET (ex% + 1, ey% + 3), 22
+    PSET (ex% + 2, ey% + 3), 23
+    PSET (ex% + 3, ey% + 3), 23
+    PSET (ex% + 4, ey% + 3), 24
+    PSET (ex% + 5, ey% + 3), 24
+    PSET (ex% + 6, ey% + 3), 24
+    PSET (ex% + 7, ey% + 3), 24
+    PSET (ex% + 8, ey% + 3), 24
+    PSET (ex% + 9, ey% + 3), 21
+    PSET (ex% + 10, ey% + 3), 21
+    PSET (ex% + 11, ey% + 3), 20
+    PSET (ex% + 12, ey% + 3), 20
+    PSET (ex% + 14, ey% + 3), 24
+    PSET (ex% + 15, ey% + 3), 25
+    PSET (ex% + 16, ey% + 3), 25
+    PSET (ex% + 17, ey% + 3), 43
+    PSET (ex% + 18, ey% + 3), 24
+    PSET (ex% + 19, ey% + 3), 20
+    PSET (ex% + 20, ey% + 3), 19
+    PSET (ex% + 21, ey% + 3), 19
+    PSET (ex% + 3, ey% + 4), 20
+    PSET (ex% + 4, ey% + 4), 22
+    PSET (ex% + 5, ey% + 4), 22
+    PSET (ex% + 6, ey% + 4), 20
+    PSET (ex% + 7, ey% + 4), 19
+    PSET (ex% + 13, ey% + 4), 24
+    PSET (ex% + 14, ey% + 4), 25
+    PSET (ex% + 15, ey% + 4), 25
+    PSET (ex% + 16, ey% + 4), 25
+    PSET (ex% + 17, ey% + 4), 21
+    PSET (ex% + 18, ey% + 4), 20
+    PSET (ex% + 19, ey% + 4), 20
+    PSET (ex% + 20, ey% + 4), 19
+    PSET (ex% + 9, ey% + 5), 22
+    PSET (ex% + 10, ey% + 5), 24
+    PSET (ex% + 11, ey% + 5), 25
+    PSET (ex% + 12, ey% + 5), 25
+    PSET (ex% + 13, ey% + 5), 25
+    PSET (ex% + 14, ey% + 5), 25
+    PSET (ex% + 15, ey% + 5), 24
+    PSET (ex% + 16, ey% + 5), 20
+    PSET (ex% + 17, ey% + 5), 20
+    PSET (ex% + 18, ey% + 5), 19
+    PSET (ex% + 8, ey% + 6), 42
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 10, ey% + 6), 42
+    PSET (ex% + 11, ey% + 6), 43
+    PSET (ex% + 12, ey% + 6), 44
+    PSET (ex% + 13, ey% + 6), 25
+    PSET (ex% + 14, ey% + 6), 20
+    PSET (ex% + 15, ey% + 6), 19
+    PSET (ex% + 16, ey% + 6), 19
+    PSET (ex% + 9, ey% + 7), 20
+    PSET (ex% + 10, ey% + 7), 21
+    PSET (ex% + 11, ey% + 7), 22
+    PSET (ex% + 12, ey% + 7), 22
+    PSET (ex% + 13, ey% + 7), 20
+    PSET (ex% + 14, ey% + 7), 19
+END SUB
+
+SUB xxf10
+    PSET (ex% + 15, ey% + -1), 40
+    PSET (ex% + 16, ey% + -1), 41
+    PSET (ex% + 13, ey% + 0), 41
+    PSET (ex% + 14, ey% + 0), 40
+    PSET (ex% + 15, ey% + 0), 42
+    PSET (ex% + 16, ey% + 0), 40
+    PSET (ex% + 17, ey% + 0), 40
+    PSET (ex% + 8, ey% + 1), 40
+    PSET (ex% + 14, ey% + 1), 40
+    PSET (ex% + 16, ey% + 3), 40
+    PSET (ex% + 19, ey% + 3), 41
+    PSET (ex% + 21, ey% + 3), 40
+    PSET (ex% + 8, ey% + 4), 40
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 40
+    PSET (ex% + 20, ey% + 4), 41
+    PSET (ex% + 11, ey% + 5), 41
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 15, ey% + 6), 42
+    PSET (ex% + 19, ey% + 6), 42
+    PSET (ex% + 12, ey% + 7), 41
+    PSET (ex% + 14, ey% + 7), 41
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 41
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 11, ey% + 8), 41
+    PSET (ex% + 13, ey% + 8), 42
+    PSET (ex% + 14, ey% + 8), 41
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 11, ey% + 9), 40
+    PSET (ex% + 12, ey% + 9), 41
+    PSET (ex% + 13, ey% + 9), 41
+    PSET (ex% + 14, ey% + 9), 40
+    PSET (ex% + 12, ey% + 10), 40
+END SUB
+
+SUB xxf11
+    PSET (ex% + 13, ey% + 0), 41
+    PSET (ex% + 16, ey% + 0), 40
+    PSET (ex% + 14, ey% + 1), 40
+    PSET (ex% + 21, ey% + 3), 43
+    PSET (ex% + 14, ey% + 4), 40
+    PSET (ex% + 15, ey% + 6), 42
+    PSET (ex% + 12, ey% + 7), 41
+    PSET (ex% + 13, ey% + 8), 41
+    PSET (ex% + 14, ey% + 8), 43
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 11, ey% + 9), 42
+    PSET (ex% + 13, ey% + 9), 43
+    PSET (ex% + 12, ey% + 10), 40
+END SUB
+
+SUB xxf12
+    PSET (ex% + 14, ey% + 8), 40
+    PSET (ex% + 11, ey% + 9), 41
+    PSET (ex% + 13, ey% + 9), 42
+    PSET (ex% + 14, ey% + 10), 40
+END SUB
+
+SUB xxf2
+    PSET (ex% + 16, ey% + -1), 41
+    PSET (ex% + 8, ey% + 0), 178
+    PSET (ex% + 9, ey% + 0), 130
+    PSET (ex% + 10, ey% + 0), 23
+    PSET (ex% + 11, ey% + 0), 24
+    PSET (ex% + 12, ey% + 0), 42
+    PSET (ex% + 13, ey% + 0), 24
+    PSET (ex% + 14, ey% + 0), 24
+    PSET (ex% + 15, ey% + 0), 42
+    PSET (ex% + 16, ey% + 0), 42
+    PSET (ex% + 17, ey% + 0), 41
+    PSET (ex% + 18, ey% + 0), 21
+    PSET (ex% + 19, ey% + 0), 19
+    PSET (ex% + 5, ey% + 1), 178
+    PSET (ex% + 6, ey% + 1), 106
+    PSET (ex% + 7, ey% + 1), 106
+    PSET (ex% + 8, ey% + 1), 106
+    PSET (ex% + 9, ey% + 1), 130
+    PSET (ex% + 10, ey% + 1), 154
+    PSET (ex% + 11, ey% + 1), 42
+    PSET (ex% + 12, ey% + 1), 43
+    PSET (ex% + 13, ey% + 1), 43
+    PSET (ex% + 14, ey% + 1), 42
+    PSET (ex% + 15, ey% + 1), 43
+    PSET (ex% + 16, ey% + 1), 43
+    PSET (ex% + 17, ey% + 1), 44
+    PSET (ex% + 18, ey% + 1), 42
+    PSET (ex% + 19, ey% + 1), 19
+    PSET (ex% + 20, ey% + 1), 19
+    PSET (ex% + 2, ey% + 2), 178
+    PSET (ex% + 3, ey% + 2), 106
+    PSET (ex% + 4, ey% + 2), 106
+    PSET (ex% + 5, ey% + 2), 106
+    PSET (ex% + 6, ey% + 2), 130
+    PSET (ex% + 7, ey% + 2), 154
+    PSET (ex% + 8, ey% + 2), 25
+    PSET (ex% + 9, ey% + 2), 25
+    PSET (ex% + 10, ey% + 2), 25
+    PSET (ex% + 11, ey% + 2), 23
+    PSET (ex% + 12, ey% + 2), 42
+    PSET (ex% + 13, ey% + 2), 21
+    PSET (ex% + 14, ey% + 2), 44
+    PSET (ex% + 15, ey% + 2), 43
+    PSET (ex% + 16, ey% + 2), 44
+    PSET (ex% + 17, ey% + 2), 44
+    PSET (ex% + 18, ey% + 2), 43
+    PSET (ex% + 19, ey% + 2), 42
+    PSET (ex% + 20, ey% + 2), 23
+    PSET (ex% + 21, ey% + 2), 21
+    PSET (ex% + 0, ey% + 3), 21
+    PSET (ex% + 1, ey% + 3), 22
+    PSET (ex% + 2, ey% + 3), 23
+    PSET (ex% + 3, ey% + 3), 23
+    PSET (ex% + 4, ey% + 3), 24
+    PSET (ex% + 5, ey% + 3), 24
+    PSET (ex% + 6, ey% + 3), 24
+    PSET (ex% + 7, ey% + 3), 24
+    PSET (ex% + 8, ey% + 3), 24
+    PSET (ex% + 9, ey% + 3), 21
+    PSET (ex% + 10, ey% + 3), 21
+    PSET (ex% + 11, ey% + 3), 20
+    PSET (ex% + 12, ey% + 3), 20
+    PSET (ex% + 14, ey% + 3), 24
+    PSET (ex% + 15, ey% + 3), 25
+    PSET (ex% + 16, ey% + 3), 44
+    PSET (ex% + 17, ey% + 3), 43
+    PSET (ex% + 18, ey% + 3), 42
+    PSET (ex% + 19, ey% + 3), 20
+    PSET (ex% + 20, ey% + 3), 19
+    PSET (ex% + 21, ey% + 3), 19
+    PSET (ex% + 3, ey% + 4), 20
+    PSET (ex% + 4, ey% + 4), 22
+    PSET (ex% + 5, ey% + 4), 22
+    PSET (ex% + 6, ey% + 4), 20
+    PSET (ex% + 7, ey% + 4), 19
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 43
+    PSET (ex% + 15, ey% + 4), 44
+    PSET (ex% + 16, ey% + 4), 43
+    PSET (ex% + 17, ey% + 4), 42
+    PSET (ex% + 18, ey% + 4), 20
+    PSET (ex% + 19, ey% + 4), 20
+    PSET (ex% + 20, ey% + 4), 19
+    PSET (ex% + 9, ey% + 5), 19
+    PSET (ex% + 10, ey% + 5), 21
+    PSET (ex% + 11, ey% + 5), 22
+    PSET (ex% + 12, ey% + 5), 24
+    PSET (ex% + 13, ey% + 5), 25
+    PSET (ex% + 14, ey% + 5), 25
+    PSET (ex% + 15, ey% + 5), 43
+    PSET (ex% + 16, ey% + 5), 20
+    PSET (ex% + 17, ey% + 5), 20
+    PSET (ex% + 18, ey% + 5), 19
+    PSET (ex% + 8, ey% + 6), 19
+    PSET (ex% + 9, ey% + 6), 19
+    PSET (ex% + 10, ey% + 6), 42
+    PSET (ex% + 11, ey% + 6), 44
+    PSET (ex% + 12, ey% + 6), 43
+    PSET (ex% + 13, ey% + 6), 24
+    PSET (ex% + 14, ey% + 6), 20
+    PSET (ex% + 15, ey% + 6), 19
+    PSET (ex% + 16, ey% + 6), 19
+    PSET (ex% + 8, ey% + 7), 41
+    PSET (ex% + 9, ey% + 7), 42
+    PSET (ex% + 10, ey% + 7), 44
+    PSET (ex% + 11, ey% + 7), 26
+    PSET (ex% + 12, ey% + 7), 23
+    PSET (ex% + 13, ey% + 7), 21
+    PSET (ex% + 14, ey% + 7), 19
+    PSET (ex% + 8, ey% + 8), 19
+    PSET (ex% + 9, ey% + 8), 22
+    PSET (ex% + 10, ey% + 8), 24
+    PSET (ex% + 11, ey% + 8), 22
+END SUB
+
+SUB xxf3
+    PSET (ex% + 18, ey% + -3), 41
+    PSET (ex% + 11, ey% + -2), 41
+    PSET (ex% + 13, ey% + -2), 41
+    PSET (ex% + 16, ey% + -2), 42
+    PSET (ex% + 17, ey% + -2), 44
+    PSET (ex% + 18, ey% + -2), 43
+    PSET (ex% + 19, ey% + -2), 42
+    PSET (ex% + 10, ey% + -1), 41
+    PSET (ex% + 11, ey% + -1), 42
+    PSET (ex% + 12, ey% + -1), 43
+    PSET (ex% + 15, ey% + -1), 42
+    PSET (ex% + 16, ey% + -1), 44
+    PSET (ex% + 17, ey% + -1), 43
+    PSET (ex% + 18, ey% + -1), 44
+    PSET (ex% + 21, ey% + -1), 41
+    PSET (ex% + 8, ey% + 0), 178
+    PSET (ex% + 9, ey% + 0), 41
+    PSET (ex% + 10, ey% + 0), 42
+    PSET (ex% + 11, ey% + 0), 43
+    PSET (ex% + 12, ey% + 0), 43
+    PSET (ex% + 13, ey% + 0), 42
+    PSET (ex% + 14, ey% + 0), 24
+    PSET (ex% + 15, ey% + 0), 42
+    PSET (ex% + 16, ey% + 0), 44
+    PSET (ex% + 17, ey% + 0), 43
+    PSET (ex% + 18, ey% + 0), 43
+    PSET (ex% + 19, ey% + 0), 42
+    PSET (ex% + 20, ey% + 0), 42
+    PSET (ex% + 21, ey% + 0), 44
+    PSET (ex% + 22, ey% + 0), 43
+    PSET (ex% + 23, ey% + 0), 42
+    PSET (ex% + 5, ey% + 1), 42
+    PSET (ex% + 6, ey% + 1), 43
+    PSET (ex% + 7, ey% + 1), 106
+    PSET (ex% + 8, ey% + 1), 106
+    PSET (ex% + 9, ey% + 1), 130
+    PSET (ex% + 10, ey% + 1), 43
+    PSET (ex% + 11, ey% + 1), 42
+    PSET (ex% + 12, ey% + 1), 44
+    PSET (ex% + 13, ey% + 1), 43
+    PSET (ex% + 14, ey% + 1), 44
+    PSET (ex% + 15, ey% + 1), 43
+    PSET (ex% + 16, ey% + 1), 43
+    PSET (ex% + 17, ey% + 1), 44
+    PSET (ex% + 18, ey% + 1), 42
+    PSET (ex% + 19, ey% + 1), 44
+    PSET (ex% + 20, ey% + 1), 44
+    PSET (ex% + 21, ey% + 1), 43
+    PSET (ex% + 22, ey% + 1), 42
+    PSET (ex% + 2, ey% + 2), 178
+    PSET (ex% + 3, ey% + 2), 106
+    PSET (ex% + 4, ey% + 2), 42
+    PSET (ex% + 5, ey% + 2), 43
+    PSET (ex% + 6, ey% + 2), 44
+    PSET (ex% + 7, ey% + 2), 43
+    PSET (ex% + 8, ey% + 2), 25
+    PSET (ex% + 9, ey% + 2), 25
+    PSET (ex% + 10, ey% + 2), 43
+    PSET (ex% + 11, ey% + 2), 44
+    PSET (ex% + 12, ey% + 2), 43
+    PSET (ex% + 13, ey% + 2), 21
+    PSET (ex% + 14, ey% + 2), 44
+    PSET (ex% + 15, ey% + 2), 43
+    PSET (ex% + 16, ey% + 2), 44
+    PSET (ex% + 17, ey% + 2), 44
+    PSET (ex% + 18, ey% + 2), 43
+    PSET (ex% + 19, ey% + 2), 43
+    PSET (ex% + 20, ey% + 2), 43
+    PSET (ex% + 21, ey% + 2), 44
+    PSET (ex% + 0, ey% + 3), 21
+    PSET (ex% + 1, ey% + 3), 22
+    PSET (ex% + 2, ey% + 3), 23
+    PSET (ex% + 3, ey% + 3), 23
+    PSET (ex% + 4, ey% + 3), 24
+    PSET (ex% + 5, ey% + 3), 43
+    PSET (ex% + 6, ey% + 3), 43
+    PSET (ex% + 7, ey% + 3), 24
+    PSET (ex% + 8, ey% + 3), 24
+    PSET (ex% + 9, ey% + 3), 41
+    PSET (ex% + 10, ey% + 3), 42
+    PSET (ex% + 11, ey% + 3), 42
+    PSET (ex% + 12, ey% + 3), 44
+    PSET (ex% + 14, ey% + 3), 24
+    PSET (ex% + 15, ey% + 3), 25
+    PSET (ex% + 16, ey% + 3), 44
+    PSET (ex% + 17, ey% + 3), 43
+    PSET (ex% + 18, ey% + 3), 44
+    PSET (ex% + 19, ey% + 3), 42
+    PSET (ex% + 20, ey% + 3), 44
+    PSET (ex% + 21, ey% + 3), 43
+    PSET (ex% + 22, ey% + 3), 41
+    PSET (ex% + 3, ey% + 4), 20
+    PSET (ex% + 4, ey% + 4), 22
+    PSET (ex% + 5, ey% + 4), 22
+    PSET (ex% + 6, ey% + 4), 20
+    PSET (ex% + 7, ey% + 4), 19
+    PSET (ex% + 10, ey% + 4), 41
+    PSET (ex% + 12, ey% + 4), 43
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 43
+    PSET (ex% + 15, ey% + 4), 44
+    PSET (ex% + 16, ey% + 4), 43
+    PSET (ex% + 17, ey% + 4), 42
+    PSET (ex% + 18, ey% + 4), 43
+    PSET (ex% + 19, ey% + 4), 44
+    PSET (ex% + 20, ey% + 4), 43
+    PSET (ex% + 12, ey% + 5), 43
+    PSET (ex% + 13, ey% + 5), 44
+    PSET (ex% + 14, ey% + 5), 44
+    PSET (ex% + 15, ey% + 5), 43
+    PSET (ex% + 16, ey% + 5), 44
+    PSET (ex% + 17, ey% + 5), 42
+    PSET (ex% + 18, ey% + 5), 42
+    PSET (ex% + 19, ey% + 5), 41
+    PSET (ex% + 21, ey% + 5), 42
+    PSET (ex% + 11, ey% + 6), 42
+    PSET (ex% + 12, ey% + 6), 41
+    PSET (ex% + 13, ey% + 6), 43
+    PSET (ex% + 14, ey% + 6), 44
+    PSET (ex% + 15, ey% + 6), 44
+    PSET (ex% + 16, ey% + 6), 42
+    PSET (ex% + 18, ey% + 6), 41
+    PSET (ex% + 10, ey% + 7), 19
+    PSET (ex% + 11, ey% + 7), 23
+    PSET (ex% + 12, ey% + 7), 43
+    PSET (ex% + 13, ey% + 7), 42
+    PSET (ex% + 14, ey% + 7), 24
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 43
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 9, ey% + 8), 19
+    PSET (ex% + 10, ey% + 8), 24
+    PSET (ex% + 11, ey% + 8), 44
+    PSET (ex% + 12, ey% + 8), 42
+    PSET (ex% + 13, ey% + 8), 25
+    PSET (ex% + 14, ey% + 8), 23
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 10, ey% + 9), 43
+    PSET (ex% + 11, ey% + 9), 42
+    PSET (ex% + 12, ey% + 9), 22
+    PSET (ex% + 13, ey% + 9), 21
+END SUB
+
+SUB xxf4
+    PSET (ex% + 18, ey% + -3), 42
+    PSET (ex% + 20, ey% + -3), 40
+    PSET (ex% + 11, ey% + -2), 41
+    PSET (ex% + 13, ey% + -2), 41
+    PSET (ex% + 16, ey% + -2), 42
+    PSET (ex% + 17, ey% + -2), 44
+    PSET (ex% + 18, ey% + -2), 43
+    PSET (ex% + 19, ey% + -2), 44
+    PSET (ex% + 20, ey% + -2), 42
+    PSET (ex% + 10, ey% + -1), 41
+    PSET (ex% + 11, ey% + -1), 42
+    PSET (ex% + 12, ey% + -1), 43
+    PSET (ex% + 14, ey% + -1), 44
+    PSET (ex% + 15, ey% + -1), 44
+    PSET (ex% + 16, ey% + -1), 44
+    PSET (ex% + 17, ey% + -1), 43
+    PSET (ex% + 18, ey% + -1), 44
+    PSET (ex% + 19, ey% + -1), 44
+    PSET (ex% + 21, ey% + -1), 43
+    PSET (ex% + 22, ey% + -1), 43
+    PSET (ex% + 6, ey% + 0), 40
+    PSET (ex% + 7, ey% + 0), 42
+    PSET (ex% + 8, ey% + 0), 178
+    PSET (ex% + 9, ey% + 0), 41
+    PSET (ex% + 10, ey% + 0), 42
+    PSET (ex% + 11, ey% + 0), 43
+    PSET (ex% + 12, ey% + 0), 43
+    PSET (ex% + 13, ey% + 0), 42
+    PSET (ex% + 14, ey% + 0), 24
+    PSET (ex% + 15, ey% + 0), 42
+    PSET (ex% + 16, ey% + 0), 44
+    PSET (ex% + 17, ey% + 0), 43
+    PSET (ex% + 18, ey% + 0), 43
+    PSET (ex% + 19, ey% + 0), 42
+    PSET (ex% + 20, ey% + 0), 42
+    PSET (ex% + 21, ey% + 0), 44
+    PSET (ex% + 22, ey% + 0), 43
+    PSET (ex% + 23, ey% + 0), 42
+    PSET (ex% + 4, ey% + 1), 41
+    PSET (ex% + 5, ey% + 1), 43
+    PSET (ex% + 6, ey% + 1), 43
+    PSET (ex% + 7, ey% + 1), 44
+    PSET (ex% + 8, ey% + 1), 43
+    PSET (ex% + 9, ey% + 1), 130
+    PSET (ex% + 10, ey% + 1), 43
+    PSET (ex% + 11, ey% + 1), 42
+    PSET (ex% + 12, ey% + 1), 44
+    PSET (ex% + 13, ey% + 1), 43
+    PSET (ex% + 14, ey% + 1), 44
+    PSET (ex% + 15, ey% + 1), 42
+    PSET (ex% + 16, ey% + 1), 43
+    PSET (ex% + 17, ey% + 1), 42
+    PSET (ex% + 18, ey% + 1), 43
+    PSET (ex% + 19, ey% + 1), 44
+    PSET (ex% + 20, ey% + 1), 44
+    PSET (ex% + 21, ey% + 1), 43
+    PSET (ex% + 22, ey% + 1), 43
+    PSET (ex% + 23, ey% + 1), 44
+    PSET (ex% + 2, ey% + 2), 178
+    PSET (ex% + 3, ey% + 2), 43
+    PSET (ex% + 4, ey% + 2), 42
+    PSET (ex% + 5, ey% + 2), 43
+    PSET (ex% + 6, ey% + 2), 44
+    PSET (ex% + 7, ey% + 2), 43
+    PSET (ex% + 8, ey% + 2), 25
+    PSET (ex% + 9, ey% + 2), 25
+    PSET (ex% + 10, ey% + 2), 43
+    PSET (ex% + 11, ey% + 2), 44
+    PSET (ex% + 12, ey% + 2), 43
+    PSET (ex% + 13, ey% + 2), 21
+    PSET (ex% + 14, ey% + 2), 42
+    PSET (ex% + 15, ey% + 2), 43
+    PSET (ex% + 16, ey% + 2), 41
+    PSET (ex% + 17, ey% + 2), 42
+    PSET (ex% + 18, ey% + 2), 42
+    PSET (ex% + 19, ey% + 2), 43
+    PSET (ex% + 20, ey% + 2), 43
+    PSET (ex% + 21, ey% + 2), 44
+    PSET (ex% + 0, ey% + 3), 21
+    PSET (ex% + 1, ey% + 3), 22
+    PSET (ex% + 2, ey% + 3), 41
+    PSET (ex% + 3, ey% + 3), 42
+    PSET (ex% + 4, ey% + 3), 41
+    PSET (ex% + 5, ey% + 3), 43
+    PSET (ex% + 6, ey% + 3), 43
+    PSET (ex% + 7, ey% + 3), 43
+    PSET (ex% + 8, ey% + 3), 44
+    PSET (ex% + 9, ey% + 3), 43
+    PSET (ex% + 10, ey% + 3), 44
+    PSET (ex% + 11, ey% + 3), 42
+    PSET (ex% + 12, ey% + 3), 44
+    PSET (ex% + 14, ey% + 3), 24
+    PSET (ex% + 15, ey% + 3), 25
+    PSET (ex% + 16, ey% + 3), 43
+    PSET (ex% + 17, ey% + 3), 41
+    PSET (ex% + 18, ey% + 3), 44
+    PSET (ex% + 19, ey% + 3), 42
+    PSET (ex% + 20, ey% + 3), 44
+    PSET (ex% + 21, ey% + 3), 43
+    PSET (ex% + 22, ey% + 3), 42
+    PSET (ex% + 3, ey% + 4), 20
+    PSET (ex% + 4, ey% + 4), 22
+    PSET (ex% + 5, ey% + 4), 42
+    PSET (ex% + 6, ey% + 4), 42
+    PSET (ex% + 7, ey% + 4), 19
+    PSET (ex% + 8, ey% + 4), 42
+    PSET (ex% + 9, ey% + 4), 43
+    PSET (ex% + 10, ey% + 4), 41
+    PSET (ex% + 12, ey% + 4), 43
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 43
+    PSET (ex% + 15, ey% + 4), 44
+    PSET (ex% + 16, ey% + 4), 43
+    PSET (ex% + 17, ey% + 4), 43
+    PSET (ex% + 18, ey% + 4), 43
+    PSET (ex% + 19, ey% + 4), 44
+    PSET (ex% + 20, ey% + 4), 43
+    PSET (ex% + 10, ey% + 5), 44
+    PSET (ex% + 12, ey% + 5), 43
+    PSET (ex% + 13, ey% + 5), 44
+    PSET (ex% + 14, ey% + 5), 44
+    PSET (ex% + 15, ey% + 5), 43
+    PSET (ex% + 16, ey% + 5), 44
+    PSET (ex% + 17, ey% + 5), 44
+    PSET (ex% + 18, ey% + 5), 43
+    PSET (ex% + 19, ey% + 5), 42
+    PSET (ex% + 21, ey% + 5), 42
+    PSET (ex% + 22, ey% + 5), 42
+    PSET (ex% + 11, ey% + 6), 42
+    PSET (ex% + 12, ey% + 6), 41
+    PSET (ex% + 13, ey% + 6), 43
+    PSET (ex% + 14, ey% + 6), 44
+    PSET (ex% + 15, ey% + 6), 44
+    PSET (ex% + 16, ey% + 6), 42
+    PSET (ex% + 18, ey% + 6), 43
+    PSET (ex% + 19, ey% + 6), 43
+    PSET (ex% + 10, ey% + 7), 43
+    PSET (ex% + 11, ey% + 7), 44
+    PSET (ex% + 12, ey% + 7), 43
+    PSET (ex% + 13, ey% + 7), 42
+    PSET (ex% + 14, ey% + 7), 24
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 43
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 18, ey% + 7), 43
+    PSET (ex% + 20, ey% + 7), 42
+    PSET (ex% + 21, ey% + 7), 41
+    PSET (ex% + 9, ey% + 8), 43
+    PSET (ex% + 10, ey% + 8), 23
+    PSET (ex% + 11, ey% + 8), 42
+    PSET (ex% + 12, ey% + 8), 44
+    PSET (ex% + 13, ey% + 8), 43
+    PSET (ex% + 14, ey% + 8), 43
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 18, ey% + 8), 41
+    PSET (ex% + 10, ey% + 9), 43
+    PSET (ex% + 11, ey% + 9), 43
+    PSET (ex% + 12, ey% + 9), 22
+    PSET (ex% + 13, ey% + 9), 43
+    PSET (ex% + 14, ey% + 9), 42
+END SUB
+
+SUB xxf5
+    PSET (ex% + 13, ey% + -3), 42
+    PSET (ex% + 14, ey% + -3), 41
+    PSET (ex% + 15, ey% + -3), 41
+    PSET (ex% + 18, ey% + -3), 41
+    PSET (ex% + 20, ey% + -3), 40
+    PSET (ex% + 23, ey% + -3), 41
+    PSET (ex% + 11, ey% + -2), 41
+    PSET (ex% + 13, ey% + -2), 41
+    PSET (ex% + 14, ey% + -2), 42
+    PSET (ex% + 16, ey% + -2), 42
+    PSET (ex% + 17, ey% + -2), 42
+    PSET (ex% + 18, ey% + -2), 43
+    PSET (ex% + 19, ey% + -2), 41
+    PSET (ex% + 20, ey% + -2), 42
+    PSET (ex% + 21, ey% + -2), 42
+    PSET (ex% + 22, ey% + -2), 41
+    PSET (ex% + 4, ey% + -1), 40
+    PSET (ex% + 9, ey% + -1), 41
+    PSET (ex% + 10, ey% + -1), 42
+    PSET (ex% + 11, ey% + -1), 42
+    PSET (ex% + 12, ey% + -1), 41
+    PSET (ex% + 14, ey% + -1), 44
+    PSET (ex% + 15, ey% + -1), 44
+    PSET (ex% + 16, ey% + -1), 44
+    PSET (ex% + 17, ey% + -1), 43
+    PSET (ex% + 18, ey% + -1), 44
+    PSET (ex% + 19, ey% + -1), 44
+    PSET (ex% + 21, ey% + -1), 43
+    PSET (ex% + 22, ey% + -1), 43
+    PSET (ex% + 24, ey% + -1), 41
+    PSET (ex% + 6, ey% + 0), 40
+    PSET (ex% + 7, ey% + 0), 42
+    PSET (ex% + 8, ey% + 0), 44
+    PSET (ex% + 9, ey% + 0), 41
+    PSET (ex% + 10, ey% + 0), 42
+    PSET (ex% + 11, ey% + 0), 43
+    PSET (ex% + 12, ey% + 0), 43
+    PSET (ex% + 13, ey% + 0), 42
+    PSET (ex% + 14, ey% + 0), 44
+    PSET (ex% + 15, ey% + 0), 42
+    PSET (ex% + 16, ey% + 0), 44
+    PSET (ex% + 17, ey% + 0), 43
+    PSET (ex% + 18, ey% + 0), 43
+    PSET (ex% + 19, ey% + 0), 42
+    PSET (ex% + 20, ey% + 0), 42
+    PSET (ex% + 21, ey% + 0), 44
+    PSET (ex% + 22, ey% + 0), 42
+    PSET (ex% + 23, ey% + 0), 42
+    PSET (ex% + 3, ey% + 1), 40
+    PSET (ex% + 4, ey% + 1), 41
+    PSET (ex% + 5, ey% + 1), 43
+    PSET (ex% + 6, ey% + 1), 43
+    PSET (ex% + 7, ey% + 1), 44
+    PSET (ex% + 8, ey% + 1), 43
+    PSET (ex% + 9, ey% + 1), 44
+    PSET (ex% + 10, ey% + 1), 43
+    PSET (ex% + 11, ey% + 1), 42
+    PSET (ex% + 12, ey% + 1), 44
+    PSET (ex% + 13, ey% + 1), 44
+    PSET (ex% + 14, ey% + 1), 44
+    PSET (ex% + 15, ey% + 1), 42
+    PSET (ex% + 16, ey% + 1), 43
+    PSET (ex% + 17, ey% + 1), 42
+    PSET (ex% + 18, ey% + 1), 43
+    PSET (ex% + 19, ey% + 1), 44
+    PSET (ex% + 20, ey% + 1), 44
+    PSET (ex% + 21, ey% + 1), 43
+    PSET (ex% + 22, ey% + 1), 43
+    PSET (ex% + 23, ey% + 1), 43
+    PSET (ex% + 24, ey% + 1), 42
+    PSET (ex% + 25, ey% + 1), 41
+    PSET (ex% + 1, ey% + 2), 41
+    PSET (ex% + 2, ey% + 2), 42
+    PSET (ex% + 3, ey% + 2), 43
+    PSET (ex% + 4, ey% + 2), 42
+    PSET (ex% + 5, ey% + 2), 43
+    PSET (ex% + 6, ey% + 2), 44
+    PSET (ex% + 7, ey% + 2), 43
+    PSET (ex% + 8, ey% + 2), 44
+    PSET (ex% + 9, ey% + 2), 44
+    PSET (ex% + 10, ey% + 2), 44
+    PSET (ex% + 11, ey% + 2), 44
+    PSET (ex% + 12, ey% + 2), 43
+    PSET (ex% + 13, ey% + 2), 44
+    PSET (ex% + 14, ey% + 2), 42
+    PSET (ex% + 15, ey% + 2), 42
+    PSET (ex% + 16, ey% + 2), 41
+    PSET (ex% + 17, ey% + 2), 42
+    PSET (ex% + 18, ey% + 2), 41
+    PSET (ex% + 19, ey% + 2), 43
+    PSET (ex% + 20, ey% + 2), 43
+    PSET (ex% + 21, ey% + 2), 44
+    PSET (ex% + 24, ey% + 2), 40
+    PSET (ex% + 0, ey% + 3), 41
+    PSET (ex% + 1, ey% + 3), 43
+    PSET (ex% + 2, ey% + 3), 43
+    PSET (ex% + 3, ey% + 3), 42
+    PSET (ex% + 4, ey% + 3), 41
+    PSET (ex% + 5, ey% + 3), 43
+    PSET (ex% + 6, ey% + 3), 43
+    PSET (ex% + 7, ey% + 3), 43
+    PSET (ex% + 8, ey% + 3), 44
+    PSET (ex% + 9, ey% + 3), 43
+    PSET (ex% + 10, ey% + 3), 44
+    PSET (ex% + 11, ey% + 3), 42
+    PSET (ex% + 12, ey% + 3), 44
+    PSET (ex% + 13, ey% + 3), 44
+    PSET (ex% + 14, ey% + 3), 44
+    PSET (ex% + 15, ey% + 3), 43
+    PSET (ex% + 16, ey% + 3), 42
+    PSET (ex% + 17, ey% + 3), 41
+    PSET (ex% + 18, ey% + 3), 44
+    PSET (ex% + 19, ey% + 3), 42
+    PSET (ex% + 20, ey% + 3), 44
+    PSET (ex% + 21, ey% + 3), 43
+    PSET (ex% + 22, ey% + 3), 42
+    PSET (ex% + 2, ey% + 4), 41
+    PSET (ex% + 3, ey% + 4), 43
+    PSET (ex% + 4, ey% + 4), 43
+    PSET (ex% + 5, ey% + 4), 42
+    PSET (ex% + 6, ey% + 4), 42
+    PSET (ex% + 7, ey% + 4), 44
+    PSET (ex% + 8, ey% + 4), 42
+    PSET (ex% + 9, ey% + 4), 43
+    PSET (ex% + 10, ey% + 4), 41
+    PSET (ex% + 12, ey% + 4), 43
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 43
+    PSET (ex% + 15, ey% + 4), 44
+    PSET (ex% + 16, ey% + 4), 43
+    PSET (ex% + 17, ey% + 4), 43
+    PSET (ex% + 18, ey% + 4), 43
+    PSET (ex% + 19, ey% + 4), 44
+    PSET (ex% + 20, ey% + 4), 43
+    PSET (ex% + 23, ey% + 4), 41
+    PSET (ex% + 3, ey% + 5), 42
+    PSET (ex% + 4, ey% + 5), 43
+    PSET (ex% + 6, ey% + 5), 41
+    PSET (ex% + 8, ey% + 5), 42
+    PSET (ex% + 9, ey% + 5), 43
+    PSET (ex% + 10, ey% + 5), 43
+    PSET (ex% + 11, ey% + 5), 44
+    PSET (ex% + 12, ey% + 5), 43
+    PSET (ex% + 13, ey% + 5), 44
+    PSET (ex% + 14, ey% + 5), 43
+    PSET (ex% + 15, ey% + 5), 43
+    PSET (ex% + 16, ey% + 5), 44
+    PSET (ex% + 17, ey% + 5), 44
+    PSET (ex% + 18, ey% + 5), 43
+    PSET (ex% + 19, ey% + 5), 42
+    PSET (ex% + 21, ey% + 5), 42
+    PSET (ex% + 22, ey% + 5), 42
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 11, ey% + 6), 42
+    PSET (ex% + 12, ey% + 6), 41
+    PSET (ex% + 13, ey% + 6), 43
+    PSET (ex% + 14, ey% + 6), 44
+    PSET (ex% + 15, ey% + 6), 44
+    PSET (ex% + 16, ey% + 6), 42
+    PSET (ex% + 18, ey% + 6), 43
+    PSET (ex% + 19, ey% + 6), 43
+    PSET (ex% + 23, ey% + 6), 41
+    PSET (ex% + 10, ey% + 7), 41
+    PSET (ex% + 11, ey% + 7), 43
+    PSET (ex% + 12, ey% + 7), 42
+    PSET (ex% + 13, ey% + 7), 42
+    PSET (ex% + 14, ey% + 7), 44
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 43
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 18, ey% + 7), 43
+    PSET (ex% + 20, ey% + 7), 42
+    PSET (ex% + 21, ey% + 7), 41
+    PSET (ex% + 9, ey% + 8), 41
+    PSET (ex% + 10, ey% + 8), 23
+    PSET (ex% + 11, ey% + 8), 42
+    PSET (ex% + 12, ey% + 8), 43
+    PSET (ex% + 13, ey% + 8), 43
+    PSET (ex% + 14, ey% + 8), 43
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 16, ey% + 8), 40
+    PSET (ex% + 18, ey% + 8), 41
+    PSET (ex% + 22, ey% + 8), 40
+    PSET (ex% + 10, ey% + 9), 40
+    PSET (ex% + 11, ey% + 9), 42
+    PSET (ex% + 12, ey% + 9), 22
+    PSET (ex% + 13, ey% + 9), 43
+    PSET (ex% + 14, ey% + 9), 42
+    PSET (ex% + 15, ey% + 9), 41
+    PSET (ex% + 13, ey% + 10), 40
+END SUB
+
+SUB xxf6
+    PSET (ex% + 13, ey% + -3), 42
+    PSET (ex% + 14, ey% + -3), 41
+    PSET (ex% + 15, ey% + -3), 41
+    PSET (ex% + 18, ey% + -3), 41
+    PSET (ex% + 21, ey% + -3), 40
+    PSET (ex% + 11, ey% + -2), 41
+    PSET (ex% + 13, ey% + -2), 41
+    PSET (ex% + 14, ey% + -2), 42
+    PSET (ex% + 16, ey% + -2), 42
+    PSET (ex% + 17, ey% + -2), 41
+    PSET (ex% + 18, ey% + -2), 42
+    PSET (ex% + 19, ey% + -2), 40
+    PSET (ex% + 21, ey% + -2), 42
+    PSET (ex% + 22, ey% + -2), 41
+    PSET (ex% + 24, ey% + -2), 41
+    PSET (ex% + 4, ey% + -1), 43
+    PSET (ex% + 9, ey% + -1), 41
+    PSET (ex% + 10, ey% + -1), 42
+    PSET (ex% + 11, ey% + -1), 42
+    PSET (ex% + 12, ey% + -1), 41
+    PSET (ex% + 14, ey% + -1), 40
+    PSET (ex% + 15, ey% + -1), 43
+    PSET (ex% + 16, ey% + -1), 43
+    PSET (ex% + 17, ey% + -1), 43
+    PSET (ex% + 18, ey% + -1), 43
+    PSET (ex% + 19, ey% + -1), 41
+    PSET (ex% + 21, ey% + -1), 43
+    PSET (ex% + 22, ey% + -1), 43
+    PSET (ex% + 5, ey% + 0), 41
+    PSET (ex% + 6, ey% + 0), 40
+    PSET (ex% + 7, ey% + 0), 42
+    PSET (ex% + 8, ey% + 0), 44
+    PSET (ex% + 9, ey% + 0), 41
+    PSET (ex% + 10, ey% + 0), 42
+    PSET (ex% + 11, ey% + 0), 43
+    PSET (ex% + 12, ey% + 0), 43
+    PSET (ex% + 13, ey% + 0), 42
+    PSET (ex% + 14, ey% + 0), 43
+    PSET (ex% + 15, ey% + 0), 42
+    PSET (ex% + 16, ey% + 0), 44
+    PSET (ex% + 17, ey% + 0), 42
+    PSET (ex% + 18, ey% + 0), 40
+    PSET (ex% + 19, ey% + 0), 42
+    PSET (ex% + 20, ey% + 0), 42
+    PSET (ex% + 21, ey% + 0), 44
+    PSET (ex% + 22, ey% + 0), 41
+    PSET (ex% + 23, ey% + 0), 42
+    PSET (ex% + 3, ey% + 1), 41
+    PSET (ex% + 4, ey% + 1), 43
+    PSET (ex% + 5, ey% + 1), 42
+    PSET (ex% + 6, ey% + 1), 43
+    PSET (ex% + 7, ey% + 1), 44
+    PSET (ex% + 8, ey% + 1), 43
+    PSET (ex% + 9, ey% + 1), 43
+    PSET (ex% + 10, ey% + 1), 43
+    PSET (ex% + 11, ey% + 1), 42
+    PSET (ex% + 12, ey% + 1), 40
+    PSET (ex% + 13, ey% + 1), 43
+    PSET (ex% + 14, ey% + 1), 44
+    PSET (ex% + 15, ey% + 1), 43
+    PSET (ex% + 16, ey% + 1), 41
+    PSET (ex% + 17, ey% + 1), 42
+    PSET (ex% + 19, ey% + 1), 41
+    PSET (ex% + 20, ey% + 1), 43
+    PSET (ex% + 21, ey% + 1), 42
+    PSET (ex% + 22, ey% + 1), 40
+    PSET (ex% + 24, ey% + 1), 40
+    PSET (ex% + 1, ey% + 2), 41
+    PSET (ex% + 2, ey% + 2), 42
+    PSET (ex% + 3, ey% + 2), 42
+    PSET (ex% + 4, ey% + 2), 41
+    PSET (ex% + 6, ey% + 2), 41
+    PSET (ex% + 7, ey% + 2), 43
+    PSET (ex% + 8, ey% + 2), 44
+    PSET (ex% + 9, ey% + 2), 42
+    PSET (ex% + 10, ey% + 2), 41
+    PSET (ex% + 11, ey% + 2), 41
+    PSET (ex% + 13, ey% + 2), 40
+    PSET (ex% + 14, ey% + 2), 42
+    PSET (ex% + 15, ey% + 2), 41
+    PSET (ex% + 16, ey% + 2), 41
+    PSET (ex% + 19, ey% + 2), 40
+    PSET (ex% + 20, ey% + 2), 42
+    PSET (ex% + 21, ey% + 2), 44
+    PSET (ex% + 0, ey% + 3), 41
+    PSET (ex% + 1, ey% + 3), 43
+    PSET (ex% + 2, ey% + 3), 43
+    PSET (ex% + 3, ey% + 3), 41
+    PSET (ex% + 6, ey% + 3), 40
+    PSET (ex% + 7, ey% + 3), 42
+    PSET (ex% + 8, ey% + 3), 44
+    PSET (ex% + 9, ey% + 3), 43
+    PSET (ex% + 10, ey% + 3), 44
+    PSET (ex% + 11, ey% + 3), 42
+    PSET (ex% + 12, ey% + 3), 41
+    PSET (ex% + 13, ey% + 3), 41
+    PSET (ex% + 14, ey% + 3), 44
+    PSET (ex% + 15, ey% + 3), 43
+    PSET (ex% + 16, ey% + 3), 42
+    PSET (ex% + 17, ey% + 3), 41
+    PSET (ex% + 18, ey% + 3), 42
+    PSET (ex% + 19, ey% + 3), 41
+    PSET (ex% + 20, ey% + 3), 44
+    PSET (ex% + 21, ey% + 3), 40
+    PSET (ex% + 22, ey% + 3), 42
+    PSET (ex% + 2, ey% + 4), 41
+    PSET (ex% + 3, ey% + 4), 42
+    PSET (ex% + 4, ey% + 4), 41
+    PSET (ex% + 5, ey% + 4), 42
+    PSET (ex% + 6, ey% + 4), 41
+    PSET (ex% + 7, ey% + 4), 44
+    PSET (ex% + 8, ey% + 4), 42
+    PSET (ex% + 9, ey% + 4), 43
+    PSET (ex% + 10, ey% + 4), 41
+    PSET (ex% + 12, ey% + 4), 42
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 43
+    PSET (ex% + 15, ey% + 4), 44
+    PSET (ex% + 16, ey% + 4), 42
+    PSET (ex% + 17, ey% + 4), 42
+    PSET (ex% + 18, ey% + 4), 42
+    PSET (ex% + 19, ey% + 4), 44
+    PSET (ex% + 20, ey% + 4), 41
+    PSET (ex% + 24, ey% + 4), 42
+    PSET (ex% + 25, ey% + 4), 41
+    PSET (ex% + 3, ey% + 5), 42
+    PSET (ex% + 4, ey% + 5), 43
+    PSET (ex% + 6, ey% + 5), 41
+    PSET (ex% + 8, ey% + 5), 42
+    PSET (ex% + 9, ey% + 5), 43
+    PSET (ex% + 10, ey% + 5), 43
+    PSET (ex% + 11, ey% + 5), 44
+    PSET (ex% + 12, ey% + 5), 43
+    PSET (ex% + 13, ey% + 5), 44
+    PSET (ex% + 14, ey% + 5), 43
+    PSET (ex% + 15, ey% + 5), 43
+    PSET (ex% + 16, ey% + 5), 44
+    PSET (ex% + 17, ey% + 5), 41
+    PSET (ex% + 18, ey% + 5), 43
+    PSET (ex% + 19, ey% + 5), 41
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 11, ey% + 6), 42
+    PSET (ex% + 12, ey% + 6), 41
+    PSET (ex% + 13, ey% + 6), 43
+    PSET (ex% + 14, ey% + 6), 44
+    PSET (ex% + 15, ey% + 6), 44
+    PSET (ex% + 16, ey% + 6), 42
+    PSET (ex% + 18, ey% + 6), 41
+    PSET (ex% + 19, ey% + 6), 42
+    PSET (ex% + 23, ey% + 6), 41
+    PSET (ex% + 24, ey% + 6), 42
+    PSET (ex% + 10, ey% + 7), 41
+    PSET (ex% + 11, ey% + 7), 43
+    PSET (ex% + 12, ey% + 7), 42
+    PSET (ex% + 13, ey% + 7), 42
+    PSET (ex% + 14, ey% + 7), 44
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 43
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 18, ey% + 7), 43
+    PSET (ex% + 9, ey% + 8), 41
+    PSET (ex% + 10, ey% + 8), 44
+    PSET (ex% + 11, ey% + 8), 43
+    PSET (ex% + 12, ey% + 8), 44
+    PSET (ex% + 13, ey% + 8), 43
+    PSET (ex% + 14, ey% + 8), 43
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 16, ey% + 8), 40
+    PSET (ex% + 18, ey% + 8), 41
+    PSET (ex% + 22, ey% + 8), 40
+    PSET (ex% + 23, ey% + 8), 40
+    PSET (ex% + 10, ey% + 9), 40
+    PSET (ex% + 11, ey% + 9), 42
+    PSET (ex% + 12, ey% + 9), 43
+    PSET (ex% + 13, ey% + 9), 43
+    PSET (ex% + 14, ey% + 9), 42
+    PSET (ex% + 15, ey% + 9), 41
+    PSET (ex% + 11, ey% + 10), 40
+    PSET (ex% + 12, ey% + 10), 42
+    PSET (ex% + 13, ey% + 10), 40
+END SUB
+
+SUB xxf7
+    PSET (ex% + 14, ey% + -3), 39
+    PSET (ex% + 15, ey% + -3), 41
+    PSET (ex% + 18, ey% + -3), 41
+    PSET (ex% + 11, ey% + -2), 41
+    PSET (ex% + 13, ey% + -2), 41
+    PSET (ex% + 14, ey% + -2), 42
+    PSET (ex% + 16, ey% + -2), 42
+    PSET (ex% + 17, ey% + -2), 41
+    PSET (ex% + 18, ey% + -2), 42
+    PSET (ex% + 19, ey% + -2), 40
+    PSET (ex% + 21, ey% + -2), 40
+    PSET (ex% + 25, ey% + -2), 41
+    PSET (ex% + 4, ey% + -1), 43
+    PSET (ex% + 9, ey% + -1), 41
+    PSET (ex% + 10, ey% + -1), 42
+    PSET (ex% + 11, ey% + -1), 42
+    PSET (ex% + 12, ey% + -1), 41
+    PSET (ex% + 14, ey% + -1), 40
+    PSET (ex% + 15, ey% + -1), 43
+    PSET (ex% + 16, ey% + -1), 43
+    PSET (ex% + 17, ey% + -1), 43
+    PSET (ex% + 18, ey% + -1), 42
+    PSET (ex% + 19, ey% + -1), 41
+    PSET (ex% + 21, ey% + -1), 41
+    PSET (ex% + 22, ey% + -1), 40
+    PSET (ex% + 5, ey% + 0), 41
+    PSET (ex% + 6, ey% + 0), 40
+    PSET (ex% + 7, ey% + 0), 42
+    PSET (ex% + 8, ey% + 0), 42
+    PSET (ex% + 9, ey% + 0), 41
+    PSET (ex% + 10, ey% + 0), 42
+    PSET (ex% + 11, ey% + 0), 43
+    PSET (ex% + 12, ey% + 0), 42
+    PSET (ex% + 13, ey% + 0), 41
+    PSET (ex% + 14, ey% + 0), 43
+    PSET (ex% + 15, ey% + 0), 42
+    PSET (ex% + 16, ey% + 0), 44
+    PSET (ex% + 17, ey% + 0), 42
+    PSET (ex% + 19, ey% + 0), 40
+    PSET (ex% + 20, ey% + 0), 42
+    PSET (ex% + 22, ey% + 0), 43
+    PSET (ex% + 23, ey% + 0), 42
+    PSET (ex% + 3, ey% + 1), 41
+    PSET (ex% + 4, ey% + 1), 43
+    PSET (ex% + 5, ey% + 1), 42
+    PSET (ex% + 6, ey% + 1), 43
+    PSET (ex% + 7, ey% + 1), 42
+    PSET (ex% + 8, ey% + 1), 43
+    PSET (ex% + 9, ey% + 1), 42
+    PSET (ex% + 10, ey% + 1), 41
+    PSET (ex% + 11, ey% + 1), 40
+    PSET (ex% + 14, ey% + 1), 40
+    PSET (ex% + 15, ey% + 1), 43
+    PSET (ex% + 16, ey% + 1), 41
+    PSET (ex% + 20, ey% + 1), 42
+    PSET (ex% + 21, ey% + 1), 41
+    PSET (ex% + 22, ey% + 1), 40
+    PSET (ex% + 1, ey% + 2), 41
+    PSET (ex% + 2, ey% + 2), 42
+    PSET (ex% + 3, ey% + 2), 42
+    PSET (ex% + 6, ey% + 2), 41
+    PSET (ex% + 7, ey% + 2), 42
+    PSET (ex% + 8, ey% + 2), 41
+    PSET (ex% + 14, ey% + 2), 42
+    PSET (ex% + 15, ey% + 2), 41
+    PSET (ex% + 20, ey% + 2), 42
+    PSET (ex% + 21, ey% + 2), 44
+    PSET (ex% + 0, ey% + 3), 41
+    PSET (ex% + 1, ey% + 3), 43
+    PSET (ex% + 2, ey% + 3), 43
+    PSET (ex% + 8, ey% + 3), 42
+    PSET (ex% + 9, ey% + 3), 41
+    PSET (ex% + 13, ey% + 3), 41
+    PSET (ex% + 14, ey% + 3), 42
+    PSET (ex% + 15, ey% + 3), 43
+    PSET (ex% + 16, ey% + 3), 42
+    PSET (ex% + 17, ey% + 3), 41
+    PSET (ex% + 19, ey% + 3), 41
+    PSET (ex% + 20, ey% + 3), 44
+    PSET (ex% + 21, ey% + 3), 40
+    PSET (ex% + 22, ey% + 3), 42
+    PSET (ex% + 2, ey% + 4), 41
+    PSET (ex% + 3, ey% + 4), 42
+    PSET (ex% + 5, ey% + 4), 42
+    PSET (ex% + 6, ey% + 4), 41
+    PSET (ex% + 7, ey% + 4), 42
+    PSET (ex% + 8, ey% + 4), 42
+    PSET (ex% + 9, ey% + 4), 42
+    PSET (ex% + 10, ey% + 4), 41
+    PSET (ex% + 12, ey% + 4), 42
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 43
+    PSET (ex% + 15, ey% + 4), 41
+    PSET (ex% + 16, ey% + 4), 42
+    PSET (ex% + 17, ey% + 4), 42
+    PSET (ex% + 18, ey% + 4), 42
+    PSET (ex% + 19, ey% + 4), 44
+    PSET (ex% + 20, ey% + 4), 41
+    PSET (ex% + 3, ey% + 5), 42
+    PSET (ex% + 4, ey% + 5), 43
+    PSET (ex% + 6, ey% + 5), 41
+    PSET (ex% + 8, ey% + 5), 42
+    PSET (ex% + 9, ey% + 5), 43
+    PSET (ex% + 10, ey% + 5), 42
+    PSET (ex% + 11, ey% + 5), 41
+    PSET (ex% + 12, ey% + 5), 42
+    PSET (ex% + 13, ey% + 5), 43
+    PSET (ex% + 14, ey% + 5), 43
+    PSET (ex% + 16, ey% + 5), 40
+    PSET (ex% + 18, ey% + 5), 43
+    PSET (ex% + 19, ey% + 5), 41
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 11, ey% + 6), 42
+    PSET (ex% + 12, ey% + 6), 41
+    PSET (ex% + 13, ey% + 6), 43
+    PSET (ex% + 14, ey% + 6), 42
+    PSET (ex% + 15, ey% + 6), 42
+    PSET (ex% + 16, ey% + 6), 42
+    PSET (ex% + 18, ey% + 6), 41
+    PSET (ex% + 19, ey% + 6), 42
+    PSET (ex% + 10, ey% + 7), 41
+    PSET (ex% + 11, ey% + 7), 43
+    PSET (ex% + 12, ey% + 7), 42
+    PSET (ex% + 13, ey% + 7), 42
+    PSET (ex% + 14, ey% + 7), 44
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 43
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 18, ey% + 7), 43
+    PSET (ex% + 24, ey% + 7), 40
+    PSET (ex% + 9, ey% + 8), 41
+    PSET (ex% + 10, ey% + 8), 44
+    PSET (ex% + 11, ey% + 8), 43
+    PSET (ex% + 12, ey% + 8), 44
+    PSET (ex% + 13, ey% + 8), 43
+    PSET (ex% + 14, ey% + 8), 43
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 16, ey% + 8), 40
+    PSET (ex% + 18, ey% + 8), 41
+    PSET (ex% + 10, ey% + 9), 40
+    PSET (ex% + 11, ey% + 9), 42
+    PSET (ex% + 12, ey% + 9), 43
+    PSET (ex% + 13, ey% + 9), 43
+    PSET (ex% + 14, ey% + 9), 42
+    PSET (ex% + 15, ey% + 9), 41
+    PSET (ex% + 11, ey% + 10), 40
+    PSET (ex% + 12, ey% + 10), 42
+    PSET (ex% + 13, ey% + 10), 40
+END SUB
+
+SUB xxf8
+    PSET (ex% + 15, ey% + -3), 41
+    PSET (ex% + 18, ey% + -3), 41
+    PSET (ex% + 13, ey% + -2), 41
+    PSET (ex% + 17, ey% + -2), 41
+    PSET (ex% + 18, ey% + -2), 42
+    PSET (ex% + 19, ey% + -2), 40
+    PSET (ex% + 21, ey% + -2), 40
+    PSET (ex% + 4, ey% + -1), 42
+    PSET (ex% + 9, ey% + -1), 41
+    PSET (ex% + 10, ey% + -1), 42
+    PSET (ex% + 11, ey% + -1), 42
+    PSET (ex% + 12, ey% + -1), 41
+    PSET (ex% + 15, ey% + -1), 40
+    PSET (ex% + 16, ey% + -1), 42
+    PSET (ex% + 17, ey% + -1), 42
+    PSET (ex% + 18, ey% + -1), 42
+    PSET (ex% + 22, ey% + -1), 40
+    PSET (ex% + 7, ey% + 0), 40
+    PSET (ex% + 8, ey% + 0), 42
+    PSET (ex% + 9, ey% + 0), 41
+    PSET (ex% + 10, ey% + 0), 41
+    PSET (ex% + 12, ey% + 0), 41
+    PSET (ex% + 13, ey% + 0), 41
+    PSET (ex% + 14, ey% + 0), 43
+    PSET (ex% + 15, ey% + 0), 41
+    PSET (ex% + 16, ey% + 0), 44
+    PSET (ex% + 17, ey% + 0), 42
+    PSET (ex% + 20, ey% + 0), 42
+    PSET (ex% + 22, ey% + 0), 42
+    PSET (ex% + 23, ey% + 0), 40
+    PSET (ex% + 4, ey% + 1), 41
+    PSET (ex% + 6, ey% + 1), 40
+    PSET (ex% + 7, ey% + 1), 41
+    PSET (ex% + 8, ey% + 1), 41
+    PSET (ex% + 9, ey% + 1), 42
+    PSET (ex% + 14, ey% + 1), 40
+    PSET (ex% + 15, ey% + 1), 43
+    PSET (ex% + 16, ey% + 1), 41
+    PSET (ex% + 21, ey% + 1), 41
+    PSET (ex% + 1, ey% + 2), 40
+    PSET (ex% + 7, ey% + 2), 41
+    PSET (ex% + 14, ey% + 2), 42
+    PSET (ex% + 15, ey% + 2), 41
+    PSET (ex% + 20, ey% + 2), 42
+    PSET (ex% + 21, ey% + 2), 44
+    PSET (ex% + 0, ey% + 3), 41
+    PSET (ex% + 1, ey% + 3), 42
+    PSET (ex% + 8, ey% + 3), 42
+    PSET (ex% + 9, ey% + 3), 41
+    PSET (ex% + 13, ey% + 3), 41
+    PSET (ex% + 14, ey% + 3), 41
+    PSET (ex% + 15, ey% + 3), 41
+    PSET (ex% + 16, ey% + 3), 42
+    PSET (ex% + 17, ey% + 3), 41
+    PSET (ex% + 19, ey% + 3), 41
+    PSET (ex% + 20, ey% + 3), 44
+    PSET (ex% + 21, ey% + 3), 40
+    PSET (ex% + 22, ey% + 3), 42
+    PSET (ex% + 3, ey% + 4), 42
+    PSET (ex% + 7, ey% + 4), 42
+    PSET (ex% + 8, ey% + 4), 42
+    PSET (ex% + 9, ey% + 4), 42
+    PSET (ex% + 10, ey% + 4), 41
+    PSET (ex% + 12, ey% + 4), 42
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 42
+    PSET (ex% + 17, ey% + 4), 42
+    PSET (ex% + 18, ey% + 4), 42
+    PSET (ex% + 19, ey% + 4), 42
+    PSET (ex% + 20, ey% + 4), 41
+    PSET (ex% + 4, ey% + 5), 43
+    PSET (ex% + 6, ey% + 5), 41
+    PSET (ex% + 8, ey% + 5), 42
+    PSET (ex% + 9, ey% + 5), 43
+    PSET (ex% + 10, ey% + 5), 42
+    PSET (ex% + 11, ey% + 5), 41
+    PSET (ex% + 12, ey% + 5), 42
+    PSET (ex% + 13, ey% + 5), 40
+    PSET (ex% + 18, ey% + 5), 43
+    PSET (ex% + 19, ey% + 5), 41
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 15, ey% + 6), 42
+    PSET (ex% + 18, ey% + 6), 41
+    PSET (ex% + 19, ey% + 6), 42
+    PSET (ex% + 12, ey% + 7), 41
+    PSET (ex% + 13, ey% + 7), 41
+    PSET (ex% + 14, ey% + 7), 41
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 43
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 11, ey% + 8), 41
+    PSET (ex% + 12, ey% + 8), 43
+    PSET (ex% + 13, ey% + 8), 43
+    PSET (ex% + 14, ey% + 8), 43
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 16, ey% + 8), 40
+    PSET (ex% + 10, ey% + 9), 40
+    PSET (ex% + 11, ey% + 9), 42
+    PSET (ex% + 12, ey% + 9), 43
+    PSET (ex% + 13, ey% + 9), 44
+    PSET (ex% + 14, ey% + 9), 42
+    PSET (ex% + 15, ey% + 9), 41
+    PSET (ex% + 11, ey% + 10), 40
+    PSET (ex% + 12, ey% + 10), 42
+    PSET (ex% + 13, ey% + 10), 40
+END SUB
+
+SUB xxf9
+    PSET (ex% + 16, ey% + -3), 40
+    PSET (ex% + 13, ey% + -2), 41
+    PSET (ex% + 18, ey% + -2), 42
+    PSET (ex% + 9, ey% + -1), 41
+    PSET (ex% + 10, ey% + -1), 42
+    PSET (ex% + 11, ey% + -1), 42
+    PSET (ex% + 12, ey% + -1), 41
+    PSET (ex% + 15, ey% + -1), 40
+    PSET (ex% + 16, ey% + -1), 42
+    PSET (ex% + 17, ey% + -1), 42
+    PSET (ex% + 18, ey% + -1), 42
+    PSET (ex% + 8, ey% + 0), 42
+    PSET (ex% + 12, ey% + 0), 41
+    PSET (ex% + 13, ey% + 0), 41
+    PSET (ex% + 14, ey% + 0), 43
+    PSET (ex% + 15, ey% + 0), 41
+    PSET (ex% + 16, ey% + 0), 44
+    PSET (ex% + 17, ey% + 0), 42
+    PSET (ex% + 22, ey% + 0), 42
+    PSET (ex% + 8, ey% + 1), 40
+    PSET (ex% + 9, ey% + 1), 42
+    PSET (ex% + 14, ey% + 1), 40
+    PSET (ex% + 15, ey% + 1), 43
+    PSET (ex% + 16, ey% + 1), 41
+    PSET (ex% + 14, ey% + 2), 42
+    PSET (ex% + 15, ey% + 2), 41
+    PSET (ex% + 20, ey% + 2), 40
+    PSET (ex% + 21, ey% + 2), 41
+    PSET (ex% + 13, ey% + 3), 41
+    PSET (ex% + 14, ey% + 3), 41
+    PSET (ex% + 15, ey% + 3), 42
+    PSET (ex% + 16, ey% + 3), 40
+    PSET (ex% + 19, ey% + 3), 41
+    PSET (ex% + 20, ey% + 3), 42
+    PSET (ex% + 21, ey% + 3), 40
+    PSET (ex% + 22, ey% + 3), 42
+    PSET (ex% + 7, ey% + 4), 41
+    PSET (ex% + 8, ey% + 4), 40
+    PSET (ex% + 12, ey% + 4), 42
+    PSET (ex% + 13, ey% + 4), 42
+    PSET (ex% + 14, ey% + 4), 40
+    PSET (ex% + 17, ey% + 4), 42
+    PSET (ex% + 18, ey% + 4), 42
+    PSET (ex% + 19, ey% + 4), 42
+    PSET (ex% + 20, ey% + 4), 41
+    PSET (ex% + 8, ey% + 5), 41
+    PSET (ex% + 9, ey% + 5), 42
+    PSET (ex% + 10, ey% + 5), 42
+    PSET (ex% + 11, ey% + 5), 41
+    PSET (ex% + 12, ey% + 5), 41
+    PSET (ex% + 18, ey% + 5), 41
+    PSET (ex% + 19, ey% + 5), 41
+    PSET (ex% + 9, ey% + 6), 41
+    PSET (ex% + 15, ey% + 6), 42
+    PSET (ex% + 18, ey% + 6), 41
+    PSET (ex% + 19, ey% + 6), 42
+    PSET (ex% + 12, ey% + 7), 41
+    PSET (ex% + 14, ey% + 7), 41
+    PSET (ex% + 15, ey% + 7), 42
+    PSET (ex% + 16, ey% + 7), 43
+    PSET (ex% + 17, ey% + 7), 42
+    PSET (ex% + 11, ey% + 8), 41
+    PSET (ex% + 12, ey% + 8), 42
+    PSET (ex% + 13, ey% + 8), 42
+    PSET (ex% + 14, ey% + 8), 43
+    PSET (ex% + 15, ey% + 8), 41
+    PSET (ex% + 11, ey% + 9), 40
+    PSET (ex% + 12, ey% + 9), 43
+    PSET (ex% + 13, ey% + 9), 41
+    PSET (ex% + 14, ey% + 9), 42
+    PSET (ex% + 12, ey% + 10), 40
+END SUB
+
+SUB z
+    PSET STEP(3, -4), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-1, 1), cf%
+
+    PSET STEP(-1, 1), cf%
+
+    PSET STEP(-1, 1), cf%
+
+    PSET STEP(-1, 1), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+END SUB
+
+SUB z0
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+END SUB
+
+SUB z1
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+END SUB
+
+SUB z2
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+END SUB
+
+SUB z3
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+END SUB
+
+SUB z4
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+END SUB
+
+SUB z5
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+END SUB
+
+SUB z6
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+END SUB
+
+SUB z7
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+END SUB
+
+SUB z8
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+END SUB
+
+SUB z9
+    PSET STEP(1, -4), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cb%
+    PSET STEP(1, 0), cf%
+
+    PSET STEP(-4, 1), cb%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cf%
+    PSET STEP(1, 0), cb%
+END SUB
 
 'Print number on the screen
-Sub prnumber (num As Integer, stl As Integer)
-    Dim As Integer tsd, hnd, znr, enr
+SUB prnumber (num AS INTEGER, stl AS INTEGER)
+    DIM AS INTEGER tsd, hnd, znr, enr
 
-    tsd% = Int(Abs(num%) / 1000)
-    hnd% = Int((Abs(num%) - tsd% * 1000) / 100)
-    znr% = Int((Abs(num%) - tsd% * 1000 - hnd% * 100) / 10)
-    enr% = Abs(num%) - tsd% * 1000 - hnd% * 100 - znr% * 10
+    tsd% = INT(ABS(num%) / 1000)
+    hnd% = INT((ABS(num%) - tsd% * 1000) / 100)
+    znr% = INT((ABS(num%) - tsd% * 1000 - hnd% * 100) / 10)
+    enr% = ABS(num%) - tsd% * 1000 - hnd% * 100 - znr% * 10
 
-    If tsd% = 0 And hnd% = 0 And znr% = 0 Then znr% = -1
-    If tsd% = 0 And hnd% = 0 Then hnd% = -1
-    If tsd% = 0 Then tsd% = -1
+    IF tsd% = 0 AND hnd% = 0 AND znr% = 0 THEN znr% = -1
+    IF tsd% = 0 AND hnd% = 0 THEN hnd% = -1
+    IF tsd% = 0 THEN tsd% = -1
 
-    If tsd% <= 0 And hnd% <= 0 And znr% <= 0 And num% < 0 Then znr% = -2
-    If tsd% <= 0 And hnd% <= 0 And znr% >= 0 And num% < 0 Then hnd% = -2
-    If tsd% <= 0 And hnd% >= 0 And znr% >= 0 And num% < 0 Then tsd% = -2
-    If tsd% >= 0 And hnd% >= 0 And znr% >= 0 And num% < 0 Then minus Else empty2
+    IF tsd% <= 0 AND hnd% <= 0 AND znr% <= 0 AND num% < 0 THEN znr% = -2
+    IF tsd% <= 0 AND hnd% <= 0 AND znr% >= 0 AND num% < 0 THEN hnd% = -2
+    IF tsd% <= 0 AND hnd% >= 0 AND znr% >= 0 AND num% < 0 THEN tsd% = -2
+    IF tsd% >= 0 AND hnd% >= 0 AND znr% >= 0 AND num% < 0 THEN minus ELSE empty2
 
-    If stl% = 4 Then
-        Select Case tsd%
-            Case -2: minus
-            Case -1: empty2
-            Case 0: z0
-            Case 1: z1
-            Case 2: z2
-            Case 3: z3
-            Case 4: z4
-            Case 5: z5
-            Case 6: z6
-            Case 7: z7
-            Case 8: z8
-            Case 9: z9
-        End Select
-    End If
+    IF stl% = 4 THEN
+        SELECT CASE tsd%
+            CASE -2: minus
+            CASE -1: empty2
+            CASE 0: z0
+            CASE 1: z1
+            CASE 2: z2
+            CASE 3: z3
+            CASE 4: z4
+            CASE 5: z5
+            CASE 6: z6
+            CASE 7: z7
+            CASE 8: z8
+            CASE 9: z9
+        END SELECT
+    END IF
 
-    If stl% >= 3 Then
-        Select Case hnd%
-            Case -2: minus
-            Case -1: empty2
-            Case 0: z0
-            Case 1: z1
-            Case 2: z2
-            Case 3: z3
-            Case 4: z4
-            Case 5: z5
-            Case 6: z6
-            Case 7: z7
-            Case 8: z8
-            Case 9: z9
-        End Select
-    End If
+    IF stl% >= 3 THEN
+        SELECT CASE hnd%
+            CASE -2: minus
+            CASE -1: empty2
+            CASE 0: z0
+            CASE 1: z1
+            CASE 2: z2
+            CASE 3: z3
+            CASE 4: z4
+            CASE 5: z5
+            CASE 6: z6
+            CASE 7: z7
+            CASE 8: z8
+            CASE 9: z9
+        END SELECT
+    END IF
 
-    If stl% >= 2 Then
-        Select Case znr%
-            Case -2: minus
-            Case -1: empty2
-            Case 0: z0
-            Case 1: z1
-            Case 2: z2
-            Case 3: z3
-            Case 4: z4
-            Case 5: z5
-            Case 6: z6
-            Case 7: z7
-            Case 8: z8
-            Case 9: z9
-        End Select
-    End If
+    IF stl% >= 2 THEN
+        SELECT CASE znr%
+            CASE -2: minus
+            CASE -1: empty2
+            CASE 0: z0
+            CASE 1: z1
+            CASE 2: z2
+            CASE 3: z3
+            CASE 4: z4
+            CASE 5: z5
+            CASE 6: z6
+            CASE 7: z7
+            CASE 8: z8
+            CASE 9: z9
+        END SELECT
+    END IF
 
-    Select Case enr%
-        Case 0: z0
-        Case 1: z1
-        Case 2: z2
-        Case 3: z3
-        Case 4: z4
-        Case 5: z5
-        Case 6: z6
-        Case 7: z7
-        Case 8: z8
-        Case 9: z9
-    End Select
+    SELECT CASE enr%
+        CASE 0: z0
+        CASE 1: z1
+        CASE 2: z2
+        CASE 3: z3
+        CASE 4: z4
+        CASE 5: z5
+        CASE 6: z6
+        CASE 7: z7
+        CASE 8: z8
+        CASE 9: z9
+    END SELECT
 
-End Sub
+END SUB
 

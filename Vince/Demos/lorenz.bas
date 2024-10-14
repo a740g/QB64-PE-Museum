@@ -1,42 +1,39 @@
 ' Created by QB64 community member vince.
 
-$NoPrefix
-Option Explicit
-Option ExplicitArray
+OPTION _EXPLICIT
 
-Screen NewImage(640, 480, 32)
+SCREEN _NEWIMAGE(640, 480, 32)
 
-Title "Rotating Lorenz Attractor"
+_TITLE "Rotating Lorenz Attractor"
 
-Dim As Double p, s, b, h, x, y, z, i, rot, xx, yy
+DIM AS DOUBLE p, s, b, h, x, y, z, i, rot, xx, yy
 p = 28
 s = 10
 b = 8 / 3
 h = 0.01
 
-Display
+_DISPLAY
 
-Do
-    Limit 60
-    Cls
+DO
+    _LIMIT 60
+    CLS
     rot = rot + 0.01
     x = 0.3
     y = 0.3
     z = 0.456
-    xx = x * Cos(rot) - y * Sin(rot)
-    yy = x * Sin(rot) + y * Cos(rot)
+    xx = x * COS(rot) - y * SIN(rot)
+    yy = x * SIN(rot) + y * COS(rot)
 
-    PSet (Width / 2 + 35 * xx * 700 / (yy + 2500), Height - 35 * z * 700 / (yy + 2500)), RGB(255, 255, 0)
-    For i = 0 To 14000
+    PSET (_WIDTH / 2 + 35 * xx * 700 / (yy + 2500), _HEIGHT - 35 * z * 700 / (yy + 2500)), _RGB(255, 255, 0)
+    FOR i = 0 TO 14000
         x = x + h * s * (y - x)
         y = y + h * (x * (p - z) - y)
         z = z + h * (x * y - b * z)
-        xx = x * Cos(rot) - y * Sin(rot)
-        yy = x * Sin(rot) + y * Cos(rot)
-        Line -(Width / 2 + 35 * xx * 700 / (yy + 2500), Height - 35 * z * 700 / (yy + 2500)), RGB(255, 255, 0)
-    Next
-    Display
-Loop While Len(InKey$) = 0
+        xx = x * COS(rot) - y * SIN(rot)
+        yy = x * SIN(rot) + y * COS(rot)
+        LINE -(_WIDTH / 2 + 35 * xx * 700 / (yy + 2500), _HEIGHT - 35 * z * 700 / (yy + 2500)), _RGB(255, 255, 0)
+    NEXT
+    _DISPLAY
+LOOP WHILE LEN(INKEY$) = 0
 
-System 0
-
+SYSTEM

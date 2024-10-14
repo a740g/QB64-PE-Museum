@@ -16,59 +16,44 @@
 ' elements to be sorted and how "scrambled" they are to begin with.
 '-----------------------------------------------------------------------------------------------------
 
-'-----------------------------------------------------------------------------------------------------
-' These are some metacommands and compiler options for QB64 to write modern & type-strict code
-'-----------------------------------------------------------------------------------------------------
-' This will disable prefixing all modern QB64 calls using a underscore prefix.
-$NoPrefix
-' Whatever indentifiers are not defined, should default to signed longs (ex. constants and functions).
-DefInt A-Z
-' All variables must be defined.
-Option Explicit
-' All arrays must be defined.
-Option ExplicitArray
-' Array lower bounds should always start from 1 unless explicitly specified.
-' This allows a(4) as integer to have 4 members with index 1-4.
-Option Base 1
-' All arrays should be static by default. Allocate dynamic array using ReDim
-'$Static
-' This allows the executable window & it's contents to be resized.
-$Resize:Smooth
-FullScreen SquarePixels , Smooth
-Title "Sort Demo"
-'-----------------------------------------------------------------------------------------------------
+DEFINT A-Z
+OPTION _EXPLICIT
+OPTION BASE 1
+'$STATIC
+$RESIZE:SMOOTH
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
+_TITLE "Sort Demo"
 
 ' Define the data type used to hold the information for each colored bar:
-Type SortType
-    Length As Integer ' Bar length (the element compared in the different sorts)
-    ColorVal As Integer ' Bar color
-    BarString As String * 43 ' The bar (a string of 43 characters)
-End Type
+TYPE SortType
+    Length AS INTEGER ' Bar length (the element compared in the different sorts)
+    ColorVal AS INTEGER ' Bar color
+    BarString AS STRING * 43 ' The bar (a string of 43 characters)
+END TYPE
 
 ' Declare global constants:
-Const FALSE = 0, TRUE = Not FALSE
-Const LEFTCOLUMN = 49, NUMOPTIONS = 11, NUMSORTS = 6
+CONST FALSE = 0, TRUE = NOT FALSE
+CONST LEFTCOLUMN = 49, NUMOPTIONS = 11, NUMSORTS = 6
 
 ' Declare global variables, and allocate storage space for them.  SortArray
 ' and SortBackup are both arrays of the data type SortType defined above:
-Dim Shared SortArray(1 To 43) As SortType, SortBackup(1 To 43) As SortType
-Dim Shared OptionTitle(1 To NUMOPTIONS) As String * 12
-Dim Shared StartTime As Single
-Dim Shared Foreground, Background, NoSound, Pause
-Dim Shared Selection, MaxRow, InitRow, MaxColors
+DIM SHARED SortArray(1 TO 43) AS SortType, SortBackup(1 TO 43) AS SortType
+DIM SHARED OptionTitle(1 TO NUMOPTIONS) AS STRING * 12
+DIM SHARED StartTime AS SINGLE
+DIM SHARED Foreground, Background, NoSound, Pause
+DIM SHARED Selection, MaxRow, InitRow, MaxColors
 
 ' Data statements for the different options printed in the sort menu:
-Data Insertion,Bubble,Heap,Exchange,Shell,Quick,
-Data Toggle Sound,,<   (Slower),>   (Faster)
+DATA Insertion,Bubble,Heap,Exchange,Shell,Quick,
+DATA Toggle Sound,,<   (Slower),>   (Faster)
 
 ' Begin logic of module-level code:
 
 Initialize ' Initialize data values.
 SortMenu ' Print sort menu.
-Width 80, InitRow ' Restore original number of rows.
-Color 7, 0 ' Restore default color
-Cls
-End
+WIDTH 80, InitRow ' Restore original number of rows.
+COLOR 7, 0 ' Restore default color
+SYSTEM
 
 ' GetRow, MonoTrap, and RowTrap are error-handling routines invoked by
 ' the CheckScreen SUB procedure.  GetRow determines whether the program
@@ -77,52 +62,52 @@ End
 ' number of rows (43 or 25).
 
 GetRow:
-If InitRow = 50 Then
+IF InitRow = 50 THEN
     InitRow = 43
-    Resume
-Else
+    RESUME
+ELSE
     InitRow = 25
-    Resume Next
-End If
+    RESUME NEXT
+END IF
 
 MonoTrap:
 MaxColors = 2
-Resume Next
+RESUME NEXT
 
 RowTrap:
 MaxRow = 25
-Resume
+RESUME
 
 ' =============================== BoxInit ====================================
 '    Calls the DrawFrame procedure to draw the frame around the sort menu,
 '    then prints the different options stored in the OptionTitle array.
 ' ============================================================================
 '
-Sub BoxInit Static
+SUB BoxInit STATIC
     DrawFrame 1, 22, LEFTCOLUMN - 3, 78
-    Dim As Integer i
+    DIM AS INTEGER i
 
-    Locate 3, LEFTCOLUMN + 2: Print "QUICKBASIC SORTING DEMO";
-    Locate 5
-    For i = 1 To NUMOPTIONS - 1
-        Locate , LEFTCOLUMN: Print OptionTitle(i)
-    Next i
+    LOCATE 3, LEFTCOLUMN + 2: PRINT "QUICKBASIC SORTING DEMO";
+    LOCATE 5
+    FOR i = 1 TO NUMOPTIONS - 1
+        LOCATE , LEFTCOLUMN: PRINT OptionTitle(i)
+    NEXT i
 
     ' Don't print the last option (> Faster) if the length of the Pause
     ' is down to 1 clock tick:
-    If Pause > 1 Then Locate , LEFTCOLUMN: Print OptionTitle(NUMOPTIONS);
+    IF Pause > 1 THEN LOCATE , LEFTCOLUMN: PRINT OptionTitle(NUMOPTIONS);
 
     ' Toggle sound on or off, then print the current value for NoSound:
-    NoSound = Not NoSound
+    NoSound = NOT NoSound
     ToggleSound 12, LEFTCOLUMN + 12
 
-    Locate NUMOPTIONS + 6, LEFTCOLUMN
-    Print "Type first character of"
-    Locate , LEFTCOLUMN
-    Print "choice ( I B H E S Q T < > )"
-    Locate , LEFTCOLUMN
-    Print "or ESC key to end program: ";
-End Sub
+    LOCATE NUMOPTIONS + 6, LEFTCOLUMN
+    PRINT "Type first character of"
+    LOCATE , LEFTCOLUMN
+    PRINT "choice ( I B H E S Q T < > )"
+    LOCATE , LEFTCOLUMN
+    PRINT "or ESC key to end program: ";
+END SUB
 
 ' ============================== BubbleSort ==================================
 '    The BubbleSort algorithm cycles through SortArray, comparing adjacent
@@ -130,54 +115,54 @@ End Sub
 '    do this until no pairs are swapped.
 ' ============================================================================
 '
-Sub BubbleSort Static
-    Dim As Integer RowLimit, Switch, Row
+SUB BubbleSort STATIC
+    DIM AS INTEGER RowLimit, Switch, Row
 
     RowLimit = MaxRow
-    Do
+    DO
         Switch = FALSE
-        For Row = 1 To (RowLimit - 1)
+        FOR Row = 1 TO (RowLimit - 1)
 
             ' Two adjacent elements are out of order, so swap their values
             ' and redraw those two bars:
-            If SortArray(Row).Length > SortArray(Row + 1).Length Then
-                Swap SortArray(Row), SortArray(Row + 1)
+            IF SortArray(Row).Length > SortArray(Row + 1).Length THEN
+                SWAP SortArray(Row), SortArray(Row + 1)
                 SwapBars Row, Row + 1
                 Switch = Row
-            End If
-        Next Row
+            END IF
+        NEXT Row
 
         ' Sort on next pass only to where the last switch was made:
         RowLimit = Switch
-    Loop While Switch
-End Sub
+    LOOP WHILE Switch
+END SUB
 
 ' ============================== CheckScreen =================================
 '     Checks for type of monitor (VGA, EGA, CGA, or monochrome) and
 '     starting number of screen lines (50, 43, or 25).
 ' ============================================================================
 '
-Sub CheckScreen Static
+SUB CheckScreen STATIC
     ' Try locating to the 50th row; if that fails, try the 43rd. Finally,
     ' if that fails, the user was using 25-line mode:
     InitRow = 50
-    On Error GoTo GetRow
-    Locate InitRow, 1
+    ON ERROR GOTO GetRow
+    LOCATE InitRow, 1
 
     ' Try a SCREEN 1 statement to see if the current adapter has color
     ' graphics; if that causes an error, reset MaxColors to 2:
     MaxColors = 15
-    On Error GoTo MonoTrap
-    Screen 1
-    Screen 0
+    ON ERROR GOTO MonoTrap
+    SCREEN 1
+    SCREEN 0
 
     ' See if 43-line mode is accepted; if not, run this program in 25-line
     ' mode:
     MaxRow = 43
-    On Error GoTo RowTrap
-    Width 80, MaxRow
-    On Error GoTo 0 ' Turn off error trapping.
-End Sub
+    ON ERROR GOTO RowTrap
+    WIDTH 80, MaxRow
+    ON ERROR GOTO 0 ' Turn off error trapping.
+END SUB
 
 ' ============================== DrawFrame ===================================
 '   Draws a rectangular frame using the high-order ASCII characters É (201) ,
@@ -186,22 +171,22 @@ End Sub
 '   arguments for the upper-left and lower-right corners of the frame.
 ' ============================================================================
 '
-Sub DrawFrame (TopSide, BottomSide, LeftSide, RightSide) Static
-    Dim As Integer FrameWidth, Row
+SUB DrawFrame (TopSide, BottomSide, LeftSide, RightSide) STATIC
+    DIM AS INTEGER FrameWidth, Row
 
-    Const ULEFT = 201, URIGHT = 187, LLEFT = 200, LRIGHT = 188
-    Const VERTICAL = 186, HORIZONTAL = 205
+    CONST ULEFT = 201, URIGHT = 187, LLEFT = 200, LRIGHT = 188
+    CONST VERTICAL = 186, HORIZONTAL = 205
 
     FrameWidth = RightSide - LeftSide - 1
-    Locate TopSide, LeftSide
-    Print Chr$(ULEFT); String$(FrameWidth, HORIZONTAL); Chr$(URIGHT);
-    For Row = TopSide + 1 To BottomSide - 1
-        Locate Row, LeftSide
-        Print Chr$(VERTICAL); Spc(FrameWidth); Chr$(VERTICAL);
-    Next Row
-    Locate BottomSide, LeftSide
-    Print Chr$(LLEFT); String$(FrameWidth, HORIZONTAL); Chr$(LRIGHT);
-End Sub
+    LOCATE TopSide, LeftSide
+    PRINT CHR$(ULEFT); STRING$(FrameWidth, HORIZONTAL); CHR$(URIGHT);
+    FOR Row = TopSide + 1 TO BottomSide - 1
+        LOCATE Row, LeftSide
+        PRINT CHR$(VERTICAL); SPC(FrameWidth); CHR$(VERTICAL);
+    NEXT Row
+    LOCATE BottomSide, LeftSide
+    PRINT CHR$(LLEFT); STRING$(FrameWidth, HORIZONTAL); CHR$(LRIGHT);
+END SUB
 
 ' ============================= ElapsedTime ==================================
 '    Prints seconds elapsed since the given sorting routine started.
@@ -210,25 +195,25 @@ End Sub
 '    thus is not an accurate indication of sorting speed.
 ' ============================================================================
 '
-Sub ElapsedTime (CurrentRow) Static
-    Const FORMAT = "  &###.### seconds  "
+SUB ElapsedTime (CurrentRow) STATIC
+    CONST FORMAT = "  &###.### seconds  "
 
     ' Print current selection and number of seconds elapsed in
     ' reverse video:
-    Color Foreground, Background
-    Locate Selection + 4, LEFTCOLUMN - 2
-    Print Using FORMAT; OptionTitle(Selection); Timer - StartTime;
+    COLOR Foreground, Background
+    LOCATE Selection + 4, LEFTCOLUMN - 2
+    PRINT USING FORMAT; OptionTitle(Selection); TIMER - StartTime;
 
-    If NoSound Then
-        Delay Pause / 15
-    Else
-        Sound 60 * CurrentRow, Pause ' Sound on, so play a note while
-        Delay Pause / 15
-    End If ' pausing.
+    IF NoSound THEN
+        _DELAY Pause / 15
+    ELSE
+        SOUND 60 * CurrentRow, Pause ' Sound on, so play a note while
+        _DELAY Pause / 15
+    END IF ' pausing.
 
-    Color MaxColors, 0 ' Restore regular foreground and
+    COLOR MaxColors, 0 ' Restore regular foreground and
     ' background colors.
-End Sub
+END SUB
 
 ' ============================= ExchangeSort =================================
 '   The ExchangeSort compares each element in SortArray - starting with
@@ -238,26 +223,26 @@ End Sub
 '   element in SortArray.
 ' ============================================================================
 '
-Sub ExchangeSort Static
-    Dim As Integer Row, SmallestRow, j
+SUB ExchangeSort STATIC
+    DIM AS INTEGER Row, SmallestRow, j
 
-    For Row = 1 To MaxRow
+    FOR Row = 1 TO MaxRow
         SmallestRow = Row
-        For j = Row + 1 To MaxRow
-            If SortArray(j).Length < SortArray(SmallestRow).Length Then
+        FOR j = Row + 1 TO MaxRow
+            IF SortArray(j).Length < SortArray(SmallestRow).Length THEN
                 SmallestRow = j
                 ElapsedTime j
-            End If
-        Next j
+            END IF
+        NEXT j
 
         ' Found a row shorter than the current row, so swap those
         ' two array elements:
-        If SmallestRow > Row Then
-            Swap SortArray(Row), SortArray(SmallestRow)
+        IF SmallestRow > Row THEN
+            SWAP SortArray(Row), SortArray(SmallestRow)
             SwapBars Row, SmallestRow
-        End If
-    Next Row
-End Sub
+        END IF
+    NEXT Row
+END SUB
 
 ' =============================== HeapSort ===================================
 '  The HeapSort procedure works by calling two other procedures - PercolateUp
@@ -287,39 +272,39 @@ End Sub
 '  until the array is sorted.
 ' ============================================================================
 '
-Sub HeapSort Static
-    Dim As Integer i
+SUB HeapSort STATIC
+    DIM AS INTEGER i
 
-    For i = 2 To MaxRow
+    FOR i = 2 TO MaxRow
         PercolateUp i
-    Next i
+    NEXT i
 
-    For i = MaxRow To 2 Step -1
-        Swap SortArray(1), SortArray(i)
+    FOR i = MaxRow TO 2 STEP -1
+        SWAP SortArray(1), SortArray(i)
         SwapBars 1, i
         PercolateDown i - 1
-    Next i
-End Sub
+    NEXT i
+END SUB
 
 ' ============================== Initialize ==================================
 '    Initializes the SortBackup and OptionTitle arrays.  It also calls the
 '    CheckScreen, BoxInit, and RandInt% procedures.
 ' ============================================================================
 '
-Sub Initialize Static
-    Dim TempArray(1 To 43)
-    Dim As Integer i, MaxIndex, Index, BarLength
+SUB Initialize STATIC
+    DIM TempArray(1 TO 43)
+    DIM AS INTEGER i, MaxIndex, Index, BarLength
 
     CheckScreen ' Check for monochrome or EGA and set
     ' maximum number of text lines.
-    For i = 1 To MaxRow
+    FOR i = 1 TO MaxRow
         TempArray(i) = i
-    Next i
+    NEXT i
 
     MaxIndex = MaxRow
 
-    Randomize Timer ' Seed the random-number generator.
-    For i = 1 To MaxRow
+    RANDOMIZE TIMER ' Seed the random-number generator.
+    FOR i = 1 TO MaxRow
 
         ' Call RandInt% to find a random element in TempArray between 1
         ' and MaxIndex, then assign the value in that element to BarLength:
@@ -339,27 +324,27 @@ Sub Initialize Static
         ' a string of BarLength block characters (ASCII 223: ß) in the
         ' .BarString element:
         SortBackup(i).Length = BarLength
-        SortBackup(i).BarString = String$(BarLength, 223)
+        SortBackup(i).BarString = STRING$(BarLength, 223)
 
         ' Store the appropriate color value in the .ColorVal element:
-        If MaxColors > 2 Then
-            SortBackup(i).ColorVal = (BarLength Mod MaxColors) + 1
-        Else
+        IF MaxColors > 2 THEN
+            SortBackup(i).ColorVal = (BarLength MOD MaxColors) + 1
+        ELSE
             SortBackup(i).ColorVal = MaxColors
-        End If
-    Next i
+        END IF
+    NEXT i
 
-    For i = 1 To NUMOPTIONS ' Read SORT DEMO menu options and store
-        Read OptionTitle(i) ' them in the OptionTitle array.
-    Next i
+    FOR i = 1 TO NUMOPTIONS ' Read SORT DEMO menu options and store
+        READ OptionTitle(i) ' them in the OptionTitle array.
+    NEXT i
 
-    Cls
+    CLS
     Reinitialize ' Assign values in SortBackup to SortArray and draw
     ' unsorted bars on the screen.
     NoSound = FALSE
     Pause = 2 ' Initialize Pause to 2 clock ticks (@ 1/9 second).
     BoxInit ' Draw frame for the sort menu and print options.
-End Sub
+END SUB
 
 ' ============================= InsertionSort ================================
 '   The InsertionSort procedure compares the length of each successive
@@ -369,118 +354,118 @@ End Sub
 '   down one place.
 ' ============================================================================
 '
-Sub InsertionSort Static
-    Dim TempVal As SortType
-    Dim As Integer Row, TempLength, j
+SUB InsertionSort STATIC
+    DIM TempVal AS SortType
+    DIM AS INTEGER Row, TempLength, j
 
-    For Row = 2 To MaxRow
+    FOR Row = 2 TO MaxRow
         TempVal = SortArray(Row)
         TempLength = TempVal.Length
-        For j = Row To 2 Step -1
+        FOR j = Row TO 2 STEP -1
 
             ' As long as the length of the J-1st element is greater than the
             ' length of the original element in SortArray(Row), keep shifting
             ' the array elements down:
-            If SortArray(j - 1).Length > TempLength Then
+            IF SortArray(j - 1).Length > TempLength THEN
                 SortArray(j) = SortArray(j - 1)
                 PrintOneBar j ' Print the new bar.
                 ElapsedTime j ' Print the elapsed time.
 
                 ' Otherwise, exit the FOR...NEXT loop:
-            Else
-                Exit For
-            End If
-        Next j
+            ELSE
+                EXIT FOR
+            END IF
+        NEXT j
 
         ' Insert the original value of SortArray(Row) in SortArray(J):
         SortArray(j) = TempVal
         PrintOneBar j
         ElapsedTime j
-    Next Row
-End Sub
+    NEXT Row
+END SUB
 
 ' ============================ PercolateDown =================================
 '   The PercolateDown procedure restores the elements of SortArray from 1 to
 '   MaxLevel to a "heap" (see the diagram with the HeapSort procedure).
 ' ============================================================================
 '
-Sub PercolateDown (MaxLevel) Static
-    Dim As Integer i, Child
+SUB PercolateDown (MaxLevel) STATIC
+    DIM AS INTEGER i, Child
 
     i = 1
 
     ' Move the value in SortArray(1) down the heap until it has
     ' reached its proper node (that is, until it is less than its parent
     ' node or until it has reached MaxLevel, the bottom of the current heap):
-    Do
+    DO
         Child = 2 * i ' Get the subscript for the child node.
 
         ' Reached the bottom of the heap, so exit this procedure:
-        If Child > MaxLevel Then Exit Do
+        IF Child > MaxLevel THEN EXIT DO
 
         ' If there are two child nodes, find out which one is bigger:
-        If Child + 1 <= MaxLevel Then
-            If SortArray(Child + 1).Length > SortArray(Child).Length Then
+        IF Child + 1 <= MaxLevel THEN
+            IF SortArray(Child + 1).Length > SortArray(Child).Length THEN
                 Child = Child + 1
-            End If
-        End If
+            END IF
+        END IF
 
         ' Move the value down if it is still not bigger than either one of
         ' its children:
-        If SortArray(i).Length < SortArray(Child).Length Then
-            Swap SortArray(i), SortArray(Child)
+        IF SortArray(i).Length < SortArray(Child).Length THEN
+            SWAP SortArray(i), SortArray(Child)
             SwapBars i, Child
             i = Child
 
             ' Otherwise, SortArray has been restored to a heap from 1 to MaxLevel,
             ' so exit:
-        Else
-            Exit Do
-        End If
-    Loop
-End Sub
+        ELSE
+            EXIT DO
+        END IF
+    LOOP
+END SUB
 
 ' ============================== PercolateUp =================================
 '   The PercolateUp procedure converts the elements from 1 to MaxLevel in
 '   SortArray into a "heap" (see the diagram with the HeapSort procedure).
 ' ============================================================================
 '
-Sub PercolateUp (MaxLevel) Static
-    Dim As Integer i, Parent
+SUB PercolateUp (MaxLevel) STATIC
+    DIM AS INTEGER i, Parent
 
     i = MaxLevel
 
     ' Move the value in SortArray(MaxLevel) up the heap until it has
     ' reached its proper node (that is, until it is greater than either
     ' of its child nodes, or until it has reached 1, the top of the heap):
-    Do Until i = 1
+    DO UNTIL i = 1
         Parent = i \ 2 ' Get the subscript for the parent node.
 
         ' The value at the current node is still bigger than the value at
         ' its parent node, so swap these two array elements:
-        If SortArray(i).Length > SortArray(Parent).Length Then
-            Swap SortArray(Parent), SortArray(i)
+        IF SortArray(i).Length > SortArray(Parent).Length THEN
+            SWAP SortArray(Parent), SortArray(i)
             SwapBars Parent, i
             i = Parent
 
             ' Otherwise, the element has reached its proper place in the heap,
             ' so exit this procedure:
-        Else
-            Exit Do
-        End If
-    Loop
-End Sub
+        ELSE
+            EXIT DO
+        END IF
+    LOOP
+END SUB
 
 ' ============================== PrintOneBar =================================
 '  Prints SortArray(Row).BarString at the row indicated by the Row
 '  parameter, using the color in SortArray(Row).ColorVal.
 ' ============================================================================
 '
-Sub PrintOneBar (Row) Static
-    Locate Row, 1
-    Color SortArray(Row).ColorVal
-    Print SortArray(Row).BarString;
-End Sub
+SUB PrintOneBar (Row) STATIC
+    LOCATE Row, 1
+    COLOR SortArray(Row).ColorVal
+    PRINT SortArray(Row).BarString;
+END SUB
 
 ' ============================== QuickSort ===================================
 '   QuickSort works by picking a random "pivot" element in SortArray, then
@@ -491,90 +476,90 @@ End Sub
 '   and the array is sorted.
 ' ============================================================================
 '
-Sub QuickSort (Low, High)
-    Dim As Integer RandIndex, Partition, i, j
+SUB QuickSort (Low, High)
+    DIM AS INTEGER RandIndex, Partition, i, j
 
-    If Low < High Then
+    IF Low < High THEN
 
         ' Only two elements in this subdivision; swap them if they are out of
         ' order, then end recursive calls:
-        If High - Low = 1 Then
-            If SortArray(Low).Length > SortArray(High).Length Then
-                Swap SortArray(Low), SortArray(High)
+        IF High - Low = 1 THEN
+            IF SortArray(Low).Length > SortArray(High).Length THEN
+                SWAP SortArray(Low), SortArray(High)
                 SwapBars Low, High
-            End If
-        Else
+            END IF
+        ELSE
 
             ' Pick a pivot element at random, then move it to the end:
             RandIndex = RandInt%(Low, High)
-            Swap SortArray(High), SortArray(RandIndex)
+            SWAP SortArray(High), SortArray(RandIndex)
             SwapBars High, RandIndex
             Partition = SortArray(High).Length
-            Do
+            DO
 
                 ' Move in from both sides towards the pivot element:
                 i = Low: j = High
-                Do While (i < j) And (SortArray(i).Length <= Partition)
+                DO WHILE (i < j) AND (SortArray(i).Length <= Partition)
                     i = i + 1
-                Loop
-                Do While (j > i) And (SortArray(j).Length >= Partition)
+                LOOP
+                DO WHILE (j > i) AND (SortArray(j).Length >= Partition)
                     j = j - 1
-                Loop
+                LOOP
 
                 ' If we haven't reached the pivot element, it means that two
                 ' elements on either side are out of order, so swap them:
-                If i < j Then
-                    Swap SortArray(i), SortArray(j)
+                IF i < j THEN
+                    SWAP SortArray(i), SortArray(j)
                     SwapBars i, j
-                End If
-            Loop While i < j
+                END IF
+            LOOP WHILE i < j
 
             ' Move the pivot element back to its proper place in the array:
-            Swap SortArray(i), SortArray(High)
+            SWAP SortArray(i), SortArray(High)
             SwapBars i, High
 
             ' Recursively call the QuickSort procedure (pass the smaller
             ' subdivision first to use less stack space):
-            If (i - Low) < (High - i) Then
+            IF (i - Low) < (High - i) THEN
                 QuickSort Low, i - 1
                 QuickSort i + 1, High
-            Else
+            ELSE
                 QuickSort i + 1, High
                 QuickSort Low, i - 1
-            End If
-        End If
-    End If
-End Sub
+            END IF
+        END IF
+    END IF
+END SUB
 
 ' =============================== RandInt% ===================================
 '   Returns a random integer greater than or equal to the Lower parameter
 '   and less than or equal to the Upper parameter.
 ' ============================================================================
 '
-Function RandInt% (lower, Upper) Static
-    RandInt% = Int(Rnd * (Upper - lower + 1)) + lower
-End Function
+FUNCTION RandInt% (lower, Upper) STATIC
+    RandInt% = INT(RND * (Upper - lower + 1)) + lower
+END FUNCTION
 
 ' ============================== Reinitialize ================================
 '   Restores the array SortArray to its original unsorted state, then
 '   prints the unsorted color bars.
 ' ============================================================================
 '
-Sub Reinitialize Static
-    Dim As Integer i
+SUB Reinitialize STATIC
+    DIM AS INTEGER i
 
-    For i = 1 To MaxRow
+    FOR i = 1 TO MaxRow
         SortArray(i) = SortBackup(i)
-    Next i
+    NEXT i
 
-    For i = 1 To MaxRow
-        Locate i, 1
-        Color SortArray(i).ColorVal
-        Print SortArray(i).BarString;
-    Next i
+    FOR i = 1 TO MaxRow
+        LOCATE i, 1
+        COLOR SortArray(i).ColorVal
+        PRINT SortArray(i).BarString;
+    NEXT i
 
-    Color MaxColors, 0
-End Sub
+    COLOR MaxColors, 0
+END SUB
 
 ' =============================== ShellSort ==================================
 '  The ShellSort procedure is similar to the BubbleSort procedure.  However,
@@ -585,34 +570,34 @@ End Sub
 '  is merely a bubble sort).
 ' ============================================================================
 '
-Sub ShellSort Static
-    Dim As Integer RowOffset, RowLimit, Switch, Row
+SUB ShellSort STATIC
+    DIM AS INTEGER RowOffset, RowLimit, Switch, Row
 
     ' Set comparison offset to half the number of records in SortArray:
     RowOffset = MaxRow \ 2
 
-    Do While RowOffset > 0 ' Loop until offset gets to zero.
+    DO WHILE RowOffset > 0 ' Loop until offset gets to zero.
         RowLimit = MaxRow - RowOffset
-        Do
+        DO
             Switch = FALSE ' Assume no switches at this offset.
 
             ' Compare elements and switch ones out of order:
-            For Row = 1 To RowLimit
-                If SortArray(Row).Length > SortArray(Row + RowOffset).Length Then
-                    Swap SortArray(Row), SortArray(Row + RowOffset)
+            FOR Row = 1 TO RowLimit
+                IF SortArray(Row).Length > SortArray(Row + RowOffset).Length THEN
+                    SWAP SortArray(Row), SortArray(Row + RowOffset)
                     SwapBars Row, Row + RowOffset
                     Switch = Row
-                End If
-            Next Row
+                END IF
+            NEXT Row
 
             ' Sort on next pass only to where last switch was made:
             RowLimit = Switch - RowOffset
-        Loop While Switch
+        LOOP WHILE Switch
 
         ' No switches at last offset, try one half as big:
         RowOffset = RowOffset \ 2
-    Loop
-End Sub
+    LOOP
+END SUB
 
 ' =============================== SortMenu ===================================
 '   The SortMenu procedure first calls the Reinitialize procedure to make
@@ -625,46 +610,46 @@ End Sub
 '               * End the program
 ' ============================================================================
 '
-Sub SortMenu Static
-    Dim As String sEscape, sOption, sChoice
+SUB SortMenu STATIC
+    DIM AS STRING sEscape, sOption, sChoice
 
-    sEscape = Chr$(27)
+    sEscape = CHR$(27)
 
     ' Create a string consisting of all legal choices:
     sOption = "IBHESQ><T" + sEscape
 
-    Do
+    DO
 
         ' Make the cursor visible:
-        Locate NUMOPTIONS + 8, LEFTCOLUMN + 27, 1
+        LOCATE NUMOPTIONS + 8, LEFTCOLUMN + 27, 1
 
-        sChoice = UCase$(Input$(1)) ' Get the user's choice and see
-        Selection = InStr(sOption, sChoice) ' if it's one of the menu options.
+        sChoice = UCASE$(INPUT$(1)) ' Get the user's choice and see
+        Selection = INSTR(sOption, sChoice) ' if it's one of the menu options.
 
         ' User chose one of the sorting procedures:
-        If (Selection >= 1) And (Selection <= NUMSORTS) Then
+        IF (Selection >= 1) AND (Selection <= NUMSORTS) THEN
             Reinitialize ' Rescramble the bars.
-            Locate , , 0 ' Make the cursor invisible.
+            LOCATE , , 0 ' Make the cursor invisible.
             Foreground = 0 ' Set reverse-video values.
             Background = 7
-            StartTime = Timer ' Record the starting time.
-        End If
+            StartTime = TIMER ' Record the starting time.
+        END IF
 
         ' Branch to the appropriate procedure depending on the key typed:
-        Select Case sChoice
-            Case "I"
+        SELECT CASE sChoice
+            CASE "I"
                 InsertionSort
-            Case "B"
+            CASE "B"
                 BubbleSort
-            Case "H"
+            CASE "H"
                 HeapSort
-            Case "E"
+            CASE "E"
                 ExchangeSort
-            Case "S"
+            CASE "S"
                 ShellSort
-            Case "Q"
+            CASE "Q"
                 QuickSort 1, MaxRow
-            Case ">"
+            CASE ">"
 
                 ' Decrease pause length to speed up sorting time, then redraw
                 ' the menu to clear any timing results (since they won't compare
@@ -672,7 +657,7 @@ Sub SortMenu Static
                 Pause = (2 * Pause) / 3
                 BoxInit
 
-            Case "<"
+            CASE "<"
 
                 ' Increase pause length to slow down sorting time, then redraw
                 ' the menu to clear any timing results (since they won't compare
@@ -680,52 +665,52 @@ Sub SortMenu Static
                 Pause = (3 * Pause) / 2
                 BoxInit
 
-            Case "T"
+            CASE "T"
                 ToggleSound 12, LEFTCOLUMN + 12
 
-            Case sEscape
+            CASE sEscape
 
                 ' User pressed ESC, so exit this procedure and return to
                 ' module level:
-                Exit Do
+                EXIT DO
 
-            Case Else
+            CASE ELSE
 
                 ' Invalid key
-        End Select
+        END SELECT
 
-        If (Selection >= 1) And (Selection <= NUMSORTS) Then
+        IF (Selection >= 1) AND (Selection <= NUMSORTS) THEN
             Foreground = MaxColors ' Turn off reverse video.
             Background = 0
             ElapsedTime 0 ' Print final time.
-        End If
+        END IF
 
-    Loop
-End Sub
+    LOOP
+END SUB
 
 ' =============================== SwapBars ===================================
 '   Calls PrintOneBar twice to switch the two bars in Row1 and Row2,
 '   then calls the ElapsedTime procedure.
 ' ============================================================================
 '
-Sub SwapBars (Row1, Row2) Static
+SUB SwapBars (Row1, Row2) STATIC
     PrintOneBar Row1
     PrintOneBar Row2
     ElapsedTime Row1
-End Sub
+END SUB
 
 ' ============================== ToggleSound =================================
 '   Reverses the current value for NoSound, then prints that value next
 '   to the "Toggle Sound" option on the sort menu.
 ' ============================================================================
 '
-Sub ToggleSound (Row, Column) Static
-    NoSound = Not NoSound
-    Locate Row, Column
-    If NoSound Then
-        Print ": OFF";
-    Else
-        Print ": ON ";
-    End If
-End Sub
+SUB ToggleSound (Row, Column) STATIC
+    NoSound = NOT NoSound
+    LOCATE Row, Column
+    IF NoSound THEN
+        PRINT ": OFF";
+    ELSE
+        PRINT ": ON ";
+    END IF
+END SUB
 
