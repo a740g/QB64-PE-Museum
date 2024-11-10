@@ -1,0 +1,228 @@
+'MEM Library
+'Copyright Matt Kilgore -- 2011/2013
+
+'This program is free software, without any warranty of any kind.
+'You are free to edit, copy, modify, and redistribute it under the terms
+'of the Do What You Want Public License, Version 1, as published by Matt Kilgore
+'See file COPYING that should have been included with this source.
+
+$INCLUDEONCE
+
+'$INCLUDE:'mem.bi'
+
+' MEM handling functions
+FUNCTION MEM_get_str$ (s AS MEM_String)
+    $CHECKING:OFF
+    IF s.is_allocated <> 0 AND s.length > 0 THEN
+        get_s$ = SPACE$(s.length)
+        MEM_MEMCPY _OFFSET(get_s$), s.mem, s.length
+        'FOR x = 1 TO s.length
+        '  get_s$ = get_s$ + _MEMGET(MEM_FAKEMEM, s.mem + x - 1, STRING * 1)
+        'NEXT x
+    END IF
+    MEM_get_str$ = get_s$
+    $CHECKING:ON
+END FUNCTION
+
+SUB MEM_put_str (s AS MEM_String, stri$)
+    $CHECKING:OFF
+    IF NOT s.is_allocated OR s.allocated < LEN(stri$) THEN
+        IF s.is_allocated THEN MEM_FREE s.mem '_MEMFREE s.mem
+        's.mem = _MEMNEW(LEN(stri$) + 10) 'allocate 10 extra bytes
+        s.mem = MEM_MALLOC%&(LEN(stri$) + 10)
+        s.allocated = LEN(stri$) + 10
+        s.is_allocated = -1
+    END IF
+    '_MEMPUT s.mem, s.mem.OFFSET, stri$
+    MEM_MEMCPY s.mem, _OFFSET(stri$), LEN(stri$)
+    s.length = LEN(stri$)
+    $CHECKING:ON
+END SUB
+
+FUNCTION MEM_get_str_array$ (a AS MEM_Array, array_number)
+    DIM s AS MEM_String
+    $CHECKING:OFF
+    '_MEMGET MEM_FAKEMEM, a.mem + array_number * MEM_SIZEOF_MEM_STRING, s
+    MEM_MEMCPY _OFFSET(s), a.mem + array_number * MEM_SIZEOF_MEM_STRING, MEM_SIZEOF_MEM_STRING
+    '_MEMCOPY a.mem, a.mem.OFFSET + array_number * LEN(string_type), LEN(string_type) TO m, m.OFFSET
+    $CHECKING:ON
+
+    MEM_get_str_array$ = MEM_get_str$(s)
+END FUNCTION
+
+SUB MEM_increment_array (a AS MEM_Array)
+    'debug_output "Incrementing array..."
+    a.last_element = a.last_element + 1
+    IF a.last_element > a.length - 1 THEN
+        MEM_reallocate_array a, a.length + 100
+    END IF
+END SUB
+
+SUB MEM_put_mem_copy_array (a AS MEM_Array, array_number, o AS _OFFSET)
+    $CHECKING:OFF
+    MEM_MEMCPY a.mem + array_number * a.element_size, o, a.element_size
+    $CHECKING:ON
+END SUB
+
+SUB MEM_put_str_array (a AS MEM_Array, array_number, s$)
+    $CHECKING:OFF
+    DIM st AS MEM_String
+    '_MEMGET MEM_FAKEMEM, a.mem + array_number * MEM_SIZEOF_MEM_STRING, st
+    MEM_MEMCPY _OFFSET(st), a.mem + array_number * MEM_SIZEOF_MEM_STRING, MEM_SIZEOF_MEM_STRING
+    MEM_put_str st, s$
+    MEM_MEMCPY a.mem + array_number * MEM_SIZEOF_MEM_STRING, _OFFSET(st), MEM_SIZEOF_MEM_STRING
+    '_MEMPUT a.mem, a.mem.OFFSET + array_number * MEM_SIZEOF_MEM_STRING, st
+
+    $CHECKING:ON
+END SUB
+
+SUB MEM_allocate_array (a AS MEM_Array, number_of_elements, element_size)
+    $CHECKING:OFF
+    IF NOT a.is_allocated THEN
+        'not already allocated
+        a.element_size = element_size
+        a.length = number_of_elements 'add one to make it go from 0 to number_of_elements as BASIC programers would expect
+        a.is_allocated = -1
+        a.allocated = (a.length + 1) * element_size
+        'a.mem = _MEMNEW((a.length + 1) * element_size)
+        a.mem = MEM_MALLOC%&((a.length + 1) * element_size)
+        MEM_MEMSET a.mem, 0, (a.length + 1) * element_size
+
+        '_MEMFILL a.mem, a.mem.OFFSET, (a.length + 1) * element_size, 0 as _byte
+    ELSEIF a.element_size = element_size THEN
+        MEM_reallocate_array a, number_of_elements
+    END IF
+    $CHECKING:ON
+
+END SUB
+
+SUB MEM_reallocate_array (a AS MEM_Array, number_of_elements)
+
+    DIM temp AS _OFFSET
+
+    $CHECKING:OFF
+    IF a.is_allocated = 0 THEN
+        IF a.element_size > 0 THEN MEM_allocate_array a, number_of_elements, a.element_size ELSE ERROR 255
+    ELSE 'reallocate
+        'debug_output "Reallocating..."
+        a.length = number_of_elements + 1
+        'debug_output "Increased length"
+        IF a.length * a.element_size < a.allocated THEN EXIT SUB
+        'debug_output "Allocated: " + str$(a.allocated)
+        'debug_output "Calling REALLOC: " + STR$(a.allocated)
+        'debug_output "MEM: " + str$(a.mem) + str$(a.length * a.element_size)
+
+        temp = MEM_MALLOC0(a.length * a.element_size)
+        'debug_output "Allocated temp" + str$(temp) + str$(a.allocated)
+        IF a.mem <> 0 THEN
+            MEM_MEMCPY temp, a.mem, a.allocated
+            '  debug_output "Copied a.mem" + str$(a.mem)
+            MEM_FREE a.mem
+        END IF
+        'debug_output "Freed a.mem"
+        a.mem = temp
+        'a.mem = MEM_REALLOC%&(a.mem, a.allocated + 1)
+        'debug_output "Alloc"
+        a.allocated = a.length * a.element_size
+    END IF
+
+    $CHECKING:ON
+END SUB
+
+SUB MEM_allocate_string_array (a AS MEM_Array, number_of_elements)
+    MEM_allocate_array a, number_of_elements, MEM_SIZEOF_MEM_STRING
+END SUB
+
+SUB MEM_allocate_define_array (a AS MEM_Array, number_of_elements)
+    MEM_allocate_array a, number_of_elements, SIZEOF_DEFINE
+END SUB
+
+SUB MEM_add_string_to_array (a AS MEM_Array, s$)
+    IF a.length = 0 THEN a.element_size = MEM_SIZEOF_MEM_STRING
+    'debug_output "Adding String"
+    MEM_increment_array a
+    'debug_output "Writing string to array"
+    MEM_put_str_array a, a.last_element, s$
+END SUB
+
+SUB MEM_free_string_array (a AS MEM_Array)
+    DIM s AS MEM_String
+    $CHECKING:OFF
+    IF a.is_allocated THEN
+        FOR x = 1 TO a.length 'Free each individual string
+            's = _MEMGET(a.mem, a.mem.OFFSET + MEM_SIZEOF_MEM_STRING * (x - 1), MEM_string)
+            MEM_MEMCPY _OFFSET(s), a.mem + MEM_SIZEOF_MEM_STRING * (x - 1), MEM_SIZEOF_MEM_STRING
+            MEM_free_string s
+        NEXT x
+        '_MEMFREE a.mem
+        MEM_FREE a.mem
+        a.is_allocated = 0
+        a.allocated = 0
+        a.last_element = 0
+    END IF
+    $CHECKING:ON
+END SUB
+
+SUB MEM_free_array (a AS MEM_Array)
+    $CHECKING:OFF
+    IF a.is_allocated THEN
+        '_MEMFREE a.mem
+        MEM_FREE a.mem
+        a.is_allocated = 0
+        a.allocated = 0
+        a.last_element = 0
+    END IF
+    $CHECKING:ON
+END SUB
+
+SUB MEM_free_string (s AS MEM_String)
+    $CHECKING:OFF
+    IF s.is_allocated THEN
+        '_memfree s.mem
+        MEM_FREE s.mem
+        s.is_allocated = 0
+        s.allocated = 0
+    END IF
+    $CHECKING:ON
+END SUB
+
+FUNCTION MEM_int_from_off% (o AS _OFFSET)
+    $CHECKING:OFF
+    DIM i AS INTEGER
+    MEM_MEMCPY _OFFSET(i), o, LEN(i)
+    MEM_int_from_off% = i
+    $CHECKING:ON
+END FUNCTION
+
+FUNCTION MEM_long_from_off& (o AS _OFFSET)
+    $CHECKING:OFF
+    DIM l AS LONG
+    MEM_MEMCPY _OFFSET(l), o, 4 'LEN(l)
+    MEM_long_from_off& = l
+    $CHECKING:ON
+END FUNCTION
+
+FUNCTION MEM_byte_from_off%% (o AS _OFFSET)
+    $CHECKING:OFF
+    DIM b AS _BYTE
+    MEM_MEMCPY _OFFSET(b), o, LEN(b)
+    MEM_byte_from_off%% = b
+    $CHECKING:ON
+END FUNCTION
+
+FUNCTION MEM_int64_from_off&& (o AS _OFFSET)
+    $CHECKING:OFF
+    DIM i AS _INTEGER64
+    MEM_MEMCPY _OFFSET(i), o, LEN(i)
+    MEM_int64_from_off&& = i
+    $CHECKING:ON
+END FUNCTION
+
+FUNCTION MEM_MALLOC0%& (bytes AS LONG)
+    $CHECKING:OFF
+    DIM o AS _OFFSET
+    o = MEM_MALLOC%&(bytes)
+    MEM_MEMSET o, 0, bytes
+    MEM_MALLOC0%& = o
+    $CHECKING:ON
+END FUNCTION
