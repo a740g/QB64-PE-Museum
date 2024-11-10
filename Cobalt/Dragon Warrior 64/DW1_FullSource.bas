@@ -6316,7 +6316,7 @@ SUB DarkenImage (Image AS LONG, Value_From_0_To_1 AS SINGLE)
     O = Buffer.OFFSET 'We start at this offset
     O_Last = Buffer.OFFSET + _WIDTH(Image) * _HEIGHT(Image) * 4 'We stop when we get to this offset
     'use on error free code ONLY!
-    $CHECKING:OFF
+    '$CHECKING:OFF
     DO
         _MEMPUT Buffer, O, _MEMGET(Buffer, O, _UNSIGNED _BYTE) * Frac_Value \ 65536 AS _UNSIGNED _BYTE
         _MEMPUT Buffer, O + 1, _MEMGET(Buffer, O + 1, _UNSIGNED _BYTE) * Frac_Value \ 65536 AS _UNSIGNED _BYTE
@@ -6324,7 +6324,7 @@ SUB DarkenImage (Image AS LONG, Value_From_0_To_1 AS SINGLE)
         O = O + 4
     LOOP UNTIL O = O_Last
     'turn checking back on when done!
-    $CHECKING:ON
+    '$CHECKING:ON
     _MEMFREE Buffer
 END SUB
 SUB Get_JoyPads
@@ -6860,4 +6860,3 @@ SUB Replace_Final_NPCs
     NPC(14).X = 25: NPC(14).Y = 27
 
 END SUB
-
