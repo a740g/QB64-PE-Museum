@@ -1,6 +1,7 @@
 '-----------------------------------------------------------------------------------------------------
 '
 ' Text file condenser
+' THIS WILL NOT WORK WITH UNICODE TEXT FILES!
 '
 ' Copyright (c) Samuel Gomes (a740g), 1998-2023.
 ' All rights reserved.

@@ -349,8 +349,8 @@ PRINT "Loading...."
 _DELAY .1
 MFI_Loader "DragonWV1.MFI"
 
-CONST CurrentVer = &HDA00DE69 'current Config file verison
-CONST SaveVer = &HF1E3DAD0 'Current Saved File Version
+CONST CurrentVer~& = &HDA00DE69~& 'current Config file verison
+CONST SaveVer~& = &HF1E3DAD0~& 'Current Saved File Version
 
 INIT 'a bit of pre-run setup
 
@@ -1410,7 +1410,7 @@ SUB Add_To_Inventory (Item%%, Count%%)
     STATIC m AS _MEM 'no need to initialize/free it over and over
     STATIC Pack AS _OFFSET
     m = _MEM(P) 'Just change where you want to point it to.
-    Pack = m.OFFSET + 12 'æmove to where P .Pack starts at in memory
+    Pack = m.OFFSET + 12 'ï¿½move to where P .Pack starts at in memory
 
     Match%% = FALSE
     IF Item%% = 22 THEN 'herb
@@ -1428,7 +1428,7 @@ FUNCTION Item_Count%% (Item%%)
     STATIC m AS _MEM 'no need to initialize/free it over and over
     STATIC Pack AS _OFFSET
     m = _MEM(P) 'Just change where you want to point it to.
-    Pack = m.OFFSET + 12 'æmove to where P .Pack starts at in memory
+    Pack = m.OFFSET + 12 'ï¿½move to where P .Pack starts at in memory
     Result%% = 0
     Result%% = _MEMGET(m, Pack + Item%% * 2 + 1, _BYTE)
     Item_Count = Result%%
@@ -1438,7 +1438,7 @@ FUNCTION Inventory_Item%% (Item%%)
     STATIC m AS _MEM 'no need to initialize/free it over and over
     STATIC Pack AS _OFFSET
     m = _MEM(P) 'Just change where you want to point it to.
-    Pack = m.OFFSET + 12 'æmove to where P .Pack starts at in memory
+    Pack = m.OFFSET + 12 'ï¿½move to where P .Pack starts at in memory
     Result%% = 0
     Result%% = _MEMGET(m, Pack + Item%% * 2, _BYTE)
     Inventory_Item = Result%%
@@ -1448,7 +1448,7 @@ SUB Remove_Inventory (Item%%, Count%%)
     STATIC m AS _MEM 'no need to initialize/free it over and over
     STATIC Pack AS _OFFSET
     m = _MEM(P) 'Just change where you want to point it to.
-    Pack = m.OFFSET + 12 'æmove to where P .Pack starts at in memory
+    Pack = m.OFFSET + 12 'ï¿½move to where P .Pack starts at in memory
 
     Match%% = -1
     FOR i%% = 0 TO 15 'find the item
@@ -1482,7 +1482,7 @@ SUB Drop_Inventory (ID%%)
     STATIC m AS _MEM 'no need to initialize/free it over and over
     STATIC Pack AS _OFFSET
     m = _MEM(P) 'Just change where you want to point it to.
-    Pack = m.OFFSET + 12 'æmove to where P .Pack starts at in memory
+    Pack = m.OFFSET + 12 'ï¿½move to where P .Pack starts at in memory
 
     Match%% = -1
     FOR i%% = 0 TO 15 'find the item
@@ -3434,7 +3434,7 @@ SUB NPC_Talk (ID%%)
             ELSE
                 Result%% = Message_Handler(Layer(15), 57) '
             END IF
-            'ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄEnd of Tantegel Castle NPCsÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+            'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½End of Tantegel Castle NPCsï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         CASE 26 'Red gaurd in top right corner
             Result%% = Message_Handler(Layer(15), 59) '
         CASE 27 'Armory shop keep
@@ -3675,7 +3675,7 @@ SUB NPC_Talk (ID%%)
                     Result%% = Message_Handler(Layer(15), 95) 'player has no items to sell
                 END IF
             END IF
-            'ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄEnd of Brecanary NPCsÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+            'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½End of Brecanary NPCsï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         CASE 46 'roaming wizard by item shop
             Result%% = Message_Handler(Layer(15), 104) '
         CASE 47 'tool shop keep in Garinham
@@ -3868,7 +3868,7 @@ SUB NPC_Talk (ID%%)
             Result%% = Message_Handler(Layer(15), 137) '
         CASE 60 'Roaming wizard
             Result%% = Message_Handler(Layer(15), 138) '
-            'ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄEnd of Garinham  NPCsÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+            'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½End of Garinham  NPCsï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         CASE 61 'wizard top left
             Result%% = Message_Handler(Layer(15), 139) '
         CASE 62 'girl by fountain
@@ -4073,7 +4073,7 @@ SUB NPC_Talk (ID%%)
             END IF
         CASE 76 'Gaurd bottom left town
             Result%% = Message_Handler(Layer(15), 178) '
-            'ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ---ÄÄEnd of Kol  NPCs----ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ-
+            'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½---ï¿½ï¿½End of Kol  NPCs----ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-
         CASE 77 'Boy in top right
             Result%% = Message_Handler(Layer(15), 179) '
         CASE 78 'merchant by key seller
@@ -4216,7 +4216,7 @@ SUB NPC_Talk (ID%%)
             Result%% = Message_Handler(Layer(15), 213) '
         CASE 96 'roaming Red gaurd
             Result%% = Message_Handler(Layer(15), 214) '
-            'ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ-ÄÄEnd of Rimuldar NPCs--ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ-
+            'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½End of Rimuldar NPCs--ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-
         CASE 97 'inn keeper
             G.Price = 100
             Result%% = Message_Handler(Layer(15), 77) '
@@ -4675,7 +4675,7 @@ SUB NPC_Talk (ID%%)
             END IF
         CASE 116 'Wizard Inside Building
             Result%% = Message_Handler(Layer(15), 287) '
-            'ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ-ÄÄEnd of Cantlin NPCs--ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ-
+            'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½ï¿½End of Cantlin NPCs--ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-
         CASE 117 'Rain Shrine Wizard
             IF P.Has_Harp THEN
                 Result%% = Message_Handler(Layer(15), 289) 'Wizard Vanishes
