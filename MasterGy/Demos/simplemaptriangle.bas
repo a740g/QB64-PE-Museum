@@ -33,7 +33,7 @@ SUB draw_brick (x, y, z, sizex, sizey, sizez, t0, t1, t2, t3, t4, t5, rota, rotb
     DIM c(2): c(0) = x: c(1) = y: c(2) = z
     DIM size(2): size(0) = sizex: size(1) = sizey: size(2) = sizez
     DIM t(5): t(0) = t0: t(1) = t1: t(2) = t2: t(3) = t3: t(4) = t4: t(5) = t5
-    DIM p(3, 2), pc(7, 2), sq(3) AS _UNSIGNED _BYTE
+    DIM p(3, 2), pc(7, 2)
 
     FOR t = 0 TO 7
         FOR c = 0 TO 2: pc(t, c) = size(c) * (SGN(t AND 2 ^ c) * 2 - 1): NEXT c

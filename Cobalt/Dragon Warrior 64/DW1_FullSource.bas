@@ -2,6 +2,19 @@
 'UniKorn ProDucKions
 'Cobalt (AKA David)
 'Bug fix Release Ver. 012(8/26/2021)
+'Bug Fix Release Ver. 013(12/3/2024)
+
+'Done---------------------------------------------------------------
+'Fixed issue where when staying at an inn some features were missing
+'Fixed crash issue if player talked to old man with Rainbow Drop more than once.
+'Corrected dialog of the old man with Rainbow drop.
+
+'to be fixed(or enhanced)-------------------------------------------
+'timing issue when monster runs away causes visual issue in caves.
+'swamp tiles in towns does not do damage.
+'need to work on monster encounter intro animatic.
+'message for when the repel spell\fairy water ends not displaying(did I even remember to code for that?)
+'Game does not remember volume settings between plays.
 
 REM'$include:'DW1_Types.bas'
 REM'$include:'DW1_Arrays.bas'
@@ -450,7 +463,6 @@ IF G.GameOver_Bad OR G.GameOver_Good OR G.GameOver_Great THEN PRINT "Game Over"
 _FONT 16
 TIMER(T(0)) OFF
 
-
 FUNCTION NChance~%% (Load~%%)
     Result~%% = INT(RND * Load~%%)
     NChance = Result~%%
@@ -775,7 +787,6 @@ SUB Change_BGM
 END SUB
 '-----------------------------------------------------------------------
 
-
 FUNCTION Get_Input%% ()
     Result%% = TRUE '-1 for no input
     ' SELECT CASE G.ControlType
@@ -811,7 +822,6 @@ FUNCTION Get_Input%% ()
     ' END SELECT
     Get_Input = Result%%
 END FUNCTION
-
 
 FUNCTION Controls%%
     Result%% = FALSE
@@ -1024,7 +1034,6 @@ FUNCTION Battle%% (ID%%)
     G.Battle = TRUE 'set this to -1 to indicate no monster to fight done here incase no levelup
 END FUNCTION
 
-
 FUNCTION Monsters_Attack%% (ID%%)
     Result%% = FALSE
     IF Monster_Flee(ID%%) THEN 'Give the monster a chance to run away
@@ -1183,7 +1192,7 @@ FUNCTION Monsters_Attack%% (ID%%)
                 MSG% = 363
             END IF
             IF Hit%% = 0 THEN MSG% = MISSES
-
+            Attack2%% = FALSE
         END IF
         G.Damage = Hit%% 'for attack messages that need the damage amount
 
@@ -1456,7 +1465,7 @@ SUB Remove_Inventory (Item%%, Count%%)
     NEXT i%%
     IF Match%% < 0 THEN
         'something went horribly wrong!
-        PRINT Item%%: END
+        PRINT Item%%, "Inventory Error": END
     ELSE
         temp%% = _MEMGET(m, Pack + Match%% * 2 + 1, _BYTE)
         temp%% = temp%% - Count%%
@@ -1583,7 +1592,6 @@ SUB MFI_Loader (FN$)
     NEXT i%%
 
     CLOSE #1
-    IF _FILEEXISTS("temp.dat") THEN KILL "temp.dat"
 END SUB
 
 FUNCTION LoadGFX& (Foff&, Size&)
@@ -1602,47 +1610,40 @@ FUNCTION LoadSFX& (Foff&, Size&)
 END FUNCTION
 
 SUB LoadData (Foff&, Size&)
-    IF _FILEEXISTS("temp.dat") THEN KILL "temp.dat"
-    OPEN "temp.dat" FOR BINARY AS #3
-    dat$ = SPACE$(Size&)
-    GET #1, Foff&, dat$
-    PUT #3, , dat$
-    CLOSE #3
+    _ASSERT LOF(1) - LOC(1) >= Size&
 
-    F1 = FREEFILE
-    OPEN "temp.dat" FOR BINARY AS #F1
-    GET #F1, , World()
-    GET #F1, , Place()
-    GET #F1, , I()
-    GET #F1, , L()
-    GET #F1, , GF()
-    GET #F1, , M()
-    GET #F1, , Stairs()
-    GET #F1, , PD()
-    GET #F1, , Chest()
+    SEEK #1, Foff&
+    GET #1, , World()
+    GET #1, , Place()
+    GET #1, , I()
+    GET #1, , L()
+    GET #1, , GF()
+    GET #1, , M()
+    GET #1, , Stairs()
+    GET #1, , PD()
+    GET #1, , Chest()
     FOR i% = 1 TO 365
-        GET #F1, , L~%%
+        GET #1, , L~%%
         Script(i%) = SPACE$(L~%%)
-        GET #F1, , Script(i%)
+        GET #1, , Script(i%)
     NEXT i%
-    GET #F1, , NPC()
-    GET #F1, , Lines()
-    GET #F1, , SA()
-    GET #F1, , BSA()
-    GET #F1, , LS()
-    GET #F1, , Messages()
-    GET #F1, , Shop()
-    GET #F1, , Doors()
+    GET #1, , NPC()
+    GET #1, , Lines()
+    GET #1, , SA()
+    GET #1, , BSA()
+    GET #1, , LS()
+    GET #1, , Messages()
+    GET #1, , Shop()
+    GET #1, , Doors()
     FOR i%% = 1 TO 12
-        GET #F1, , L~%%
+        GET #1, , L~%%
         Spells(i%%) = SPACE$(L~%%)
-        GET #F1, , Spells(i%%)
+        GET #1, , Spells(i%%)
     NEXT
-    GET #F1, , MZG()
-    GET #F1, , Map_Music()
-    GET #F1, , KeyCodes()
-    GET #F1, , Entrance()
-    CLOSE #F1
+    GET #1, , MZG()
+    GET #1, , Map_Music()
+    GET #1, , KeyCodes()
+    GET #1, , Entrance()
 END SUB
 
 SUB Run_Title_Screen
@@ -1703,6 +1704,7 @@ FUNCTION Draw_Flare%% ()
     Delayr%% = Delayr%% + 1
     Draw_Flare = Result%%
 END FUNCTION
+
 FUNCTION PickGameFile%% (Games%%)
     Result%% = FALSE
     DO
@@ -1908,6 +1910,7 @@ FUNCTION CreateNewQuest%% (Games%%)
 
     CreateNewQuest = Result%%
 END FUNCTION
+
 FUNCTION RestoreGameFile%% (Games%%)
     Result%% = FALSE
     DO
@@ -1999,6 +2002,7 @@ SUB CopyQuestFile (From%%, Where%%)
     PUT #1, , Temp$
     CLOSE #1
 END SUB
+
 SUB Display_EraseWindow (File%%)
     _PUTIMAGE , Layer(5), Layer(1)
     Draw_Window 6, 13, 19, 11, Layer(1)
@@ -2455,6 +2459,7 @@ SUB Death_Return
     Build_Place_Layer Layer(7), P.Map
     Change_BGM
 END SUB
+
 SUB Draw_Command_Window (L&)
     Draw_Window 12, 2, 15, 9, Layer(1)
     _PUTIMAGE (16 * 16 - 2, 2 * 16)-STEP(7 * 15 + 4, 1 * 15), Layer(3), L&, (205, 35)-STEP(15, 15)
@@ -2548,6 +2553,7 @@ FUNCTION Buy_Sell_Box%% (X%%, Y%%, L&)
     _PUTIMAGE , Layer(5), Layer(1) 'restore screen
     Buy_Sell_Box = Result%%
 END FUNCTION
+
 FUNCTION Command_Window%% (L&)
     Result%% = FALSE
     Selection%% = 1
@@ -2680,7 +2686,6 @@ FUNCTION Run_Take%%
     NEXT i%%
     Run_Take = Result%%
 END FUNCTION
-
 
 SUB Take_Chest (ID%%, Valu%)
     SELECT CASE ID%%
@@ -3841,12 +3846,20 @@ SUB NPC_Talk (ID%%)
             G.Price = 25
             Result%% = Message_Handler(Layer(15), 77) '
             IF Yes_NO_Box(10, 4, Layer(1)) THEN 'does player wish to stay at the inn
+                Result%% = Message_Handler(Layer(15), 79) '
+                _SNDSTOP BGM(G.Current_BGM)
+                Fade_Out Layer(1)
+                _DELAY .10
+                _SNDPLAY SFX(11)
+                DO: LOOP WHILE _SNDPLAYING(SFX(11))
                 IF P.Gold >= G.Price THEN
-                    Result%% = Message_Handler(Layer(15), 79) '
                     P.HP = P.Max_HP
                     P.MP = P.Max_MP
                     P.Gold = P.Gold - 25
                     _DELAY .33
+                    Build_Screen
+                    Fade_In Layer(1)
+                    _SNDPLAY BGM(G.Current_BGM)
                     Result%% = Message_Handler(Layer(15), 80) '
                 ELSE
                     Result%% = Message_Handler(Layer(15), 91) '
@@ -3877,18 +3890,26 @@ SUB NPC_Talk (ID%%)
             G.Price = 20
             Result%% = Message_Handler(Layer(15), 77) '
             IF Yes_NO_Box(10, 4, Layer(1)) THEN 'does player wish to stay at the inn
+                Result%% = Message_Handler(Layer(15), 79) '
+                _SNDSTOP BGM(G.Current_BGM)
+                Fade_Out Layer(1)
+                _DELAY .10
+                _SNDPLAY SFX(11)
+                DO: LOOP WHILE _SNDPLAYING(SFX(11))
                 IF P.Gold >= G.Price THEN
-                    Result%% = Message_Handler(Layer(15), 78) '
                     P.HP = P.Max_HP
                     P.MP = P.Max_MP
                     P.Gold = P.Gold - 20
                     _DELAY .33
-                    Result%% = Message_Handler(Layer(15), 79) '
+                    Build_Screen
+                    Fade_In Layer(1)
+                    _SNDPLAY BGM(G.Current_BGM)
+                    Result%% = Message_Handler(Layer(15), 80) '
                 ELSE
                     Result%% = Message_Handler(Layer(15), 91) '
                 END IF
             ELSE
-                Result%% = Message_Handler(Layer(15), 80) '
+                Result%% = Message_Handler(Layer(15), 78) '
             END IF
         CASE 64 'Roaming Red gaurd
             Result%% = Message_Handler(Layer(15), 145) '
@@ -4158,13 +4179,21 @@ SUB NPC_Talk (ID%%)
             G.Price = 55
             Result%% = Message_Handler(Layer(15), 77) '
             IF Yes_NO_Box(10, 4, Layer(1)) THEN 'does player wish to stay at the inn
+                Result%% = Message_Handler(Layer(15), 79) '
+                _SNDSTOP BGM(G.Current_BGM)
+                Fade_Out Layer(1)
+                _DELAY .10
+                _SNDPLAY SFX(11)
+                DO: LOOP WHILE _SNDPLAYING(SFX(11))
                 IF P.Gold >= G.Price THEN
-                    Result%% = Message_Handler(Layer(15), 78) '
                     P.HP = P.Max_HP
                     P.MP = P.Max_MP
                     P.Gold = P.Gold - 55
                     _DELAY .33
-                    Result%% = Message_Handler(Layer(15), 79) '
+                    Build_Screen
+                    Fade_In Layer(1)
+                    _SNDPLAY BGM(G.Current_BGM)
+                    Result%% = Message_Handler(Layer(15), 80) '
                 ELSE
                     Result%% = Message_Handler(Layer(15), 91) '
                 END IF
@@ -4221,13 +4250,21 @@ SUB NPC_Talk (ID%%)
             G.Price = 100
             Result%% = Message_Handler(Layer(15), 77) '
             IF Yes_NO_Box(10, 4, Layer(1)) THEN 'does player wish to stay at the inn
+                Result%% = Message_Handler(Layer(15), 79) '
+                _SNDSTOP BGM(G.Current_BGM)
+                Fade_Out Layer(1)
+                _DELAY .10
+                _SNDPLAY SFX(11)
+                DO: LOOP WHILE _SNDPLAYING(SFX(11))
                 IF P.Gold >= G.Price THEN
-                    Result%% = Message_Handler(Layer(15), 78) '
                     P.HP = P.Max_HP
                     P.MP = P.Max_MP
                     P.Gold = P.Gold - 100
                     _DELAY .33
-                    Result%% = Message_Handler(Layer(15), 79) '
+                    Build_Screen
+                    Fade_In Layer(1)
+                    _SNDPLAY BGM(G.Current_BGM)
+                    Result%% = Message_Handler(Layer(15), 80) '
                 ELSE
                     Result%% = Message_Handler(Layer(15), 91) '
                 END IF
@@ -4685,25 +4722,33 @@ SUB NPC_Talk (ID%%)
                 Result%% = Message_Handler(Layer(15), 288) '
             END IF
         CASE 118 'Rainbow Temple Wizard
-            IF P.Has_Token THEN
-                IF P.Has_Stones AND P.Has_Staff THEN
-                    Result%% = Message_Handler(Layer(15), 384) '
-                    Drop_Inventory 34 'he takes the Sunlight Stones
-                    Drop_Inventory 36 'he takes the Staff of Rain
-                    Add_To_Inventory 35, 1 'He gives you the Rainbow Drop
+            IF P.Has_Drop = FALSE THEN
+                IF P.Has_Token THEN
+                    IF P.Has_Stones AND P.Has_Staff THEN
+                        Result%% = Message_Handler(Layer(15), 384) '
+                        Drop_Inventory 34 'he takes the Sunlight Stones
+                        Drop_Inventory 36 'he takes the Staff of Rain
+                        Add_To_Inventory 35, 1 'He gives you the Rainbow Drop
+                        P.Has_Drop = TRUE
+                        P.Has_Stones = FALSE
+                        P.Has_Staff = FALSE
+                        NPC(118).Done = TRUE
+                    ELSE
+                        Result%% = Message_Handler(Layer(15), 291) '
+                    END IF
                 ELSE
-                    Result%% = Message_Handler(Layer(15), 291) '
+                    Result%% = Message_Handler(Layer(15), 290) 'Player is kicked out of temple
+                    Fade_Out Layer(1)
+                    P.Map = -1: G.JustLeft = TRUE
+                    Remove_light_mask
+                    Build_Screen
+                    Fade_In Layer(1)
+                    Change_BGM: Reset_Chests: Reset_Doors
+                    P.Torched = FALSE 'torch and radiant go out when you enter overworld
+                    P.Radiant = FALSE
                 END IF
             ELSE
-                Result%% = Message_Handler(Layer(15), 290) 'Player is kicked out of temple
-                Fade_Out Layer(1)
-                P.Map = -1: G.JustLeft = TRUE
-                Remove_light_mask
-                Build_Screen
-                Fade_In Layer(1)
-                Change_BGM: Reset_Chests: Reset_Doors
-                P.Torched = FALSE 'torch and radiant go out when you enter overworld
-                P.Radiant = FALSE
+                Result%% = Message_Handler(Layer(15), 58) 'the old guy is done with player
             END IF
         CASE 119 'DragonLord!
             Result%% = Message_Handler(Layer(15), 292) '
@@ -5675,6 +5720,7 @@ FUNCTION Process_Message_Coding$ (Txt$)
     NEXT i~%%
     Process_Message_Coding = Result$
 END FUNCTION
+
 SUB Draw_Window (X%%, Y%%, Xs%%, Ys%%, L&)
     'top corners of window
     _PUTIMAGE (X%% * 16, Y%% * 16)-STEP(15, 15), Layer(3), L&, (0, 18)-STEP(7, 7)
@@ -6023,6 +6069,7 @@ FUNCTION Find_NPC%%
     NEXT i%%
 
     IF Result%% = 117 AND NPC(117).Done THEN Result%% = 122 'Wizard in rain shrine Has fufilled his duty and left.
+    IF Result%% = 118 AND NPC(118).Done THEN Result%% = 122 'Wizard in drop shrine Has fufilled his duty and left.
 
     IF P.Map = 1 AND P.Princess_Saved = FALSE AND Result%% = 1 THEN Result%% = -1 'don't talk to princess in throne room if not saved
 
@@ -6037,6 +6084,7 @@ FUNCTION Find_NPC%%
     IF Result%% = -1 THEN Result%% = 122
     Find_NPC = Result%%
 END FUNCTION
+
 SUB Move_Cycle
     STATIC Move AS _BYTE
     Move = Move + 2
@@ -6316,7 +6364,6 @@ SUB DarkenImage (Image AS LONG, Value_From_0_To_1 AS SINGLE)
     O = Buffer.OFFSET 'We start at this offset
     O_Last = Buffer.OFFSET + _WIDTH(Image) * _HEIGHT(Image) * 4 'We stop when we get to this offset
     'use on error free code ONLY!
-    '$CHECKING:OFF
     DO
         _MEMPUT Buffer, O, _MEMGET(Buffer, O, _UNSIGNED _BYTE) * Frac_Value \ 65536 AS _UNSIGNED _BYTE
         _MEMPUT Buffer, O + 1, _MEMGET(Buffer, O + 1, _UNSIGNED _BYTE) * Frac_Value \ 65536 AS _UNSIGNED _BYTE
@@ -6324,9 +6371,9 @@ SUB DarkenImage (Image AS LONG, Value_From_0_To_1 AS SINGLE)
         O = O + 4
     LOOP UNTIL O = O_Last
     'turn checking back on when done!
-    '$CHECKING:ON
     _MEMFREE Buffer
 END SUB
+
 SUB Get_JoyPads
     'load input device details Max:16
     G.Device_Count = _DEVICES
@@ -6711,6 +6758,7 @@ SUB Select_Device
         C.Control_Pad = 3
     END IF
 END SUB
+
 SUB INIT
     _FONT DWFont, Layer(15)
     _FONT DWFont, Layer(1)
@@ -6858,5 +6906,4 @@ SUB Replace_Final_NPCs
     NPC(22).X = 1: NPC(22).Y = 1: NPC(22).Facing = LEFT: NPC(22).Can_Move = FALSE
 
     NPC(14).X = 25: NPC(14).Y = 27
-
 END SUB

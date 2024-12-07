@@ -48,117 +48,117 @@
 ' verifying that your changes produce the desired results.  Also, always
 ' be sure to keep a backup of the original program.
 '
-DefInt A-Z
+DEFINT A-Z
 
 ' These constants can be modified to change certain aspects of the game.
-Const PRESSEDKEYCOLOR = 15 ' Pressed keyboard key color. Range 1-6, 8-15.
-Const BACKGROUNDCOLOR = 3 ' Background color. Range 0-7
-Const TEXTCOLOR = 0 ' Menu text color. Range 0-15, but not same as BACKGROUNDCOLOR.
-Const TITLECOLOR = 15 ' Mode and title color. Range 0-15, but not same as BACKGROUNDCOLOR.
-Const PITCH = 4 ' Pitch of songs (higher number means lower pitch)- MUST BE BETWEEN 0 AND 4!!!
-Const XTNOTELENGTH = 4 ' Length of the note sound on all PC/XT type machines.  Range 1 to 24.
-Const INTROSONG = "T100O2L16CCDFDEL4DL16FEDO1BO2L4C" ' Song played at game introduction
+CONST PRESSEDKEYCOLOR = 15 ' Pressed keyboard key color. Range 1-6, 8-15.
+CONST BACKGROUNDCOLOR = 3 ' Background color. Range 0-7
+CONST TEXTCOLOR = 0 ' Menu text color. Range 0-15, but not same as BACKGROUNDCOLOR.
+CONST TITLECOLOR = 15 ' Mode and title color. Range 0-15, but not same as BACKGROUNDCOLOR.
+CONST PITCH = 4 ' Pitch of songs (higher number means lower pitch)- MUST BE BETWEEN 0 AND 4!!!
+CONST XTNOTELENGTH = 4 ' Length of the note sound on all PC/XT type machines.  Range 1 to 24.
+CONST INTROSONG = "T100O2L16CCDFDEL4DL16FEDO1BO2L4C" ' Song played at game introduction
 
 
 ' The following are general constants and their values should not be changed.
 
 ' Musical note constants.
-Const C = 1
-Const DF = 2
-Const D = 3
-Const EF = 4
-Const E = 5
-Const F = 6
-Const GF = 7
-Const G = 8
-Const AF = 9
-Const A = 10
-Const BF = 11
-Const B = 12
+CONST C = 1
+CONST DF = 2
+CONST D = 3
+CONST EF = 4
+CONST E = 5
+CONST F = 6
+CONST GF = 7
+CONST G = 8
+CONST AF = 9
+CONST A = 10
+CONST BF = 11
+CONST B = 12
 ' Menu constants
-Const MAIN = 0
-Const PRACTICE = 1
-Const RECORD = 2
-Const PLAYBACK = 3
-Const PLAYING = 6
-Const SAVING = 7
-Const EDITOR = 8
-Const EDITMENU = 9
-Const GETNAME = 10
+CONST MAIN = 0
+CONST PRACTICE = 1
+CONST RECORD = 2
+CONST PLAYBACK = 3
+CONST PLAYING = 6
+CONST SAVING = 7
+CONST EDITOR = 8
+CONST EDITMENU = 9
+CONST GETNAME = 10
 ' Other constants
-Const MAXSONG = 50 ' # of recordable selections
-Const MAXNOTE = 2000 ' # notes available per song
-Const FALSE = 0 ' Constant for FALSE value
-Const TRUE = Not FALSE ' Constant for TRUE value
-Const UP = FALSE ' Up as in key released
-Const DOWN = TRUE ' Down as in key pressed
-Const CANCEL = 255
-Const NOTETICK = .6 ' Length of time rests and notes are
-Const RESTTICK = .7 ' played per duration increment
-Const CR = 13 ' Carriage Return (Enter)
-Const ESC = 27 ' Esc key
-Const TABCHAR = 9 ' Tab key
+CONST MAXSONG = 50 ' # of recordable selections
+CONST MAXNOTE = 2000 ' # notes available per song
+CONST FALSE = 0 ' Constant for FALSE value
+CONST TRUE = NOT FALSE ' Constant for TRUE value
+CONST UP = FALSE ' Up as in key released
+CONST DOWN = TRUE ' Down as in key pressed
+CONST CANCEL = 255
+CONST NOTETICK = .6 ' Length of time rests and notes are
+CONST RESTTICK = .7 ' played per duration increment
+CONST CR = 13 ' Carriage Return (Enter)
+CONST ESC = 27 ' Esc key
+CONST TABCHAR = 9 ' Tab key
 
 ' Structure definitions
-Type KeyMap
-    Note As Integer ' An array of this type is used to map
-    Oct As Integer ' keyboard keys to Note/Oct values.
-End Type
+TYPE KeyMap
+    Note AS INTEGER ' An array of this type is used to map
+    Oct AS INTEGER ' keyboard keys to Note/Oct values.
+END TYPE
 
-Type SongElement ' An array of this type is used to
-    Note As Integer ' hold all the information in a song
-    Oct As Integer ' (Note, Octave, and Duration of each
-    Dur As Integer ' note in the song)
-End Type
+TYPE SongElement ' An array of this type is used to
+    Note AS INTEGER ' hold all the information in a song
+    Oct AS INTEGER ' (Note, Octave, and Duration of each
+    Dur AS INTEGER ' note in the song)
+END TYPE
 
-Type SongIndexCard ' Elements of this type make up the
-    naym As String * 25 ' SongIndex section of the song file,
-    desc As String * 40 ' describing the name/description of
-    Size As Integer ' a song, the length in notes, and the
-    Offset As Long ' position of the song in the file.
-End Type
+TYPE SongIndexCard ' Elements of this type make up the
+    naym AS STRING * 25 ' SongIndex section of the song file,
+    desc AS STRING * 40 ' describing the name/description of
+    Size AS INTEGER ' a song, the length in notes, and the
+    Offset AS LONG ' position of the song in the file.
+END TYPE
 
-Type FileHeader ' This structure is the file header
-    Count As Integer ' for the song file, indicating the
-    NextNote As Long ' number of songs saved, and position
-End Type ' of the next unused byte in the file.
+TYPE FileHeader ' This structure is the file header
+    Count AS INTEGER ' for the song file, indicating the
+    NextNote AS LONG ' number of songs saved, and position
+END TYPE ' of the next unused byte in the file.
 
 
 ' SHARED (global) variable declarations for use in this program
-Dim Shared Freq(1 To 12) As Integer ' Base array of frequencies
-Dim Shared Kyb(1 To 127) As KeyMap ' Keyboard key to piano key array
-Dim Shared Song(1 To MAXNOTE) As SongElement ' Array to hold the actual song
-Dim Shared Counter As Integer ' Number of notes in Song()
-Dim Shared SongName As String * 25 ' Name of Song()
-Dim Shared SongDesc As String * 40 ' Description of Song()
-Dim Shared TEMPO As Integer ' Tempo of song playback (control)
-Dim Shared TFACTOR As Single ' Tempo factor (for actual speed)
-Dim Shared FileError As Integer ' Keeps file error status.
-Dim Shared SongRecorded As Integer ' Flag used to decide whether or
+DIM SHARED Freq(1 TO 12) AS INTEGER ' Base array of frequencies
+DIM SHARED Kyb(1 TO 127) AS KeyMap ' Keyboard key to piano key array
+DIM SHARED Song(1 TO MAXNOTE) AS SongElement ' Array to hold the actual song
+DIM SHARED Counter AS INTEGER ' Number of notes in Song()
+DIM SHARED SongName AS STRING * 25 ' Name of Song()
+DIM SHARED SongDesc AS STRING * 40 ' Description of Song()
+DIM SHARED TEMPO AS INTEGER ' Tempo of song playback (control)
+DIM SHARED TFACTOR AS SINGLE ' Tempo factor (for actual speed)
+DIM SHARED FileError AS INTEGER ' Keeps file error status.
+DIM SHARED SongRecorded AS INTEGER ' Flag used to decide whether or
 ' not a song was actually recorded
-Dim KeyFlags As Integer ' Used to turn NUM LOCK off
-Dim BadMode As Integer ' Used to validate screen mode
+DIM KeyFlags AS INTEGER ' Used to turn NUM LOCK off
+DIM BadMode AS INTEGER ' Used to validate screen mode
 
 ' Use error trap to test for graphics capability.
-On Error GoTo ScreenError ' Set up an error trap.
+ON ERROR GOTO ScreenError ' Set up an error trap.
 BadMode = FALSE ' ScreenError will change to TRUE if...
-Screen 1 ' this statement fails, which means...
+SCREEN 1 ' this statement fails, which means...
 
-If BadMode = TRUE Then ' no graphic was found.
-    Cls
-    Locate 11, 13
-    Print "CGA, EGA Color, or VGA graphics required to run QSYNTH.BAS"
+IF BadMode = TRUE THEN ' no graphic was found.
+    CLS
+    LOCATE 11, 13
+    PRINT "CGA, EGA Color, or VGA graphics required to run QSYNTH.BAS"
 
-Else
+ELSE
 
-    Def Seg = 0
-    KeyFlags = Peek(1047) ' Keep current keyboard flags.
-    If KeyFlags And 32 Then
-        Poke 1047, KeyFlags And 223 ' Force the NUM LOCK state to OFF.
-    End If
-    Def Seg
+    DEF SEG = 0
+    KeyFlags = PEEK(1047) ' Keep current keyboard flags.
+    IF KeyFlags AND 32 THEN
+        POKE 1047, KeyFlags AND 223 ' Force the NUM LOCK state to OFF.
+    END IF
+    DEF SEG
 
-    On Error GoTo ErrorTrap ' Set the main error trap.
+    ON ERROR GOTO ErrorTrap ' Set the main error trap.
     DisplayIntro ' Display the intro screen.
     FileError = 0
 
@@ -168,36 +168,36 @@ Else
     MainMenu ' Go to the main menu.
     DisplayChanges ' Display the final screen.
 
-    If KeyFlags And 32 Then ' Restore the keyboard
-        Def Seg = 0 ' to the state in which
-        Poke 1047, KeyFlags Or 32 ' we found it originally.
-        Def Seg
-    End If
+    IF KeyFlags AND 32 THEN ' Restore the keyboard
+        DEF SEG = 0 ' to the state in which
+        POKE 1047, KeyFlags OR 32 ' we found it originally.
+        DEF SEG
+    END IF
 
-End If
+END IF
 
-End ' The end of module-level control flow.
+END ' The end of module-level control flow.
 
 
 ' Error handling routine
 ErrorTrap:
-errnum = Err
-Select Case errnum
-    Case 52 To 76
-        If FileError = 0 Then
+errnum = ERR
+SELECT CASE errnum
+    CASE 52 TO 76
+        IF FileError = 0 THEN
             ErrorMessage "Cannot access QSYNTH.DAT file."
             FileError = 1
-        End If
-        Resume Next
-    Case Else
+        END IF
+        RESUME NEXT
+    CASE ELSE
         ErrorMessage "Sorry, an unexpected error has occurred."
-        Resume StartAgain
-End Select
+        RESUME StartAgain
+END SELECT
 
 ' Error handler for screen test
 ScreenError:
 BadMode = TRUE
-Resume Next
+RESUME NEXT
 
 
 ' Data statements for the default hard-coded songs
@@ -208,26 +208,26 @@ Resume Next
 '     DATA note,octave,duration        ' <- second "note"
 '     DATA note,octave,duration        ' <- third "note", etc.
 SONG1:
-Data "Yankee","Yankee Doodle Dandy",107
-Data 1,0,18,0,0,3,1,0,18,0,0,3,3,0,18,0,0,3,5,0,18,0,0,3,1,0,18,0,0,3
-Data 5,0,18,0,0,3,3,0,18,0,0,3,8,-1,18,0,0,3,1,0,18,0,0,3,1,0,18,0,0,3
-Data 3,0,18,0,0,3,5,0,18,0,0,3,1,0,38,0,0,6,12,-1,38,0,0,6,1,0,18,0,0,3
-Data 1,0,18,0,0,3,3,0,18,0,0,3,5,0,18,0,0,3,6,0,18,0,0,3,5,0,18,0,0,3
-Data 3,0,18,0,0,3,1,0,18,0,0,3,12,-1,18,0,0,3,8,-1,18,0,0,3,10,-1,18
-Data 0,0,3,12,-1,18,0,0,3,1,0,38,0,0,6,1,0,38,0,0,6,10,-1,38,0,0,3
-Data 12,-1,15,10,-1,18,0,0,3,8,-1,18,0,0,3,10,-1,18,0,0,3,12,-1,18
-Data 0,0,3,1,0,38,0,0,6,8,-1,38,0,0,3,10,-1,15,8,-1,18,0,0,3,6,-1,18
-Data 0,0,3,5,-1,38,0,0,6,8,-1,38,0,0,6,10,-1,38,0,0,3,12,-1,15,10,-1,18
-Data 0,0,3,8,-1,18,0,0,3,10,-1,18,0,0,3,12,-1,18,0,0,3,1,0,18,0,0,3
-Data 10,-1,18,0,0,3,8,-1,18,0,0,3,1,0,18,0,0,3,12,-1,18,0,0,3,3,0,18
-Data 0,0,3,1,0,38,0,0,6,1,0,38,0,0,6
+DATA "Yankee","Yankee Doodle Dandy",107
+DATA 1,0,18,0,0,3,1,0,18,0,0,3,3,0,18,0,0,3,5,0,18,0,0,3,1,0,18,0,0,3
+DATA 5,0,18,0,0,3,3,0,18,0,0,3,8,-1,18,0,0,3,1,0,18,0,0,3,1,0,18,0,0,3
+DATA 3,0,18,0,0,3,5,0,18,0,0,3,1,0,38,0,0,6,12,-1,38,0,0,6,1,0,18,0,0,3
+DATA 1,0,18,0,0,3,3,0,18,0,0,3,5,0,18,0,0,3,6,0,18,0,0,3,5,0,18,0,0,3
+DATA 3,0,18,0,0,3,1,0,18,0,0,3,12,-1,18,0,0,3,8,-1,18,0,0,3,10,-1,18
+DATA 0,0,3,12,-1,18,0,0,3,1,0,38,0,0,6,1,0,38,0,0,6,10,-1,38,0,0,3
+DATA 12,-1,15,10,-1,18,0,0,3,8,-1,18,0,0,3,10,-1,18,0,0,3,12,-1,18
+DATA 0,0,3,1,0,38,0,0,6,8,-1,38,0,0,3,10,-1,15,8,-1,18,0,0,3,6,-1,18
+DATA 0,0,3,5,-1,38,0,0,6,8,-1,38,0,0,6,10,-1,38,0,0,3,12,-1,15,10,-1,18
+DATA 0,0,3,8,-1,18,0,0,3,10,-1,18,0,0,3,12,-1,18,0,0,3,1,0,18,0,0,3
+DATA 10,-1,18,0,0,3,8,-1,18,0,0,3,1,0,18,0,0,3,12,-1,18,0,0,3,3,0,18
+DATA 0,0,3,1,0,38,0,0,6,1,0,38,0,0,6
 
 SONG2:
-Data "Hat","Mexican Hat Dance",36
-Data 1,0,16,6,0,10,0,0,5,1,0,16,6,0,10,0,0,5,1,0,16,6,0,10,0,0,12
-Data 1,0,16,6,0,16,8,0,16,6,0,16,5,0,10,0,0,5,6,0,16,8,0,10,0,0,15
-Data 1,0,16,5,0,10,0,0,5,1,0,16,5,0,10,0,0,5,1,0,16,5,0,10,0,0,12
-Data 1,0,16,5,0,16,6,0,16,5,0,16,3,0,10,0,0,5,5,0,16,6,0,10,0,0,15
+DATA "Hat","Mexican Hat Dance",36
+DATA 1,0,16,6,0,10,0,0,5,1,0,16,6,0,10,0,0,5,1,0,16,6,0,10,0,0,12
+DATA 1,0,16,6,0,16,8,0,16,6,0,16,5,0,10,0,0,5,6,0,16,8,0,10,0,0,15
+DATA 1,0,16,5,0,10,0,0,5,1,0,16,5,0,10,0,0,5,1,0,16,5,0,10,0,0,12
+DATA 1,0,16,5,0,16,6,0,16,5,0,16,3,0,10,0,0,5,5,0,16,6,0,10,0,0,15
 
 '-------------------------------------------------------------------------
 '  Center
@@ -237,12 +237,12 @@ Data 1,0,16,5,0,16,6,0,16,5,0,16,3,0,10,0,0,5,5,0,16,6,0,10,0,0,15
 '             PARAMETERS:   text$   -   the text to print
 '                           row     -   the row on which to print text$
 '-------------------------------------------------------------------------
-Sub Center (text$, row)
+SUB Center (text$, row)
 
-    Locate row%, 40 - Len(text$) \ 2 + 1 ' Calculate column to start at.
-    Print text$;
+    LOCATE row%, 40 - LEN(text$) \ 2 + 1 ' Calculate column to start at.
+    PRINT text$;
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' ChangeTempo
@@ -255,23 +255,23 @@ End Sub
 '             PARAMETERS:   Inc - The amount by which to change the TEMPO
 '
 '-------------------------------------------------------------------------
-Sub ChangeTempo (Inc) Static
+SUB ChangeTempo (Inc) STATIC
 
-    Color 0, 7 ' Erase the TEMPO control lever.
-    Locate 23, 17 + TEMPO
-    Print Chr$(205)
+    COLOR 0, 7 ' Erase the TEMPO control lever.
+    LOCATE 23, 17 + TEMPO
+    PRINT CHR$(205)
 
-    If Inc = UP And TEMPO < 45 Then ' Calculate new TEMPO value.
+    IF Inc = UP AND TEMPO < 45 THEN ' Calculate new TEMPO value.
         TEMPO = TEMPO + 1
-    ElseIf Inc = DOWN And TEMPO > 1 Then
+    ELSEIF Inc = DOWN AND TEMPO > 1 THEN
         TEMPO = TEMPO - 1
-    End If
+    END IF
 
     TFACTOR = 1 + (23 - TEMPO) * .03 ' Calculate new TFACTOR value.
-    Locate 23, 17 + TEMPO ' Redisplay the TEMPO control.
-    Print Chr$(219)
+    LOCATE 23, 17 + TEMPO ' Redisplay the TEMPO control.
+    PRINT CHR$(219)
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' ClearMenuScreen
@@ -282,23 +282,23 @@ End Sub
 '             PARAMETERS:   Title$ - The text to display at the top of the
 '                                    screen or "RETAIN" to keep current title
 '-------------------------------------------------------------------------
-Sub ClearMenuScreen (Title$) Static
+SUB ClearMenuScreen (Title$) STATIC
     
-    Color TEXTCOLOR, BACKGROUNDCOLOR
-    If Title$ <> "RETAIN" Then ' "RETAIN" means leave the current
-        Color TITLECOLOR ' title on the top of the screen.
-        Locate 3, 20
+    COLOR TEXTCOLOR, BACKGROUNDCOLOR
+    IF Title$ <> "RETAIN" THEN ' "RETAIN" means leave the current
+        COLOR TITLECOLOR ' title on the top of the screen.
+        LOCATE 3, 20
 
         ' Print a 40-character string of spaces with Title$ in the center.
-        Print Left$(Space$(20 - Len(Title$) \ 2) + Title$ + Space$(20), 40)
-        Color TEXTCOLOR
-    End If
+        PRINT LEFT$(SPACE$(20 - LEN(Title$) \ 2) + Title$ + SPACE$(20), 40)
+        COLOR TEXTCOLOR
+    END IF
 
-    View Print 13 To 25 ' Clear these specific lines.
-    Cls
-    View Print
+    VIEW PRINT 13 TO 25 ' Clear these specific lines.
+    CLS
+    VIEW PRINT
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' ConfirmDelete
@@ -308,29 +308,29 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Function ConfirmDelete Static
+FUNCTION ConfirmDelete STATIC
 
-    Color BACKGROUNDCOLOR, BACKGROUNDCOLOR ' Draw the dialog box.
+    COLOR BACKGROUNDCOLOR, BACKGROUNDCOLOR ' Draw the dialog box.
     DrawBox 13, 38, 24, 78, ""
-    Color 0, 7
+    COLOR 0, 7
     DrawBox 15, 41, 20, 75, "Delete Song"
-    Locate 17, 43
-    Print "Are you sure you want to delete"
-    Locate , 43, 1
-    Print "the current song? (Y/N) ";
+    LOCATE 17, 43
+    PRINT "Are you sure you want to delete"
+    LOCATE , 43, 1
+    PRINT "the current song? (Y/N) ";
 
-    Do ' Wait for input.
-        i$ = UCase$(InKey$)
-    Loop Until i$ <> ""
+    DO ' Wait for input.
+        i$ = UCASE$(INKEY$)
+    LOOP UNTIL i$ <> ""
 
-    Locate , , 0 ' Turn off cursor.
-    If i$ = "Y" Then ' Return appropriate value.
+    LOCATE , , 0 ' Turn off cursor.
+    IF i$ = "Y" THEN ' Return appropriate value.
         ConfirmDelete = TRUE
-    Else
+    ELSE
         ConfirmDelete = FALSE
-    End If
+    END IF
 
-End Function
+END FUNCTION
 
 '-------------------------------------------------------------------------
 ' CreateSongFile
@@ -339,21 +339,21 @@ End Function
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub CreateSongFile Static
+SUB CreateSongFile STATIC
 
-    Dim Hdr As FileHeader
-    Dim S As SongIndexCard
+    DIM Hdr AS FileHeader
+    DIM S AS SongIndexCard
 
     Hdr.Count = 0
     Hdr.NextNote = 1 ' Initialize header structure.
-    Seek #1, 1
-    Put #1, , Hdr ' Put the header in the file.
+    SEEK #1, 1
+    PUT #1, , Hdr ' Put the header in the file.
 
-    For i = 1 To MAXSONG ' Fill in the blank index records.
-        Put #1, , S
-    Next i
+    FOR i = 1 TO MAXSONG ' Fill in the blank index records.
+        PUT #1, , S
+    NEXT i
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DeleteSong
@@ -364,22 +364,22 @@ End Sub
 '
 '             PARAMETERS:   SongNo  -       The song number to delete
 '-------------------------------------------------------------------------
-Sub DeleteSong (SongNo) Static
+SUB DeleteSong (SongNo) STATIC
 
-    Dim HeaderInfo As FileHeader
-    Dim S As SongIndexCard
-    Dim n As SongElement
+    DIM HeaderInfo AS FileHeader
+    DIM S AS SongIndexCard
+    DIM n AS SongElement
     FileError = 0
 
-    Open "QSYNTH.DAT" For Binary As 1
-    Get #1, , HeaderInfo
+    OPEN "QSYNTH.DAT" FOR BINARY AS 1
+    GET #1, , HeaderInfo
   
-    Seek #1, Len(HeaderInfo) + (Len(S) * (SongNo - 1)) + 1
-    Get #1, , S ' Get info on song to delete.
+    SEEK #1, LEN(HeaderInfo) + (LEN(S) * (SongNo - 1)) + 1
+    GET #1, , S ' Get info on song to delete.
     BackPtr = S.Offset ' BackPtr is the location where the
     ' collapse starts copying TO (see below).
 
-    If SongNo = HeaderInfo.Count Then
+    IF SongNo = HeaderInfo.Count THEN
         ' SongNo was the last song in the list, so we're basically done.  All
         ' there is to do is reduce the number of songs by one, and update the
         ' NextNote pointer in the file header to point to the first note of
@@ -390,20 +390,20 @@ Sub DeleteSong (SongNo) Static
         HeaderInfo.Count = HeaderInfo.Count - 1 ' Reduce # of songs by one
         HeaderInfo.NextNote = S.Offset ' Point NextNote at first note
         ' of deleted song.
-        Seek #1, 1 ' Header belongs at beginning
-        Put #1, , HeaderInfo ' Write new header.
-        Close 1
-        Exit Sub
-    Else
+        SEEK #1, 1 ' Header belongs at beginning
+        PUT #1, , HeaderInfo ' Write new header.
+        CLOSE 1
+        EXIT SUB
+    ELSE
         ' The song we're deleting is not the last one in the file, so
         ' to delete it, we must "collapse" both the song index part and
         ' the song data part of the file.  "Collapse" here means to copy
         ' all the information appearing in the file after the song we are
         ' deleting up in the file, thus writing over the deleted song.  Then,
         ' the song count and NextNote values in the file header are updated.
-        Get #1, , S ' Get info on the next song in the file.
+        GET #1, , S ' Get info on the next song in the file.
         ForePtr = S.Offset ' ForePtr is where we are copying from.
-    End If
+    END IF
 
     ' First, we need to collapse song index part of the file.  This is done by
     ' moving each song index record after the deleted one up one notch, so that
@@ -413,25 +413,25 @@ Sub DeleteSong (SongNo) Static
     ' ForePtr - BackPtr, since ForePtr points to the song data immediately after
     ' the deleted song, and BackPtr points to the deleted song's data.  This
     ' adjustment is necessary because the song data will be collapsed as well.
-    For i = SongNo + 1 To HeaderInfo.Count
-        Seek #1, Len(HeaderInfo) + (Len(S) * (i - 1)) + 1
-        Get #1, , S ' Get the old song index record.
+    FOR i = SongNo + 1 TO HeaderInfo.Count
+        SEEK #1, LEN(HeaderInfo) + (LEN(S) * (i - 1)) + 1
+        GET #1, , S ' Get the old song index record.
         S.Offset = S.Offset - (ForePtr - BackPtr) ' Make the adjustment
-        Seek #1, Len(HeaderInfo) + (Len(S) * (i - 2)) + 1
-        Put #1, , S ' and put it in it's new place.
-    Next i
+        SEEK #1, LEN(HeaderInfo) + (LEN(S) * (i - 2)) + 1
+        PUT #1, , S ' and put it in it's new place.
+    NEXT i
 
     ' Next, we need to collapse the song data part of the file. This is done in
     ' the same way that the song index part was, with the exception that it is
     ' moved up in the file one note at a time.  ALL notes of ALL songs after the
     ' deleted song are copied with the following loop.
-    For i = ForePtr To HeaderInfo.NextNote - Len(n) Step Len(n)
-        Seek #1, Len(HeaderInfo) + (Len(S) * MAXSONG) + i
-        Get #1, , n ' Get a note.
-        Seek #1, Len(HeaderInfo) + (Len(S) * MAXSONG) + BackPtr
-        Put #1, , n ' Put it at it's new location.
-        BackPtr = BackPtr + Len(n) ' Update BackPtr.
-    Next i
+    FOR i = ForePtr TO HeaderInfo.NextNote - LEN(n) STEP LEN(n)
+        SEEK #1, LEN(HeaderInfo) + (LEN(S) * MAXSONG) + i
+        GET #1, , n ' Get a note.
+        SEEK #1, LEN(HeaderInfo) + (LEN(S) * MAXSONG) + BackPtr
+        PUT #1, , n ' Put it at it's new location.
+        BackPtr = BackPtr + LEN(n) ' Update BackPtr.
+    NEXT i
 
     ' The last step is to update the file header record.  This is the same as
     ' if we deleted the last song; reduce the song count by one, and point NextNote
@@ -440,11 +440,11 @@ Sub DeleteSong (SongNo) Static
     ' last song (which is exactly what we want for NextNote).
     HeaderInfo.Count = HeaderInfo.Count - 1
     HeaderInfo.NextNote = i
-    Seek #1, 1
-    Put #1, , HeaderInfo ' write the new file header
-    Close 1 '  - song is history!
+    SEEK #1, 1
+    PUT #1, , HeaderInfo ' write the new file header
+    CLOSE 1 '  - song is history!
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DisplayChanges
@@ -453,30 +453,30 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub DisplayChanges
+SUB DisplayChanges
 
     DisplayGameTitle ' Print game title
                          
-    Color 7 ' Print suggested changes in white.
+    COLOR 7 ' Print suggested changes in white.
     Center "The following game characteristics can be easily changed from", 5
     Center "within QuickBASIC Interpreter.  To change the values of these", 6
     Center "characteristics, locate the corresponding CONST or DATA      ", 7
     Center "statements in the source code and change their values, then  ", 8
     Center "restart the program (press Shift + F5).                      ", 9
-    Color 15
+    COLOR 15
     Center "Pitch of song playback ", 11
     Center "Background color       ", 12
     Center "Text color             ", 13
     Center "Pressed piano key color", 14
     Center "System songs           ", 15
-    Color 7
+    COLOR 7
     Center "The CONST statements and instructions on changing them are   ", 17
     Center "located at the beginning of the main program.                ", 18
 
-    Do While InKey$ = "": Loop ' Wait for any keypress.
-    Cls
+    DO WHILE INKEY$ = "": LOOP ' Wait for any keypress.
+    CLS
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DisplayGameTitle
@@ -485,31 +485,31 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub DisplayGameTitle
+SUB DisplayGameTitle
 
     ' Set the screen to a normal text, clear it and add blue background.
-    Screen 0
-    Width 80, 25
-    Color 4, 0
-    Cls
+    SCREEN 0
+    WIDTH 80, 25
+    COLOR 4, 0
+    CLS
     
-    Locate 1, 2 ' Draw outline around screen with extended ASCII characters.
-    Print Chr$(201); String$(76, 205); Chr$(187); ' top border
-    For x% = 2 To 24 ' left and right borders
-        Locate x%, 2
-        Print Chr$(186); Tab(79); Chr$(186);
-    Next x%
-    Locate 25, 2
-    Print Chr$(200); String$(76, 205); Chr$(188); ' bottom border
+    LOCATE 1, 2 ' Draw outline around screen with extended ASCII characters.
+    PRINT CHR$(201); STRING$(76, 205); CHR$(187); ' top border
+    FOR x% = 2 TO 24 ' left and right borders
+        LOCATE x%, 2
+        PRINT CHR$(186); TAB(79); CHR$(186);
+    NEXT x%
+    LOCATE 25, 2
+    PRINT CHR$(200); STRING$(76, 205); CHR$(188); ' bottom border
 
     ' Print game title centered at top of screen
-    Color 0, 4 ' Print title in black on red.
+    COLOR 0, 4 ' Print title in black on red.
     Center "          Microsoft          ", 1 ' Center game title on lines 1 & 2.
     Center "   Q S Y N T H E S I Z E R   ", 2
     Center "   Press any key to continue   ", 25
-    Color 7, 0
+    COLOR 7, 0
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DisplayIntro
@@ -518,24 +518,24 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub DisplayIntro
+SUB DisplayIntro
 
     DisplayGameTitle ' Display game title.
 
-    Color 7
+    COLOR 7
     Center "Copyright (C) 1990 Microsoft Corporation.  All Rights Reserved.", 4
     Center "Microsoft QSynthesizer allows you to record and play back songs", 7
     Center "entered by pressing keys on the keyboard.  You can save up to ", 8
-    Center LTrim$(Str$(MAXSONG)) + " songs on disk and play them back as often as you like.  You", 9
+    Center LTRIM$(STR$(MAXSONG)) + " songs on disk and play them back as often as you like.  You", 9
     Center "can also use the song editor to fine-tune your songs.         ", 10
     Center "Just follow the directions in the menus to play, record, save,", 12
     Center "edit, and delete your songs.                                  ", 13
 
-    Play INTROSONG ' Play melody while waiting to continue.
+    PLAY INTROSONG ' Play melody while waiting to continue.
 
-    Do While InKey$ = "": Loop ' Wait for any keypress.
+    DO WHILE INKEY$ = "": LOOP ' Wait for any keypress.
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DisplayMenuText
@@ -545,113 +545,113 @@ End Sub
 '
 '             PARAMETERS:   Menu - The "Menu" number to be displayed
 '-------------------------------------------------------------------------
-Sub DisplayMenuText (Menu) Static
+SUB DisplayMenuText (Menu) STATIC
 
-    Select Case Menu
-        Case MAIN ' Main menu screen.
+    SELECT CASE Menu
+        CASE MAIN ' Main menu screen.
             ClearMenuScreen ""
-            Color 0, 7
+            COLOR 0, 7
             DrawBox 14, 7, 24, 35, "Song List"
-            Color TEXTCOLOR, BACKGROUNDCOLOR
-            Locate 14, 46
-            Print "P - Play current song"
-            Locate , 46
-            Print "R - Record a new song"
-            Locate , 46
-            Print "E - Edit song from list"
-            Locate , 46
-            Print "D - Delete song from list"
-            Locate , 46
-            Print "S - Practice QSynthesizer"
-            Locate , 46
-            Print "Q - Quit QSynthesizer"
-            Locate 21, 40
-            Print "Use the arrow keys to select a song."
-            Locate , 41
-            Print "Press the corresponding letter to"
-            Locate , 44
-            Print "make a selection from above."
+            COLOR TEXTCOLOR, BACKGROUNDCOLOR
+            LOCATE 14, 46
+            PRINT "P - Play current song"
+            LOCATE , 46
+            PRINT "R - Record a new song"
+            LOCATE , 46
+            PRINT "E - Edit song from list"
+            LOCATE , 46
+            PRINT "D - Delete song from list"
+            LOCATE , 46
+            PRINT "S - Practice QSynthesizer"
+            LOCATE , 46
+            PRINT "Q - Quit QSynthesizer"
+            LOCATE 21, 40
+            PRINT "Use the arrow keys to select a song."
+            LOCATE , 41
+            PRINT "Press the corresponding letter to"
+            LOCATE , 44
+            PRINT "make a selection from above."
       
-        Case PRACTICE, RECORD ' These two are almost the same (PRACTICE and RECORD modes).
-            If Menu = PRACTICE Then
+        CASE PRACTICE, RECORD ' These two are almost the same (PRACTICE and RECORD modes).
+            IF Menu = PRACTICE THEN
                 ClearMenuScreen "Practice Mode"
                 Center "When finished practicing, press the Esc key.", 20
-            Else
+            ELSE
                 ClearMenuScreen "Record Mode"
                 Center "When finished recording, press the Esc key.", 20
-            End If
+            END IF
             Center "To play a note, press the key on the keyboard", 16
             Center "corresponding to the desired note shown on", 17
             Center "the piano above. ", 18
 
-        Case PLAYBACK ' Song playback screen - with the TEMPO control.
-            ClearMenuScreen "Playback Mode: " + RTrim$(SongName)
-            Color TITLECOLOR
-            Locate 14, 40 - (Len(RTrim$(SongDesc)) \ 2)
-            Print RTrim$(SongDesc)
-            Color TEXTCOLOR
+        CASE PLAYBACK ' Song playback screen - with the TEMPO control.
+            ClearMenuScreen "Playback Mode: " + RTRIM$(SongName)
+            COLOR TITLECOLOR
+            LOCATE 14, 40 - (LEN(RTRIM$(SongDesc)) \ 2)
+            PRINT RTRIM$(SongDesc)
+            COLOR TEXTCOLOR
             Center "Use arrow keys to adjust tempo.", 17
             Center "Press Enter to start song playback.", 18
             Center "Press Esc to exit playback mode.", 19
-            Color 0, 7
+            COLOR 0, 7
             DrawBox 21, 15, 24, 65, "Tempo Control"
-            Locate 22, 17
-            Print "Slow"
-            Locate 22, 60
-            Print "Fast"
-            Locate , 17
-            Print Chr$(198); String$(22, 205); Chr$(219); String$(22, 205); Chr$(181)
+            LOCATE 22, 17
+            PRINT "Slow"
+            LOCATE 22, 60
+            PRINT "Fast"
+            LOCATE , 17
+            PRINT CHR$(198); STRING$(22, 205); CHR$(219); STRING$(22, 205); CHR$(181)
             TEMPO = 23
             TFACTOR = 1
-            Color TEXTCOLOR, BACKGROUNDCOLOR
+            COLOR TEXTCOLOR, BACKGROUNDCOLOR
 
-        Case EDITOR ' Song editor screen.
-            ClearMenuScreen "Edit Mode: " + RTrim$(SongName)
-            Locate 14, 58 - Len(RTrim$(SongDesc)) \ 2
-            Color TITLECOLOR
-            Print RTrim$(SongDesc)
-            Color TEXTCOLOR
-            Locate 16, 46
-            Print "C - Change current note"
-            Locate , 46
-            Print "I - Insert new note"
-            Locate , 46
-            Print "D - Delete current note"
-            Locate , 46
-            Print "P - Play song"
-            Locate 22, 41
-            Print "Press the corresponding letter to"
-            Locate , 39
-            Print "make a selection from the list above."
-            Locate , 43
-            Print "Press Esc to exit the editor.";
-            Color 0, 7
+        CASE EDITOR ' Song editor screen.
+            ClearMenuScreen "Edit Mode: " + RTRIM$(SongName)
+            LOCATE 14, 58 - LEN(RTRIM$(SongDesc)) \ 2
+            COLOR TITLECOLOR
+            PRINT RTRIM$(SongDesc)
+            COLOR TEXTCOLOR
+            LOCATE 16, 46
+            PRINT "C - Change current note"
+            LOCATE , 46
+            PRINT "I - Insert new note"
+            LOCATE , 46
+            PRINT "D - Delete current note"
+            LOCATE , 46
+            PRINT "P - Play song"
+            LOCATE 22, 41
+            PRINT "Press the corresponding letter to"
+            LOCATE , 39
+            PRINT "make a selection from the list above."
+            LOCATE , 43
+            PRINT "Press Esc to exit the editor.";
+            COLOR 0, 7
             DrawBox 14, 5, 24, 35, "Note List"
-            Color 15
-            Locate 15, 6
-            Print "Note        Octave   Duration"
-            Color 0
-            Locate 22, 5
-            Print Chr$(195); String$(29, 196); Chr$(180)
+            COLOR 15
+            LOCATE 15, 6
+            PRINT "Note        Octave   Duration"
+            COLOR 0
+            LOCATE 22, 5
+            PRINT CHR$(195); STRING$(29, 196); CHR$(180)
 
-        Case GETNAME ' This is the dialog box to get the song name.
+        CASE GETNAME ' This is the dialog box to get the song name.
             ClearMenuScreen "RETAIN"
-            Color 0, 7
+            COLOR 0, 7
             DrawBox 14, 10, 24, 70, "Save Recorded Song"
             DrawBox 15, 26, 17, 53, ""
             DrawBox 18, 26, 20, 68, ""
-            Locate 16, 12
-            Print "Song's Name:"
-            Locate 19, 12
-            Print "Description:"
-            Locate 22, 15
-            Print "Press Tab to change edit fields, and Enter to save."
-            Locate 23, 12
-            Print "Press Esc to return to main menu without saving the song."
+            LOCATE 16, 12
+            PRINT "Song's Name:"
+            LOCATE 19, 12
+            PRINT "Description:"
+            LOCATE 22, 15
+            PRINT "Press Tab to change edit fields, and Enter to save."
+            LOCATE 23, 12
+            PRINT "Press Esc to return to main menu without saving the song."
 
-    End Select
+    END SELECT
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DrawBox
@@ -662,27 +662,27 @@ End Sub
 '                       r2,c2  - The row and column location of the lower right corner
 '                       Title$ - The text to place at the top of the box, if any
 '-------------------------------------------------------------------------
-Sub DrawBox (r1, c1, r2, c2, Title$) Static
+SUB DrawBox (r1, c1, r2, c2, Title$) STATIC
 
     InBoxWidth = c2 - c1 - 1 ' Calculate box width.
 
-    Locate r1, c1 ' Draw the top line.
-    Print Chr$(218); String$(InBoxWidth, 196); Chr$(191)
+    LOCATE r1, c1 ' Draw the top line.
+    PRINT CHR$(218); STRING$(InBoxWidth, 196); CHR$(191)
 
-    For t = r1 + 1 To r2 - 1 ' Draw sides of the box.
-        Locate t, c1
-        Print Chr$(179); Space$(InBoxWidth); Chr$(179);
-    Next t
+    FOR t = r1 + 1 TO r2 - 1 ' Draw sides of the box.
+        LOCATE t, c1
+        PRINT CHR$(179); SPACE$(InBoxWidth); CHR$(179);
+    NEXT t
 
-    Locate r2, c1 ' Draw the bottom line.
-    Print Chr$(192); String$(InBoxWidth, 196); Chr$(217);
+    LOCATE r2, c1 ' Draw the bottom line.
+    PRINT CHR$(192); STRING$(InBoxWidth, 196); CHR$(217);
 
-    If Title$ <> "" Then ' Put the title on top.
-        Locate r1, c1 + (InBoxWidth \ 2) - (Len(Title$) \ 2)
-        Print " "; Title$; " ";
-    End If
+    IF Title$ <> "" THEN ' Put the title on top.
+        LOCATE r1, c1 + (InBoxWidth \ 2) - (LEN(Title$) \ 2)
+        PRINT " "; Title$; " ";
+    END IF
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DrawKeyboard
@@ -691,46 +691,46 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub DrawKeyboard Static
+SUB DrawKeyboard STATIC
 
-    Color TITLECOLOR, BACKGROUNDCOLOR
-    Width 80, 25
-    Cls
+    COLOR TITLECOLOR, BACKGROUNDCOLOR
+    WIDTH 80, 25
+    CLS
 
     '  - Print top lines of keyboard.
-    Locate 2, 29
-    Print "Microsoft QSynthesizer"
-    Color 7, 0
-    Locate 5, 4
-    Print Space$(75)
-    Locate , 4
-    Print Space$(75)
+    LOCATE 2, 29
+    PRINT "Microsoft QSynthesizer"
+    COLOR 7, 0
+    LOCATE 5, 4
+    PRINT SPACE$(75)
+    LOCATE , 4
+    PRINT SPACE$(75)
 
     '    Print middle section (black/white keys).
-    Color 0, 7
-    temp$ = Chr$(179) + " " + Chr$(219) + " " + Chr$(219) + " " + Chr$(179) + " "
-    temp$ = temp$ + Chr$(219) + " " + Chr$(219) + " " + Chr$(219) + " "
-    temp2$ = Chr$(179) + " " + Chr$(222)
-    For i = 1 To 3
-        Locate , 4
-        Print Chr$(219); Chr$(221); Mid$(temp$, 2); temp$;
-        Print temp$; temp$; temp$; temp2$; Chr$(219)
-    Next i
+    COLOR 0, 7
+    temp$ = CHR$(179) + " " + CHR$(219) + " " + CHR$(219) + " " + CHR$(179) + " "
+    temp$ = temp$ + CHR$(219) + " " + CHR$(219) + " " + CHR$(219) + " "
+    temp2$ = CHR$(179) + " " + CHR$(222)
+    FOR i = 1 TO 3
+        LOCATE , 4
+        PRINT CHR$(219); CHR$(221); MID$(temp$, 2); temp$;
+        PRINT temp$; temp$; temp$; temp2$; CHR$(219)
+    NEXT i
 
     '    Print middle section (white keys only).
-    For i = 1 To 2
-        Locate , 4
-        Print Chr$(219); Chr$(221);
-        For t = 1 To 35
-            Print " "; Chr$(179);
-        Next t
-        Print " "; Chr$(222); Chr$(219)
-    Next i
-    Color 7, 0
-    Locate , 4
-    Print Space$(75)
+    FOR i = 1 TO 2
+        LOCATE , 4
+        PRINT CHR$(219); CHR$(221);
+        FOR t = 1 TO 35
+            PRINT " "; CHR$(179);
+        NEXT t
+        PRINT " "; CHR$(222); CHR$(219)
+    NEXT i
+    COLOR 7, 0
+    LOCATE , 4
+    PRINT SPACE$(75)
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' DrawNote
@@ -741,64 +741,64 @@ End Sub
 '                       Octave - The octave number (-3 to 3) of the note
 '                       Action - What to do (DOWN = un-highlight, UP = highlight)
 '-------------------------------------------------------------------------
-Sub DrawNote (Note, Octave, Action) Static
+SUB DrawNote (Note, Octave, Action) STATIC
 
-    If Note = 0 Then Exit Sub ' Note = 0 means do not draw a note
+    IF Note = 0 THEN EXIT SUB ' Note = 0 means do not draw a note
 
-    Select Case Note
-        Case A, B, C, D, E, F, G ' Find offset from middle C for a
-            Select Case Note ' white key.
-                Case A
+    SELECT CASE Note
+        CASE A, B, C, D, E, F, G ' Find offset from middle C for a
+            SELECT CASE Note ' white key.
+                CASE A
                     Offset = 10
-                Case B
+                CASE B
                     Offset = 12
-                Case C
+                CASE C
                     Offset = 0
-                Case D
+                CASE D
                     Offset = 2
-                Case E
+                CASE E
                     Offset = 4
-                Case F
+                CASE F
                     Offset = 6
-                Case G
+                CASE G
                     Offset = 8
-            End Select
+            END SELECT
             col = (34 + Offset) + (Octave * 14) ' Calculate column value.
             bottom = 11 ' Bottom of key (row)
             keyColor = 7 ' Color to draw UP key
 
-        Case Else ' Find offset from middle C for a
-            Select Case Note ' black key.
-                Case DF
+        CASE ELSE ' Find offset from middle C for a
+            SELECT CASE Note ' black key.
+                CASE DF
                     Offset = 1
-                Case EF
+                CASE EF
                     Offset = 3
-                Case GF
+                CASE GF
                     Offset = 7
-                Case AF
+                CASE AF
                     Offset = 9
-                Case BF
+                CASE BF
                     Offset = 11
-            End Select
+            END SELECT
             col = (34 + Offset) + (Octave * 14) ' Calculate column value.
             bottom = 9 ' Bottom of key (row)
             keyColor = 0 ' Color to draw UP key
-    End Select
+    END SELECT
 
-    If Action = DOWN Then
-        Color PRESSEDKEYCOLOR ' Set pressed key color.
-    Else
-        Color keyColor
-    End If
+    IF Action = DOWN THEN
+        COLOR PRESSEDKEYCOLOR ' Set pressed key color.
+    ELSE
+        COLOR keyColor
+    END IF
 
-    If col > 5 And col < 77 Then ' Using the calculated row
-        For row = 7 To bottom ' and the bottom found, draw
-            Locate row, col ' a vertical line of blocks
-            Print Chr$(219) ' to fill in key pressed.
-        Next row
-    End If
+    IF col > 5 AND col < 77 THEN ' Using the calculated row
+        FOR row = 7 TO bottom ' and the bottom found, draw
+            LOCATE row, col ' a vertical line of blocks
+            PRINT CHR$(219) ' to fill in key pressed.
+        NEXT row
+    END IF
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' EditSong
@@ -809,9 +809,9 @@ End Sub
 '        PARAMETERS:    SongNo - The number of the song being edited, indexed
 '                                from the beginning of the QSYNTH.DAT file
 '-------------------------------------------------------------------------
-Sub EditSong (SongNo) Static
+SUB EditSong (SongNo) STATIC
 
-    Dim EditNote As SongElement, DrawnNote As SongElement
+    DIM EditNote AS SongElement, DrawnNote AS SongElement
 
     '     - Initialize screen and variables.
     DisplayMenuText EDITOR
@@ -819,133 +819,133 @@ Sub EditSong (SongNo) Static
     WindowTop = 1
     DrawnNote.Note = 0
     Finished = FALSE
-    GoSub DisplayNoteTable
+    GOSUB DisplayNoteTable
 
     'Poll the keyboard, performing requested functions, until the Esc key is pressed.
-    While Not Finished
-        Do
-            x$ = InKey$ '  - Wait for a keypress.
-        Loop Until x$ <> ""
+    WHILE NOT Finished
+        DO
+            x$ = INKEY$ '  - Wait for a keypress.
+        LOOP UNTIL x$ <> ""
 
-        If Len(x$) > 1 Then '  - Key was a function key
-            Color 0, 7
-            GoSub DrawNoteCursor ' "undraw" note cursor
-            If Right$(x$, 1) = "H" And Cursor > 1 Then ' UP arrow
+        IF LEN(x$) > 1 THEN '  - Key was a function key
+            COLOR 0, 7
+            GOSUB DrawNoteCursor ' "undraw" note cursor
+            IF RIGHT$(x$, 1) = "H" AND Cursor > 1 THEN ' UP arrow
                 Cursor = Cursor - 1
-            ElseIf Right$(x$, 1) = "P" And Cursor < Counter Then ' DOWN arrow
+            ELSEIF RIGHT$(x$, 1) = "P" AND Cursor < Counter THEN ' DOWN arrow
                 Cursor = Cursor + 1
-            End If
-            Color 7, 0
-            GoSub DrawNoteCursor ' Redraw note cursor.
-            GoSub PrintEditorStatus ' Update the current note value.
+            END IF
+            COLOR 7, 0
+            GOSUB DrawNoteCursor ' Redraw note cursor.
+            GOSUB PrintEditorStatus ' Update the current note value.
 
-        Else '    Key was a standard key
-            Select Case UCase$(x$)
-                Case "C" ' - Change note.
+        ELSE '    Key was a standard key
+            SELECT CASE UCASE$(x$)
+                CASE "C" ' - Change note.
                     EditNote = Song(Cursor)
                     EditTitle$ = "Change a Note"
-                    GoSub GetNewNote ' Do the note edit.
-                    If Not (Cancelled) Then
+                    GOSUB GetNewNote ' Do the note edit.
+                    IF NOT (Cancelled) THEN
                         Song(Cursor) = EditNote
-                    End If
-                    GoSub DisplayNoteTable ' Update the note list to display change.
+                    END IF
+                    GOSUB DisplayNoteTable ' Update the note list to display change.
 
-                Case "D" ' - Delete note.
-                    GoSub DeleteCurrentNote
+                CASE "D" ' - Delete note.
+                    GOSUB DeleteCurrentNote
 
-                Case "I" ' - Insert note
+                CASE "I" ' - Insert note
                     EditNote.Note = C
                     EditNote.Oct = 0
                     EditNote.Dur = 4
                     EditTitle$ = "Insert a Note"
-                    GoSub GetNewNote ' Do the note edit.
-                    If Not (Cancelled) Then
-                        GoSub InsertEditNote
-                    End If
-                    GoSub DisplayNoteTable ' Update the note list.
+                    GOSUB GetNewNote ' Do the note edit.
+                    IF NOT (Cancelled) THEN
+                        GOSUB InsertEditNote
+                    END IF
+                    GOSUB DisplayNoteTable ' Update the note list.
 
-                Case "P" ' - Play song.
+                CASE "P" ' - Play song.
                     DrawNote DrawnNote.Note, DrawnNote.Oct, UP
                     PlaySong ' Play the song.
                     DisplayMenuText EDITOR ' Redraw the editor screen.
-                    GoSub DisplayNoteTable ' Update the note table.
+                    GOSUB DisplayNoteTable ' Update the note table.
 
-                Case Chr$(27) ' - Esc key was pressed!
+                CASE CHR$(27) ' - Esc key was pressed!
                     Finished = TRUE ' time to leave
 
-            End Select
-        End If
-    Wend
+            END SELECT
+        END IF
+    WEND
 
     ' - See if the user wants to save his/her changes.
-    If SaveChanges Then
+    IF SaveChanges THEN
         DeleteSong SongNo
         SaveSong
-    End If
+    END IF
     DrawNote DrawnNote.Note, DrawnNote.Oct, UP
-    Exit Sub
+    EXIT SUB
 
     '     - This subroutine displays the notes in text format in the Note List box.
     DisplayNoteTable:
-    GoSub PrintEditorStatus
-    For i = 16 To 21
-        Locate i, 6
-        Color 0, 7
+    GOSUB PrintEditorStatus
+    FOR i = 16 TO 21
+        LOCATE i, 6
+        COLOR 0, 7
         CurNote = i + WindowTop - 16
-        If CurNote <= Counter Then
-            GoSub PrintCurNote
-        Else
-            Print Space$(29)
-        End If
-    Next i
-    Color 7, 0
+        IF CurNote <= Counter THEN
+            GOSUB PrintCurNote
+        ELSE
+            PRINT SPACE$(29)
+        END IF
+    NEXT i
+    COLOR 7, 0
 
     '     - This subroutine draws the current note again but in a different color to indicate a "cursor."
     DrawNoteCursor:
-    If Cursor < WindowTop Then
+    IF Cursor < WindowTop THEN
         WindowTop = Cursor
-        GoTo DisplayNoteTable
-    ElseIf Cursor > WindowTop + 5 Then
+        GOTO DisplayNoteTable
+    ELSEIF Cursor > WindowTop + 5 THEN
         WindowTop = Cursor - 5
-        GoTo DisplayNoteTable
-    End If
+        GOTO DisplayNoteTable
+    END IF
     CurNote = Cursor
-    Locate Cursor - WindowTop + 16, 6
-    GoSub PrintCurNote
+    LOCATE Cursor - WindowTop + 16, 6
+    GOSUB PrintCurNote
     DrawNote DrawnNote.Note, DrawnNote.Oct, UP
     DrawNote Song(CurNote).Note, Song(CurNote).Oct, DOWN
     DrawnNote = Song(CurNote)
-    Return
+    RETURN
 
     '     - This subroutine actually does the conversion of the note into text information and prints it out.
     PrintCurNote:
-    If Song(CurNote).Note = 0 Then
-        Print Using " \        \           ###### "; "<rest>"; Song(CurNote).Dur
-    Else
-        Print Using " \    \       ##      ###### "; GetNote$(Song(CurNote).Note); Song(CurNote).Oct; Song(CurNote).Dur
-    End If
-    Return
+    IF Song(CurNote).Note = 0 THEN
+        PRINT USING " \        \           ###### "; "<rest>"; Song(CurNote).Dur
+    ELSE
+        PRINT USING " \    \       ##      ###### "; GetNote$(Song(CurNote).Note); Song(CurNote).Oct; Song(CurNote).Dur
+    END IF
+    RETURN
 
     '     - This subroutine displays the number of notes in the song and the number of the current note.
     PrintEditorStatus:
-    Color 7, 0
-    Locate 23, 6
-    Print Using " Notes: ####  Current:  #### "; Counter; Cursor
-    Return
+    COLOR 7, 0
+    LOCATE 23, 6
+    PRINT USING " Notes: ####  Current:  #### "; Counter; Cursor
+    RETURN
 
     '     - This subroutine deletes the current note.
     DeleteCurrentNote:
-    If Counter = 1 Then
+    IF Counter = 1 THEN
         ErrorMessage "You cannot delete the last note."
         DisplayMenuText EDITOR
-    Else
+    ELSE
         Counter = Counter - 1
-        For i = Cursor To Counter
+        FOR i = Cursor TO Counter
             Song(i) = Song(i + 1) ' Delete note up on notch.
-        Next i
-        If Cursor > Counter Then Cursor = Counter
-    End If
-    GoTo DisplayNoteTable
+        NEXT i
+        IF Cursor > Counter THEN Cursor = Counter
+    END IF
+    GOTO DisplayNoteTable
 
     '     - This subroutine controls the input of a new note.  It draws
     '     - the box, processes the keys pressed and changes the note
@@ -954,121 +954,121 @@ Sub EditSong (SongNo) Static
     '     - are placed in EditNote; when the edit has been completed, the
     '     - new note's value is placed back into EditNote.
     GetNewNote:
-    Color 0, 7 ' Draw the edit box.
+    COLOR 0, 7 ' Draw the edit box.
     DrawBox 16, 39, 24, 76, EditTitle$
-    Locate 18, 42
-    Print "Use arrow keys to change values"
-    Locate , 42
-    Print "Enter when done, Esc to cancel"
-    Locate 21, 42
-    Color 7, 0
-    Print "Note";
-    Color 0, 7
-    Print "       Octave      Duration"
+    LOCATE 18, 42
+    PRINT "Use arrow keys to change values"
+    LOCATE , 42
+    PRINT "Enter when done, Esc to cancel"
+    LOCATE 21, 42
+    COLOR 7, 0
+    PRINT "Note";
+    COLOR 0, 7
+    PRINT "       Octave      Duration"
     EditField = 1
     EditDone = FALSE
     Cancelled = FALSE
 
-    While Not EditDone
+    WHILE NOT EditDone
         Note$ = GetNote$(EditNote.Note) ' Display the note.
-        Locate 22, 42
-        If EditNote.Note > 0 Then
-            Print Using "\         \  ##         ######"; Note$; EditNote.Oct; EditNote.Dur
-        Else
-            Print Using "\               \       ######"; "    <rest>"; EditNote.Dur
-        End If
+        LOCATE 22, 42
+        IF EditNote.Note > 0 THEN
+            PRINT USING "\         \  ##         ######"; Note$; EditNote.Oct; EditNote.Dur
+        ELSE
+            PRINT USING "\               \       ######"; "    <rest>"; EditNote.Dur
+        END IF
   
-        Do
-            k$ = InKey$
-        Loop While k$ = ""
+        DO
+            k$ = INKEY$
+        LOOP WHILE k$ = ""
   
-        If Len(k$) > 1 Then
-            Select Case Right$(k$, 1)
-                Case "H", "P" ' Up arrow or Down arrow key pressed
-                    If Right$(k$, 1) = "H" Then ' set increment appropriately.
+        IF LEN(k$) > 1 THEN
+            SELECT CASE RIGHT$(k$, 1)
+                CASE "H", "P" ' Up arrow or Down arrow key pressed
+                    IF RIGHT$(k$, 1) = "H" THEN ' set increment appropriately.
                         Increment = 1
-                    Else
+                    ELSE
                         Increment = -1
-                    End If
+                    END IF
   
-                    Select Case EditField ' Change value according to edit mode.
-                        Case 1
+                    SELECT CASE EditField ' Change value according to edit mode.
+                        CASE 1
                             EditNote.Note = EditNote.Note + Increment
-                            If EditNote.Note > B Then
+                            IF EditNote.Note > B THEN
                                 EditNote.Note = 0
                                 EditNote.Oct = EditNote.Oct + 1
-                            ElseIf EditNote.Note < 0 Then
+                            ELSEIF EditNote.Note < 0 THEN
                                 EditNote.Note = B
                                 EditNote.Oct = EditNote.Oct - 1
-                            End If
-                        Case 2
+                            END IF
+                        CASE 2
                             EditNote.Oct = EditNote.Oct + Increment
-                        Case 3
+                        CASE 3
                             EditNote.Dur = EditNote.Dur + Increment
-                            If EditNote.Dur < 1 Then EditNote.Dur = 0
-                    End Select
+                            IF EditNote.Dur < 1 THEN EditNote.Dur = 0
+                    END SELECT
 
-                    If EditNote.Oct = 3 Then ' Keep octave value in range.
-                        If EditNote.Note > C Then
+                    IF EditNote.Oct = 3 THEN ' Keep octave value in range.
+                        IF EditNote.Note > C THEN
                             EditNote.Oct = 2
-                        End If
-                    ElseIf EditNote.Oct > 3 Then
+                        END IF
+                    ELSEIF EditNote.Oct > 3 THEN
                         EditNote.Oct = 3
-                    ElseIf EditNote.Oct < -2 Then
+                    ELSEIF EditNote.Oct < -2 THEN
                         EditNote.Oct = -2
-                    End If
+                    END IF
                   
-                Case "K", "M" ' Left arrow or Right arrow key pressed.
-                    If Right$(k$, 1) = "K" Then ' Set increment appropriately.
+                CASE "K", "M" ' Left arrow or Right arrow key pressed.
+                    IF RIGHT$(k$, 1) = "K" THEN ' Set increment appropriately.
                         Increment = -1
-                    Else
+                    ELSE
                         Increment = 1
-                    End If
+                    END IF
    
                     EditField = EditField + Increment ' Change edit mode according
-                    If EditField > 3 Then EditField = 1 ' to increment's value.
-                    If EditField < 1 Then EditField = 3
+                    IF EditField > 3 THEN EditField = 1 ' to increment's value.
+                    IF EditField < 1 THEN EditField = 3
 
-                    Locate 21, 42 ' Redraw the field titles to
-                    Color 0, 7 ' show which one has focus.
-                    Print "Note       Octave      Duration"
-                    Color 7, 0
-                    Select Case EditField
-                        Case 1
-                            Locate 21, 42
-                            Print "Note"
-                        Case 2
-                            Locate 21, 53
-                            Print "Octave"
-                        Case 3
-                            Locate 21, 65
-                            Print "Duration"
-                    End Select
-                    Color 0, 7
+                    LOCATE 21, 42 ' Redraw the field titles to
+                    COLOR 0, 7 ' show which one has focus.
+                    PRINT "Note       Octave      Duration"
+                    COLOR 7, 0
+                    SELECT CASE EditField
+                        CASE 1
+                            LOCATE 21, 42
+                            PRINT "Note"
+                        CASE 2
+                            LOCATE 21, 53
+                            PRINT "Octave"
+                        CASE 3
+                            LOCATE 21, 65
+                            PRINT "Duration"
+                    END SELECT
+                    COLOR 0, 7
      
-            End Select
+            END SELECT
      
-        ElseIf k$ = Chr$(13) Then ' Enter key = exit
+        ELSEIF k$ = CHR$(13) THEN ' Enter key = exit
             EditDone = TRUE
-        ElseIf k$ = Chr$(27) Then ' Esc key = exit/cancel
+        ELSEIF k$ = CHR$(27) THEN ' Esc key = exit/cancel
             Cancelled = TRUE
             EditDone = TRUE
-        End If
-    Wend
+        END IF
+    WEND
     DisplayMenuText EDITOR ' Redisplay editor screen.
-    Return
+    RETURN
 
     '     - This subroutine inserts EditNote into the song just before the current note.
     InsertEditNote:
     Counter = Counter + 1
-    For i = Counter To Cursor + 1 Step -1 ' Move all notes from current
+    FOR i = Counter TO Cursor + 1 STEP -1 ' Move all notes from current
         Song(i) = Song(i - 1) ' note down one notch, and put
-    Next i ' the new note at the current
+    NEXT i ' the new note at the current
     Song(Cursor) = EditNote ' location.
     Cursor = Cursor + 1
-    Return
+    RETURN
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' ErrorMessage
@@ -1077,22 +1077,22 @@ End Sub
 '
 '        PARAMETERS:    msg$ - The message to display in the box.
 '-------------------------------------------------------------------------
-Sub ErrorMessage (msg$) Static
+SUB ErrorMessage (msg$) STATIC
 
-    Color 15, 4 ' Draw the box.
+    COLOR 15, 4 ' Draw the box.
     DrawBox 15, 15, 19, 65, ""
-    Locate 16, 40 - Len(msg$) \ 2
-    Print msg$ ' Print the message
-    Locate 18, 27
-    Print "Press any key to continue"
+    LOCATE 16, 40 - LEN(msg$) \ 2
+    PRINT msg$ ' Print the message
+    LOCATE 18, 27
+    PRINT "Press any key to continue"
 
-    Sound 250, 1 ' Make some sound.
-    Sound 32767, 2
-    Sound 200, 1
+    SOUND 250, 1 ' Make some sound.
+    SOUND 32767, 2
+    SOUND 200, 1
 
-    Do While InKey$ = "": Loop ' Wait for a keypress.
+    DO WHILE INKEY$ = "": LOOP ' Wait for a keypress.
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' GetNameAndSave
@@ -1102,7 +1102,7 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub GetNameAndSave Static
+SUB GetNameAndSave STATIC
 
     DisplayMenuText GETNAME ' Display the screen info.
 
@@ -1111,37 +1111,37 @@ Sub GetNameAndSave Static
     naym$ = ""
     desc$ = ""
 
-    While Finished = FALSE ' Depending on the value of
-        Select Case EditField ' EditField, call SimpleEdit
-            Case 1 ' with either naym$ or desc$
+    WHILE Finished = FALSE ' Depending on the value of
+        SELECT CASE EditField ' EditField, call SimpleEdit
+            CASE 1 ' with either naym$ or desc$
                 RetVal = SimpleEdit(16, 27, naym$, 25) ' as a parameter.  Then, take
-                If RetVal = TABCHAR Then EditField = 2 ' a look at the return value:
-            Case 2 ' If it was a Tab key, then
+                IF RetVal = TABCHAR THEN EditField = 2 ' a look at the return value:
+            CASE 2 ' If it was a Tab key, then
                 RetVal = SimpleEdit(19, 27, desc$, 40) ' switch to the other edit
-                If RetVal = TABCHAR Then EditField = 1 ' field   otherwise, we're done.
-        End Select
+                IF RetVal = TABCHAR THEN EditField = 1 ' field   otherwise, we're done.
+        END SELECT
 
-        If RetVal = ESC Or RetVal = CR Then
-            If naym$ = "" And RetVal = CR Then ' Make sure user enters a name.
+        IF RetVal = ESC OR RetVal = CR THEN
+            IF naym$ = "" AND RetVal = CR THEN ' Make sure user enters a name.
                 ErrorMessage "You must supply a song name."
                 DisplayMenuText GETNAME ' Redisplay dialog box.
-                Locate 16, 27
-                Print naym$
-                Locate 19, 27
-                Print desc$
-            Else
+                LOCATE 16, 27
+                PRINT naym$
+                LOCATE 19, 27
+                PRINT desc$
+            ELSE
                 Finished = TRUE
-            End If
-        End If
-    Wend
+            END IF
+        END IF
+    WEND
 
-    If RetVal = CR Then ' Only save the song if the
+    IF RetVal = CR THEN ' Only save the song if the
         SongName = naym$ ' user pressed Enter to
         SongDesc = desc$ ' terminate the save dialog.
         SaveSong
-    End If
+    END IF
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' GetNote$
@@ -1150,36 +1150,36 @@ End Sub
 '
 '        PARAMETERS: Note - Value of note to be converted
 '-------------------------------------------------------------------------
-Function GetNote$ (Note) Static
+FUNCTION GetNote$ (Note) STATIC
 
-    Select Case Note
-        Case C
+    SELECT CASE Note
+        CASE C
             GetNote$ = "C"
-        Case D
+        CASE D
             GetNote$ = "D"
-        Case E
+        CASE E
             GetNote$ = "E"
-        Case F
+        CASE F
             GetNote$ = "F"
-        Case G
+        CASE G
             GetNote$ = "G"
-        Case A
+        CASE A
             GetNote$ = "A"
-        Case B
+        CASE B
             GetNote$ = "B"
-        Case DF
+        CASE DF
             GetNote$ = "D flat"
-        Case EF
+        CASE EF
             GetNote$ = "E flat"
-        Case GF
+        CASE GF
             GetNote$ = "G flat"
-        Case AF
+        CASE AF
             GetNote$ = "A flat"
-        Case BF
+        CASE BF
             GetNote$ = "B flat"
-    End Select
+    END SELECT
 
-End Function
+END FUNCTION
 
 '-------------------------------------------------------------------------
 ' InitFreq
@@ -1188,7 +1188,7 @@ End Function
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub InitFreq Static
+SUB InitFreq STATIC
 
     '                    - Initialize frequency table
     Freq(1) = 4186
@@ -1205,10 +1205,10 @@ Sub InitFreq Static
     Freq(12) = 7902
 
     ' Initialize keyboard map
-    For i = 1 To 127
+    FOR i = 1 TO 127
         Kyb(i).Note = 0 ' Set all keys to 0 first
         Kyb(i).Oct = 0 ' (that means no note is
-    Next i ' played if that key is pressed).
+    NEXT i ' played if that key is pressed).
 
     CurNote = C ' Initialize counter variables.
     CurOct = -1
@@ -1311,7 +1311,7 @@ Sub InitFreq Static
     Kyb(40).Note = BF
     Kyb(40).Oct = 1
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' LoadDefaultSong
@@ -1320,23 +1320,23 @@ End Sub
 '
 '       PARAMETERS:     num - Indicates which internal song to load
 '-------------------------------------------------------------------------
-Sub LoadDefaultSong (num) Static
+SUB LoadDefaultSong (num) STATIC
 
-    If num = 1 Then ' Restore appropriate line number.
-        Restore SONG1
-    Else
-        Restore SONG2
-    End If
+    IF num = 1 THEN ' Restore appropriate line number.
+        RESTORE SONG1
+    ELSE
+        RESTORE SONG2
+    END IF
 
-    Read SongName, SongDesc, Counter ' Read global song info.
-    For i = 1 To Counter ' Read in the notes.
-        Read n, o, Dur
+    READ SongName, SongDesc, Counter ' Read global song info.
+    FOR i = 1 TO Counter ' Read in the notes.
+        READ n, o, Dur
         Song(i).Note = n
         Song(i).Oct = o
         Song(i).Dur = Dur
-    Next i
+    NEXT i
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' LoadSong
@@ -1346,31 +1346,31 @@ End Sub
 '
 '        PARAMETERS:    SongNo - Index of song to load
 '-------------------------------------------------------------------------
-Sub LoadSong (SongNo) Static
+SUB LoadSong (SongNo) STATIC
 
-    Dim HeaderInfo As FileHeader
-    Dim S As SongIndexCard
+    DIM HeaderInfo AS FileHeader
+    DIM S AS SongIndexCard
     FileError = 0
 
-    Open "QSYNTH.DAT" For Binary As 1
+    OPEN "QSYNTH.DAT" FOR BINARY AS 1
 
     ' seek to the beginning of the song index record and read it
-    Seek #1, Len(HeaderInfo) + (Len(S) * (SongNo - 1)) + 1
-    Get #1, , S
+    SEEK #1, LEN(HeaderInfo) + (LEN(S) * (SongNo - 1)) + 1
+    GET #1, , S
     SongName = S.naym ' Set the global song info.
     SongDesc = S.desc
     Counter = S.Size
 
     ' seek to the beginning of the actual song information according to the
     ' information in the song index record
-    Seek #1, Len(HeaderInfo) + (Len(S) * MAXSONG) + S.Offset
+    SEEK #1, LEN(HeaderInfo) + (LEN(S) * MAXSONG) + S.Offset
 
-    For i = 1 To Counter ' Read the notes in from disk.
-        Get #1, , Song(i)
-    Next i
-    Close 1
+    FOR i = 1 TO Counter ' Read the notes in from disk.
+        GET #1, , Song(i)
+    NEXT i
+    CLOSE 1
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' MainMenu
@@ -1379,129 +1379,129 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub MainMenu Static
+SUB MainMenu STATIC
 
-    Dim S As SongIndexCard
-    Dim HeaderInfo As FileHeader ' Dimension variables.
-    ReDim i$(1 To 10)
+    DIM S AS SongIndexCard
+    DIM HeaderInfo AS FileHeader ' Dimension variables.
+    REDIM i$(1 TO 10)
 
     Cursor = 1
     WindowTop = 1
     SongLoaded = 0
-    GoSub LoadSongList
+    GOSUB LoadSongList
 
     Finished = FALSE
-    While Not Finished
+    WHILE NOT Finished
         DisplayMenuText MAIN
-        GoSub DisplaySongList
+        GOSUB DisplaySongList
         x$ = ""
         '     Wait for a relevant keypress
-        While InStr("PSERDQ" + Chr$(13), x$) = 0 Or x$ = ""
-            x$ = UCase$(InKey$)
-            If Len(x$) > 1 Then
-                If Right$(x$, 1) = "H" And Cursor > 1 Then
+        WHILE INSTR("PSERDQ" + CHR$(13), x$) = 0 OR x$ = ""
+            x$ = UCASE$(INKEY$)
+            IF LEN(x$) > 1 THEN
+                IF RIGHT$(x$, 1) = "H" AND Cursor > 1 THEN
                     Cursor = Cursor - 1
-                ElseIf Right$(x$, 1) = "P" And Cursor < UBound(i$) Then
+                ELSEIF RIGHT$(x$, 1) = "P" AND Cursor < UBOUND(i$) THEN
                     Cursor = Cursor + 1
-                End If
-                GoSub DisplaySongList
-            End If
-        Wend
+                END IF
+                GOSUB DisplaySongList
+            END IF
+        WEND
 
-        Select Case x$
-            Case "S"
+        SELECT CASE x$
+            CASE "S"
                 RecordMenu (TRUE) ' Practice mode.
   
-            Case "P", Chr$(13) ' Load and play the appropriate song.
-                If Cursor > 2 Then
+            CASE "P", CHR$(13) ' Load and play the appropriate song.
+                IF Cursor > 2 THEN
                     LoadSong Cursor - 2
-                Else
+                ELSE
                     LoadDefaultSong Cursor
-                End If
+                END IF
                 PlaySong
 
-            Case "E" ' Song editor
-                If Cursor > 2 Then
+            CASE "E" ' Song editor
+                IF Cursor > 2 THEN
                     LoadSong Cursor - 2
                     EditSong Cursor - 2
-                Else
+                ELSE
                     ErrorMessage "You cannot edit a system song."
-                End If
+                END IF
 
-            Case "R" ' Record mode
+            CASE "R" ' Record mode
                 SongRecorded = FALSE
                 RecordMenu (FALSE)
-                If SongRecorded Then
+                IF SongRecorded THEN
                     GetNameAndSave ' Only ask to save if something was recorded.
-                End If
-                GoSub LoadSongList
+                END IF
+                GOSUB LoadSongList
 
-            Case "D" ' Delete song
-                If Cursor > 2 Then
-                    If ConfirmDelete Then
+            CASE "D" ' Delete song
+                IF Cursor > 2 THEN
+                    IF ConfirmDelete THEN
                         DeleteSong Cursor - 2
-                        If Cursor = UBound(i$) Then Cursor = Cursor - 1
-                        GoSub LoadSongList
-                    End If
-                Else
+                        IF Cursor = UBOUND(i$) THEN Cursor = Cursor - 1
+                        GOSUB LoadSongList
+                    END IF
+                ELSE
                     ErrorMessage "You cannot delete a system song."
-                End If
+                END IF
 
-            Case "Q" ' Quit QSynth.
+            CASE "Q" ' Quit QSynth.
                 Finished = TRUE
-        End Select
-    Wend
-    Exit Sub
+        END SELECT
+    WEND
+    EXIT SUB
 
     '       This subroutine loads the names of all the songs in the QSYNTH.DAT file.
     LoadSongList:
-    Open "QSYNTH.DAT" For Binary As 1
-    If LOF(1) = 0 Then
+    OPEN "QSYNTH.DAT" FOR BINARY AS 1
+    IF LOF(1) = 0 THEN
         CreateSongFile ' Create disk file if not there.
-    End If
+    END IF
     HeaderInfo.Count = 0
-    Get #1, , HeaderInfo
-    ReDim i$(1 To 2 + HeaderInfo.Count) ' Size array appropriately.
-    Restore SONG1 ' First two songs are provided as DATA statements.
-    Read i$(1)
-    Restore SONG2
-    Read i$(2)
+    GET #1, , HeaderInfo
+    REDIM i$(1 TO 2 + HeaderInfo.Count) ' Size array appropriately.
+    RESTORE SONG1 ' First two songs are provided as DATA statements.
+    READ i$(1)
+    RESTORE SONG2
+    READ i$(2)
 
-    For i = 3 To UBound(i$) ' Read the rest from disk.
-        Get #1, , S
+    FOR i = 3 TO UBOUND(i$) ' Read the rest from disk.
+        GET #1, , S
         i$(i) = S.naym
-    Next i
-    Close 1
-    Return
+    NEXT i
+    CLOSE 1
+    RETURN
 
     '       This subroutine displays the song list in the Song List box.
     DisplaySongList:
-    Color 0, 7
-    For i = 15 To 23
-        Locate i, 8
-        If i - 15 + WindowTop <= UBound(i$) Then
-            Print " "; Left$(i$(i - 15 + WindowTop) + Space$(27), 25); " "
-        Else
-            Print Space$(27)
-        End If
-    Next i
+    COLOR 0, 7
+    FOR i = 15 TO 23
+        LOCATE i, 8
+        IF i - 15 + WindowTop <= UBOUND(i$) THEN
+            PRINT " "; LEFT$(i$(i - 15 + WindowTop) + SPACE$(27), 25); " "
+        ELSE
+            PRINT SPACE$(27)
+        END IF
+    NEXT i
 
     '       This subroutine displays the "cursor" by re-displaying the current song's name in a different color.
     DisplaySongCursor:
-    If Cursor < WindowTop Then
+    IF Cursor < WindowTop THEN
         WindowTop = Cursor
-        GoTo DisplaySongList
-    ElseIf Cursor > WindowTop + 8 Then
+        GOTO DisplaySongList
+    ELSEIF Cursor > WindowTop + 8 THEN
         WindowTop = Cursor - 8
-        GoTo DisplaySongList
-    End If
-    Color 7, 0
-    Locate 15 + Cursor - WindowTop, 8
-    Print " "; Left$(i$(Cursor) + Space$(27), 25); " "
-    Color TEXTCOLOR, BACKGROUNDCOLOR
-    Return
+        GOTO DisplaySongList
+    END IF
+    COLOR 7, 0
+    LOCATE 15 + Cursor - WindowTop, 8
+    PRINT " "; LEFT$(i$(Cursor) + SPACE$(27), 25); " "
+    COLOR TEXTCOLOR, BACKGROUNDCOLOR
+    RETURN
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' PlayNote
@@ -1513,19 +1513,19 @@ End Sub
 '                       Octave  -       The octave to play the note in
 '                       Duration# -     The duration (time) to play the note
 '-------------------------------------------------------------------------
-Sub PlayNote (Note, Octave, Duration#) Static
+SUB PlayNote (Note, Octave, Duration#) STATIC
 
-    If Note <> 0 Then
+    IF Note <> 0 THEN
         ' Perform equation to find frequency value from the Freq() array
         ThisFreq& = Freq(Note) / (2 ^ (PITCH - Octave))
 
-        If ThisFreq& > 32767 Then ThisFreq& = 32767
-        Sound ThisFreq&, Duration#
-    Else
+        IF ThisFreq& > 32767 THEN ThisFreq& = 32767
+        SOUND ThisFreq&, Duration#
+    ELSE
         TimeDelay Duration#
-    End If
+    END IF
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' PlaySong
@@ -1535,51 +1535,51 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub PlaySong Static
+SUB PlaySong STATIC
 
     DisplayMenuText PLAYBACK
 
-    Do ' Wait for the Enter key,
-        i$ = InKey$ ' Adjust the tempo.
-        Select Case i$
-            Case Chr$(27)
-                Exit Sub
-            Case Chr$(0) + "H", Chr$(0) + "M"
+    DO ' Wait for the Enter key,
+        i$ = INKEY$ ' Adjust the tempo.
+        SELECT CASE i$
+            CASE CHR$(27)
+                EXIT SUB
+            CASE CHR$(0) + "H", CHR$(0) + "M"
                 ChangeTempo UP
-            Case Chr$(0) + "P", Chr$(0) + "K"
+            CASE CHR$(0) + "P", CHR$(0) + "K"
                 ChangeTempo DOWN
-            Case Chr$(13)
-                Exit Do
-        End Select
-    Loop
+            CASE CHR$(13)
+                EXIT DO
+        END SELECT
+    LOOP
 
     Finished = FALSE
-    For i = 1 To Counter
+    FOR i = 1 TO Counter
         DrawNote Song(i).Note, Song(i).Oct, DOWN
-        For j = 1 To Song(i).Dur
-            If Song(i).Note > 0 Then
+        FOR j = 1 TO Song(i).Dur
+            IF Song(i).Note > 0 THEN
                 PlayNote Song(i).Note, Song(i).Oct, NOTETICK * TFACTOR
-            Else
+            ELSE
                 PlayNote 0, 0, RESTTICK * TFACTOR
-            End If
+            END IF
 
-            i$ = InKey$ ' Adjust the TEMPO if need be.
-            Select Case UCase$(i$)
-                Case Chr$(27)
+            i$ = INKEY$ ' Adjust the TEMPO if need be.
+            SELECT CASE UCASE$(i$)
+                CASE CHR$(27)
                     Finished = TRUE
-                    Exit For
-                Case Chr$(0) + "H", Chr$(0) + "M"
+                    EXIT FOR
+                CASE CHR$(0) + "H", CHR$(0) + "M"
                     ChangeTempo UP
-                Case Chr$(0) + "P", Chr$(0) + "K"
+                CASE CHR$(0) + "P", CHR$(0) + "K"
                     ChangeTempo DOWN
-            End Select
+            END SELECT
 
-        Next j
+        NEXT j
         DrawNote Song(i).Note, Song(i).Oct, UP ' "Undraw" the pressed key.
-        If Finished Then Exit For
-    Next i
+        IF Finished THEN EXIT FOR
+    NEXT i
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' RecordMenu
@@ -1588,26 +1588,26 @@ End Sub
 '
 '       PARAMETERS: NoSave  -   Indicates whether the user is doing PRACTICE or RECORD
 '-------------------------------------------------------------------------
-Sub RecordMenu (NoSave) Static
+SUB RecordMenu (NoSave) STATIC
 
-    If NoSave = TRUE Then
+    IF NoSave = TRUE THEN
         DisplayMenuText PRACTICE ' Draw the PRACTICE screen.
-    Else
+    ELSE
         DisplayMenuText RECORD ' Draw the RECORD screen.
-    End If
+    END IF
    
-    Color 7, 0 ' Show the keyboard helper keys.
-    Locate 6, 17: Print "2   4 5   7 8 9   - =   S D F   H J   L ; '"
-    Locate 12, 16: Print "Q W E R T Y U I O P [ ] Z X C V B N M , . /"
+    COLOR 7, 0 ' Show the keyboard helper keys.
+    LOCATE 6, 17: PRINT "2   4 5   7 8 9   - =   S D F   H J   L ; '"
+    LOCATE 12, 16: PRINT "Q W E R T Y U I O P [ ] Z X C V B N M , . /"
 
     RecordMode NoSave
    
-    Color , 0 ' Print spaces over both rows.
-    Locate 6, 4: Print Space$(75)
-    Locate 12, 4: Print Space$(75)
-    Color , BACKGROUNDCOLOR
+    COLOR , 0 ' Print spaces over both rows.
+    LOCATE 6, 4: PRINT SPACE$(75)
+    LOCATE 12, 4: PRINT SPACE$(75)
+    COLOR , BACKGROUNDCOLOR
  
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' RecordMode
@@ -1619,7 +1619,7 @@ End Sub
 '
 '       PARAMETERS: NoSave  -   Indicates whether the user is doing PRACTICE or RECORD
 '-------------------------------------------------------------------------
-Sub RecordMode (NoSave) Static
+SUB RecordMode (NoSave) STATIC
 
     Hld$ = ""
     Counter = 1
@@ -1627,103 +1627,103 @@ Sub RecordMode (NoSave) Static
     Song(Counter).Dur = 0
     KeyState = UP
     oi$ = "": n$ = ""
-    For i = 1 To 12
-        n$ = n$ + Chr$(i)
-    Next i
-    n$ = Mid$(n$, 10) + n$ + n$ + n$ ' Used for the XT version.
+    FOR i = 1 TO 12
+        n$ = n$ + CHR$(i)
+    NEXT i
+    n$ = MID$(n$, 10) + n$ + n$ + n$ ' Used for the XT version.
     o$ = "00011111111111122222222222233333333333"
 
-    If Inp(&H60) = 0 Then ' If 0, we must use INKEY$
+    IF INP(&H60) = 0 THEN ' If 0, we must use INKEY$
         XTKeyboard = TRUE ' instead of INP(&H60)
-    Else ' because of certain keyboard
+    ELSE ' because of certain keyboard
         XTKeyboard = FALSE ' controllers that do not
-    End If ' keep the last keypress in the &h60 port.
-    Do
-        i$ = InKey$
-    Loop While i$ = "" ' Wait for first keypress.
-    If i$ = Chr$(27) Then Exit Sub ' Esc means no song recorded.
+    END IF ' keep the last keypress in the &h60 port.
+    DO
+        i$ = INKEY$
+    LOOP WHILE i$ = "" ' Wait for first keypress.
+    IF i$ = CHR$(27) THEN EXIT SUB ' Esc means no song recorded.
 
     x = 0
-    While i$ <> Chr$(27)
-        If XTKeyboard Then ' Do this block if XT keyboard
-            If i$ = oi$ Then
-                If Song(Counter).Note = 0 Then
+    WHILE i$ <> CHR$(27)
+        IF XTKeyboard THEN ' Do this block if XT keyboard
+            IF i$ = oi$ THEN
+                IF Song(Counter).Note = 0 THEN
                     PlayNote Song(Counter).Note, Song(Counter).Oct, RESTTICK
                     Song(Counter).Dur = Song(Counter).Dur + 1
-                Else ' a real note
+                ELSE ' a real note
                     PlayNote Song(Counter).Note, Song(Counter).Oct, XTNOTELENGTH * NOTETICK
                     Song(Counter).Dur = Song(Counter).Dur + XTNOTELENGTH
-                End If
-            ElseIf i$ <> "" Then
-                keyloc = InStr("Q2WE4R5TY7U8I9OP-[=]ZSXDCFVBHNJM,L.;/'", UCase$(i$))
-                If keyloc = 0 Then
+                END IF
+            ELSEIF i$ <> "" THEN
+                keyloc = INSTR("Q2WE4R5TY7U8I9OP-[=]ZSXDCFVBHNJM,L.;/'", UCASE$(i$))
+                IF keyloc = 0 THEN
                     DrawNote Song(Counter).Note, Song(Counter).Oct, UP
                     Counter = Counter + 1
-                    If Counter > MAXNOTE Then
+                    IF Counter > MAXNOTE THEN
                         ErrorMessage "Maximum song length reached."
-                        GoTo GetOut
-                    End If
+                        GOTO GetOut
+                    END IF
                     Song(Counter).Note = 0
                     Song(Counter).Oct = 0 ' Rests are counted.
                     Song(Counter).Dur = 0
                     DrawNote Song(Counter).Note, Song(Counter).Oct, DOWN
-                Else
+                ELSE
                     DrawNote Song(Counter).Note, Song(Counter).Oct, UP
                     Counter = Counter + 1
-                    NewNote = Asc(Mid$(n$, keyloc, 1))
-                    NewOct = Val(Mid$(o$, keyloc, 1)) - 2
+                    NewNote = ASC(MID$(n$, keyloc, 1))
+                    NewOct = VAL(MID$(o$, keyloc, 1)) - 2
 
-                    If Counter > MAXNOTE Then
+                    IF Counter > MAXNOTE THEN
                         ErrorMessage "Maximum song length reached."
-                        GoTo GetOut
-                    End If
+                        GOTO GetOut
+                    END IF
                     Song(Counter).Note = NewNote
                     Song(Counter).Oct = NewOct
                     Song(Counter).Dur = XTNOTELENGTH
                     DrawNote Song(Counter).Note, Song(Counter).Oct, DOWN
                     PlayNote Song(Counter).Note, Song(Counter).Oct, XTNOTELENGTH * NOTETICK
                     TimeDelay XTNOTELENGTH * NOTETICK
-                End If
-            ElseIf i$ = "" Then
+                END IF
+            ELSEIF i$ = "" THEN
                 DrawNote Song(Counter).Note, Song(Counter).Oct, UP
                 Counter = Counter + 1
-                If Counter > MAXNOTE Then
+                IF Counter > MAXNOTE THEN
                     ErrorMessage "Maximum song length reached."
-                    GoTo GetOut
-                End If
+                    GOTO GetOut
+                END IF
                 Song(Counter).Note = 0
                 Song(Counter).Oct = 0
                 Song(Counter).Dur = 0
                 DrawNote Song(Counter).Note, Song(Counter).Oct, DOWN
-            End If
+            END IF
         
-        Else ' Do this block if not XT keyboard.
+        ELSE ' Do this block if not XT keyboard.
             ox = x
             Hld$ = Hld$ + i$
-            If (Len(Hld$) < 2) And (Song(Counter).Dur > 8) And (Song(Counter).Note <> 0) Then
+            IF (LEN(Hld$) < 2) AND (Song(Counter).Dur > 8) AND (Song(Counter).Note <> 0) THEN
                 x = 1
-            Else
-                x = Inp(&H60)
-            End If
+            ELSE
+                x = INP(&H60)
+            END IF
 
-            If ox = x Then ' no change in keypress
+            IF ox = x THEN ' no change in keypress
                 Song(Counter).Dur = Song(Counter).Dur + 1
-                If Song(Counter).Note = 0 Then ' a rest
+                IF Song(Counter).Note = 0 THEN ' a rest
                     PlayNote Song(Counter).Note, Song(Counter).Oct, RESTTICK
-                Else ' a real note
+                ELSE ' a real note
                     PlayNote Song(Counter).Note, Song(Counter).Oct, NOTETICK
-                End If
-                If Len(Hld$) > 1 Then Hld$ = ""
+                END IF
+                IF LEN(Hld$) > 1 THEN Hld$ = ""
 
-            ElseIf x < 128 Then ' it's a KEYDOWN event
-                If KeyState = DOWN Then
+            ELSEIF x < 128 THEN ' it's a KEYDOWN event
+                IF KeyState = DOWN THEN
                     DrawNote Song(Counter).Note, Song(Counter).Oct, UP
-                End If
+                END IF
                 Counter = Counter + 1
-                If Counter > MAXNOTE Then
+                IF Counter > MAXNOTE THEN
                     ErrorMessage "Maximum song length reached."
-                    GoTo GetOut
-                End If
+                    GOTO GetOut
+                END IF
                 Song(Counter).Note = Kyb(x).Note
                 Song(Counter).Oct = Kyb(x).Oct
                 Song(Counter).Dur = 0
@@ -1731,45 +1731,45 @@ Sub RecordMode (NoSave) Static
                 Hld$ = ""
                 KeyState = DOWN
 
-            ElseIf (x - 128) <> ox Then ' an old key came up
+            ELSEIF (x - 128) <> ox THEN ' an old key came up
                 x = ox
                 Song(Counter).Dur = Song(Counter).Dur + 1
-                If Song(Counter).Note = 0 Then ' a rest
+                IF Song(Counter).Note = 0 THEN ' a rest
                     PlayNote Song(Counter).Note, Song(Counter).Oct, RESTTICK
-                Else ' a real note
+                ELSE ' a real note
                     PlayNote Song(Counter).Note, Song(Counter).Oct, NOTETICK
-                End If
-                If Len(Hld$) > 1 Then Hld$ = ""
+                END IF
+                IF LEN(Hld$) > 1 THEN Hld$ = ""
                  
-            ElseIf KeyState = DOWN Then ' it's a KEYUP event
+            ELSEIF KeyState = DOWN THEN ' it's a KEYUP event
                 KeyState = UP
                 DrawNote Song(Counter).Note, Song(Counter).Oct, UP
                 Counter = Counter + 1
-                If Counter > MAXNOTE Then
+                IF Counter > MAXNOTE THEN
                     ErrorMessage "Maximum song length reached."
-                    GoTo GetOut
-                End If
+                    GOTO GetOut
+                END IF
                 Song(Counter).Note = 0
                 Song(Counter).Dur = 0
                 Hld$ = ""
-            End If
-        End If
+            END IF
+        END IF
         oi$ = i$
-        i$ = InKey$
-    Wend
+        i$ = INKEY$
+    WEND
 
     GetOut:
     DrawNote Song(Counter).Note, Song(Counter).Oct, UP ' Make sure that the last key pressed is released.
 
-    If Counter = 1 Or NoSave = TRUE Then Exit Sub ' No notes recorded or Practice mode.
+    IF Counter = 1 OR NoSave = TRUE THEN EXIT SUB ' No notes recorded or Practice mode.
 
-    While Song(Counter).Note = 0 And Counter > 0 ' Get rid of any rests at the end of the song.
+    WHILE Song(Counter).Note = 0 AND Counter > 0 ' Get rid of any rests at the end of the song.
         Counter = Counter - 1
-    Wend
+    WEND
 
     SongRecorded = TRUE ' Let MainMenu know we have recorded a new song.
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' SaveChanges
@@ -1779,29 +1779,29 @@ End Sub
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Function SaveChanges Static
+FUNCTION SaveChanges STATIC
 
-    Color BACKGROUNDCOLOR, BACKGROUNDCOLOR
+    COLOR BACKGROUNDCOLOR, BACKGROUNDCOLOR
     DrawBox 13, 38, 24, 78, ""
-    Color 0, 7
+    COLOR 0, 7
     DrawBox 15, 41, 20, 75, "Save Changes"
-    Locate 17, 43
-    Print "Do you want to save the changes"
-    Locate , 43, 1
-    Print "made to this song? (Y/N) ";
+    LOCATE 17, 43
+    PRINT "Do you want to save the changes"
+    LOCATE , 43, 1
+    PRINT "made to this song? (Y/N) ";
 
-    Do ' Wait for keypress.
-        i$ = UCase$(InKey$)
-    Loop Until i$ = "Y" Or i$ = "N"
+    DO ' Wait for keypress.
+        i$ = UCASE$(INKEY$)
+    LOOP UNTIL i$ = "Y" OR i$ = "N"
 
-    Locate , , 0 ' Return appropriate value.
-    If i$ = "Y" Then
+    LOCATE , , 0 ' Return appropriate value.
+    IF i$ = "Y" THEN
         SaveChanges = TRUE
-    Else
+    ELSE
         SaveChanges = FALSE
-    End If
+    END IF
 
-End Function
+END FUNCTION
 
 '-------------------------------------------------------------------------
 ' SaveSong
@@ -1846,47 +1846,47 @@ End Function
 '
 '             PARAMETERS:   None
 '-------------------------------------------------------------------------
-Sub SaveSong Static
+SUB SaveSong STATIC
 
-    Dim S As SongIndexCard
-    Dim HeaderInfo As FileHeader
+    DIM S AS SongIndexCard
+    DIM HeaderInfo AS FileHeader
     FileError = 0
 
-    Open "QSYNTH.DAT" For Binary As 1 ' Open the file.
-    Get #1, , HeaderInfo ' Get header info.
+    OPEN "QSYNTH.DAT" FOR BINARY AS 1 ' Open the file.
+    GET #1, , HeaderInfo ' Get header info.
 
     ' Seek to the next available song index record.  The Count field of the
     ' header record is 1-based, so LEN(S)*HeaderInfo.Count + 1 is the first
     ' byte of song index record #(Count+1)
-    Seek #1, Len(HeaderInfo) + (Len(S) * HeaderInfo.Count) + 1
+    SEEK #1, LEN(HeaderInfo) + (LEN(S) * HeaderInfo.Count) + 1
 
     S.naym = SongName ' Insert data for current song.
     S.desc = SongDesc
     S.Size = Counter
     S.Offset = HeaderInfo.NextNote ' PUT it into the file at the
-    Put #1, , S ' file position found by the SEEK statement.
+    PUT #1, , S ' file position found by the SEEK statement.
 
     ' Seek to the next available note position in the song data section.  This
     ' is found using the NextNote field of the file header structure.  Remember
     ' the NextNote pointer is relative to the start of the song data area,
     ' and not the physical beginning of the file, so we have to add the size of
     ' the file header and the song index card sections as well.
-    Seek #1, Len(HeaderInfo) + (Len(S) * MAXSONG) + HeaderInfo.NextNote
+    SEEK #1, LEN(HeaderInfo) + (LEN(S) * MAXSONG) + HeaderInfo.NextNote
 
-    For i = 1 To Counter ' Write each note of the song
-        Put #1, , Song(i) ' to the file.
-    Next i
+    FOR i = 1 TO Counter ' Write each note of the song
+        PUT #1, , Song(i) ' to the file.
+    NEXT i
 
     ' Update the header information (increment the song count, and point
     ' NextNote at the next available note in the file by adding the size of the
     ' newly saved song to the current value of NextNote.
     HeaderInfo.Count = HeaderInfo.Count + 1
-    HeaderInfo.NextNote = HeaderInfo.NextNote + (Counter * Len(Song(1)))
-    Seek #1, 1 ' Seek to the start.
-    Put #1, , HeaderInfo ' Write the new header.
-    Close 1 ' The song is saved!
+    HeaderInfo.NextNote = HeaderInfo.NextNote + (Counter * LEN(Song(1)))
+    SEEK #1, 1 ' Seek to the start.
+    PUT #1, , HeaderInfo ' Write the new header.
+    CLOSE 1 ' The song is saved!
 
-End Sub
+END SUB
 
 '-------------------------------------------------------------------------
 ' SimpleEdit
@@ -1902,46 +1902,46 @@ End Sub
 '                                 contain the initial value of the text)
 '                       MaxLen  - Maximum length allowed for the entered text
 '-------------------------------------------------------------------------
-Function SimpleEdit (row, col, text$, MaxLen) Static
+FUNCTION SimpleEdit (row, col, text$, MaxLen) STATIC
 
-    Locate row, col, 1 ' Turn on the cursor.
-    Print text$;
+    LOCATE row, col, 1 ' Turn on the cursor.
+    PRINT text$;
 
     Finished = FALSE
-    While Not Finished
-        i$ = InKey$
-        Select Case i$
-            Case Chr$(13)
+    WHILE NOT Finished
+        i$ = INKEY$
+        SELECT CASE i$
+            CASE CHR$(13)
                 Finished = TRUE ' Enter key pressed.
                 SimpleEdit = CR
 
-            Case Chr$(27)
+            CASE CHR$(27)
                 Finished = TRUE ' Esc key pressed.
                 SimpleEdit = ESC
 
-            Case Chr$(9)
+            CASE CHR$(9)
                 Finished = TRUE ' Tab key pressed.
                 SimpleEdit = TABCHAR
 
-            Case Chr$(8) ' Backspace key pressed.
-                If Len(text$) > 0 Then
-                    text$ = Left$(text$, Len(text$) - 1)
-                    Locate row, col
-                    Print text$; " ";
-                    Locate row, col + Len(text$)
-                End If
+            CASE CHR$(8) ' Backspace key pressed.
+                IF LEN(text$) > 0 THEN
+                    text$ = LEFT$(text$, LEN(text$) - 1)
+                    LOCATE row, col
+                    PRINT text$; " ";
+                    LOCATE row, col + LEN(text$)
+                END IF
 
-            Case Chr$(32) To Chr$(126)
-                If Len(text$) < MaxLen Then ' Normal key - add it to text$.
+            CASE CHR$(32) TO CHR$(126)
+                IF LEN(text$) < MaxLen THEN ' Normal key - add it to text$.
                     text$ = text$ + i$
-                    Print i$;
-                End If
-        End Select
-    Wend
+                    PRINT i$;
+                END IF
+        END SELECT
+    WEND
 
-    Locate , , 0 ' Turn cursor off.
+    LOCATE , , 0 ' Turn cursor off.
 
-End Function
+END FUNCTION
 
 '-------------------------------------------------------------------------
 ' TimeDelay
@@ -1950,10 +1950,9 @@ End Function
 '
 '        PARAMETERS:    Dur#    -       Duration of delay
 '-------------------------------------------------------------------------
-Sub TimeDelay (Dur#) Static
+SUB TimeDelay (Dur#) STATIC
 
-    x# = Timer ' Wait until Dur# seconds pass.
-    While (Timer - x#) < (Dur# / 18.2): Wend
+    x# = TIMER ' Wait until Dur# seconds pass.
+    WHILE (TIMER - x#) < (Dur# / 18.2): WEND
 
-End Sub
-
+END SUB

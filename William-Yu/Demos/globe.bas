@@ -119,4 +119,3 @@ SUB SetupBall ' {set up the points}
         NEXT PPSLoop
     NEXT SliceLoop
 END SUB
-

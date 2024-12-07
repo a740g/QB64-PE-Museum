@@ -1,4 +1,5 @@
-REM File creation date: 27-Aug-24 (1:02 PM)
+REM Made by Bhsdfa!
+REM File creation date: 27-Aug-24 (1:02 PM BRT)
 REM Apps used: TILED e QB64pe
 REM TILED: https://www.mapeditor.org/    -=-    QB64pe: https://qb64phoenix.com/
 REM Vantiro.bas:
@@ -468,10 +469,11 @@ DIM SHARED Part(ParticlesMax) AS Particle
 
 HudAmmo = _NEWIMAGE(300, 300, 32)
 DIM SHARED PlayerInteract
-FlameAmmoMax = 200
-SMGAmmoMax = 350
-ShotgunAmmoMax = 40
-GrenadeAmmoMax = 5
+FlameAmmoMax = 300
+SMGAmmoMax = 550
+ShotgunAmmoMax = 80
+GrenadeAmmoMax = 6
+DIM SHARED PlayerHealth
 GOSUB RestartEverything
 PlayerSkin2 = PlayerSkin
 
@@ -497,8 +499,15 @@ DO
     IF _KEYDOWN(15104) AND delay = 0 AND debug = 1 THEN HideUI = HideUI + 1: delay = 20: IF HideUI = 2 THEN HideUI = 0
     IF _KEYDOWN(17408) AND delay = 0 AND debug = 1 THEN NoAI = NoAI + 1: delay = 20: IF NoAI = 2 THEN NoAI = 0
     IF _KEYDOWN(118) AND delay = 0 AND debug = 1 THEN Noclip = Noclip + 1: delay = 20: IF Noclip = 2 THEN Noclip = 0
-    IF Player(1).Health > 101 THEN Player(1).Health = Player(1).Health - 0.1
+    IF _KEYDOWN(106) AND delay = 0 AND debug = 1 THEN
+        delay = 30
+        FOR i = 1 TO ZombieMax
+            Zombie(i).health = -1
+        NEXT
+    END IF
+    IF Player(1).Health > 101 THEN Player(1).Health = Player(1).Health - 0.05
     IF Player(1).Health < -1 THEN Player(1).Health = -1
+
     _LIMIT 62
     CLS
     ff% = ff% + 1
@@ -554,6 +563,10 @@ DO
 
 LOOP
 HealthHud:
+ValueDis = ABS(PlayerHealth - Player(1).Health)
+IF Player(1).Health > PlayerHealth THEN PlayerHealth = PlayerHealth + (ValueDis / 20)
+IF Player(1).Health < PlayerHealth THEN PlayerHealth = PlayerHealth - (ValueDis / 20)
+
 IF LastHealth > Player(1).Health THEN
     FOR x = 1 TO FIX(FIX((LastHealth) - INT(Player(1).Health)) / 4)
         LastBloodPart = LastBloodPart + 1: IF LastBloodPart > 32 THEN LastBloodPart = 1
@@ -567,7 +580,7 @@ END IF
 IF LastHealth <> Player(1).Health THEN
     FontSizeUse = 60
     IF Player(1).Health < 0 THEN Player(1).Health = 0
-    Text$ = LTRIM$(STR$(FIX(Player(1).Health)) + "%")
+    Text$ = LTRIM$(STR$(FIX(PlayerHealth)) + "%")
     GOSUB HudText
     HeartThx = thx
     HeartThy = thy
@@ -592,7 +605,7 @@ NEXT
 RotHeartDisplay = -(Player(1).xm / 6)
 IF RotHeartDisplay > 45 THEN RotHearDisplay = 45
 IF RotHeartDisplay < -45 THEN RotHearDisplay = -45
-RotoZoom _WIDTH / 2 + (Player(1).xm / 50), ((ABS(Player(1).Health - 100) * (_HEIGHT / 100))), Hud_Health_Fluid, 2.2, RotHeartDisplay
+RotoZoom _WIDTH / 2 + (Player(1).xm / 50), ((ABS(PlayerHealth - 100) * (_HEIGHT / 100))), Hud_Health_Fluid, 2.2, RotHeartDisplay
 '_PutImage ((_Width / 2) + (_Width(HeartPercent) / 2), (_Height / 2) + (_Height(HeartPercent) / 2)), HeartPercent
 _PUTIMAGE ((_WIDTH / 2) - HeartThx / 2, (_HEIGHT / 2) - HeartThy / 2), HeartPercent
 IF PlayerIsOnFire > 0 THEN firechoosen = (INT(RND * 3) + 1): _PUTIMAGE (0, 0)-(_WIDTH, _HEIGHT), FireParticles(firechoosen)
@@ -613,8 +626,8 @@ Wave = 0
 WaveWait = 0
 WaveBudget = 0
 FlameAmmo = 0
-SMGAmmo = 200
-ShotgunAmmo = 5
+SMGAmmo = 150
+ShotgunAmmo = 20
 GrenadeAmmo = 1
 'Generate Minimap Texture
 GOSUB GenerateMiniMap
@@ -624,7 +637,7 @@ RayM(1).y = 0
 RayM(2).x = (_WIDTH / 2) + (_HEIGHT / 2)
 RayM(2).y = _HEIGHT
 MiniMapGoBack = 20
-DayAmount = 138
+DayAmount = 128
 Player(1).x = 2064 * 2
 Player(1).y = 2064 * 2
 Player(1).size = 25
@@ -667,7 +680,8 @@ Zoom = 1
 PlayerCantMove = 0
 DeathTimer = 0
 PlayerIsOnFire = 0
-Player(1).Health = 150
+Player(1).Health = 105
+PlayerHealth = 105
 Player(1).DamageToTake = 0
 RETURN
 
@@ -685,7 +699,7 @@ IF DayAmount = 0 AND Player(1).Health > 0 THEN
     IF Darkening > 400 THEN SYSTEM
     LINE (0, 0)-(_WIDTH, _HEIGHT), _RGBA32(0, 0, 0, Darkening), BF
 
-    Text$ = "Rest Well"
+    Text$ = "Rest Well."
     FontSizeUse = 70
     GOSUB HudText
 
@@ -774,7 +788,7 @@ LINE (Minimap.x1, Minimap.y1)-(Minimap.x2, Minimap.y2), _RGBA32(0, 255, 0, Updat
 RETURN
 
 GenerateMiniMap:
-UpdateMiniMap = 60
+UpdateMiniMap = 30
 _DEST MinimapIMG
 FOR x = 0 TO Map.MaxWidth
     FOR y = 0 TO Map.MaxHeight
@@ -910,7 +924,7 @@ WaveChange:
 
 RANDOMIZE TIMER
 IF WaveWait = 0 THEN
-    WaveWait = 600: WaveDisplayY = -thy: Wave = Wave + 1: WaveBudget = (Wave * 10) + INT(RND * 22)
+    WaveWait = 600: WaveDisplayY = -thy: Wave = Wave + 1: WaveBudget = (Wave * 7) + INT(RND * 22)
     IF WaveBudget > 128 THEN WaveBudget = 128
 END IF
 IF Wave = 16 THEN WaveWait = -9999999: DelayUntilStart = 2000: Showtext = 1: WaveDisplayY = -thy * 2: GOTO EndWaveCode
@@ -923,15 +937,15 @@ IF WaveWait = 1 THEN
         IF Special = 1 THEN SpecialType = INT(RND * 6) + 1
 
         IF Special <> 1 THEN
-            Rand = INT(RND * 80)
-            IF Rand = 47 THEN
+            Rand = INT(RND * 60)
+            IF Rand = 25 THEN
                 Zombie(i).size = INT(RND * (DefZombie.size - 20 + 1)) + 20 ' DefZombie.size
             ELSE
                 Zombie(i).size = DefZombie.size
             END IF
             Zombie(i).active = 1
             Zombie(i).maxspeed = INT(RND * (500 - 300 + 1)) + 300
-            Zombie(i).damage = INT(RND * (10 - 2 + 1)) + 2
+            Zombie(i).damage = INT(RND * (6 - 2 + 1)) + 2
             Zombie(i).speeding = INT(RND * (20 - 10 + 1)) + 10
             Zombie(i).knockback = INT(RND * (8 - 5 + 1)) + 5
             Zombie(i).special = "Normal"
@@ -945,18 +959,18 @@ IF WaveWait = 1 THEN
                     Rand = INT(RND * 20120)
                     Zombie(i).size = INT(RND * (34 - 25 + 1)) + 25
                     Zombie(i).health = INT(RND * (INT(DefZombie.maxhealth / 1.5) - FIX(DefZombie.minhealth / 1.5) + 1)) + FIX(DefZombie.minhealth / 2)
-                    Zombie(i).maxspeed = INT(RND * (1200 - 900 + 1)) + 900
-                    Zombie(i).damage = INT(RND * (10 - 2 + 1)) + 2
-                    Zombie(i).speeding = INT(RND * (40 - 30 + 1)) + 30
+                    Zombie(i).maxspeed = INT(RND * (1100 - 900 + 1)) + 900
+                    Zombie(i).damage = INT(RND * (8 - 2 + 1)) + 2
+                    Zombie(i).speeding = INT(RND * (45 - 30 + 1)) + 30
                     Zombie(i).knockback = INT(RND * (10 - 5 + 1)) + 5
                     Zombie(i).special = "Runner"
-                    Zombie(i).weight = 2
+                    Zombie(i).weight = 1
                 CASE 2 ' Brute
-                    Rand = INT(RND * 5)
+                    Rand = INT(RND * 8)
                     IF Rand = 3 THEN GOTO CreateZombie
                     Zombie(i).size = INT(RND * (100 - 70 + 1)) + 70
-                    Zombie(i).health = INT(RND * ((DefZombie.maxhealth + 500) - DefZombie.minhealth + 1)) + DefZombie.minhealth + (Zombie(i).size * 2)
-                    Zombie(i).maxspeed = INT(RND * (650 - 500 + 1)) + 500
+                    Zombie(i).health = INT(RND * ((DefZombie.maxhealth + 300) - DefZombie.minhealth + 1)) + DefZombie.minhealth + (Zombie(i).size * 2)
+                    Zombie(i).maxspeed = INT(RND * (600 - 500 + 1)) + 500
                     Zombie(i).damage = INT(RND * (80 - 40 + 1)) + 40
                     Zombie(i).speeding = INT(RND * (20 - 10 + 1)) + 10
                     Zombie(i).knockback = INT(RND * (50 - 30 + 1)) + 30
@@ -968,12 +982,12 @@ IF WaveWait = 1 THEN
                     Zombie(i).damage = INT(RND * (30 - 20 + 1)) + 20
                     Zombie(i).maxspeed = DefZombie.maxspeed
                     Zombie(i).speeding = INT(RND * (7 - 4 + 1)) + 4
-                    Zombie(i).weight = 3
+                    Zombie(i).weight = 2
                     Zombie(i).knockback = INT(RND * (10 - 5 + 1)) + 5
                     Zombie(i).special = "Slower"
                 CASE 4 ' Bomber
-                    Rand = INT(RND * 7)
-                    IF Rand = 5 THEN GOTO CreateZombie
+                    Rand = INT(RND * 12)
+                    IF Rand = 7 THEN GOTO CreateZombie
 
                     Zombie(i).size = INT(RND * (34 - 25 + 1)) + 25
                     Zombie(i).health = INT(RND * (INT(DefZombie.maxhealth / 2) - FIX(DefZombie.minhealth / 2) + 1)) + FIX(DefZombie.minhealth / 2)
@@ -982,10 +996,10 @@ IF WaveWait = 1 THEN
                     Zombie(i).speeding = INT(RND * (30 - 20 + 1)) + 20
                     Zombie(i).knockback = INT(RND * (10 - 5 + 1)) + 5
                     Zombie(i).special = "Bomber"
-                    Zombie(i).weight = 6
+                    Zombie(i).weight = 2
                 CASE 5 ' Fire
-                    Rand = INT(RND * 10)
-                    IF Rand = 5 THEN GOTO CreateZombie
+                    Rand = INT(RND * 20)
+                    IF Rand = 9 THEN GOTO CreateZombie
 
                     Zombie(i).size = INT(RND * (37 - 27 + 1)) + 27
                     Zombie(i).health = INT(RND * (INT(DefZombie.maxhealth) - FIX(DefZombie.minhealth) + 1)) + FIX(DefZombie.minhealth)
@@ -994,7 +1008,7 @@ IF WaveWait = 1 THEN
                     Zombie(i).speeding = INT(RND * (10 - 5 + 1)) + 5
                     Zombie(i).knockback = INT(RND * (10 - 5 + 1)) + 5
                     Zombie(i).special = "Fire"
-                    Zombie(i).weight = 2
+                    Zombie(i).weight = 1
                 CASE 6 ' Biohazard
                     Rand = INT(RND * 200)
                     Zombie(i).size = INT(RND * (37 - 27 + 1)) + 27
@@ -1035,13 +1049,13 @@ RETURN
 DrawHud:
 IF DelayHud > 0 THEN DelayHud = DelayHud - 1
 IF DelayHud > 0 THEN HudChange = 0
-IF DelayHud = 0 AND HudChange <> 0 THEN DelayHud = 20: Hud(1).xm = HudChange * 800: Hud(1).ym = -200
+IF DelayHud = 0 AND HudChange <> 0 THEN DelayHud = 18: Hud(1).xm = HudChange * 700: Hud(1).ym = -300
 IF HudChange <> 0 THEN SlotRotation = SlotRotation + HudChange * 20
 SlotRotation = SlotRotation / 1.1
 HudSlotSelected = HudSlotSelected + HudChange
 HudSize = _WIDTH + _HEIGHT
-Hud(1).x = _WIDTH / 2 + (Hud(1).xm / 10)
-Hud(1).y = _HEIGHT + (Hud(1).ym / 10)
+Hud(1).x = _WIDTH / 2 + (Hud(1).xm / 10) + INT(Player(1).xm / 4)
+Hud(1).y = _HEIGHT + (Hud(1).ym / 10) + INT(Player(1).ym / 6)
 Hud(1).xm = Hud(1).xm / 1.025
 Hud(1).ym = Hud(1).ym / 1.025
 
@@ -1051,8 +1065,8 @@ Hud(1).rotation = Hud(1).rotation + SlotRotation 'Hud(1).rotation + Distance
 
 HighestHudAmount = 9999999
 FOR i = 2 TO 6
-    Hud(i).xm = Hud(i).xm / 1.2
-    Hud(i).ym = Hud(i).ym / 1.2
+    Hud(i).xm = Hud(i).xm / 1.05
+    Hud(i).ym = Hud(i).ym / 1.05
 
     degree = i * 72
     Hudxv = SIN((Hud(1).rotation + degree) * PIDIV180)
@@ -1293,7 +1307,7 @@ FOR i = 1 TO ZombieMax
                 END IF
             END IF
             IF Zombie(i).special = "Bomber" THEN
-                IF Zombie(i).DistanceFromPlayer < 400 AND Zombie(i).DistanceFromPlayer > 6 THEN
+                IF Zombie(i).DistanceFromPlayer < 500 AND Zombie(i).DistanceFromPlayer > 6 THEN
                     Zombie(i).SpecialDelay = Zombie(i).SpecialDelay + 1
                     IF Zombie(i).SpecialDelay < 120 THEN
                         Zombie(i).size = Zombie(i).size * 1.001: IF Zombie(i).sizeFirst + 20 < Zombie(i).size THEN Zombie(i).size = Zombie(i).sizeFirst + 20
@@ -1362,8 +1376,8 @@ FOR i = 1 TO ZombieMax
                         RotDist = ATan2(dy, dx) ' Angle in radians
                         RotDist = (RotDist * 180 / PI) + 90
                         IF RotDist > 180 THEN RotDist = RotDist - 179.9
-                        Zombie(i).xm = Zombie(i).xm - FIX(SIN(RotDist * PIDIV180) * 250)
-                        Zombie(i).ym = Zombie(i).ym - FIX(-COS(RotDist * PIDIV180) * 250)
+                        Zombie(i).xm = Zombie(i).xm - FIX(SIN(RotDist * PIDIV180) * 350)
+                        Zombie(i).ym = Zombie(i).ym - FIX(-COS(RotDist * PIDIV180) * 350)
 
                     END IF
                 END IF
@@ -1390,6 +1404,8 @@ FOR i = 1 TO ZombieMax
         END IF
         IF Zombie(i).health <= 0 THEN
             Zombie(i).SpecialDelay = 0 '     ------------------- Ammo Dropping --------------------
+            IF Zombie(i).special = "Fire" THEN SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 5, "GasAmmo"
+            IF Zombie(i).special = "Bomber" THEN SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 5, "GrenadeAmmo"
             IF INT(RND * 2) + 1 = 2 THEN
                 IF Zombie(i).special = "Normal" THEN
                     Rand = INT(RND * 2) + 1
@@ -1401,21 +1417,20 @@ FOR i = 1 TO ZombieMax
                         NEXT
                     END IF
                 END IF
-                IF Zombie(i).special = "Fire" THEN SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 5, "GasAmmo"
-                IF Zombie(i).special = "Bomber" THEN SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 5, "GrenadeAmmo"
+
             END IF
             IF Zombie(i).special = "Brute" THEN
                 Rand = INT(RND * 4)
                 FOR b = 1 TO Rand
                     SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 7, "ShotgunAmmo"
                     SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 7, "PistolAmmo"
-                    SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 5, "GrenadeAmmo"
+                    IF INT(RND * 4) = 2 THEN SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 5, "GrenadeAmmo"
                 NEXT
             END IF
             IF Zombie(i).special = "Bomber" THEN
                 Explosion Zombie(i).x, Zombie(i).y, 80, 320: _SNDPLAY SND_Explosion
-                FOR b = 1 TO 80
-                    SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, INT(RND * 100), "green"
+                FOR b = 1 TO 50
+                    SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, INT(RND * 70), "green"
                 NEXT
             END IF
             IF Zombie(i).health <= -30 THEN SpawnBloodParticle Zombie(i).x, Zombie(i).y, INT(RND * 360) - 180, 5, "GibSkull"
@@ -1450,27 +1465,27 @@ FOR i = 1 TO ParticlesMax
         IF dist > 900 THEN Part(i).visible = Part(i).visible - 1
         IF dist < 600 AND Player(1).Health > 0 THEN
 
-            IF dist < 25 AND Part(i).partid = "BloodSplat" THEN
+            IF dist < 30 AND Part(i).partid = "BloodSplat" THEN
                 LastBloodPart = LastBloodPart + 1: IF LastBloodPart > 32 THEN LastBloodPart = 1
                 BloodPart(LastBloodPart).x = 64 ' Int(Rnd * _Width(HeartPercent))
                 BloodPart(LastBloodPart).y = -8
                 BloodPart(LastBloodPart).xm = INT(RND * 100) - 50
                 BloodPart(LastBloodPart).ym = 80 + INT(RND * 50)
                 BloodPart(LastBloodPart).visible = 1
-                Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: Part(i).playwhatsound = "": Player(1).Health = Player(1).Health + 0.1: GOTO EndOfParticleLogic
+                Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: Part(i).playwhatsound = "": Player(1).Health = Player(1).Health + 0.11: GOTO EndOfParticleLogic
             END IF
-            IF dist < 25 AND Part(i).partid = "PistolAmmo" THEN SMGAmmo = SMGAmmo + 40: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
-            IF dist < 25 AND Part(i).partid = "ShotgunAmmo" THEN ShotgunAmmo = ShotgunAmmo + 9: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
-            IF dist < 25 AND Part(i).partid = "GasAmmo" THEN FlameAmmo = FlameAmmo + 100: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
-            IF dist < 25 AND Part(i).partid = "GrenadeAmmo" THEN GrenadeAmmo = GrenadeAmmo + 2: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
+            IF dist < 25 AND Part(i).partid = "PistolAmmo" THEN SMGAmmo = SMGAmmo + 50: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
+            IF dist < 25 AND Part(i).partid = "ShotgunAmmo" THEN ShotgunAmmo = ShotgunAmmo + 12: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
+            IF dist < 25 AND Part(i).partid = "GasAmmo" THEN FlameAmmo = FlameAmmo + 50: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
+            IF dist < 25 AND Part(i).partid = "GrenadeAmmo" THEN GrenadeAmmo = GrenadeAmmo + 1: Part(i).playwhatsound = "": Part(i).visible = 0: Part(i).xm = 0: Part(i).ym = 0: GOTO EndOfParticleLogic
             dx = Player(1).x - Part(i).x: dy = Player(1).y - Part(i).y
             Part(i).rotation = ATan2(dy, dx) ' Angle in radians
             Part(i).rotation = (Part(i).rotation * 180 / PI) + 90
             IF Part(i).rotation > 180 THEN Part(i).rotation = Part(i).rotation - 179.9
-            Part(i).xm = Part(i).xm / 1.05
-            Part(i).ym = Part(i).ym / 1.05
-            Part(i).xm = Part(i).xm + -SIN(Part(i).rotation * PIDIV180) * 10 / (dist / 150)
-            Part(i).ym = Part(i).ym + COS(Part(i).rotation * PIDIV180) * 10 / (dist / 150)
+            Part(i).xm = Part(i).xm / 1.03
+            Part(i).ym = Part(i).ym / 1.03
+            Part(i).xm = Part(i).xm + -SIN(Part(i).rotation * PIDIV180) * 9 / (dist / 150)
+            Part(i).ym = Part(i).ym + COS(Part(i).rotation * PIDIV180) * 9 / (dist / 150)
             Part(i).x = Part(i).x + (Part(i).xm / 10)
             Part(i).y = Part(i).y + (Part(i).ym / 10)
             Part(i).z = 3 / (dist / 70)
@@ -1861,7 +1876,7 @@ IF debug = 1 THEN PRINT "Player Rotation: "; Player(1).Rotation
 IF PlayerIsOnFire > 0 THEN
     PlayerIsOnFire = PlayerIsOnFire - 1
     IF INT(RND * 6) = 2 THEN
-        Player(1).Health = Player(1).Health - 0.5
+        Player(1).Health = Player(1).Health - 0.25
 
         FireLast = FireLast + 1: IF FireLast > FireMax THEN FireLast = 1
         Fire(FireLast).visible = 5
@@ -1977,8 +1992,8 @@ IF Mouse.click = 0 THEN LastToUse = LastToUse * -1
 IF delay > 0 THEN delay = delay - 1
 Mouse.x1 = Mouse.x - 1: Mouse.x2 = Mouse.x + 1: Mouse.y1 = Mouse.y - 1: Mouse.y2 = Mouse.y + 1
 DontRepeatFor = 0
-'If ResizeDelay2 > 0 Then ResizeDelay2 = ResizeDelay2 - 1
-'If _Resize Then GoSub ScreenAdjustForSize
+IF ResizeDelay2 > 0 THEN ResizeDelay2 = ResizeDelay2 - 1
+IF _RESIZE THEN GOSUB ScreenAdjustForSize
 'MenuAnimCode:
 
 FOR i = 1 TO 3
@@ -2147,13 +2162,17 @@ IF ResizeDelay2 = 0 THEN
     CLS
     SCREEN SecondScreen
     _FREEIMAGE MainScreen
-    MainScreen = _NEWIMAGE(_RESIZEWIDTH, _RESIZEHEIGHT, 32)
+    sizexx = _RESIZEWIDTH
+    sizeyy = _RESIZEHEIGHT
+    IF sizexx < 128 THEN sizexx = 128
+    IF sizeyy < 128 THEN sizeyy = 128
+    MainScreen = _NEWIMAGE(sizexx, sizeyy, 32)
     SCREEN MainScreen
     FOR i = 1 TO lasti
         GOSUB redosize
         GOSUB redotexts
     NEXT
-    ResizeDelay2 = 80
+    ResizeDelay2 = 5
 END IF
 RETURN
 
@@ -2542,11 +2561,12 @@ SUB SpawnBloodParticle (x AS DOUBLE, y AS DOUBLE, angle AS DOUBLE, Steps AS LONG
     Part(LastPart).xm = INT(SIN((angle + INT(RND * 40) - 20) * PIDIV180) * (rand))
     Part(LastPart).ym = INT(-COS((angle + INT(RND * 40) - 20) * PIDIV180) * (rand))
     Part(LastPart).zm = (2 + INT(RND * 14))
-    Part(LastPart).froozen = -60
+    Part(LastPart).froozen = -70
     Part(LastPart).visible = 2000
 
     Part(LastPart).BloodColor = BloodType
     Part(LastPart).partid = "BloodSplat"
+    IF BloodType = "green" THEN Part(LastPart).froozen = -20
     Part(LastPart).playwhatsound = "Blood"
     IF Part(LastPart).BloodColor = "GibSkull" THEN Part(LastPart).partid = BloodType: Part(LastPart).playwhatsound = "Bone"
     IF Part(LastPart).BloodColor = "GibBone" THEN Part(LastPart).partid = BloodType: Part(LastPart).playwhatsound = "Bone"
@@ -2744,7 +2764,7 @@ FUNCTION LoadMap (MapName AS STRING)
     FOR z = 1 TO Map.Layers
         FOR y = 0 TO Map.MaxHeight
             FOR x = 0 TO Map.MaxWidth
-                ' If x <> Map.MaxWidth Then
+                ' If x <> Map.MaxWidth Then 'error happens because of the , at each line in the map file. the program interprets the line break as a "" string. please fix
                 INPUT #1, Tile(x, y, z).ID
                 IF Tile(x, y, z).ID = -404 THEN NVM = 1
                 IF NVM = 1 THEN EXIT FOR
