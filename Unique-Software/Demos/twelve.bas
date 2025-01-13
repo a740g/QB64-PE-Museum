@@ -1,0 +1,237 @@
+' TWELVE.BAS COPYRIGHT (c) 1987 by Unique Software
+' Ported from TANDY 1000 Advanced BASIC to QB64-PE by a740g
+
+_DEFINE A-Z AS LONG
+OPTION _EXPLICIT
+
+_TITLE "The Twelve Days of Christmas"
+
+RESTORE data_twelve_bmp
+$RESIZE:SMOOTH
+SCREEN 7
+
+DIM background AS LONG: background = _LOADIMAGE(Base64_LoadResourceData, 256, "memory")
+_PUTIMAGE , background
+
+DIM P(12, 3) AS LONG
+DIM AS LONG P, Z, I
+DIM M(1 TO 3) AS STRING
+
+FOR Z = 1 TO 13
+    PALETTE Z, 2
+NEXT Z
+PALETTE 5, 12
+PALETTE 14, 12
+PALETTE 15, 0
+
+RESTORE 1310
+FOR Z = 2 TO 12
+    FOR I = 0 TO 3
+        READ P(Z, I)
+    NEXT I
+NEXT Z
+
+PLAY "MBV13T120", "MBV11T120", "MBV12T120"
+
+FOR Z = 1 TO 12
+    PLAY "O3C8C8", "O3P4", "O3P4": IF Z > 1 THEN GOSUB 7: PALETTE 1, 2
+    IF Z = 2 OR Z = 7 THEN PLAY "O3C8C8F8F8F4E8F8", "O2MLF3A3O3MNC3", "O1F1"
+    IF Z = 11 THEN PLAY "O3C12C12C12F8F8F4E8F8", "O2MLF3A3O3MNC3", "O1F1"
+    IF Z <> 2 AND Z <> 7 AND Z <> 11 THEN PLAY "O3C4F8F8F4E8F8", "O2MLF3A3O3MNC3", "O1F1"
+    PLAY "O3G8A8B-8G8A4.", "O2E6B-6O3C6O2F12.A12.O3MNC12.", "O1C2F4."
+    ON Z GOTO 1170, 1160, 1150, 1140, 1180, 1190, 1200, 1210, 1220, 1230, 1240, 1250
+    1140 GOSUB 7: PALETTE 5, 12: PALETTE 4, 15: PLAY "O4C4O3G8A8B-4", "O2MLG4MNB-4MLE8O3MNC8", "O1MLC2."
+    1150 GOSUB 7: PALETTE 4, 2: PALETTE 3, 14: PLAY "O4C4O3MLG8MNA8B-4", "O2MLG4MNB-4MLE8O3MNC8", "O1MLC2."
+    1160 GOSUB 7: PALETTE 3, 2: PALETTE 2, 15: PLAY "O4C4O3G8A8B-4A8B-8", "O2MLG4MNB-4MLE4O3MNC4", "O1C1": GOTO 1270
+    1170 PLAY "O3B-8", "O3P8", "O3P8": GOTO 1270
+    1180 RESTORE 1500: GOTO 1260
+    1190 RESTORE 1490: GOTO 1260
+    1200 RESTORE 1480: GOTO 1260
+    1210 RESTORE 1470: GOTO 1260
+    1220 RESTORE 1460: GOTO 1260
+    1230 RESTORE 1450: GOTO 1260
+    1240 RESTORE 1440: GOTO 1260
+    1250 RESTORE 1430
+    1260 GOSUB 2
+
+    1270:
+    GOSUB 7
+    PALETTE 2, 2
+    PALETTE 1, 14
+    PLAY "O4C4MLD8O3MNB-8A8F8G4", "O2A4B-4O3MLC4O2E12B-12O3MNC12", "O1F2.C4"
+    PLAY "O3F2.", "O2MLF6.A6.O3MNC6.", "O1F4C4F4"
+NEXT Z
+
+GOSUB 7
+
+SLEEP 1
+
+SYSTEM
+
+1310 DATA 03,02,02,15,04,02,03,14,05,12,04,15,06,02,05,14,07,02,06,08,08,02,07,15,09,02,08,15,10,02,09,10,11,02,10,10,12,02,11,07,15,15,12,00
+1430 DATA "O4C4O3G8A8B-8G8","O2MLG4MNB-4MLE8O3C8","O1C2.",12
+1440 DATA "O4C12C12C12O3G8A8B-8G8","O2MLG4MNB-4MLE8O3C8","O1C2.",11
+1450 DATA "O4C4O3G8A8B-8G8","O2MLG4MNB-4MLE8O3C8","O1C2.",10
+1460 DATA "O4C4O3G8A8B-8G8","O2MLG4MNB-4MLE8O3C8","O1C2.",9
+1470 DATA "O4C4O3G8A8B-8G8","O2MLG4MNB-4MLE8O3C8","O1C2.",8
+1480 DATA "O4C8C8O3G8A8B-8G8","O2MLG4MNB-4MLE8O3C8","O1C2.",7
+1490 DATA "O4C4O3G8A8B-8G8","O2MLG4MNB-4MLE8O3C8","O1C2.",6
+1500 DATA "O4C4..D8O3B8O4C4..","O2MLE12..A12..O3MNC12..O2MLF8MNB8MLE12..G12..O3MNC12..","O1A4..G4E4..",5
+DATA "O4MLC8O3MNB-8A8G8F4","O2MLF6.A6.O3C6.","O1F2.",4
+DATA "O3B-4D4F4","O2F6.B-6.O3D6.","O1B-2.",3
+DATA "O3MLG8MNF8E8D8C4A8B-8","O2F4MNB4MLE12G12P4","O1G2C4O2P4",2
+DATA "","","",0
+
+2:
+READ M(1), M(2), M(3), P
+IF LEN(M(1)) = 0 _ANDALSO LEN(M(2)) = 0 _ANDALSO LEN(M(3)) = 0 THEN
+    RETURN
+END IF
+
+4:
+IF PLAY(0) > 0 _ORELSE PLAY(1) > 0 _ORELSE PLAY(2) > 0 THEN
+    _LIMIT 60
+    GOTO 4
+ELSE
+    PALETTE P(P, 0), P(P, 1)
+    PALETTE P(P, 2), P(P, 3)
+    PLAY M(1), M(2), M(3)
+    GOTO 2
+END IF
+
+7:
+WHILE PLAY(0) > 0 _ORELSE PLAY(1) > 0 _ORELSE PLAY(2) > 0
+    _LIMIT 60
+WEND
+
+RETURN
+
+data_twelve_bmp:
+DATA 32118,5640,-1
+DATA "eNo0g7EBAUAAxAItjGEL6JW3yncWujWArQJIksNxnPgwgA2wm8ADmDDnz2X5fc13QOOHghQ1JlpqVKikmvgxsa3tk3gyVEIABkPw/c04mo87G4+t"
+DATA "dfsIFJU2BsDtbh898DA5olZ693Gdym78WQnY3ozpi3sZLvp9fT4AGInZn5UTTAbTF/cyXiSl8j66/rNvtL69r3//oByJrs2YH/wPJaXyvlltfoHy"
+DATA "/4/0DM+ndQ98SQoxfTFLKn/YInLU5RnsBdiCAGnxeDrFMOHYl2ZtUoPXXTbwHUwbnIFUWuZk502bGXA4kgVx3IID2D8Ssume+UzBABwNAXDA3TfY"
+DATA "BRgcAhjcYYDAQXM0AA8CCzQWwDHMJ7h79X7+PB5rc91desflkk5++VdVvaqKWnHC6hvUSfLTmFo2//+7AVuBMD8yrR/vzw3wVL+6fT99en399HIf"
+DATA "Hjf2c7FbzVAL2+gl7Qed/WIjpeq1zVsFXraXO/G4Gz75bVvPC5NpMp4M6Bd3k1+KqaYzX4V9B2CPfN+3STZp7z+VJX3fXtHvTjwALR9hZTuOYcLU"
+DATA "fYcP+X6E7048vBMC3oKSsJIt8K4VwI/x7Z7UWLhXr/m6m84CSr0cVrWAav3X8nXwgXfSU0tHatztXQP2N+nWytLKZ77zeahemKa4sFPo10QtfPfj"
+DATA "2cOz+laW8djK5zB1qEKROvNpF1elrAUkpf8vYH+7NXzHa81Xl8m99vmq+LrUTc6nk06S3t6+IXt13/1gthCw4Rtlvin46jI5DPmCx4ST8yn4Mh6A"
+DATA "Sb4P7y4Q0GHV8nUprrpM7vfnvXkcn86n4Ht4CxNR2y+VDwFnh1XL103JQgj9yj94zEc+1XyO2oXyIWD+ig4r8zl/O6UpSXKZdCDwPAqniXwyHw5O"
+DATA "VK5l8gGY34Owcokl3iVBKJfJIl0XfzPPp5dSOZLS5Hwi/iRNb+UuvhJ4C6yfHVYusXV8wUeZdMoED11JNylfo+A7naSHb45a9XHfIu8ioMOKEntS"
+DATA "2FVjxUeZ9GN43DVVfILPUaublstHVxfe+tMlFr7jtdDwSZRJgRM86PcaAdjo56hVj3zLBRzwFhIQgfB1U3gKAS1fzccXGJ2/P1P8HLXIt9wk1XzU"
+DATA "i8KXACICLV/hoSt5iQQmn4p+OX3rqF0snwVEjZZP5iMV4YPH3Umqz4+HkI+71klerOE7js6PlKg6USbdTcEDn+R8Iv7ETZw6y+X79ZcioL1lPhF+"
+DATA "1F+qTuajm9LTKXj+khS3SM4nbhZRC1+z/70X78vnAih7S6cZG2UpJqpOP9NNZdbdKXgGCXM+WT9H7Xz72O637rPfvnxBQMGXP6KnKXK31yW56tBN"
+DATA "7bJ+O+c3RrxaPxCZ5Bby/ZTv/UwE4q34CDdT8lCC1w/upk7Sifw5DzUf+ll1N/XsL5fyAUiJ7ZHPQ4n59PxM/u60g+fMS6IjLflk/Yha8Nbhw8Mm"
+DATA "mWk9vspNa8sXPGe+Ax1puNt8RC3eXcZH/MFn/QLNQ5Nqvstz6AJf5HfRbnDHN8p8CCj4lsUf+YtJJhHNlPkcf5eLksynUUPNV82/DsuPy/lc/xAQ"
+DATA "/TiXbg3f5XKhm4JPFR+nrvUjLJFvaf2rF34mCQH7etYN6kPwSS1f6Uj5g36EJe+ILZs/bBkV/RDQs66pc/QpAjDz7eAb9uezhtJR2Wpsf/UgXQXQ"
+DATA "JO6mGErQD75DOVjR772E2Rk+zVjNpxZvMaD1I4U9lFg/ClvR7/FRimetnw+dlg+85YDMO+inqZ89lJiaxCR/4duHwA/khiyf+VbEA5AOGj51hY+h"
+DATA "pEnMot+/79JwHkr6IjjyOSzXxAOw5uumudTndzn+qsQM/fJP9uWpfeb7VoLB8jks18MDkA6VEqGEj8KNg/Wz47J+8FWO7EvEjmFXh6XxVu2gIekm"
+DATA "NkDBZ/0qPvTby/W7YxSn7Scs18ZzB/3HE/LRwWcMhTX6PeYAFI00I3tfSmbcQ1i6Lq8I6A4avtAiQ+Q0mNTqJyk/E420w+E2MzeJsFwXD0D4gifR"
+DATA "ccLXWT8Sk/hTlrY00mQTJ87xGvLxNcBb1eigWZ6wkYJvgo/ErPU7BblnScbiqxyWBN/aAnrld7zCp0cl60dimk/+Dza5Rb7gwzaQD0CWJ2xUskY4"
+DATA "j6pDYhrrueabGz7wtlFQ8HFIJFk/JyZpezgUvq7lA28TE2b94JP14x+ymY+RvZ/FVnCszo3NBJQ3UuQyViUm+l0KHyO74himZm4pHwImb6RELmNO"
+DATA "zBnT5fIcfPwAQpPPTZvJh4AsT9CCXK5N7vQOmY9COAUfM4iOEYSbyOchhuWJ2EiRy5zF/l1Ihe85+Jy/NZ9G5GP0Ws0YAhHQfKFFJ2sJAAKGfNIB"
+DATA "/eArppG1dTW6rsoXxvLEG175LGaKdKen4NPv2omRnRnp4Z8s82j5GP0XW7OE4BO9QfVZDJ87PfhCP0Z25ksdgw88Vieb8KniS4mz2A6k0xMW8cfI"
+DATA "Dp8U92zN90Ed/tVILkfdxX/xJzo9pmIPwuaDkOhbm4/4w4Qp5PNZIplBt9l7QfK3SxPShlk+x98WfJ77gWr4+q/sBdGPch6p7ZmoWT2tY8azgPhQ"
+DATA "qeGbvTeyfoXPwyfyrV7/TPXRAuLDksucxcFHhTGf4y9N6Alg/V6rWrXJqna7mY9jlR5As/nQr2kemq3V+oAKPjP4LEbAH+D7sG3/jJnPxrHF6cZe"
+DATA "0HzuDs23ff/c8PksFr2z94I84Dftlm/D/rTh4ywGL+OwF7R+/Kbt4XNTvArQPsR8FouR13vBd/Qrl4dP420MiA8JroqPkdd7QW9ndPLwuTmeqwM+"
+DATA "JLg4i6O44FLvBWs+D5+uUFsD4kOCK+z4dxRn+Byb9fbIw+f2eD7e8KF/uhxp4AsfGMN/7ZwJaivPEcZLzR42GRuDHxCauoHwCQy6wINcwJAL+Qhm"
+DATA "x5cKAZJzxDU/+qMZPammo9ECf5eeoMfyQz9/vUzX0qPoEfp9f/p8BTwA1YcK6Hd8rS7tX330aPr4/Rp4VDl/fYeynsWnJBFLCnx99IjPn8+fG6Uu"
+DATA "EvD9K+xdfC1HBB91aYoe/W58K8hXRsLR6Id/GdtnbVmCT9GjviwMvIvy0cNfXUEM+4PgC/1aXVqLHoV+Etguzwdgx0esV/qpLk18lF2duTAX92rm"
+DATA "ZRqCpbib+fQq5pXrzv72+evr+x/isD+d+vA/Mf6oSyN6hH4r8Pm3mXupgeLVq4eVqe3T9eEiSMKBWC91BqEfdWkq/uz02/5BE5SYAMy5DoVsroiH"
+DATA "cPEyN1TTpXP9p5TS57c4rZo3UkXM36hLIxKMfpSFHeAFRy3W+Cy+Mr4Tvmq9TT8u4jOrLr7K9Z/C+SEO/hHW5q8iwejHzdkO7YDvmH4FcPGF0uKr"
+DATA "0/UhH4Or50O/kA9C9KMs7Bhf6fmCDLGsnOQrJr7C9cxAONQvJq8KoDX+GH3Hxl/xaEs/3kf1K9VDNfF5ma7tQEDEkX+JfrH4yWVCP/hOLGYlWdnE"
+DATA "5+7x9jr1rzttn/evBNT9Q/rBFz8jdCD9tivwxdtq9KiF0DSsWI3rmd+vghOJhX5Rl8aSSCS48c2P5oFUcz4MvppuFRQ3gY8vx7+ETwcciB6JT3Gw"
+DATA "2T2BRsoX/SqkAl9S8tT0k38pPi2Jyo7QveIbt8KQM2ArfEnJGOLIv5TLq5BRN/7yE74poVXr9bOMz/jy3n8L/T4aH5Fg9NuO8+WW8W16Pun38iL9"
+DATA "gg+z6/Bp/MGHOMR6ZcEXyGwRxDc8/s4vuTP0I26LkXljSexsez2+Pu7ZJifyseWLzJuWxIgywCdAu7hJkj7aoVNZkdlqS6LirMkR30tFUqMlBnIJ"
+DATA "H/CxJCrOunbU1NkhpoDgwcB6PGXe2pLYYh3bdfG0z08Aw8SAfGS2Plhyus9WxdM+cAGgGJAPvocjfJZZXYcPQHy2GR/Gkjjns6vxAUhYAAa5k136"
+DATA "axZntevxAUjU6r8w4E6q1DTkU5z1BJ67szn3aFe9z+Yz8cGAO6kCBJbu7mDf9phiLj65i6l+/FWZgH+HDwadykI+Qr/EWZFvgM9rShiMGSBBn8YQ"
+DATA "hCpAIPRLrFx4KV/3ys3zGx1RIRim+duVmhL6/SdxVnr3KJ+z53SHzX0RX6mZgPC9BwN8rQChuSbPTw9v0/izU3xZ5Oz4zMoAg09rXLiTKkCA7/3p"
+DATA "aYK3hO9SsUCWwH8HA+5kCEhwja3hfv9G767OlxsCgkfncuqT6NDE97Tf7+nd9fs3NwSErz+1yFah8b0h3/UNATHwWP9oT/rtJz67oenZFbiTMXmR"
+DATA "b3Ld92HId1MBuVkEH8cAqJr9x0PMjr1dyLwuFpCbRcxf8YV+0+S4lHzuJal5koDKE8biHGsL+sF3kWqXfMrLldVijClwH/q9IR9e8635OD+hwD3I"
+DATA "a1f7OXmaWqwQFs+ecqc4IFEDBe5bXHegWs095yskajArXmrGZ+pf5IOw6TdU7VeW9arrZXWAj/MTGPpdgs+Drza+Umo2/hSn5PwEJv0WVvsppbCQ"
+DATA "r8LHf0n4rMXJH+Bjp4V+yJfPX1Iyi8ZfcVcfl1qz9U9xStX/s9NCvz7qtRZfkJXGV9Kn8MH3G77WueJb+OS8wmupfu4ejVNBmP7pddJvPv62+q18"
+DATA "2YAvByyhW/OiopEBbg39dH5CT22Ij7DRmZvwLTMBbvo6BAL37O+Ftx6fwTcEyGTtos7BF/oJbzU+7h+j21Mmg85PEImJ/PoXA2A9PvCWm/SDr080"
+DATA "fIWBd0Pr9Iv5O+P7vDWe8tTcf4OPqatnstiNTfrBJ28EvtvK1+//Xjg/IW/ka6rh+bRbm/YvH5G5bN5ISBdmd2CMuOAL+aD9Bd/W7sHaIwaIOHOl"
+DATA "5yLegW1Cv+/EFrku+O6ldzWH4wEc5LrgWyafex2NSRacDqfCLq6TbGvwvcBHrFJ86eNJCre24nwj33/y5lvNW4UOjeKeZKujg3lAyIwvf7xL5S0+"
+DATA "O81X+SVHQ1U45dl++F4aH67vNuUrFgIs5vNardYBPvmNm4lv1r/544VK46m2iA/XEj6vjc9zPuvPNcj1HeIjLrCcrxbpV3O+TX+uQa5vzlfFV61w"
+DATA "ffzrqvV87vB58Wz8wad8G/qZLR1/M76S8BWv7sUdSHOvyfydnWtAv63Z8vnb8dWET78S6rE6ZeufBCTXhX6GLVv/GH9WWN5ODdc6VIwv95YGuS70"
+DATA "02fr3T/4A0YPC2DReOrWv+1m/eMyHjbIJ8Dge3+bRGT+ro6HenW0HKDje5I3l+DdJolENrCPlttdGCxkA8WHevcESDYQvjvCUw/v4cMboXfvCnAf"
+DATA "Jv3uB48efiIbiH707n0Bot3rtVaWUgd7GL7Hx911Bl+xMYvuDds9TjIulK/KO8Jor8/HFEHAwNvZMoOmZ7oUnzW+1+9/u+0qfPlRs2EBX8N26ehr"
+DATA "h0r0Nlxu2lX9nB01GzHUC0snbxCoXq2Wjs8qfMfwZkfNRgWUfHm/jvMpw1XKWXwPC/m617zG7jhff1TKh2cI8m2X8GnsqaauzGs8Mz6ro3zIt4zv"
+DATA "wEr32XH9THxefLCDY36cUUk8wNcWgCELvh3ypXx+Bh/v8TX6cff4ujQu6Xn/5kfNBm3zSvde0pi3/yff4xX4iJrCN2qPzN6LGjE4+MY7eJfId3M/"
+DATA "5IfvHGN1+eE7o4Pth+8MO697f/g29hfj+x+mDUsq"
+
+' Converts a base64 string to a normal string or binary data
+FUNCTION Base64_Decode$ (s AS STRING)
+    DIM srcSize AS _UNSIGNED LONG: srcSize = LEN(s)
+    DIM buffer AS STRING: buffer = SPACE$((srcSize \ 4) * 3) ' preallocate complete buffer
+    DIM j AS _UNSIGNED LONG: j = 1
+    DIM AS _UNSIGNED _BYTE index, char1, char2, char3, char4
+
+    DIM i AS _UNSIGNED LONG: FOR i = 1 TO srcSize STEP 4
+        index = ASC(s, i): GOSUB find_index: char1 = index
+        index = ASC(s, i + 1): GOSUB find_index: char2 = index
+        index = ASC(s, i + 2): GOSUB find_index: char3 = index
+        index = ASC(s, i + 3): GOSUB find_index: char4 = index
+
+        ASC(buffer, j) = _SHL(char1, 2) OR _SHR(char2, 4)
+        j = j + 1
+        ASC(buffer, j) = _SHL(char2 AND 15, 4) OR _SHR(char3, 2)
+        j = j + 1
+        ASC(buffer, j) = _SHL(char3 AND 3, 6) OR char4
+        j = j + 1
+    NEXT i
+
+    ' Remove padding
+    IF RIGHT$(s, 2) = "==" THEN
+        buffer = LEFT$(buffer, LEN(buffer) - 2)
+    ELSEIF RIGHT$(s, 1) = "=" THEN
+        buffer = LEFT$(buffer, LEN(buffer) - 1)
+    END IF
+
+    Base64_Decode = buffer
+    EXIT FUNCTION
+
+    find_index:
+    IF index >= 65 AND index <= 90 THEN
+        index = index - 65
+    ELSEIF index >= 97 AND index <= 122 THEN
+        index = index - 97 + 26
+    ELSEIF index >= 48 AND index <= 57 THEN
+        index = index - 48 + 52
+    ELSEIF index = 43 THEN
+        index = 62
+    ELSEIF index = 47 THEN
+        index = 63
+    END IF
+    RETURN
+END FUNCTION
+
+' Loads a binary file encoded with Bin2Data
+' Usage:
+'   1. Encode the binary file with Bin2Data
+'   2. Include the file or it's contents
+'   3. Load the file like so:
+'       Restore label_generated_by_bin2data
+'       Dim buffer As String
+'       buffer = LoadResource   ' buffer will now hold the contents of the file
+FUNCTION Base64_LoadResourceData$
+    DIM ogSize AS _UNSIGNED LONG, resize AS _UNSIGNED LONG, isComp AS _BYTE
+    READ ogSize, resize, isComp ' read the header
+
+    DIM buffer AS STRING: buffer = SPACE$(resize) ' preallocate complete buffer
+
+    ' Read the whole resource data
+    DIM i AS _UNSIGNED LONG: DO WHILE i < resize
+        DIM chunk AS STRING: READ chunk
+        MID$(buffer, i + 1) = chunk
+        i = i + LEN(chunk)
+    LOOP
+
+    ' Decode the data
+    buffer = Base64_Decode(buffer)
+
+    ' Expand the data if needed
+    IF isComp THEN buffer = _INFLATE$(buffer, ogSize)
+
+    Base64_LoadResourceData = buffer
+END FUNCTION

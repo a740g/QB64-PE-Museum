@@ -1,6 +1,7 @@
 ' Plasma demo - a740g
 ' C version - 2003
 ' QB64-PE port - 2024
+' https://lodev.org/cgtutor/plasma.html
 
 $RESIZE:SMOOTH
 
