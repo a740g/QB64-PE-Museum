@@ -1,0 +1,52 @@
+# cube material file
+# Slightly transparent, quite reflective
+
+newmtl m1
+  Ns 10.0000
+  d 1
+  illum 2
+  Ka 1 1 1
+  Kd 1 1 1
+  Ks 1 1 1
+  map_Kd default.png
+
+newmtl m2
+  Ns 10.0000
+  d 1
+  illum 2
+  Ka 1 1 1
+  Kd 0.1 0.7 0.4
+  Ks 0.85 0.85 0.7
+ 
+ newmtl m3
+  Ns 10.0000
+  d 0.84
+  illum 2
+  Ka 1 1 1
+  Kd 0.5 0.5 0.4
+  Ks 0.85 0.85 0.7
+ 
+ newmtl m4
+  Ns 24.0000
+  d 1
+  illum 2
+  Ka 1 1 1
+  Kd 0.8 0.5 0.4
+  Ks 0.85 0.85 0.7
+ 
+ newmtl m5
+  Ns 10.0000
+  d 1
+  illum 8
+  Ka 1 1 1
+  Kd 0.8 0.5 0.4
+  Ks 0.85 0.85 0.7
+ 
+ newmtl m6
+  Ns 16.0000
+  d 1
+  illum 1
+  Ka 1 1 1
+  Kd 0.2 0.2 0.7
+  Ks 0.85 0.85 0.95
+ 
