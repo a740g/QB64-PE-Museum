@@ -1,6 +1,7 @@
 ' Solid-wall raycaster by a740g
 ' Does not use DDA-based optimizations (yet)
 ' Performance may suffer on low-end / old hardware
+'
 ' Bibliography:
 '   https://lodev.org/cgtutor/raycasting.html
 '   https://github.com/vinibiavatti1/RayCastingTutorial
@@ -65,9 +66,9 @@ DIM environment AS LONG
 environment = MakeEnvironment
 
 DIM player AS Player
-player.position.x = 6!
-player.position.y = 3!
-player.camera.angle = 90!
+player.position.x = 2!
+player.position.y = 2!
+player.camera.angle = 0!
 UpdatePlayerCamera player
 
 DIM automap AS LONG
@@ -90,38 +91,41 @@ SYSTEM
 ' Wall colors in hexadecimal
 level_data:
 DATA 24,20
-DATA 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
-DATA 9,0,0,C,0,0,0,0,0,5,0,9,0,0,0,0,0,0,0,0,0,0,0,9
-DATA 9,0,0,C,0,0,0,0,0,D,0,9,0,0,C,0,0,0,0,0,0,0,0,9
-DATA 9,0,0,C,0,0,0,0,0,5,0,0,0,0,C,0,0,0,0,0,0,D,0,9
-DATA 9,0,0,C,0,0,0,0,0,D,0,0,0,0,C,0,0,0,0,0,0,D,0,9
-DATA 9,0,0,0,0,1,9,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,9
-DATA 9,0,0,0,0,9,1,0,0,0,0,9,0,0,0,0,0,1,1,0,0,0,0,9
-DATA 9,0,C,0,0,0,0,0,0,0,0,0,0,0,C,0,0,0,0,0,0,0,0,9
-DATA 9,0,C,0,0,0,0,0,B,B,0,0,0,0,C,0,0,0,0,0,B,B,0,9
-DATA 9,0,C,0,0,0,0,0,B,B,0,0,0,0,C,0,0,0,0,0,B,B,0,9
-DATA 9,0,4,0,0,0,0,0,0,0,0,0,0,0,1,9,1,9,1,9,1,9,1,9
-DATA 9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9
-DATA 9,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,9
-DATA 9,0,1,0,0,0,5,0,0,0,0,0,0,0,1,0,0,0,0,0,0,5,0,9
-DATA 9,0,2,0,0,4,0,0,0,0,0,9,0,0,2,0,0,0,0,0,0,0,0,9
-DATA 9,0,B,0,0,0,0,0,0,0,0,9,0,0,B,0,0,0,0,0,0,0,0,9
-DATA 9,0,0,0,0,7,8,0,0,0,0,0,0,0,0,0,0,7,8,0,0,0,0,9
-DATA 9,0,5,0,0,8,7,0,0,0,0,0,0,0,5,0,0,8,7,0,0,0,0,9
-DATA 9,0,6,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,9
-DATA 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+DATA 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+DATA 7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
+DATA 7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
+DATA 7,0,0,B,0,B,B,B,B,0,0,0,0,0,0,9,0,9,9,9,9,0,0,7
+DATA 7,0,0,B,0,0,0,0,B,0,0,0,0,0,0,9,0,0,0,9,9,0,0,7
+DATA 7,0,0,B,0,0,0,0,B,0,0,0,0,0,0,9,9,9,9,0,0,0,0,7
+DATA 7,0,0,B,0,0,0,0,B,0,0,0,0,0,0,9,9,9,9,0,0,0,0,7
+DATA 7,0,0,B,B,B,B,B,B,0,0,0,0,0,0,9,0,0,0,9,9,0,0,7
+DATA 7,0,0,0,0,B,B,0,0,0,0,0,0,0,0,9,0,9,9,9,9,0,0,7
+DATA 7,0,0,0,0,0,0,0,0,0,0,8,F,0,0,0,0,0,0,0,0,0,0,7
+DATA 7,0,0,0,0,0,0,0,0,0,0,F,8,0,0,0,0,0,0,0,0,0,0,7
+DATA 7,0,0,E,E,E,E,E,E,0,0,0,0,0,0,C,0,0,0,0,C,0,0,7
+DATA 7,0,0,E,0,0,0,0,0,0,0,0,0,0,0,C,0,0,0,0,C,0,0,7
+DATA 7,0,0,E,0,0,0,0,0,0,0,0,0,0,0,C,C,C,C,C,C,0,0,7
+DATA 7,0,0,E,0,E,E,E,E,0,0,0,0,0,0,0,0,0,0,0,C,0,0,7
+DATA 7,0,0,E,0,0,0,0,E,0,0,0,0,0,0,0,0,0,0,0,C,0,0,7
+DATA 7,0,0,E,E,E,E,E,E,0,0,0,0,0,0,0,0,0,0,0,C,0,0,7
+DATA 7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
+DATA 7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
+DATA 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
 
 SUB MakeWorld (map( ,) AS _UNSIGNED LONG)
-    DIM m AS Vector2i
-    READ m.x, m.y
-    REDIM map(0 TO m.x - 1, 0 TO m.y - 1) AS _UNSIGNED LONG
+    DIM AS Vector2i m, mapMax
+    READ mapMax.x, mapMax.y
+    mapMax.x = mapMax.x - 1
+    mapMax.y = mapMax.y - 1
+
+    REDIM map(0 TO mapMax.x, 0 TO mapMax.y) AS _UNSIGNED LONG
 
     DIM d AS STRING
 
-    FOR m.y = 0 TO UBOUND(map, 2)
-        FOR m.x = 0 TO UBOUND(map, 1)
+    FOR m.y = 0 TO mapMax.y
+        FOR m.x = 0 TO mapMax.x
             READ d
-            map(m.x, m.y) = VAL("&H" + d)
+            map(m.x, mapMax.y - m.y) = VAL("&H" + d)
         NEXT m.x
     NEXT m.y
 END SUB
