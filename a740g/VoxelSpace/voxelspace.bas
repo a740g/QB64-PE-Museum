@@ -48,8 +48,6 @@ OPTION _EXPLICIT
 
 $COLOR:32
 
-'$LET TOASTY = TRUE
-
 CONST SCREEN_WIDTH& = 1280&
 CONST SCREEN_HEIGHT& = 800&
 CONST SCREEN_HALF_WIDTH& = SCREEN_WIDTH \ 2&
@@ -82,7 +80,14 @@ $ELSE
     CONST RENDER_DISTANCE& = 1024& ' the higher this is, the farther you will be able to see at the cost of CPU load
     CONST RENDER_DELTA_Z_INCREMENT! = 0.005! ' the smaller this is, the the more detail you will be able to see at the cost of CPU load
 $END IF
-CONST RENDER_SCALE_HEIGHT& = 255& * (SCREEN_WIDTH / SCREEN_HEIGHT)
+CONST RENDERER_SCALE_HEIGHT& = 255& * (SCREEN_WIDTH / SCREEN_HEIGHT)
+CONST RENDERER_TARGET_FPS& = 60&
+CONST RENDERER_DISTANCE_MIN& = 512&
+CONST RENDERER_DISTANCE_MAX& = 8192&
+CONST RENDERER_DISTANCE_DEFAULT& = 1024&
+CONST RENDERER_DISTANCE_STEP& = 1&
+CONST RENDERER_DELTA_Z_INCREMENT_ULTRA! = 0.001!
+CONST RENDERER_DELTA_Z_INCREMENT_DEFAULT! = 0.005!
 
 TYPE Vector2i
     x AS LONG
@@ -106,6 +111,12 @@ TYPE Player
     camera AS Camera
 END TYPE
 
+TYPE Renderer
+    distance AS LONG
+    deltaZIncrement AS SINGLE
+    fps AS _UNSIGNED LONG
+END TYPE
+
 RANDOMIZE TIMER
 
 $RESIZE:SMOOTH
@@ -117,11 +128,11 @@ DIM mapId AS _UNSIGNED _BYTE
 mapId = MAP_ID_DEFAULT
 
 REDIM map(0, 0, 0) AS _UNSIGNED LONG
-LoadWorld map(), mapId
+Game_LoadMap map(), mapId
 
-DIM environment AS LONG
-environment = LoadEnvironment
-_ASSERT environment < -1
+DIM sky AS LONG
+sky = Game_LoadSky
+_ASSERT sky < -1
 
 DIM player AS Player
 player.position.x = 64!
@@ -129,15 +140,18 @@ player.position.y = 64!
 player.height = map(MAP_HEIGHT, player.position.x, player.position.y) + PLAYER_HEIGHT_OFFSET
 player.camera.angle = 90!
 player.camera.horizon = 120!
-UpdatePlayerCamera player
+Camera_Update player
+
+DIM renderer AS Renderer
+Renderer_Initialize renderer
 
 _MOUSEHIDE
 
 DIM k AS LONG
 
 DO
-    HandleInput player, map()
-    RenderFrame player, map(), environment
+    Input_Update player, map()
+    Renderer_DrawFrame renderer, player, map(), sky
 
     k = _KEYHIT
 
@@ -147,20 +161,20 @@ DO
             mapId = MAP_ID_MIN
         END IF
 
-        LoadWorld map(), mapId
+        Game_LoadMap map(), mapId
 
-        _FREEIMAGE environment
-        environment = LoadEnvironment
-        _ASSERT environment < -1
+        _FREEIMAGE sky
+        sky = Game_LoadSky
+        _ASSERT sky < -1
     END IF
 
-    _DISPLAY
-    _LIMIT RENDER_FPS
+    Renderer_AutoAdjustLOD renderer
 LOOP UNTIL k = _KEY_ESC
 
 SYSTEM
 
-SUB LoadWorld (map( , ,) AS _UNSIGNED LONG, mapid AS _UNSIGNED _BYTE)
+
+SUB Game_LoadMap (map( , ,) AS _UNSIGNED LONG, mapid AS _UNSIGNED _BYTE)
     DIM mapFileName AS STRING: mapFileName = "maps/c" + _TOSTR$(mapid) + "w.png"
     IF NOT _FILEEXISTS(mapFileName) THEN
         mapFileName = "maps/c" + _TOSTR$(mapid) + ".png"
@@ -200,19 +214,22 @@ SUB LoadWorld (map( , ,) AS _UNSIGNED LONG, mapid AS _UNSIGNED _BYTE)
     _FREEIMAGE mapImg
 END SUB
 
-FUNCTION LoadEnvironment&
+
+FUNCTION Game_LoadSky&
     DIM skyFileName AS STRING: skyFileName = "pics/sky" + _TOSTR$(_CAST(LONG, RND * SKY_COUNT)) + ".jpeg"
     _TITLE _TITLE$ + " | " + skyFileName + " - Voxel Space Demo"
-    LoadEnvironment = _LOADIMAGE(skyFileName, 32)
+    Game_LoadSky = _LOADIMAGE(skyFileName, 32)
 END FUNCTION
 
-SUB UpdatePlayerCamera (player AS Player)
+
+SUB Camera_Update (player AS Player)
     DIM ra AS SINGLE: ra = _D2R(player.camera.angle)
     player.camera.direction.x = COS(ra)
     player.camera.direction.y = SIN(ra)
 END SUB
 
-SUB HandleInput (player AS Player, map( , ,) AS _UNSIGNED LONG)
+
+SUB Input_Update (player AS Player, map( , ,) AS _UNSIGNED LONG)
     DIM mouseUsed AS _BYTE
 
     DIM m AS Vector2i
@@ -241,7 +258,7 @@ SUB HandleInput (player AS Player, map( , ,) AS _UNSIGNED LONG)
 
         player.camera.horizon = _CLAMP(player.camera.horizon - m.y, -SCREEN_HALF_HEIGHT, SCREEN_HEIGHT + SCREEN_HALF_HEIGHT)
 
-        UpdatePlayerCamera player
+        Camera_Update player
     END IF
 
     DIM keyboardUsed AS _BYTE, position AS Vector2f
@@ -285,7 +302,8 @@ SUB HandleInput (player AS Player, map( , ,) AS _UNSIGNED LONG)
     END IF
 END SUB
 
-SUB DrawAutomap (player AS Player, map( , ,) AS _UNSIGNED LONG)
+
+SUB Renderer_DrawAutomap (player AS Player, map( , ,) AS _UNSIGNED LONG)
     DIM mapSize AS LONG: mapSize = UBOUND(map, 2) + 1
     DIM amScale AS SINGLE: amScale = AUTOMAP_SIZE / mapSize
     DIM amStep AS SINGLE: amStep = mapSize / AUTOMAP_SIZE
@@ -310,11 +328,12 @@ SUB DrawAutomap (player AS Player, map( , ,) AS _UNSIGNED LONG)
     LINE (p.x, p.y)-(o.x, o.y), AUTOMAP_PLAYER_CAMERA_COLOR
 END SUB
 
-SUB DrawBackground (player AS Player, environmentImg AS LONG)
+
+SUB Renderer_DrawSky (player AS Player, skyImg AS LONG)
     DIM AS Vector2i skyPos, skySize
 
-    skySize.x = _WIDTH(environmentImg)
-    skySize.y = _HEIGHT(environmentImg)
+    skySize.x = _WIDTH(skyImg)
+    skySize.y = _HEIGHT(skyImg)
 
     skyPos.x = (player.camera.angle / 360!) * skySize.x
     skyPos.y = skySize.y - player.camera.horizon - SCREEN_HALF_HEIGHT
@@ -322,15 +341,78 @@ SUB DrawBackground (player AS Player, environmentImg AS LONG)
     IF skyPos.x + SCREEN_WIDTH > skySize.x THEN
         DIM partialWidth AS LONG: partialWidth = skySize.x - skyPos.x
 
-        _PUTIMAGE (0, 0)-(partialWidth - 1, SCREEN_MAX_Y), environmentImg, , (skyPos.x, skyPos.y)-(skySize.x - 1, skyPos.y + SCREEN_MAX_Y)
-        _PUTIMAGE (partialWidth, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), environmentImg, , (0, skyPos.y)-(SCREEN_WIDTH - partialWidth - 1, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0)-(partialWidth - 1, SCREEN_MAX_Y), skyImg, , (skyPos.x, skyPos.y)-(skySize.x - 1, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (partialWidth, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), skyImg, , (0, skyPos.y)-(SCREEN_WIDTH - partialWidth - 1, skyPos.y + SCREEN_MAX_Y)
     ELSE
-        _PUTIMAGE (0, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), environmentImg, , (skyPos.x, skyPos.y)-(skyPos.x + SCREEN_MAX_X, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), skyImg, , (skyPos.x, skyPos.y)-(skyPos.x + SCREEN_MAX_X, skyPos.y + SCREEN_MAX_Y)
     END IF
 END SUB
 
-SUB RenderFrame (player AS Player, map( , ,) AS _UNSIGNED LONG, environmentImg AS LONG)
-    DrawBackground player, environmentImg
+
+SUB Renderer_Initialize (renderer AS Renderer)
+    renderer.distance = RENDERER_DISTANCE_DEFAULT
+    renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
+    renderer.fps = RENDERER_TARGET_FPS
+END SUB
+
+
+FUNCTION Renderer_CalculateFPS~&
+    DECLARE LIBRARY
+        FUNCTION GetTicks~&&
+    END DECLARE
+
+    STATIC AS _UNSIGNED LONG counter, finalFPS
+    STATIC lastTime AS _UNSIGNED _INTEGER64
+
+    DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
+
+    IF currentTime >= lastTime + 1000 THEN
+        lastTime = currentTime
+        finalFPS = counter
+        counter = 0
+    END IF
+
+    counter = counter + 1
+
+    Renderer_CalculateFPS = finalFPS
+END FUNCTION
+
+
+SUB Renderer_AutoAdjustLOD (renderer AS Renderer)
+    renderer.fps = Renderer_CalculateFPS
+
+    DIM fontHeight AS LONG: fontHeight = _FONTHEIGHT
+    DIM debugYPos AS LONG: debugYPos = SCREEN_HEIGHT - _FONTHEIGHT
+    _PRINTSTRING (0, debugYPos), "FPS:" + STR$(renderer.fps)
+
+    IF renderer.fps < RENDERER_TARGET_FPS THEN
+        IF renderer.distance < RENDERER_DISTANCE_DEFAULT THEN
+            renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
+        END IF
+        IF renderer.distance > RENDERER_DISTANCE_MIN THEN
+            renderer.distance = renderer.distance - RENDERER_DISTANCE_STEP
+        END IF
+    ELSEIF renderer.fps > RENDERER_TARGET_FPS THEN
+        IF renderer.distance > RENDERER_DISTANCE_DEFAULT THEN
+            renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_ULTRA
+        END IF
+        IF renderer.distance < RENDERER_DISTANCE_MAX THEN
+            renderer.distance = renderer.distance + RENDERER_DISTANCE_STEP
+        END IF
+    END IF
+
+    debugYPos = debugYPos - fontHeight
+    _PRINTSTRING (0, debugYPos), "Distance:" + STR$(renderer.distance)
+    debugYPos = debugYPos - fontHeight
+    _PRINTSTRING (0, debugYPos), "DZI: " + _TOSTR$(renderer.deltaZIncrement, 4)
+
+    _DISPLAY
+    _LIMIT RENDERER_TARGET_FPS
+END SUB
+
+
+SUB Renderer_DrawFrame (renderer AS Renderer, player AS Player, map( , ,) AS _UNSIGNED LONG, skyImg AS LONG)
+    Renderer_DrawSky player, skyImg
 
     DIM hiddenY(0 TO SCREEN_MAX_X) AS LONG
 
@@ -349,7 +431,7 @@ SUB RenderFrame (player AS Player, map( , ,) AS _UNSIGNED LONG, environmentImg A
     DIM deltaZ AS SINGLE: deltaZ = 1!
     DIM z AS SINGLE: z = 1!
 
-    WHILE z < RENDER_DISTANCE
+    WHILE z < renderer.distance
         pLeft.x = player.position.x + (-player.camera.direction.y * z - player.camera.direction.x * z)
         pLeft.y = player.position.y + (player.camera.direction.x * z - player.camera.direction.y * z)
 
@@ -359,7 +441,7 @@ SUB RenderFrame (player AS Player, map( , ,) AS _UNSIGNED LONG, environmentImg A
         d.x = (pRight.x - pLeft.x) / SCREEN_WIDTH
         d.y = (pRight.y - pLeft.y) / SCREEN_WIDTH
 
-        invZ = 1! / z * RENDER_SCALE_HEIGHT
+        invZ = RENDERER_SCALE_HEIGHT / z
 
         FOR i = 0 TO SCREEN_MAX_X
             mapPos.x = (_CAST(LONG, pLeft.x) MOD mapSize.x + mapSize.x) MOD mapSize.x
@@ -377,31 +459,8 @@ SUB RenderFrame (player AS Player, map( , ,) AS _UNSIGNED LONG, environmentImg A
         NEXT i
 
         z = z + deltaZ
-        deltaZ = deltaZ + RENDER_DELTA_Z_INCREMENT
+        deltaZ = deltaZ + renderer.deltaZIncrement
     WEND
 
-    DrawAutomap player, map()
-
-    _PRINTSTRING (0, SCREEN_HEIGHT - _FONTHEIGHT), STR$(GetHertz) + " FPS"
+    Renderer_DrawAutomap player, map()
 END SUB
-
-FUNCTION GetHertz~&
-    DECLARE LIBRARY
-        FUNCTION GetTicks~&&
-    END DECLARE
-
-    STATIC AS _UNSIGNED LONG counter, finalFPS
-    STATIC lastTime AS _UNSIGNED _INTEGER64
-
-    DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
-
-    IF currentTime >= lastTime + 1000 THEN
-        lastTime = currentTime
-        finalFPS = counter
-        counter = 0
-    END IF
-
-    counter = counter + 1
-
-    GetHertz = finalFPS
-END FUNCTION
