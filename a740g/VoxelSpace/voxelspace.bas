@@ -73,21 +73,17 @@ CONST AUTOMAP_PLAYER_RADIUS& = 2&
 CONST AUTOMAP_PLAYER_COLOR~& = White
 CONST AUTOMAP_PLAYER_CAMERA_COLOR~& = Yellow
 CONST AUTOMAP_BORDER_COLOR~& = Cyan
-$IF TOASTY = TRUE THEN
-    CONST RENDER_DISTANCE& = 2048&
-    CONST RENDER_DELTA_Z_INCREMENT! = 0.001!
-$ELSE
-    CONST RENDER_DISTANCE& = 1024& ' the higher this is, the farther you will be able to see at the cost of CPU load
-    CONST RENDER_DELTA_Z_INCREMENT! = 0.005! ' the smaller this is, the the more detail you will be able to see at the cost of CPU load
-$END IF
 CONST RENDERER_SCALE_HEIGHT& = 255& * (SCREEN_WIDTH / SCREEN_HEIGHT)
 CONST RENDERER_TARGET_FPS& = 60&
-CONST RENDERER_DISTANCE_MIN& = 512&
-CONST RENDERER_DISTANCE_MAX& = 8192&
-CONST RENDERER_DISTANCE_DEFAULT& = 1024&
-CONST RENDERER_DISTANCE_STEP& = 1&
-CONST RENDERER_DELTA_Z_INCREMENT_ULTRA! = 0.001!
-CONST RENDERER_DELTA_Z_INCREMENT_DEFAULT! = 0.005!
+CONST RENDERER_FPS_OFFSET& = 10&
+CONST RENDERER_DISTANCE_ULTRA& = 8192&
+CONST RENDERER_DISTANCE_DEFAULT& = 4096&
+CONST RENDERER_DISTANCE_LOW& = 2048&
+CONST RENDERER_DISTANCE_POTATO& = 1024&
+CONST RENDERER_DELTA_Z_INCREMENT_ULTRA! = 0.000625!
+CONST RENDERER_DELTA_Z_INCREMENT_DEFAULT! = 0.00125!
+CONST RENDERER_DELTA_Z_INCREMENT_LOW! = 0.0025!
+CONST RENDERER_DELTA_Z_INCREMENT_POTATO! = 0.005!
 
 TYPE Vector2i
     x AS LONG
@@ -114,6 +110,8 @@ END TYPE
 TYPE Renderer
     distance AS LONG
     deltaZIncrement AS SINGLE
+    ticks AS _UNSIGNED LONG
+    fpsCounter AS _UNSIGNED LONG
     fps AS _UNSIGNED LONG
 END TYPE
 
@@ -350,55 +348,93 @@ END SUB
 
 
 SUB Renderer_Initialize (renderer AS Renderer)
+    DECLARE LIBRARY
+        FUNCTION Renderer_GetTicks~&& ALIAS "GetTicks"
+    END DECLARE
+
     renderer.distance = RENDERER_DISTANCE_DEFAULT
     renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
+    renderer.ticks = Renderer_GetTicks
+    renderer.fpsCounter = RENDERER_TARGET_FPS
     renderer.fps = RENDERER_TARGET_FPS
 END SUB
 
 
-FUNCTION Renderer_CalculateFPS~&
-    DECLARE LIBRARY
-        FUNCTION GetTicks~&&
-    END DECLARE
+SUB Renderer_AutoAdjustLOD (renderer AS Renderer)
+    DIM ticks AS _UNSIGNED _INTEGER64: ticks = Renderer_GetTicks
 
-    STATIC AS _UNSIGNED LONG counter, finalFPS
-    STATIC lastTime AS _UNSIGNED _INTEGER64
-
-    DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
-
-    IF currentTime >= lastTime + 1000 THEN
-        lastTime = currentTime
-        finalFPS = counter
-        counter = 0
+    IF ticks >= renderer.ticks + 1000 THEN
+        renderer.ticks = ticks
+        renderer.fps = renderer.fpsCounter
+        renderer.fpsCounter = 0
     END IF
 
-    counter = counter + 1
-
-    Renderer_CalculateFPS = finalFPS
-END FUNCTION
-
-
-SUB Renderer_AutoAdjustLOD (renderer AS Renderer)
-    renderer.fps = Renderer_CalculateFPS
+    renderer.fpsCounter = renderer.fpsCounter + 1
 
     DIM fontHeight AS LONG: fontHeight = _FONTHEIGHT
     DIM debugYPos AS LONG: debugYPos = SCREEN_HEIGHT - _FONTHEIGHT
     _PRINTSTRING (0, debugYPos), "FPS:" + STR$(renderer.fps)
 
-    IF renderer.fps < RENDERER_TARGET_FPS THEN
-        IF renderer.distance < RENDERER_DISTANCE_DEFAULT THEN
-            renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
-        END IF
-        IF renderer.distance > RENDERER_DISTANCE_MIN THEN
-            renderer.distance = renderer.distance - RENDERER_DISTANCE_STEP
-        END IF
-    ELSEIF renderer.fps > RENDERER_TARGET_FPS THEN
-        IF renderer.distance > RENDERER_DISTANCE_DEFAULT THEN
-            renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_ULTRA
-        END IF
-        IF renderer.distance < RENDERER_DISTANCE_MAX THEN
-            renderer.distance = renderer.distance + RENDERER_DISTANCE_STEP
-        END IF
+    IF renderer.fps < RENDERER_TARGET_FPS - RENDERER_FPS_OFFSET THEN
+        SELECT CASE renderer.distance
+            CASE RENDERER_DISTANCE_ULTRA
+                renderer.distance = RENDERER_DISTANCE_DEFAULT
+                renderer.fps = RENDERER_TARGET_FPS
+
+            CASE RENDERER_DISTANCE_DEFAULT
+                renderer.distance = RENDERER_DISTANCE_LOW
+                renderer.fps = RENDERER_TARGET_FPS
+
+            CASE RENDERER_DISTANCE_LOW
+                renderer.distance = RENDERER_DISTANCE_POTATO
+                renderer.fps = RENDERER_TARGET_FPS
+
+            CASE RENDERER_DISTANCE_POTATO
+                SELECT CASE renderer.deltaZIncrement
+                    CASE RENDERER_DELTA_Z_INCREMENT_ULTRA
+                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
+                        renderer.fps = RENDERER_TARGET_FPS
+
+                    CASE RENDERER_DELTA_Z_INCREMENT_DEFAULT
+                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_LOW
+                        renderer.fps = RENDERER_TARGET_FPS
+
+                    CASE RENDERER_DELTA_Z_INCREMENT_LOW
+                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_POTATO
+                        renderer.fps = RENDERER_TARGET_FPS
+
+                END SELECT
+        END SELECT
+    ELSEIF renderer.fps > RENDERER_TARGET_FPS + RENDERER_FPS_OFFSET THEN
+        SELECT CASE renderer.distance
+            CASE RENDERER_DISTANCE_DEFAULT
+                renderer.distance = RENDERER_DISTANCE_ULTRA
+                renderer.fps = RENDERER_TARGET_FPS
+
+            CASE RENDERER_DISTANCE_LOW
+                renderer.distance = RENDERER_DISTANCE_DEFAULT
+                renderer.fps = RENDERER_TARGET_FPS
+
+            CASE RENDERER_DISTANCE_POTATO
+                SELECT CASE renderer.deltaZIncrement
+                    CASE RENDERER_DELTA_Z_INCREMENT_ULTRA
+                        renderer.distance = RENDERER_DISTANCE_LOW
+                        renderer.fps = RENDERER_TARGET_FPS
+
+                    CASE RENDERER_DELTA_Z_INCREMENT_DEFAULT
+                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_ULTRA
+                        renderer.fps = RENDERER_TARGET_FPS
+
+                    CASE RENDERER_DELTA_Z_INCREMENT_LOW
+                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
+                        renderer.fps = RENDERER_TARGET_FPS
+
+                    CASE RENDERER_DELTA_Z_INCREMENT_POTATO
+                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_LOW
+                        renderer.fps = RENDERER_TARGET_FPS
+
+                END SELECT
+        END SELECT
     END IF
 
     debugYPos = debugYPos - fontHeight
