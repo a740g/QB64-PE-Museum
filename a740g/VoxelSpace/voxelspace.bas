@@ -75,15 +75,15 @@ CONST AUTOMAP_PLAYER_CAMERA_COLOR~& = Yellow
 CONST AUTOMAP_BORDER_COLOR~& = Cyan
 CONST RENDERER_SCALE_HEIGHT& = 255& * (SCREEN_WIDTH / SCREEN_HEIGHT)
 CONST RENDERER_TARGET_FPS& = 60&
-CONST RENDERER_FPS_OFFSET& = 10&
-CONST RENDERER_DISTANCE_ULTRA& = 8192&
-CONST RENDERER_DISTANCE_DEFAULT& = 4096&
-CONST RENDERER_DISTANCE_LOW& = 2048&
-CONST RENDERER_DISTANCE_POTATO& = 1024&
-CONST RENDERER_DELTA_Z_INCREMENT_ULTRA! = 0.000625!
-CONST RENDERER_DELTA_Z_INCREMENT_DEFAULT! = 0.00125!
-CONST RENDERER_DELTA_Z_INCREMENT_LOW! = 0.0025!
-CONST RENDERER_DELTA_Z_INCREMENT_POTATO! = 0.005!
+CONST RENDERER_FPS_OFFSET& = 8&
+CONST RENDERER_DISTANCE_MAX& = 16384&
+CONST RENDERER_DISTANCE_MIN& = 1024&
+CONST RENDERER_DISTANCE_FACTOR& = 2&
+CONST RENDERER_DELTA_Z_INCREMENT_MIN! = 0.0003125!
+CONST RENDERER_DELTA_Z_INCREMENT_MAX! = 0.005!
+CONST RENDERER_DELTA_Z_INCREMENT_FACTOR! = 2!
+CONST EVENT_EXIT& = 1&
+CONST EVENT_MAP& = 2&
 
 TYPE Vector2i
     x AS LONG
@@ -119,7 +119,7 @@ RANDOMIZE TIMER
 
 $RESIZE:SMOOTH
 SCREEN _NEWIMAGE(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_MODE)
-_ALLOWFULLSCREEN _SQUAREPIXELS , _SMOOTH
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 _PRINTMODE _KEEPBACKGROUND
 
 DIM mapId AS _UNSIGNED _BYTE
@@ -145,15 +145,14 @@ Renderer_Initialize renderer
 
 _MOUSEHIDE
 
-DIM k AS LONG
+DIM event AS LONG
 
 DO
-    Input_Update player, map()
+    event = Input_Update(player, map())
     Renderer_DrawFrame renderer, player, map(), sky
+    Renderer_AutoAdjustLOD renderer
 
-    k = _KEYHIT
-
-    IF k = _ASC_SPACE THEN
+    IF event = EVENT_MAP THEN
         mapId = mapId + 1
         IF mapId > MAP_ID_MAX THEN
             mapId = MAP_ID_MIN
@@ -164,10 +163,13 @@ DO
         _FREEIMAGE sky
         sky = Game_LoadSky
         _ASSERT sky < -1
+
+        Renderer_Initialize renderer
     END IF
 
-    Renderer_AutoAdjustLOD renderer
-LOOP UNTIL k = _KEY_ESC
+    _DISPLAY
+    _LIMIT RENDERER_TARGET_FPS
+LOOP UNTIL event = EVENT_EXIT
 
 SYSTEM
 
@@ -227,7 +229,7 @@ SUB Camera_Update (player AS Player)
 END SUB
 
 
-SUB Input_Update (player AS Player, map( , ,) AS _UNSIGNED LONG)
+FUNCTION Input_Update& (player AS Player, map( , ,) AS _UNSIGNED LONG)
     DIM mouseUsed AS _BYTE
 
     DIM m AS Vector2i
@@ -237,7 +239,9 @@ SUB Input_Update (player AS Player, map( , ,) AS _UNSIGNED LONG)
         mouseUsed = _TRUE
     WEND
 
-    _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+    $IF WINDOWS THEN
+        _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+    $END IF
 
     IF _KEYDOWN(_KEY_LEFT) THEN
         m.x = m.x - PLAYER_MOVE_SPEED * 10
@@ -298,7 +302,13 @@ SUB Input_Update (player AS Player, map( , ,) AS _UNSIGNED LONG)
 
         player.height = map(MAP_HEIGHT, m.x, m.y) + PLAYER_HEIGHT_OFFSET
     END IF
-END SUB
+
+    IF _KEYDOWN(_KEY_ESC) THEN
+        Input_Update = EVENT_EXIT
+    ELSEIF _KEYDOWN(_ASC_SPACE) THEN
+        Input_Update = EVENT_MAP
+    END IF
+END FUNCTION
 
 
 SUB Renderer_DrawAutomap (player AS Player, map( , ,) AS _UNSIGNED LONG)
@@ -352,8 +362,8 @@ SUB Renderer_Initialize (renderer AS Renderer)
         FUNCTION Renderer_GetTicks~&& ALIAS "GetTicks"
     END DECLARE
 
-    renderer.distance = RENDERER_DISTANCE_DEFAULT
-    renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
+    renderer.distance = RENDERER_DISTANCE_MAX
+    renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_MIN
     renderer.ticks = Renderer_GetTicks
     renderer.fpsCounter = RENDERER_TARGET_FPS
     renderer.fps = RENDERER_TARGET_FPS
@@ -367,6 +377,20 @@ SUB Renderer_AutoAdjustLOD (renderer AS Renderer)
         renderer.ticks = ticks
         renderer.fps = renderer.fpsCounter
         renderer.fpsCounter = 0
+
+        IF renderer.fps < RENDERER_TARGET_FPS - RENDERER_FPS_OFFSET THEN
+            IF renderer.distance > RENDERER_DISTANCE_MIN THEN
+                renderer.distance = renderer.distance / RENDERER_DISTANCE_FACTOR
+            ELSEIF renderer.deltaZIncrement < RENDERER_DELTA_Z_INCREMENT_MAX THEN
+                renderer.deltaZIncrement = renderer.deltaZIncrement * RENDERER_DELTA_Z_INCREMENT_FACTOR
+            END IF
+        ELSEIF renderer.fps > RENDERER_TARGET_FPS + RENDERER_FPS_OFFSET THEN
+            IF renderer.distance < RENDERER_DISTANCE_MAX THEN
+                renderer.distance = renderer.distance * RENDERER_DISTANCE_FACTOR
+            ELSEIF renderer.deltaZIncrement > RENDERER_DELTA_Z_INCREMENT_MIN THEN
+                renderer.deltaZIncrement = renderer.deltaZIncrement / RENDERER_DELTA_Z_INCREMENT_FACTOR
+            END IF
+        END IF
     END IF
 
     renderer.fpsCounter = renderer.fpsCounter + 1
@@ -374,76 +398,10 @@ SUB Renderer_AutoAdjustLOD (renderer AS Renderer)
     DIM fontHeight AS LONG: fontHeight = _FONTHEIGHT
     DIM debugYPos AS LONG: debugYPos = SCREEN_HEIGHT - _FONTHEIGHT
     _PRINTSTRING (0, debugYPos), "FPS:" + STR$(renderer.fps)
-
-    IF renderer.fps < RENDERER_TARGET_FPS - RENDERER_FPS_OFFSET THEN
-        SELECT CASE renderer.distance
-            CASE RENDERER_DISTANCE_ULTRA
-                renderer.distance = RENDERER_DISTANCE_DEFAULT
-                renderer.fps = RENDERER_TARGET_FPS
-
-            CASE RENDERER_DISTANCE_DEFAULT
-                renderer.distance = RENDERER_DISTANCE_LOW
-                renderer.fps = RENDERER_TARGET_FPS
-
-            CASE RENDERER_DISTANCE_LOW
-                renderer.distance = RENDERER_DISTANCE_POTATO
-                renderer.fps = RENDERER_TARGET_FPS
-
-            CASE RENDERER_DISTANCE_POTATO
-                SELECT CASE renderer.deltaZIncrement
-                    CASE RENDERER_DELTA_Z_INCREMENT_ULTRA
-                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
-                        renderer.fps = RENDERER_TARGET_FPS
-
-                    CASE RENDERER_DELTA_Z_INCREMENT_DEFAULT
-                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_LOW
-                        renderer.fps = RENDERER_TARGET_FPS
-
-                    CASE RENDERER_DELTA_Z_INCREMENT_LOW
-                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_POTATO
-                        renderer.fps = RENDERER_TARGET_FPS
-
-                END SELECT
-        END SELECT
-    ELSEIF renderer.fps > RENDERER_TARGET_FPS + RENDERER_FPS_OFFSET THEN
-        SELECT CASE renderer.distance
-            CASE RENDERER_DISTANCE_DEFAULT
-                renderer.distance = RENDERER_DISTANCE_ULTRA
-                renderer.fps = RENDERER_TARGET_FPS
-
-            CASE RENDERER_DISTANCE_LOW
-                renderer.distance = RENDERER_DISTANCE_DEFAULT
-                renderer.fps = RENDERER_TARGET_FPS
-
-            CASE RENDERER_DISTANCE_POTATO
-                SELECT CASE renderer.deltaZIncrement
-                    CASE RENDERER_DELTA_Z_INCREMENT_ULTRA
-                        renderer.distance = RENDERER_DISTANCE_LOW
-                        renderer.fps = RENDERER_TARGET_FPS
-
-                    CASE RENDERER_DELTA_Z_INCREMENT_DEFAULT
-                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_ULTRA
-                        renderer.fps = RENDERER_TARGET_FPS
-
-                    CASE RENDERER_DELTA_Z_INCREMENT_LOW
-                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_DEFAULT
-                        renderer.fps = RENDERER_TARGET_FPS
-
-                    CASE RENDERER_DELTA_Z_INCREMENT_POTATO
-                        renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_LOW
-                        renderer.fps = RENDERER_TARGET_FPS
-
-                END SELECT
-        END SELECT
-    END IF
-
     debugYPos = debugYPos - fontHeight
     _PRINTSTRING (0, debugYPos), "Distance:" + STR$(renderer.distance)
     debugYPos = debugYPos - fontHeight
-    _PRINTSTRING (0, debugYPos), "DZI: " + _TOSTR$(renderer.deltaZIncrement, 4)
-
-    _DISPLAY
-    _LIMIT RENDERER_TARGET_FPS
+    _PRINTSTRING (0, debugYPos), "DZI: " + _TOSTR$(renderer.deltaZIncrement, 7)
 END SUB
 
 
@@ -486,7 +444,7 @@ SUB Renderer_DrawFrame (renderer AS Renderer, player AS Player, map( , ,) AS _UN
             heightOnScreen = (player.height - map(MAP_HEIGHT, mapPos.x, mapPos.y)) * invZ + player.camera.horizon
 
             IF heightOnScreen < hiddenY(i) THEN
-                LINE (i, heightOnScreen)-(i, hiddenY(i)), map(MAP_COLOR, mapPos.x, mapPos.y)
+                LINE (i, heightOnScreen)-(i, hiddenY(i)), map(MAP_COLOR, mapPos.x, mapPos.y), BF
                 hiddenY(i) = heightOnScreen
             END IF
 
