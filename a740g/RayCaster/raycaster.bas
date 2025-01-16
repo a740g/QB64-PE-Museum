@@ -204,15 +204,17 @@ SUB HandleInput (player AS Player, map( ,) AS _UNSIGNED LONG)
         mouseUsed = _TRUE
     WEND
 
-    _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+    $IF WINDOWS THEN
+        _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+    $END IF
 
     IF _KEYDOWN(_KEY_LEFT) THEN
-        m.x = m.x - PLAYER_MOVE_SPEED * 10
+        m.x = m.x - PLAYER_MOVE_SPEED * 100
         mouseUsed = _TRUE
     END IF
 
     IF _KEYDOWN(_KEY_RIGHT) THEN
-        m.x = m.x + PLAYER_MOVE_SPEED * 10
+        m.x = m.x + PLAYER_MOVE_SPEED * 100
         mouseUsed = _TRUE
     END IF
 
@@ -354,7 +356,7 @@ SUB RenderFrame (player AS Player, map( ,) AS _UNSIGNED LONG, environmentImg AS 
         IF wallColor THEN
             distance = SQR((player.position.x - rayPosition.x) ^ 2! + (player.position.y - rayPosition.y) ^ 2!) * COS(_D2R(player.camera.angle - rayAngle))
             wallHeight = SCREEN_HALF_HEIGHT / distance
-            LINE (i, SCREEN_HALF_HEIGHT - wallHeight)-(i, SCREEN_HALF_HEIGHT + wallHeight), wallColor
+            LINE (i, SCREEN_HALF_HEIGHT - wallHeight)-(i, SCREEN_HALF_HEIGHT + wallHeight), wallColor, BF
         END IF
 
         rayAngle = rayAngle + RAYCAST_INCREMENT_ANGLE
