@@ -55,33 +55,30 @@ CONST SCREEN_HALF_HEIGHT& = SCREEN_HEIGHT \ 2&
 CONST SCREEN_MAX_X& = SCREEN_WIDTH - 1&
 CONST SCREEN_MAX_Y& = SCREEN_HEIGHT - 1&
 CONST SCREEN_MODE& = 32&
-CONST RENDER_FPS& = 60&
 CONST MAP_ID_MIN~%% = 1~%%
 CONST MAP_ID_MAX~%% = 29~%%
 CONST MAP_ID_DEFAULT~%% = MAP_ID_MIN
 CONST MAP_COLOR& = 0&
 CONST MAP_HEIGHT& = 1&
+CONST MAP_SCALER = _STR_EMPTY ' use something like "HQ2XA" or "SXBR2" here for some extra eye-candy
+CONST MAP_HEIGHT_MULTIPLIER! = 384!
 CONST SKY_COUNT& = 5&
-CONST PLAYER_FOV& = 60&
-CONST PLAYER_HALF_FOV& = PLAYER_FOV \ 2&
 CONST PLAYER_MOVE_SPEED! = 1!
 CONST PLAYER_LOOK_SPEED! = 0.1!
 CONST PLAYER_HEIGHT_OFFSET& = 10&
-CONST AUTOMAP_SIZE& = 64&
-CONST AUTOMAP_MAX_XY& = AUTOMAP_SIZE - 1&
+CONST AUTOMAP_LENGTH& = 64&
 CONST AUTOMAP_PLAYER_RADIUS& = 2&
 CONST AUTOMAP_PLAYER_COLOR~& = White
 CONST AUTOMAP_PLAYER_CAMERA_COLOR~& = Yellow
 CONST AUTOMAP_BORDER_COLOR~& = Cyan
-CONST RENDERER_SCALE_HEIGHT& = 255& * (SCREEN_WIDTH / SCREEN_HEIGHT)
 CONST RENDERER_TARGET_FPS& = 60&
-CONST RENDERER_FPS_OFFSET& = 8&
-CONST RENDERER_DISTANCE_MAX& = 16384&
+CONST RENDERER_FPS_TOLERANCE& = 5&
+CONST RENDERER_DISTANCE_MAX& = 8192&
 CONST RENDERER_DISTANCE_MIN& = 1024&
-CONST RENDERER_DISTANCE_FACTOR& = 2&
-CONST RENDERER_DELTA_Z_INCREMENT_MIN! = 0.0003125!
+CONST RENDERER_DELTA_Z_INCREMENT_MIN! = 0.000625!
 CONST RENDERER_DELTA_Z_INCREMENT_MAX! = 0.005!
-CONST RENDERER_DELTA_Z_INCREMENT_FACTOR! = 2!
+CONST RENDERER_FADE_FACTOR! = 0.0005!
+CONST EVENT_NONE& = 0&
 CONST EVENT_EXIT& = 1&
 CONST EVENT_MAP& = 2&
 
@@ -107,106 +104,134 @@ TYPE Player
     camera AS Camera
 END TYPE
 
+TYPE Sky
+    image AS LONG
+    size AS Vector2i
+END TYPE
+
 TYPE Renderer
     distance AS LONG
     deltaZIncrement AS SINGLE
+    scaleHeight AS SINGLE
     ticks AS _UNSIGNED LONG
     fpsCounter AS _UNSIGNED LONG
     fps AS _UNSIGNED LONG
 END TYPE
 
-RANDOMIZE TIMER
+TYPE Game
+    mapId AS _UNSIGNED LONG
+    mapLength AS _UNSIGNED LONG
+    sky AS Sky
+    player AS Player
+    renderer AS Renderer
+    event AS LONG
+END TYPE
 
-$RESIZE:SMOOTH
-SCREEN _NEWIMAGE(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_MODE)
-_FULLSCREEN _SQUAREPIXELS , _SMOOTH
-_PRINTMODE _KEEPBACKGROUND
+DIM game AS Game
+REDIM game_map(0, 0, 0) AS _UNSIGNED LONG
 
-DIM mapId AS _UNSIGNED _BYTE
-mapId = MAP_ID_DEFAULT
-
-REDIM map(0, 0, 0) AS _UNSIGNED LONG
-Game_LoadMap map(), mapId
-
-DIM sky AS LONG
-sky = Game_LoadSky
-_ASSERT sky < -1
-
-DIM player AS Player
-player.position.x = 64!
-player.position.y = 64!
-player.height = map(MAP_HEIGHT, player.position.x, player.position.y) + PLAYER_HEIGHT_OFFSET
-player.camera.angle = 90!
-player.camera.horizon = 120!
-Camera_Update player
-
-DIM renderer AS Renderer
-Renderer_Initialize renderer
-
-_MOUSEHIDE
-
-DIM event AS LONG
+Game_Initialize
 
 DO
-    event = Input_Update(player, map())
-    Renderer_DrawFrame renderer, player, map(), sky
-    Renderer_AutoAdjustLOD renderer
+    Input_Update
+    Renderer_DrawFrame
+    Renderer_AutoAdjustLOD
 
-    IF event = EVENT_MAP THEN
-        mapId = mapId + 1
-        IF mapId > MAP_ID_MAX THEN
-            mapId = MAP_ID_MIN
-        END IF
-
-        Game_LoadMap map(), mapId
-
-        _FREEIMAGE sky
-        sky = Game_LoadSky
-        _ASSERT sky < -1
-
-        Renderer_Initialize renderer
+    IF game.event = EVENT_MAP THEN
+        game.mapId = _IIF(game.mapId >= MAP_ID_MAX, MAP_ID_MIN, game.mapId + 1)
+        Game_LoadMap
+        Game_LoadSky
+        Renderer_Initialize
     END IF
 
     _DISPLAY
     _LIMIT RENDERER_TARGET_FPS
-LOOP UNTIL event = EVENT_EXIT
+LOOP UNTIL game.event = EVENT_EXIT
+
+Game_Shutdown
 
 SYSTEM
 
 
-SUB Game_LoadMap (map( , ,) AS _UNSIGNED LONG, mapid AS _UNSIGNED _BYTE)
-    DIM mapFileName AS STRING: mapFileName = "maps/c" + _TOSTR$(mapid) + "w.png"
+SUB Game_Initialize
+    SHARED game AS Game
+    SHARED game_map() AS _UNSIGNED LONG
+
+    RANDOMIZE TIMER
+
+    $RESIZE:SMOOTH
+    SCREEN _NEWIMAGE(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_MODE)
+    _FULLSCREEN _SQUAREPIXELS , _SMOOTH
+    _PRINTMODE _KEEPBACKGROUND
+    _DISPLAYORDER _HARDWARE , _GLRENDER , _HARDWARE1 , _SOFTWARE
+
+    game.mapId = MAP_ID_DEFAULT
+
+    REDIM game_map(0, 0, 0) AS _UNSIGNED LONG
+    Game_LoadMap
+
+    Game_LoadSky
+
+    game.player.position.x = 64!
+    game.player.position.y = 64!
+    game.player.height = game_map(MAP_HEIGHT, game.player.position.x, game.player.position.y) + PLAYER_HEIGHT_OFFSET
+    game.player.camera.angle = 90!
+    game.player.camera.horizon = 120!
+    Camera_Update
+
+    Renderer_Initialize
+
+    _MOUSEHIDE
+END SUB
+
+
+SUB Game_Shutdown
+    SHARED game AS Game
+
+    _FREEIMAGE game.sky.image
+END SUB
+
+
+SUB Game_LoadMap
+    SHARED game AS Game
+    SHARED game_map() AS _UNSIGNED LONG
+
+    DIM mapFileName AS STRING: mapFileName = "maps/c" + _TOSTR$(game.mapId) + "w.png"
     IF NOT _FILEEXISTS(mapFileName) THEN
-        mapFileName = "maps/c" + _TOSTR$(mapid) + ".png"
+        mapFileName = "maps/c" + _TOSTR$(game.mapId) + ".png"
     END IF
 
     _TITLE mapFileName
 
-    DIM mapImg AS LONG: mapImg = _LOADIMAGE(mapFileName, 32)
+    DIM mapImg AS LONG: mapImg = _LOADIMAGE(mapFileName, 32, MAP_SCALER)
     _ASSERT mapImg < -1
+    _ASSERT _WIDTH(mapImg) = _HEIGHT(mapImg)
 
-    REDIM map(0 TO 1, 0 TO _WIDTH(mapImg) - 1, 0 TO _HEIGHT(mapImg) - 1) AS _UNSIGNED LONG
+    game.mapLength = _WIDTH(mapImg)
+
+    REDIM game_map(0 TO 1, 0 TO game.mapLength - 1, 0 TO game.mapLength - 1) AS _UNSIGNED LONG
 
     DIM oldSrc AS LONG: oldSrc = _SOURCE
     _SOURCE mapImg
 
     DIM p AS Vector2i
 
-    FOR p.y = 0 TO _HEIGHT(mapImg) - 1
-        FOR p.x = 0 TO _WIDTH(mapImg) - 1
-            map(MAP_COLOR, p.x, p.y) = POINT(p.x, p.y)
+    FOR p.y = 0 TO game.mapLength - 1
+        FOR p.x = 0 TO game.mapLength - 1
+            game_map(MAP_COLOR, p.x, p.y) = POINT(p.x, p.y)
         NEXT p.x
     NEXT p.y
 
-    DIM hgtImg AS LONG: hgtImg = _LOADIMAGE("maps/d" + _TOSTR$(mapid) + ".png", 32)
+    DIM hgtImg AS LONG: hgtImg = _LOADIMAGE("maps/d" + _TOSTR$(game.mapId) + ".png", 32, MAP_SCALER)
     _ASSERT hgtImg < -1
+    _ASSERT _WIDTH(mapImg) = _HEIGHT(mapImg)
 
     _PUTIMAGE , hgtImg, mapImg
     _FREEIMAGE hgtImg
 
-    FOR p.y = 0 TO _HEIGHT(mapImg) - 1
-        FOR p.x = 0 TO _WIDTH(mapImg) - 1
-            map(MAP_HEIGHT, p.x, p.y) = _RED32(POINT(p.x, p.y))
+    FOR p.y = 0 TO game.mapLength - 1
+        FOR p.x = 0 TO game.mapLength - 1
+            game_map(MAP_HEIGHT, p.x, p.y) = _RED32(POINT(p.x, p.y))
         NEXT p.x
     NEXT p.y
 
@@ -215,21 +240,41 @@ SUB Game_LoadMap (map( , ,) AS _UNSIGNED LONG, mapid AS _UNSIGNED _BYTE)
 END SUB
 
 
-FUNCTION Game_LoadSky&
+SUB Game_LoadSky
+    SHARED game AS Game
+
+    IF game.sky.image < -1 THEN
+        _FREEIMAGE game.sky.image
+        game.sky.image = 0
+    END IF
+
     DIM skyFileName AS STRING: skyFileName = "pics/sky" + _TOSTR$(_CAST(LONG, RND * SKY_COUNT)) + ".jpeg"
+
     _TITLE _TITLE$ + " | " + skyFileName + " - Voxel Space Demo"
-    Game_LoadSky = _LOADIMAGE(skyFileName, 32)
-END FUNCTION
 
+    game.sky.image = _LOADIMAGE(skyFileName, 32, "hardware")
+    _ASSERT game.sky.image < -1
 
-SUB Camera_Update (player AS Player)
-    DIM ra AS SINGLE: ra = _D2R(player.camera.angle)
-    player.camera.direction.x = COS(ra)
-    player.camera.direction.y = SIN(ra)
+    game.sky.size.x = _WIDTH(game.sky.image)
+    game.sky.size.y = _HEIGHT(game.sky.image)
 END SUB
 
 
-FUNCTION Input_Update& (player AS Player, map( , ,) AS _UNSIGNED LONG)
+SUB Camera_Update
+    SHARED game AS Game
+
+    DIM ra AS SINGLE: ra = _D2R(game.player.camera.angle)
+    game.player.camera.direction.x = COS(ra)
+    game.player.camera.direction.y = SIN(ra)
+END SUB
+
+
+SUB Input_Update
+    SHARED game AS Game
+    SHARED game_map() AS _UNSIGNED LONG
+
+    game.event = EVENT_NONE
+
     DIM mouseUsed AS _BYTE
 
     DIM m AS Vector2i
@@ -254,159 +299,174 @@ FUNCTION Input_Update& (player AS Player, map( , ,) AS _UNSIGNED LONG)
     END IF
 
     IF mouseUsed THEN
-        player.camera.angle = (player.camera.angle + m.x * PLAYER_LOOK_SPEED)
-        IF player.camera.angle >= 360! THEN player.camera.angle = player.camera.angle - 360!
-        IF player.camera.angle < 0! THEN player.camera.angle = player.camera.angle + 360!
+        game.player.camera.angle = (game.player.camera.angle + m.x * PLAYER_LOOK_SPEED)
+        IF game.player.camera.angle >= 360! THEN game.player.camera.angle = game.player.camera.angle - 360!
+        IF game.player.camera.angle < 0! THEN game.player.camera.angle = game.player.camera.angle + 360!
 
-        player.camera.horizon = _CLAMP(player.camera.horizon - m.y, -SCREEN_HALF_HEIGHT, SCREEN_HEIGHT + SCREEN_HALF_HEIGHT)
+        game.player.camera.horizon = _CLAMP(game.player.camera.horizon - m.y, -SCREEN_HALF_HEIGHT, SCREEN_HEIGHT + SCREEN_HALF_HEIGHT)
 
-        Camera_Update player
+        Camera_Update
     END IF
 
     DIM keyboardUsed AS _BYTE, position AS Vector2f
 
     IF _KEYDOWN(87) _ORELSE _KEYDOWN(119) _ORELSE _KEYDOWN(_KEY_UP) THEN
-        position.x = player.position.x - player.camera.direction.x * PLAYER_MOVE_SPEED
-        position.y = player.position.y - player.camera.direction.y * PLAYER_MOVE_SPEED
+        position.x = game.player.position.x - game.player.camera.direction.x * PLAYER_MOVE_SPEED
+        position.y = game.player.position.y - game.player.camera.direction.y * PLAYER_MOVE_SPEED
         keyboardUsed = _TRUE
     END IF
 
     IF _KEYDOWN(83) _ORELSE _KEYDOWN(115) _ORELSE _KEYDOWN(_KEY_DOWN) THEN
-        position.x = player.position.x + player.camera.direction.x * PLAYER_MOVE_SPEED
-        position.y = player.position.y + player.camera.direction.y * PLAYER_MOVE_SPEED
+        position.x = game.player.position.x + game.player.camera.direction.x * PLAYER_MOVE_SPEED
+        position.y = game.player.position.y + game.player.camera.direction.y * PLAYER_MOVE_SPEED
         keyboardUsed = _TRUE
     END IF
 
     IF _KEYDOWN(65) _ORELSE _KEYDOWN(97) THEN
-        position.x = player.position.x - player.camera.direction.y * PLAYER_MOVE_SPEED
-        position.y = player.position.y + player.camera.direction.x * PLAYER_MOVE_SPEED
+        position.x = game.player.position.x - game.player.camera.direction.y * PLAYER_MOVE_SPEED
+        position.y = game.player.position.y + game.player.camera.direction.x * PLAYER_MOVE_SPEED
         keyboardUsed = _TRUE
     END IF
 
     IF _KEYDOWN(68) _ORELSE _KEYDOWN(100) THEN
-        position.x = player.position.x + player.camera.direction.y * PLAYER_MOVE_SPEED
-        position.y = player.position.y - player.camera.direction.x * PLAYER_MOVE_SPEED
+        position.x = game.player.position.x + game.player.camera.direction.y * PLAYER_MOVE_SPEED
+        position.y = game.player.position.y - game.player.camera.direction.x * PLAYER_MOVE_SPEED
         keyboardUsed = _TRUE
     END IF
 
     IF keyboardUsed THEN
-        IF position.x < 0 THEN position.x = position.x + UBOUND(map, 2) + 1
-        IF position.y < 0 THEN position.y = position.y + UBOUND(map, 3) + 1
-        IF position.x > UBOUND(map, 2) THEN position.x = position.x - (UBOUND(map, 2) + 1)
-        IF position.y > UBOUND(map, 3) THEN position.y = position.y - (UBOUND(map, 3) + 1)
+        IF position.x < 0 THEN position.x = position.x + game.mapLength
+        IF position.y < 0 THEN position.y = position.y + game.mapLength
+        IF position.x >= game.mapLength THEN position.x = position.x - game.mapLength
+        IF position.y >= game.mapLength THEN position.y = position.y - game.mapLength
 
-        player.position = position
+        game.player.position = position
 
         m.x = _CAST(LONG, position.x)
         m.y = _CAST(LONG, position.y)
 
-        player.height = map(MAP_HEIGHT, m.x, m.y) + PLAYER_HEIGHT_OFFSET
+        game.player.height = game_map(MAP_HEIGHT, m.x, m.y) + PLAYER_HEIGHT_OFFSET
     END IF
 
     IF _KEYDOWN(_KEY_ESC) THEN
-        Input_Update = EVENT_EXIT
+        game.event = EVENT_EXIT
     ELSEIF _KEYDOWN(_ASC_SPACE) THEN
-        Input_Update = EVENT_MAP
+        game.event = EVENT_MAP
     END IF
-END FUNCTION
+END SUB
 
 
-SUB Renderer_DrawAutomap (player AS Player, map( , ,) AS _UNSIGNED LONG)
-    DIM mapSize AS LONG: mapSize = UBOUND(map, 2) + 1
-    DIM amScale AS SINGLE: amScale = AUTOMAP_SIZE / mapSize
-    DIM amStep AS SINGLE: amStep = mapSize / AUTOMAP_SIZE
+SUB Renderer_DrawAutomap
+    SHARED game AS Game
+    SHARED game_map() AS _UNSIGNED LONG
+
+    DIM amScale AS SINGLE: amScale = AUTOMAP_LENGTH / game.mapLength
+    DIM amStep AS LONG: amStep = game.mapLength \ AUTOMAP_LENGTH
     DIM AS Vector2i p, o
     DIM c AS _UNSIGNED LONG
 
-    FOR p.y = 0 TO mapSize - 1 STEP amStep
-        FOR p.x = 0 TO mapSize - 1 STEP amStep
-            c = map(MAP_HEIGHT, p.x, p.y)
-            PSET (p.x * amScale, p.y * amScale), _RGB32(c, 255 - c)
-        NEXT p.x
-    NEXT p.y
+    WHILE p.y < game.mapLength
+        p.x = 0
+        WHILE p.x < game.mapLength
+            c = game_map(MAP_HEIGHT, p.x, p.y)
+            PSET (p.x * amScale, p.y * amScale), _RGB32(c, 255~& - c)
 
-    p.x = player.position.x * amScale
-    p.y = player.position.y * amScale
+            p.x = p.x + amStep
+        WEND
 
-    o.x = p.x - player.camera.direction.x * AUTOMAP_PLAYER_RADIUS * 2
-    o.y = p.y - player.camera.direction.y * AUTOMAP_PLAYER_RADIUS * 2
+        p.y = p.y + amStep
+    WEND
 
-    LINE (0, 0)-(AUTOMAP_SIZE - 1, AUTOMAP_SIZE - 1), AUTOMAP_BORDER_COLOR, B
+    p.x = game.player.position.x * amScale
+    p.y = game.player.position.y * amScale
+
+    o.x = p.x - game.player.camera.direction.x * AUTOMAP_PLAYER_RADIUS * 2
+    o.y = p.y - game.player.camera.direction.y * AUTOMAP_PLAYER_RADIUS * 2
+
+    LINE (0, 0)-(AUTOMAP_LENGTH - 1, AUTOMAP_LENGTH - 1), AUTOMAP_BORDER_COLOR, B
     CIRCLE (p.x, p.y), AUTOMAP_PLAYER_RADIUS, AUTOMAP_PLAYER_COLOR
     LINE (p.x, p.y)-(o.x, o.y), AUTOMAP_PLAYER_CAMERA_COLOR
 END SUB
 
 
-SUB Renderer_DrawSky (player AS Player, skyImg AS LONG)
-    DIM AS Vector2i skyPos, skySize
+SUB Renderer_DrawSky
+    SHARED game AS Game
 
-    skySize.x = _WIDTH(skyImg)
-    skySize.y = _HEIGHT(skyImg)
+    DIM AS Vector2i skyPos
+    skyPos.x = (game.player.camera.angle * game.sky.size.x) \ 360
+    skyPos.y = game.sky.size.y - game.player.camera.horizon - SCREEN_HALF_HEIGHT
 
-    skyPos.x = (player.camera.angle / 360!) * skySize.x
-    skyPos.y = skySize.y - player.camera.horizon - SCREEN_HALF_HEIGHT
+    IF skyPos.x + SCREEN_WIDTH > game.sky.size.x THEN
+        DIM partialWidth AS LONG: partialWidth = game.sky.size.x - skyPos.x
 
-    IF skyPos.x + SCREEN_WIDTH > skySize.x THEN
-        DIM partialWidth AS LONG: partialWidth = skySize.x - skyPos.x
-
-        _PUTIMAGE (0, 0)-(partialWidth - 1, SCREEN_MAX_Y), skyImg, , (skyPos.x, skyPos.y)-(skySize.x - 1, skyPos.y + SCREEN_MAX_Y)
-        _PUTIMAGE (partialWidth, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), skyImg, , (0, skyPos.y)-(SCREEN_WIDTH - partialWidth - 1, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0)-(partialWidth - 1, SCREEN_MAX_Y), game.sky.image, , (skyPos.x, skyPos.y)-(game.sky.size.x - 1, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (partialWidth, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), game.sky.image, , (0, skyPos.y)-(SCREEN_WIDTH - partialWidth - 1, skyPos.y + SCREEN_MAX_Y)
     ELSE
-        _PUTIMAGE (0, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), skyImg, , (skyPos.x, skyPos.y)-(skyPos.x + SCREEN_MAX_X, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), game.sky.image, , (skyPos.x, skyPos.y)-(skyPos.x + SCREEN_MAX_X, skyPos.y + SCREEN_MAX_Y)
     END IF
 END SUB
 
 
-SUB Renderer_Initialize (renderer AS Renderer)
+SUB Renderer_Initialize
     DECLARE LIBRARY
         FUNCTION Renderer_GetTicks~&& ALIAS "GetTicks"
     END DECLARE
 
-    renderer.distance = RENDERER_DISTANCE_MAX
-    renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_MIN
-    renderer.ticks = Renderer_GetTicks
-    renderer.fpsCounter = RENDERER_TARGET_FPS
-    renderer.fps = RENDERER_TARGET_FPS
+    SHARED game AS Game
+
+    game.renderer.distance = RENDERER_DISTANCE_MAX
+    game.renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_MIN
+    game.renderer.scaleHeight = MAP_HEIGHT_MULTIPLIER * game.mapLength / SCREEN_HEIGHT
+    game.renderer.ticks = Renderer_GetTicks
+    game.renderer.fpsCounter = RENDERER_TARGET_FPS
+    game.renderer.fps = RENDERER_TARGET_FPS
 END SUB
 
 
-SUB Renderer_AutoAdjustLOD (renderer AS Renderer)
+SUB Renderer_AutoAdjustLOD
+    SHARED game AS Game
+
     DIM ticks AS _UNSIGNED _INTEGER64: ticks = Renderer_GetTicks
 
-    IF ticks >= renderer.ticks + 1000 THEN
-        renderer.ticks = ticks
-        renderer.fps = renderer.fpsCounter
-        renderer.fpsCounter = 0
+    IF ticks >= game.renderer.ticks + 1000 THEN
+        game.renderer.ticks = ticks
+        game.renderer.fps = game.renderer.fpsCounter
+        game.renderer.fpsCounter = 0
 
-        IF renderer.fps < RENDERER_TARGET_FPS - RENDERER_FPS_OFFSET THEN
-            IF renderer.distance > RENDERER_DISTANCE_MIN THEN
-                renderer.distance = renderer.distance / RENDERER_DISTANCE_FACTOR
-            ELSEIF renderer.deltaZIncrement < RENDERER_DELTA_Z_INCREMENT_MAX THEN
-                renderer.deltaZIncrement = renderer.deltaZIncrement * RENDERER_DELTA_Z_INCREMENT_FACTOR
+        IF game.renderer.fps < RENDERER_TARGET_FPS - RENDERER_FPS_TOLERANCE THEN
+            IF game.renderer.distance > RENDERER_DISTANCE_MIN THEN
+                game.renderer.distance = game.renderer.distance - RENDERER_DISTANCE_MIN
+            ELSEIF game.renderer.deltaZIncrement < RENDERER_DELTA_Z_INCREMENT_MAX THEN
+                game.renderer.deltaZIncrement = game.renderer.deltaZIncrement + RENDERER_DELTA_Z_INCREMENT_MIN
             END IF
-        ELSEIF renderer.fps > RENDERER_TARGET_FPS + RENDERER_FPS_OFFSET THEN
-            IF renderer.distance < RENDERER_DISTANCE_MAX THEN
-                renderer.distance = renderer.distance * RENDERER_DISTANCE_FACTOR
-            ELSEIF renderer.deltaZIncrement > RENDERER_DELTA_Z_INCREMENT_MIN THEN
-                renderer.deltaZIncrement = renderer.deltaZIncrement / RENDERER_DELTA_Z_INCREMENT_FACTOR
+        ELSEIF game.renderer.fps > RENDERER_TARGET_FPS + RENDERER_FPS_TOLERANCE THEN
+            IF game.renderer.deltaZIncrement > RENDERER_DELTA_Z_INCREMENT_MIN THEN
+                game.renderer.deltaZIncrement = game.renderer.deltaZIncrement - RENDERER_DELTA_Z_INCREMENT_MIN
+            ELSEIF game.renderer.distance < RENDERER_DISTANCE_MAX THEN
+                game.renderer.distance = game.renderer.distance + RENDERER_DISTANCE_MIN
             END IF
         END IF
     END IF
 
-    renderer.fpsCounter = renderer.fpsCounter + 1
+    game.renderer.fpsCounter = game.renderer.fpsCounter + 1
 
     DIM fontHeight AS LONG: fontHeight = _FONTHEIGHT
     DIM debugYPos AS LONG: debugYPos = SCREEN_HEIGHT - _FONTHEIGHT
-    _PRINTSTRING (0, debugYPos), "FPS:" + STR$(renderer.fps)
+    _PRINTSTRING (0, debugYPos), "FPS:" + STR$(game.renderer.fps)
     debugYPos = debugYPos - fontHeight
-    _PRINTSTRING (0, debugYPos), "Distance:" + STR$(renderer.distance)
+    _PRINTSTRING (0, debugYPos), "Distance:" + STR$(game.renderer.distance)
     debugYPos = debugYPos - fontHeight
-    _PRINTSTRING (0, debugYPos), "DZI: " + _TOSTR$(renderer.deltaZIncrement, 7)
+    _PRINTSTRING (0, debugYPos), "DZI: " + _TOSTR$(game.renderer.deltaZIncrement, 7)
 END SUB
 
 
-SUB Renderer_DrawFrame (renderer AS Renderer, player AS Player, map( , ,) AS _UNSIGNED LONG, skyImg AS LONG)
-    Renderer_DrawSky player, skyImg
+SUB Renderer_DrawFrame
+    SHARED game AS Game
+    SHARED game_map() AS _UNSIGNED LONG
+
+    CLS , 0
+
+    Renderer_DrawSky
 
     DIM hiddenY(0 TO SCREEN_MAX_X) AS LONG
 
@@ -415,36 +475,34 @@ SUB Renderer_DrawFrame (renderer AS Renderer, player AS Player, map( , ,) AS _UN
         hiddenY(i) = SCREEN_HEIGHT
     NEXT i
 
-    DIM mapSize AS Vector2i
-    mapSize.x = UBOUND(map, 2) + 1
-    mapSize.y = UBOUND(map, 3) + 1
-
     DIM AS Vector2f pLeft, pRight, d
-    DIM mapPos AS Vector2i, heightOnScreen AS SINGLE
-    DIM invZ AS SINGLE
+    DIM mapPos AS Vector2i, c AS _UNSIGNED LONG, cm AS SINGLE
+    DIM AS SINGLE heightOnScreen, invZ
     DIM deltaZ AS SINGLE: deltaZ = 1!
     DIM z AS SINGLE: z = 1!
 
-    WHILE z < renderer.distance
-        pLeft.x = player.position.x + (-player.camera.direction.y * z - player.camera.direction.x * z)
-        pLeft.y = player.position.y + (player.camera.direction.x * z - player.camera.direction.y * z)
+    WHILE z < game.renderer.distance
+        pLeft.x = game.player.position.x + (-game.player.camera.direction.y * z - game.player.camera.direction.x * z)
+        pLeft.y = game.player.position.y + (game.player.camera.direction.x * z - game.player.camera.direction.y * z)
 
-        pRight.x = player.position.x + (player.camera.direction.y * z - player.camera.direction.x * z)
-        pRight.y = player.position.y + (-player.camera.direction.x * z - player.camera.direction.y * z)
+        pRight.x = game.player.position.x + (game.player.camera.direction.y * z - game.player.camera.direction.x * z)
+        pRight.y = game.player.position.y + (-game.player.camera.direction.x * z - game.player.camera.direction.y * z)
 
         d.x = (pRight.x - pLeft.x) / SCREEN_WIDTH
         d.y = (pRight.y - pLeft.y) / SCREEN_WIDTH
 
-        invZ = RENDERER_SCALE_HEIGHT / z
+        invZ = game.renderer.scaleHeight / z
 
         FOR i = 0 TO SCREEN_MAX_X
-            mapPos.x = (_CAST(LONG, pLeft.x) MOD mapSize.x + mapSize.x) MOD mapSize.x
-            mapPos.y = (_CAST(LONG, pLeft.y) MOD mapSize.y + mapSize.y) MOD mapSize.y
+            mapPos.x = (_CAST(LONG, pLeft.x) MOD game.mapLength + game.mapLength) MOD game.mapLength
+            mapPos.y = (_CAST(LONG, pLeft.y) MOD game.mapLength + game.mapLength) MOD game.mapLength
 
-            heightOnScreen = (player.height - map(MAP_HEIGHT, mapPos.x, mapPos.y)) * invZ + player.camera.horizon
+            heightOnScreen = (game.player.height - game_map(MAP_HEIGHT, mapPos.x, mapPos.y)) * invZ + game.player.camera.horizon
 
             IF heightOnScreen < hiddenY(i) THEN
-                LINE (i, heightOnScreen)-(i, hiddenY(i)), map(MAP_COLOR, mapPos.x, mapPos.y), BF
+                c = game_map(MAP_COLOR, mapPos.x, mapPos.y)
+                cm = 1! - z * RENDERER_FADE_FACTOR
+                LINE (i, heightOnScreen)-(i, hiddenY(i)), _RGB32(_RED32(c) * cm, _GREEN32(c) * cm, _BLUE32(c) * cm), BF
                 hiddenY(i) = heightOnScreen
             END IF
 
@@ -453,8 +511,8 @@ SUB Renderer_DrawFrame (renderer AS Renderer, player AS Player, map( , ,) AS _UN
         NEXT i
 
         z = z + deltaZ
-        deltaZ = deltaZ + renderer.deltaZIncrement
+        deltaZ = deltaZ + game.renderer.deltaZIncrement
     WEND
 
-    Renderer_DrawAutomap player, map()
+    Renderer_DrawAutomap
 END SUB
