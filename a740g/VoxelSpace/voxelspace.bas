@@ -285,16 +285,20 @@ SUB Input_Update
 
     DIM mouseUsed AS _BYTE
 
-    DIM m AS Vector2i
     WHILE _MOUSEINPUT
-        m.x = m.x + _MOUSEMOVEMENTX
-        m.y = m.y + _MOUSEMOVEMENTY
         mouseUsed = _TRUE
     WEND
 
-    $IF WINDOWS THEN
-        _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-    $END IF
+    DIM m AS Vector2i
+
+    IF mouseUsed THEN
+        m.x = _MOUSEX - SCREEN_HALF_WIDTH
+        m.y = _MOUSEY - SCREEN_HALF_HEIGHT
+
+        IF m.x _ORELSE m.y THEN
+            _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+        END IF
+    END IF
 
     IF _KEYDOWN(_KEY_LEFT) THEN
         m.x = m.x - PLAYER_MOVE_SPEED * 10
