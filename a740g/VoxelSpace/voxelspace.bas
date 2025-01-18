@@ -58,8 +58,6 @@ CONST SCREEN_MODE& = 32&
 CONST MAP_ID_MIN~%% = 1~%%
 CONST MAP_ID_MAX~%% = 29~%%
 CONST MAP_ID_DEFAULT~%% = MAP_ID_MIN
-CONST MAP_COLOR& = 0&
-CONST MAP_HEIGHT& = 1&
 CONST MAP_SCALER = _STR_EMPTY ' use something like "HQ2XA" or "SXBR2" here for some extra eye-candy
 CONST MAP_HEIGHT_MULTIPLIER! = 384!
 CONST SKY_COUNT& = 5&
@@ -118,6 +116,13 @@ TYPE Renderer
     fps AS _UNSIGNED LONG
 END TYPE
 
+TYPE MapPixel
+    r AS _UNSIGNED _BYTE
+    g AS _UNSIGNED _BYTE
+    b AS _UNSIGNED _BYTE
+    h AS _UNSIGNED _BYTE
+END TYPE
+
 TYPE Game
     mapId AS _UNSIGNED LONG
     mapLength AS _UNSIGNED LONG
@@ -128,7 +133,7 @@ TYPE Game
 END TYPE
 
 DIM game AS Game
-REDIM game_map(0, 0, 0) AS _UNSIGNED LONG
+REDIM game_map(0, 0) AS MapPixel
 
 Game_Initialize
 
@@ -155,7 +160,7 @@ SYSTEM
 
 SUB Game_Initialize
     SHARED game AS Game
-    SHARED game_map() AS _UNSIGNED LONG
+    SHARED game_map() AS MapPixel
 
     RANDOMIZE TIMER
 
@@ -167,14 +172,14 @@ SUB Game_Initialize
 
     game.mapId = MAP_ID_DEFAULT
 
-    REDIM game_map(0, 0, 0) AS _UNSIGNED LONG
+    REDIM game_map(0, 0) AS MapPixel
     Game_LoadMap
 
     Game_LoadSky
 
     game.player.position.x = 64!
     game.player.position.y = 64!
-    game.player.height = game_map(MAP_HEIGHT, game.player.position.x, game.player.position.y) + PLAYER_HEIGHT_OFFSET
+    game.player.height = PLAYER_HEIGHT_OFFSET + game_map(game.player.position.x, game.player.position.y).h
     game.player.camera.angle = 90!
     game.player.camera.horizon = 120!
     Camera_Update
@@ -194,7 +199,7 @@ END SUB
 
 SUB Game_LoadMap
     SHARED game AS Game
-    SHARED game_map() AS _UNSIGNED LONG
+    SHARED game_map() AS MapPixel
 
     DIM mapFileName AS STRING: mapFileName = "maps/c" + _TOSTR$(game.mapId) + "w.png"
     IF NOT _FILEEXISTS(mapFileName) THEN
@@ -209,16 +214,19 @@ SUB Game_LoadMap
 
     game.mapLength = _WIDTH(mapImg)
 
-    REDIM game_map(0 TO 1, 0 TO game.mapLength - 1, 0 TO game.mapLength - 1) AS _UNSIGNED LONG
+    REDIM game_map(0 TO game.mapLength - 1, 0 TO game.mapLength - 1) AS MapPixel
 
     DIM oldSrc AS LONG: oldSrc = _SOURCE
     _SOURCE mapImg
 
-    DIM p AS Vector2i
+    DIM p AS Vector2i, c AS _UNSIGNED LONG
 
     FOR p.y = 0 TO game.mapLength - 1
         FOR p.x = 0 TO game.mapLength - 1
-            game_map(MAP_COLOR, p.x, p.y) = POINT(p.x, p.y)
+            c = POINT(p.x, p.y)
+            game_map(p.x, p.y).r = _RED32(c)
+            game_map(p.x, p.y).g = _GREEN32(c)
+            game_map(p.x, p.y).b = _BLUE32(c)
         NEXT p.x
     NEXT p.y
 
@@ -231,7 +239,7 @@ SUB Game_LoadMap
 
     FOR p.y = 0 TO game.mapLength - 1
         FOR p.x = 0 TO game.mapLength - 1
-            game_map(MAP_HEIGHT, p.x, p.y) = _RED32(POINT(p.x, p.y))
+            game_map(p.x, p.y).h = _RED32(POINT(p.x, p.y))
         NEXT p.x
     NEXT p.y
 
@@ -271,7 +279,7 @@ END SUB
 
 SUB Input_Update
     SHARED game AS Game
-    SHARED game_map() AS _UNSIGNED LONG
+    SHARED game_map() AS MapPixel
 
     game.event = EVENT_NONE
 
@@ -345,7 +353,7 @@ SUB Input_Update
         m.x = _CAST(LONG, position.x)
         m.y = _CAST(LONG, position.y)
 
-        game.player.height = game_map(MAP_HEIGHT, m.x, m.y) + PLAYER_HEIGHT_OFFSET
+        game.player.height = PLAYER_HEIGHT_OFFSET + game_map(m.x, m.y).h
     END IF
 
     IF _KEYDOWN(_KEY_ESC) THEN
@@ -358,18 +366,18 @@ END SUB
 
 SUB Renderer_DrawAutomap
     SHARED game AS Game
-    SHARED game_map() AS _UNSIGNED LONG
+    SHARED game_map() AS MapPixel
 
     DIM amScale AS SINGLE: amScale = AUTOMAP_LENGTH / game.mapLength
     DIM amStep AS LONG: amStep = game.mapLength \ AUTOMAP_LENGTH
     DIM AS Vector2i p, o
-    DIM c AS _UNSIGNED LONG
+    DIM c AS _UNSIGNED _BYTE
 
     WHILE p.y < game.mapLength
         p.x = 0
         WHILE p.x < game.mapLength
-            c = game_map(MAP_HEIGHT, p.x, p.y)
-            PSET (p.x * amScale, p.y * amScale), _RGB32(c, 255~& - c)
+            c = game_map(p.x, p.y).h
+            PSET (p.x * amScale, p.y * amScale), _RGB32(c, 255~%% - c)
 
             p.x = p.x + amStep
         WEND
@@ -399,10 +407,10 @@ SUB Renderer_DrawSky
     IF skyPos.x + SCREEN_WIDTH > game.sky.size.x THEN
         DIM partialWidth AS LONG: partialWidth = game.sky.size.x - skyPos.x
 
-        _PUTIMAGE (0, 0)-(partialWidth - 1, SCREEN_MAX_Y), game.sky.image, , (skyPos.x, skyPos.y)-(game.sky.size.x - 1, skyPos.y + SCREEN_MAX_Y)
-        _PUTIMAGE (partialWidth, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), game.sky.image, , (0, skyPos.y)-(SCREEN_WIDTH - partialWidth - 1, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0), game.sky.image, , (skyPos.x, skyPos.y)-STEP(partialWidth, SCREEN_HEIGHT)
+        _PUTIMAGE (partialWidth, 0), game.sky.image, , (0, skyPos.y)-STEP(SCREEN_WIDTH - partialWidth, SCREEN_HEIGHT)
     ELSE
-        _PUTIMAGE (0, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), game.sky.image, , (skyPos.x, skyPos.y)-(skyPos.x + SCREEN_MAX_X, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0), game.sky.image, , (skyPos.x, skyPos.y)-STEP(SCREEN_WIDTH, SCREEN_HEIGHT)
     END IF
 END SUB
 
@@ -462,9 +470,9 @@ END SUB
 
 SUB Renderer_DrawFrame
     SHARED game AS Game
-    SHARED game_map() AS _UNSIGNED LONG
+    SHARED game_map() AS MapPixel
 
-    CLS , 0
+    CLS 1, 0
 
     Renderer_DrawSky
 
@@ -476,7 +484,7 @@ SUB Renderer_DrawFrame
     NEXT i
 
     DIM AS Vector2f pLeft, pRight, d
-    DIM mapPos AS Vector2i, c AS _UNSIGNED LONG, cm AS SINGLE
+    DIM mapPos AS Vector2i, pix AS MapPixel, cm AS SINGLE
     DIM AS SINGLE heightOnScreen, invZ
     DIM deltaZ AS SINGLE: deltaZ = 1!
     DIM z AS SINGLE: z = 1!
@@ -497,12 +505,12 @@ SUB Renderer_DrawFrame
             mapPos.x = (_CAST(LONG, pLeft.x) MOD game.mapLength + game.mapLength) MOD game.mapLength
             mapPos.y = (_CAST(LONG, pLeft.y) MOD game.mapLength + game.mapLength) MOD game.mapLength
 
-            heightOnScreen = (game.player.height - game_map(MAP_HEIGHT, mapPos.x, mapPos.y)) * invZ + game.player.camera.horizon
+            pix = game_map(mapPos.x, mapPos.y)
+            heightOnScreen = (game.player.height - pix.h) * invZ + game.player.camera.horizon
 
             IF heightOnScreen < hiddenY(i) THEN
-                c = game_map(MAP_COLOR, mapPos.x, mapPos.y)
                 cm = 1! - z * RENDERER_FADE_FACTOR
-                LINE (i, heightOnScreen)-(i, hiddenY(i)), _RGB32(_RED32(c) * cm, _GREEN32(c) * cm, _BLUE32(c) * cm), BF
+                LINE (i, heightOnScreen)-(i, hiddenY(i)), _RGB32(cm * pix.r, cm * pix.g, cm * pix.b), BF
                 hiddenY(i) = heightOnScreen
             END IF
 
