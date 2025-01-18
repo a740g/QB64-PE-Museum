@@ -407,10 +407,10 @@ SUB Renderer_DrawSky
     IF skyPos.x + SCREEN_WIDTH > game.sky.size.x THEN
         DIM partialWidth AS LONG: partialWidth = game.sky.size.x - skyPos.x
 
-        _PUTIMAGE (0, 0), game.sky.image, , (skyPos.x, skyPos.y)-STEP(partialWidth, SCREEN_HEIGHT)
-        _PUTIMAGE (partialWidth, 0), game.sky.image, , (0, skyPos.y)-STEP(SCREEN_WIDTH - partialWidth, SCREEN_HEIGHT)
+        _PUTIMAGE (0, 0), game.sky.image, , (skyPos.x, skyPos.y)-STEP(partialWidth - 1, SCREEN_MAX_Y), _SMOOTH
+        _PUTIMAGE (partialWidth, 0), game.sky.image, , (0, skyPos.y)-STEP(SCREEN_WIDTH - partialWidth - 1, SCREEN_MAX_Y), _SMOOTH
     ELSE
-        _PUTIMAGE (0, 0), game.sky.image, , (skyPos.x, skyPos.y)-STEP(SCREEN_WIDTH, SCREEN_HEIGHT)
+        _PUTIMAGE (0, 0), game.sky.image, , (skyPos.x, skyPos.y)-STEP(SCREEN_MAX_X, SCREEN_MAX_Y), _SMOOTH
     END IF
 END SUB
 

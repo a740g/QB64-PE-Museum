@@ -8,7 +8,6 @@ $RESIZE:SMOOTH
 _DEFINE A-Z AS LONG
 OPTION _EXPLICIT
 
-CONST FALSE = 0, TRUE = NOT FALSE
 CONST NUMCIRCLES = 400
 CONST NUMTOASTERS = 6
 CONST NUMTOASTERFRAMES = 3
@@ -59,7 +58,7 @@ NEXT i
 
 ' Draw circles
 FOR i = 1 TO NUMCIRCLES
-    _PUTIMAGE (RND * (mX - _WIDTH(bmpCircle)), RND * (mY - _HEIGHT(bmpCircle))), bmpCircle
+    _PUTIMAGE (RND * (mX - _WIDTH(bmpCircle)), RND * (mY - _HEIGHT(bmpCircle))), bmpCircle, , , _SMOOTH
 NEXT i
 
 ' Make a copy of the background
@@ -74,7 +73,7 @@ _KEYCLEAR
 DIM isPalMorphed AS _BYTE
 
 DO
-    _PUTIMAGE (0, 0), bmpBackground
+    _PUTIMAGE (0, 0), bmpBackground, , , _SMOOTH
 
     ' Blit and make all the toasters go
     FOR i = 1 TO NUMTOASTERS
@@ -96,7 +95,7 @@ DO
                 frame = 1
         END SELECT
 
-        _PUTIMAGE (toaster(i).x, toaster(i).y), bmpToaster(frame)
+        _PUTIMAGE (toaster(i).x, toaster(i).y), bmpToaster(frame), , , _SMOOTH
     NEXT i
 
     IF isPalMorphed THEN
@@ -212,7 +211,7 @@ SUB LoadAssets
     "Uqi10lqj984Ygzknay323pxzuPfy3uO3S1YJDEIBDMPb3f/Ak+B0vn2+4JDgb1Co95wO/M9v22d+Bk1TJ1VSd90ARAcePDCL4r/na+Zd32BJr3zo" + _
     "hctcz33+H3zZsq2X/yeB7KnRS5/AaxBJv6ECfMkgvdLXgFHbwqkTSBn0ttOfAzDTnPSQOgGFbEY5C7QsaICdaW4LmN0L8N2fQQ=="
 
-    bmpToaster(1) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER1_BMP_2518, SIZE_TOASTER1_BMP_2518, COMP_TOASTER1_BMP_2518), TRUE, FALSE, "memory", 0)
+    bmpToaster(1) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER1_BMP_2518, SIZE_TOASTER1_BMP_2518, COMP_TOASTER1_BMP_2518), _TRUE, _FALSE, "memory", 0)
 
     CONST SIZE_TOASTER2_BMP_2518~& = 2518~&
     CONST COMP_TOASTER2_BMP_2518%% = -1%%
@@ -229,7 +228,7 @@ SUB LoadAssets
     "tVZaa/TeGWMw52Stxd6bcw73Xt57iAi/XTrQoBCM4Si+U+3+9f4P3LWF1fIlBOinBGcjtm2bfR7gbG3e6+f5vu8D08SVXbEsv5RDzeCH8/N6L8V7" + _
     "17ubuccTFLjtS/aIvj+Res9oP9pB5ZkINOhROOYmBvvdAQlUeRBI1Rd3R1LLc4Bzv+78yIo0uk8vD++515+X/QEUV5we"
 
-    bmpToaster(2) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER2_BMP_2518, SIZE_TOASTER2_BMP_2518, COMP_TOASTER2_BMP_2518), TRUE, FALSE, "memory", 0)
+    bmpToaster(2) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER2_BMP_2518, SIZE_TOASTER2_BMP_2518, COMP_TOASTER2_BMP_2518), _TRUE, _FALSE, "memory", 0)
 
     CONST SIZE_TOASTER3_BMP_2518~& = 2518~&
     CONST COMP_TOASTER3_BMP_2518%% = -1%%
@@ -246,7 +245,7 @@ SUB LoadAssets
     "OWdKKdRaaa3Re2eMwZyTtRZ7b8453Ht57/3252iFYRCAoWhjeyf9/x8eFDJxxFWhj7vPR43bOGBbCTd5Hy2SlgCyJ/Baq0R+gcRVzd3Iq+/8lD1r" + _
     "HuT2fc2Xoi7ynKrjeF1dh1q/5vvf9x4Gnt677AN32QftgseVKd/4lG96zrsbHwu89+dX2bvn/b/negMelJyn"
 
-    bmpToaster(3) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER3_BMP_2518, SIZE_TOASTER3_BMP_2518, COMP_TOASTER3_BMP_2518), TRUE, FALSE, "memory", 0)
+    bmpToaster(3) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER3_BMP_2518, SIZE_TOASTER3_BMP_2518, COMP_TOASTER3_BMP_2518), _TRUE, _FALSE, "memory", 0)
 
     bmpCircle = _NEWIMAGE(5, 5, 256)
     _COPYPALETTE bmpToaster(1), bmpCircle
@@ -346,7 +345,7 @@ END SUB
 ' This will progressively change the palette of dstImg to that of srcImg
 ' Keep calling this repeatedly until it returns true
 FUNCTION Graphics_MorphPalette%% (dstImage AS LONG, srcImage AS LONG, startIndex AS _UNSIGNED _BYTE, stopIndex AS _UNSIGNED _BYTE)
-    Graphics_MorphPalette = TRUE ' Assume completed
+    Graphics_MorphPalette = _TRUE ' Assume completed
 
     DIM i AS LONG: FOR i = startIndex TO stopIndex
         ' Get both src and dst colors of the current index
@@ -363,28 +362,28 @@ FUNCTION Graphics_MorphPalette%% (dstImage AS LONG, srcImage AS LONG, startIndex
 
         ' Change red
         IF dstR < srcR THEN
-            Graphics_MorphPalette = FALSE
+            Graphics_MorphPalette = _FALSE
             dstR = dstR + 1
         ELSEIF dstR > srcR THEN
-            Graphics_MorphPalette = FALSE
+            Graphics_MorphPalette = _FALSE
             dstR = dstR - 1
         END IF
 
         ' Change green
         IF dstG < srcG THEN
-            Graphics_MorphPalette = FALSE
+            Graphics_MorphPalette = _FALSE
             dstG = dstG + 1
         ELSEIF dstG > srcG THEN
-            Graphics_MorphPalette = FALSE
+            Graphics_MorphPalette = _FALSE
             dstG = dstG - 1
         END IF
 
         ' Change blue
         IF dstB < srcB THEN
-            Graphics_MorphPalette = FALSE
+            Graphics_MorphPalette = _FALSE
             dstB = dstB + 1
         ELSEIF dstB > srcB THEN
-            Graphics_MorphPalette = FALSE
+            Graphics_MorphPalette = _FALSE
             dstB = dstB - 1
         END IF
 
@@ -402,57 +401,10 @@ SUB Graphics_ResetPalette (dstImage AS LONG, resetColor AS _UNSIGNED LONG)
 END SUB
 
 
-' Converts a base64 string to a normal string or binary data
-FUNCTION Base64_Decode$ (s AS STRING)
-    DIM srcSize AS _UNSIGNED LONG: srcSize = LEN(s)
-    DIM buffer AS STRING: buffer = SPACE$((srcSize \ 4) * 3) ' preallocate complete buffer
-    DIM j AS _UNSIGNED LONG: j = 1
-    DIM AS _UNSIGNED _BYTE index, char1, char2, char3, char4
-
-    DIM i AS _UNSIGNED LONG: FOR i = 1 TO srcSize STEP 4
-        index = ASC(s, i): GOSUB find_index: char1 = index
-        index = ASC(s, i + 1): GOSUB find_index: char2 = index
-        index = ASC(s, i + 2): GOSUB find_index: char3 = index
-        index = ASC(s, i + 3): GOSUB find_index: char4 = index
-
-        ASC(buffer, j) = _SHL(char1, 2) OR _SHR(char2, 4)
-        j = j + 1
-        ASC(buffer, j) = _SHL(char2 AND 15, 4) OR _SHR(char3, 2)
-        j = j + 1
-        ASC(buffer, j) = _SHL(char3 AND 3, 6) OR char4
-        j = j + 1
-    NEXT i
-
-    ' Remove padding
-    IF RIGHT$(s, 2) = "==" THEN
-        buffer = LEFT$(buffer, LEN(buffer) - 2)
-    ELSEIF RIGHT$(s, 1) = "=" THEN
-        buffer = LEFT$(buffer, LEN(buffer) - 1)
-    END IF
-
-    Base64_Decode = buffer
-    EXIT FUNCTION
-
-    find_index:
-    IF index >= 65 AND index <= 90 THEN
-        index = index - 65
-    ELSEIF index >= 97 AND index <= 122 THEN
-        index = index - 97 + 26
-    ELSEIF index >= 48 AND index <= 57 THEN
-        index = index - 48 + 52
-    ELSEIF index = 43 THEN
-        index = 62
-    ELSEIF index = 47 THEN
-        index = 63
-    END IF
-    RETURN
-END FUNCTION
-
-
 ' This function loads a resource directly from a string variable or constant (like the ones made by Bin2Data)
 FUNCTION Base64_LoadResourceString$ (src AS STRING, ogSize AS _UNSIGNED LONG, isComp AS _BYTE)
     ' Decode the data
-    DIM buffer AS STRING: buffer = Base64_Decode(src)
+    DIM buffer AS STRING: buffer = _BASE64DECODE$(src)
 
     ' Expand the data if needed
     IF isComp THEN buffer = _INFLATE$(buffer, ogSize)

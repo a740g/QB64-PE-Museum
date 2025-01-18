@@ -54,7 +54,7 @@ RANDOMIZE TIMER
 
 $RESIZE:SMOOTH
 SCREEN _NEWIMAGE(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_MODE)
-_ALLOWFULLSCREEN _SQUAREPIXELS , _SMOOTH
+_FULLSCREEN _SQUAREPIXELS , _SMOOTH
 _PRINTMODE _KEEPBACKGROUND
 _TITLE "Raycaster Demo"
 
@@ -310,15 +310,15 @@ SUB DrawBackground (player AS Player, environmentImg AS LONG)
     skySize.x = _WIDTH(environmentImg)
     skySize.y = _HEIGHT(environmentImg)
 
-    skyPos.x = (player.camera.angle / 360!) * skySize.x
+    skyPos.x = (player.camera.angle * skySize.x) \ 360
 
     IF skyPos.x + SCREEN_WIDTH > skySize.x THEN
         DIM partialWidth AS LONG: partialWidth = skySize.x - skyPos.x
 
-        _PUTIMAGE (0, 0)-(partialWidth - 1, SCREEN_MAX_Y), environmentImg, , (skyPos.x, skyPos.y)-(skySize.x - 1, skyPos.y + SCREEN_MAX_Y)
-        _PUTIMAGE (partialWidth, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), environmentImg, , (0, skyPos.y)-(SCREEN_WIDTH - partialWidth - 1, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0), environmentImg, , (skyPos.x, skyPos.y)-STEP(partialWidth - 1, SCREEN_MAX_Y), _SMOOTH
+        _PUTIMAGE (partialWidth, 0), environmentImg, , (0, skyPos.y)-STEP(SCREEN_WIDTH - partialWidth - 1, SCREEN_MAX_Y), _SMOOTH
     ELSE
-        _PUTIMAGE (0, 0)-(SCREEN_MAX_X, SCREEN_MAX_Y), environmentImg, , (skyPos.x, skyPos.y)-(skyPos.x + SCREEN_MAX_X, skyPos.y + SCREEN_MAX_Y)
+        _PUTIMAGE (0, 0), environmentImg, , (skyPos.x, skyPos.y)-STEP(SCREEN_MAX_X, SCREEN_MAX_Y), _SMOOTH
     END IF
 END SUB
 
