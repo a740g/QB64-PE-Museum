@@ -17,7 +17,6 @@ $RESIZE:SMOOTH
 _DEFINE A-Z AS LONG
 OPTION _EXPLICIT
 
-CONST FALSE = 0, TRUE = NOT FALSE
 CONST SCALE = 3 ' have fun with this
 CONST SCREENWIDTH = 320 * SCALE
 CONST SCREENHEIGHT = 200 * SCALE
@@ -79,7 +78,7 @@ InitFishes
 InitBubbles
 
 DO
-    CLS
+    CLS 1
 
     GoBubbles
     _PUTIMAGE , bmpCoral, , , _SMOOTH
@@ -144,7 +143,7 @@ SUB GoFishes
             fish(i).yInc = RND * 3 - 1
         END IF
         fish(i).p.y = fish(i).p.y + fish(i).yInc
-        fish(i).p.y = Min(fish(i).yMax, Max(fish(i).p.y, fish(i).yMin))
+        fish(i).p.y = _MIN(fish(i).yMax, _MAX(fish(i).p.y, fish(i).yMin))
 
         ' We will make no attempt to do any clipping ourselves because _PUTIMAGE already does that for us
         IF fish(i).xInc < 0 THEN
@@ -282,7 +281,7 @@ SUB LoadAssets
     "6rWJ7W1+9H4RUAHUlvsAPY11a/yQ6eTFNLziZsA8h3Bbq4FUrnYx7Mevuy6CYILXXYC+fXvSjwaG4+f6me85vwYQLJUr5Ns6sH9R9EwLv4ELQ8jT" + _
     "7UvvYT8qWn709sP9nh5AsFotPR/AzPe0X1MJc3z85n52+8F+zxeAxrDbaLj9+KmsyXYfP4CWdA74yd/Hb93+R34fwNfe7+P3D7y729Y="
 
-    bmpCoral = Graphics_LoadImage(Base64_LoadResourceString(DATA_CORAL_BMP_65078, SIZE_CORAL_BMP_65078, COMP_CORAL_BMP_65078), FALSE, TRUE, "memory, hq3xa", _RGB32(0))
+    bmpCoral = Graphics_LoadImage(Base64_LoadResourceString(DATA_CORAL_BMP_65078, SIZE_CORAL_BMP_65078, COMP_CORAL_BMP_65078), _FALSE, _TRUE, "memory, hq3xa", _RGB32(0))
 
     CONST SIZE_FISH_BMP_65078~& = 65078~&
     CONST COMP_FISH_BMP_65078%% = -1%%
@@ -314,7 +313,7 @@ SUB LoadAssets
     "LECHz/FmQMXDYXWJZ8C58ruIMNwMWOWRQAHeE/xFwAJEAX4/ocVNeQIFeKP65LtZffLdjyiDv9if9uBAAAAAAADI/7URVFVVVVVVVVVVVVVVVVVV" + _
     "VVVVVVVVVVVVVVVVVVVVVVVVVVUVMAay6g=="
 
-    bmpFishes = Graphics_LoadImage(Base64_LoadResourceString(DATA_FISH_BMP_65078, SIZE_FISH_BMP_65078, COMP_FISH_BMP_65078), FALSE, TRUE, "memory, hq2xb", _RGB32(0))
+    bmpFishes = Graphics_LoadImage(Base64_LoadResourceString(DATA_FISH_BMP_65078, SIZE_FISH_BMP_65078, COMP_FISH_BMP_65078), _FALSE, _TRUE, "memory, hq2xb", _RGB32(0))
 
     RESTORE fish_bmp_info
     DIM i AS LONG: FOR i = 0 TO 5
@@ -337,24 +336,6 @@ SUB LoadAssets
     DATA 0,150,62,22
     DATA 80,150,68,36
 END SUB
-
-
-FUNCTION Max& (A AS LONG, B AS LONG)
-    IF A > B THEN
-        Max = A
-    ELSE
-        Max = B
-    END IF
-END FUNCTION
-
-
-FUNCTION Min& (A AS LONG, B AS LONG)
-    IF A < B THEN
-        Min = A
-    ELSE
-        Min = B
-    END IF
-END FUNCTION
 
 
 ' Calculates and returns the hertz value when repeatedly called inside a loop
@@ -409,57 +390,10 @@ FUNCTION Graphics_LoadImage& (fileName AS STRING, is8bpp AS _BYTE, isHardware AS
 END FUNCTION
 
 
-' Converts a base64 string to a normal string or binary data
-FUNCTION Base64_Decode$ (s AS STRING)
-    DIM srcSize AS _UNSIGNED LONG: srcSize = LEN(s)
-    DIM buffer AS STRING: buffer = SPACE$((srcSize \ 4) * 3) ' preallocate complete buffer
-    DIM j AS _UNSIGNED LONG: j = 1
-    DIM AS _UNSIGNED _BYTE index, char1, char2, char3, char4
-
-    DIM i AS _UNSIGNED LONG: FOR i = 1 TO srcSize STEP 4
-        index = ASC(s, i): GOSUB find_index: char1 = index
-        index = ASC(s, i + 1): GOSUB find_index: char2 = index
-        index = ASC(s, i + 2): GOSUB find_index: char3 = index
-        index = ASC(s, i + 3): GOSUB find_index: char4 = index
-
-        ASC(buffer, j) = _SHL(char1, 2) OR _SHR(char2, 4)
-        j = j + 1
-        ASC(buffer, j) = _SHL(char2 AND 15, 4) OR _SHR(char3, 2)
-        j = j + 1
-        ASC(buffer, j) = _SHL(char3 AND 3, 6) OR char4
-        j = j + 1
-    NEXT i
-
-    ' Remove padding
-    IF RIGHT$(s, 2) = "==" THEN
-        buffer = LEFT$(buffer, LEN(buffer) - 2)
-    ELSEIF RIGHT$(s, 1) = "=" THEN
-        buffer = LEFT$(buffer, LEN(buffer) - 1)
-    END IF
-
-    Base64_Decode = buffer
-    EXIT FUNCTION
-
-    find_index:
-    IF index >= 65 AND index <= 90 THEN
-        index = index - 65
-    ELSEIF index >= 97 AND index <= 122 THEN
-        index = index - 97 + 26
-    ELSEIF index >= 48 AND index <= 57 THEN
-        index = index - 48 + 52
-    ELSEIF index = 43 THEN
-        index = 62
-    ELSEIF index = 47 THEN
-        index = 63
-    END IF
-    RETURN
-END FUNCTION
-
-
 ' This function loads a resource directly from a string variable or constant (like the ones made by Bin2Data)
 FUNCTION Base64_LoadResourceString$ (src AS STRING, ogSize AS _UNSIGNED LONG, isComp AS _BYTE)
     ' Decode the data
-    DIM buffer AS STRING: buffer = Base64_Decode(src)
+    DIM buffer AS STRING: buffer = _BASE64DECODE$(src)
 
     ' Expand the data if needed
     IF isComp THEN buffer = _INFLATE$(buffer, ogSize)
