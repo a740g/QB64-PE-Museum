@@ -136,6 +136,7 @@ DIM game AS Game
 REDIM game_map(0, 0) AS MapPixel
 
 Game_Initialize
+Input_Initialize
 
 DO
     Input_Update
@@ -153,6 +154,7 @@ DO
     _LIMIT RENDERER_TARGET_FPS
 LOOP UNTIL game.event = EVENT_EXIT
 
+Input_Shutdown
 Game_Shutdown
 
 SYSTEM
@@ -185,8 +187,6 @@ SUB Game_Initialize
     Camera_Update
 
     Renderer_Initialize
-
-    _MOUSEHIDE
 END SUB
 
 
@@ -277,27 +277,58 @@ SUB Camera_Update
 END SUB
 
 
+SUB Input_Initialize
+    $IF MACOSX AND VERSION < 4.1.0 THEN
+        DECLARE LIBRARY
+            SUB CGAssociateMouseAndMouseCursorPosition (BYVAL connected AS _BYTE)
+        END DECLARE
+    $END IF
+
+    _MOUSEHIDE
+
+    $IF MACOSX AND VERSION < 4.1.0 THEN
+        CGAssociateMouseAndMouseCursorPosition _FALSE ' screw you apple!
+    $END IF
+END SUB
+
+
+SUB Input_Shutdown
+    $IF MACOSX AND VERSION < 4.1.0 THEN
+        CGAssociateMouseAndMouseCursorPosition _TRUE ' screw you apple!
+    $END IF
+
+    _MOUSESHOW
+END SUB
+
+
 SUB Input_Update
     SHARED game AS Game
     SHARED game_map() AS MapPixel
 
     game.event = EVENT_NONE
 
-    DIM mouseUsed AS _BYTE
+    DIM mouseUsed AS _BYTE, m AS Vector2i
 
     WHILE _MOUSEINPUT
+        $IF WINDOWS OR MACOSX THEN
+            m.x = m.x + _MOUSEMOVEMENTX
+            m.y = m.y + _MOUSEMOVEMENTY
+        $END IF
+
         mouseUsed = _TRUE
     WEND
 
-    DIM m AS Vector2i
-
     IF mouseUsed THEN
-        m.x = _MOUSEX - SCREEN_HALF_WIDTH
-        m.y = _MOUSEY - SCREEN_HALF_HEIGHT
-
-        IF m.x _ORELSE m.y THEN
+        $IF MACOSX OR WINDOWS THEN
             _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-        END IF
+        $ELSEIF LINUX THEN
+            m.x = _MOUSEX - SCREEN_HALF_WIDTH
+            m.y = _MOUSEY - SCREEN_HALF_HEIGHT
+
+            IF m.x _ORELSE m.y THEN
+                _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+            END IF
+        $END IF
     END IF
 
     IF _KEYDOWN(_KEY_LEFT) THEN

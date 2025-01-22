@@ -1,6 +1,6 @@
 ' Solid-wall raycaster by a740g
 ' Does not use DDA-based optimizations (yet)
-' Performance may suffer on low-end / old hardware
+' Performance may suffer on potato hardware
 '
 ' Bibliography:
 '   https://lodev.org/cgtutor/raycasting.html
@@ -60,29 +60,31 @@ _TITLE "Raycaster Demo"
 
 REDIM map(0, 0) AS _UNSIGNED LONG
 RESTORE level_data
-MakeWorld map()
+Map_Load map()
 
 DIM environment AS LONG
-environment = MakeEnvironment
+environment = Sky_Initialize
 
 DIM player AS Player
 player.position.x = 2!
 player.position.y = 2!
 player.camera.angle = 0!
-UpdatePlayerCamera player
+Camera_Update player
 
 DIM automap AS LONG
-automap = MakeAutomap(map())
+automap = Automap_Initialize(map())
 
-_MOUSEHIDE
+Input_Initialize
 
 DO
-    HandleInput player, map()
-    RenderFrame player, map(), environment, automap
+    Input_Update player, map()
+    Game_RenderFrame player, map(), environment, automap
 
     _DISPLAY
     _LIMIT RENDER_FPS
 LOOP UNTIL _KEYHIT = _KEY_ESC
+
+Input_Shutdown
 
 SYSTEM
 
@@ -112,7 +114,8 @@ DATA 7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
 DATA 7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
 DATA 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
 
-SUB MakeWorld (map( ,) AS _UNSIGNED LONG)
+
+SUB Map_Load (map( ,) AS _UNSIGNED LONG)
     DIM AS Vector2i m, mapMax
     READ mapMax.x, mapMax.y
     mapMax.x = mapMax.x - 1
@@ -130,7 +133,8 @@ SUB MakeWorld (map( ,) AS _UNSIGNED LONG)
     NEXT m.y
 END SUB
 
-FUNCTION MakeEnvironment&
+
+FUNCTION Sky_Initialize&
     CONST PANORAMA_WIDTH& = SCREEN_WIDTH * 4
     CONST SUN_RADIUS& = 20
     CONST SUN_COLOR& = 14
@@ -185,28 +189,65 @@ FUNCTION MakeEnvironment&
 
     _DEST oldDest
 
-    MakeEnvironment = img
+    Sky_Initialize = img
 END FUNCTION
 
-SUB UpdatePlayerCamera (player AS Player)
+
+SUB Camera_Update (player AS Player)
     DIM ra AS SINGLE: ra = _D2R(player.camera.angle)
     player.camera.direction.x = COS(ra)
     player.camera.direction.y = -SIN(ra)
 END SUB
 
-SUB HandleInput (player AS Player, map( ,) AS _UNSIGNED LONG)
-    DIM mouseUsed AS _BYTE
 
-    DIM m AS Vector2i
+SUB Input_Initialize
+    $IF MACOSX AND VERSION < 4.1.0 THEN
+        DECLARE LIBRARY
+            SUB CGAssociateMouseAndMouseCursorPosition (BYVAL connected AS _BYTE)
+        END DECLARE
+    $END IF
+
+    _MOUSEHIDE
+
+    $IF MACOSX AND VERSION < 4.1.0 THEN
+        CGAssociateMouseAndMouseCursorPosition _FALSE ' screw you apple!
+    $END IF
+END SUB
+
+
+SUB Input_Shutdown
+    $IF MACOSX AND VERSION < 4.1.0 THEN
+        CGAssociateMouseAndMouseCursorPosition _TRUE ' screw you apple!
+    $END IF
+
+    _MOUSESHOW
+END SUB
+
+
+SUB Input_Update (player AS Player, map( ,) AS _UNSIGNED LONG)
+    DIM mouseUsed AS _BYTE, m AS Vector2i
+
     WHILE _MOUSEINPUT
-        m.x = m.x + _MOUSEMOVEMENTX
-        m.y = m.y + _MOUSEMOVEMENTY
+        $IF WINDOWS OR MACOSX THEN
+            m.x = m.x + _MOUSEMOVEMENTX
+            m.y = m.y + _MOUSEMOVEMENTY
+        $END IF
+
         mouseUsed = _TRUE
     WEND
 
-    $IF WINDOWS THEN
-        _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-    $END IF
+    IF mouseUsed THEN
+        $IF WINDOWS OR MACOSX THEN
+            _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+        $ELSEIF LINUX THEN
+            m.x = _MOUSEX - SCREEN_HALF_WIDTH
+            m.y = _MOUSEY - SCREEN_HALF_HEIGHT
+
+            IF m.x _ORELSE m.y THEN
+                _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
+            END IF
+        $END IF
+    END IF
 
     IF _KEYDOWN(_KEY_LEFT) THEN
         m.x = m.x - PLAYER_MOVE_SPEED * 100
@@ -222,7 +263,7 @@ SUB HandleInput (player AS Player, map( ,) AS _UNSIGNED LONG)
         player.camera.angle = (player.camera.angle + m.x * PLAYER_LOOK_SPEED)
         IF player.camera.angle >= 360! THEN player.camera.angle = player.camera.angle - 360!
         IF player.camera.angle < 0! THEN player.camera.angle = player.camera.angle + 360!
-        UpdatePlayerCamera player
+        Camera_Update player
     END IF
 
     DIM keyboardUsed AS _BYTE, position AS Vector2f
@@ -267,13 +308,15 @@ SUB HandleInput (player AS Player, map( ,) AS _UNSIGNED LONG)
     END IF
 END SUB
 
-FUNCTION MakeAutomap& (map( ,) AS _UNSIGNED LONG)
+
+FUNCTION Automap_Initialize& (map( ,) AS _UNSIGNED LONG)
     DIM img AS LONG: img = _NEWIMAGE((UBOUND(map, 1) + 1) * AUTOMAP_SCALE, (UBOUND(map, 2) + 1) * AUTOMAP_SCALE, SCREEN_MODE)
     _CLEARCOLOR 0, img
-    MakeAutomap = img
+    Automap_Initialize = img
 END FUNCTION
 
-SUB DrawAutomap (player AS Player, map( ,) AS _UNSIGNED LONG, automapImg AS LONG)
+
+SUB Automap_Draw (player AS Player, map( ,) AS _UNSIGNED LONG, automapImg AS LONG)
     DIM oldDest AS LONG: oldDest = _DEST
     _DEST automapImg
 
@@ -304,7 +347,8 @@ SUB DrawAutomap (player AS Player, map( ,) AS _UNSIGNED LONG, automapImg AS LONG
     _PUTIMAGE (0, 0), automapImg
 END SUB
 
-SUB DrawBackground (player AS Player, environmentImg AS LONG)
+
+SUB Sky_Draw (player AS Player, environmentImg AS LONG)
     DIM AS Vector2i skyPos, skySize
 
     skySize.x = _WIDTH(environmentImg)
@@ -322,8 +366,31 @@ SUB DrawBackground (player AS Player, environmentImg AS LONG)
     END IF
 END SUB
 
-SUB RenderFrame (player AS Player, map( ,) AS _UNSIGNED LONG, environmentImg AS LONG, automapImg AS LONG)
-    DrawBackground player, environmentImg
+
+FUNCTION Time_GetHertz~&
+    DECLARE LIBRARY
+        FUNCTION GetTicks~&&
+    END DECLARE
+
+    STATIC AS _UNSIGNED LONG counter, finalFPS
+    STATIC lastTime AS _UNSIGNED _INTEGER64
+
+    DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
+
+    IF currentTime >= lastTime + 1000 THEN
+        lastTime = currentTime
+        finalFPS = counter
+        counter = 0
+    END IF
+
+    counter = counter + 1
+
+    Time_GetHertz = finalFPS
+END FUNCTION
+
+
+SUB Game_RenderFrame (player AS Player, map( ,) AS _UNSIGNED LONG, environmentImg AS LONG, automapImg AS LONG)
+    Sky_Draw player, environmentImg
 
     DIM rayAngle AS SINGLE
     rayAngle = player.camera.angle - PLAYER_HALF_FOV
@@ -363,28 +430,7 @@ SUB RenderFrame (player AS Player, map( ,) AS _UNSIGNED LONG, environmentImg AS 
         IF rayAngle >= 360! THEN rayAngle = rayAngle - 360!
     NEXT i
 
-    DrawAutomap player, map(), automapImg
+    Automap_Draw player, map(), automapImg
 
-    _PRINTSTRING (0, SCREEN_HEIGHT - _FONTHEIGHT), STR$(GetHertz) + " FPS"
+    _PRINTSTRING (0, SCREEN_HEIGHT - _FONTHEIGHT), STR$(Time_GetHertz) + " FPS"
 END SUB
-
-FUNCTION GetHertz~&
-    DECLARE LIBRARY
-        FUNCTION GetTicks~&&
-    END DECLARE
-
-    STATIC AS _UNSIGNED LONG counter, finalFPS
-    STATIC lastTime AS _UNSIGNED _INTEGER64
-
-    DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
-
-    IF currentTime >= lastTime + 1000 THEN
-        lastTime = currentTime
-        finalFPS = counter
-        counter = 0
-    END IF
-
-    counter = counter + 1
-
-    GetHertz = finalFPS
-END FUNCTION
