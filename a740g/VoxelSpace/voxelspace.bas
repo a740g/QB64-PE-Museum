@@ -312,7 +312,7 @@ SUB Input_Update
     DIM mouseUsed AS _BYTE, m AS Vector2i
 
     WHILE _MOUSEINPUT
-        $IF WINDOWS OR MACOSX THEN
+        $IF WINDOWS THEN
             m.x = m.x + _MOUSEMOVEMENTX
             m.y = m.y + _MOUSEMOVEMENTY
         $END IF
@@ -321,11 +321,11 @@ SUB Input_Update
     WEND
 
     IF mouseUsed THEN
-        $IF MACOSX OR WINDOWS THEN
+        $IF WINDOWS THEN
             IF _MOUSEX <> SCREEN_HALF_WIDTH _ORELSE _MOUSEY <> SCREEN_HALF_HEIGHT THEN
                 _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
             END IF
-        $ELSEIF LINUX THEN
+        $ELSEIF MACOSX OR LINUX THEN
             m.x = _MOUSEX - SCREEN_HALF_WIDTH
             m.y = _MOUSEY - SCREEN_HALF_HEIGHT
 
