@@ -16,6 +16,10 @@ CONST SCREEN_HALF_WIDTH& = SCREEN_WIDTH \ 2&
 CONST SCREEN_HALF_HEIGHT& = SCREEN_HEIGHT \ 2&
 CONST SCREEN_MAX_X& = SCREEN_WIDTH - 1&
 CONST SCREEN_MAX_Y& = SCREEN_HEIGHT - 1&
+CONST PANORAMA_WIDTH& = SCREEN_WIDTH * 4
+CONST PANORAMA_HEIGHT& = SCREEN_HEIGHT * 2
+CONST PANORAMA_MAX_Y& = PANORAMA_HEIGHT - 1
+CONST PANORAMA_HALF_HEIGHT& = PANORAMA_HEIGHT \ 2
 CONST SCREEN_MODE& = 256&
 CONST RENDER_FPS& = 60&
 CONST PLAYER_FOV& = 60&
@@ -24,7 +28,8 @@ CONST RAYCAST_INCREMENT_ANGLE! = PLAYER_FOV / SCREEN_WIDTH
 CONST RAYCAST_PRECISION! = 64!
 CONST MAP_DEFAULT_BOUNDARY_COLOR~& = 7
 CONST PLAYER_MOVE_SPEED! = 0.1!
-CONST PLAYER_LOOK_SPEED! = 0.1!
+CONST PLAYER_LOOK_SPEED_X! = 0.05!
+CONST PLAYER_LOOK_SPEED_Y! = PLAYER_LOOK_SPEED_X / 16!
 CONST AUTOMAP_SCALE& = 4
 CONST AUTOMAP_PLAYER_RADIUS& = 2
 CONST AUTOMAP_PLAYER_COLOR~& = 15
@@ -42,6 +47,7 @@ END TYPE
 
 TYPE Camera
     angle AS SINGLE
+    pitch AS SINGLE
     direction AS Vector2f
 END TYPE
 
@@ -135,7 +141,6 @@ END SUB
 
 
 FUNCTION Sky_Initialize&
-    CONST PANORAMA_WIDTH& = SCREEN_WIDTH * 4
     CONST SUN_RADIUS& = 20
     CONST SUN_COLOR& = 14
     CONST CLOUD_COUNT& = 10
@@ -143,13 +148,13 @@ FUNCTION Sky_Initialize&
     CONST BUILDING_COLOR& = 8
 
     DIM oldDest AS LONG: oldDest = _DEST
-    DIM img AS LONG: img = _NEWIMAGE(PANORAMA_WIDTH, SCREEN_HEIGHT, SCREEN_MODE)
+    DIM img AS LONG: img = _NEWIMAGE(PANORAMA_WIDTH, PANORAMA_HEIGHT, SCREEN_MODE)
     _DEST img
 
-    LINE (0, 0)-(PANORAMA_WIDTH - 1, SCREEN_HALF_HEIGHT - 1), 3, BF
+    LINE (0, 0)-(PANORAMA_WIDTH - 1, PANORAMA_HALF_HEIGHT - 1), 3, BF
 
     DIM x AS LONG: x = SUN_RADIUS + (PANORAMA_WIDTH - 2 * SUN_RADIUS - 1) * RND
-    DIM y AS LONG: y = SUN_RADIUS + (SCREEN_HALF_HEIGHT - 2 * SUN_RADIUS - 1) * RND
+    DIM y AS LONG: y = SUN_RADIUS + (PANORAMA_HALF_HEIGHT - 2 * SUN_RADIUS - 1) * RND
     CIRCLE (x, y), SUN_RADIUS, SUN_COLOR
     PAINT (x, y), SUN_COLOR, SUN_COLOR
 
@@ -158,31 +163,31 @@ FUNCTION Sky_Initialize&
     FOR i = 1 TO CLOUD_COUNT
         j = (PANORAMA_WIDTH \ 8) * RND
         x = j + (PANORAMA_WIDTH - 2 * j) * RND
-        y = j + (SCREEN_HALF_HEIGHT - 2 * j) * RND
+        y = j + (PANORAMA_HALF_HEIGHT - 2 * j) * RND
         CIRCLE (x, y), j, CLOUD_COLOR, , , RND / 10!
         PAINT (x, y), CLOUD_COLOR
     NEXT i
 
     x = (PANORAMA_WIDTH - 80) * RND
 
-    LINE (x, 40)-(x + 40, 30), BUILDING_COLOR
-    LINE (x + 40, 30)-(x + 80, 40), BUILDING_COLOR
-    LINE (x, 40)-(x, SCREEN_HALF_HEIGHT - 1), BUILDING_COLOR
-    LINE (x + 80, 40)-(x + 80, SCREEN_HALF_HEIGHT - 1), BUILDING_COLOR
-    LINE (x, SCREEN_HALF_HEIGHT - 1)-(x + 80, SCREEN_HALF_HEIGHT - 1), BUILDING_COLOR
-    PAINT (x + 24, 100), BUILDING_COLOR
+    LINE (x, 80)-(x + 40, 70), BUILDING_COLOR
+    LINE (x + 40, 70)-(x + 80, 80), BUILDING_COLOR
+    LINE (x, 80)-(x, PANORAMA_HALF_HEIGHT - 1), BUILDING_COLOR
+    LINE (x + 80, 80)-(x + 80, PANORAMA_HALF_HEIGHT - 1), BUILDING_COLOR
+    LINE (x, PANORAMA_HALF_HEIGHT - 1)-(x + 80, PANORAMA_HALF_HEIGHT - 1), BUILDING_COLOR
+    PAINT (x + 24, 200), BUILDING_COLOR
 
     FOR i = 1 TO 20
-        PSET (2 + x + RND * 76, 40 + RND * 160), SUN_COLOR
+        PSET (2 + x + RND * 76, 80 + RND * 160), SUN_COLOR
     NEXT i
 
-    LINE (x, 40)-(x + 40, 30), 0
-    LINE (x + 40, 30)-(x + 80, 40), 0
-    LINE (x + 38, 30)-(x + 38, SCREEN_HALF_HEIGHT - 1), 0
-    LINE (x, 40)-(x, SCREEN_HALF_HEIGHT - 1), 0
-    LINE (x + 80, 40)-(x + 80, SCREEN_HALF_HEIGHT - 1), 0
+    LINE (x, 80)-(x + 40, 70), 0
+    LINE (x + 40, 70)-(x + 80, 80), 0
+    LINE (x + 38, 70)-(x + 38, PANORAMA_HALF_HEIGHT - 1), 0
+    LINE (x, 80)-(x, PANORAMA_HALF_HEIGHT - 1), 0
+    LINE (x + 80, 80)-(x + 80, PANORAMA_HALF_HEIGHT - 1), 0
 
-    FOR i = SCREEN_HALF_HEIGHT TO SCREEN_MAX_Y
+    FOR i = PANORAMA_HALF_HEIGHT TO PANORAMA_MAX_Y
         LINE (0, i)-(PANORAMA_WIDTH, i), 6, , _IIF(i AND 1, &B1010101010101010, &B0101010101010101)
         LINE (0, i)-(PANORAMA_WIDTH, i), 8, , _IIF(i AND 1, &B0101010101010101, &B1010101010101010)
     NEXT i
@@ -228,7 +233,7 @@ SUB Input_Update (player AS Player, map( ,) AS _UNSIGNED LONG)
     DIM mouseUsed AS _BYTE, m AS Vector2i
 
     WHILE _MOUSEINPUT
-        $IF WINDOWS OR MACOSX THEN
+        $IF WINDOWS THEN
             m.x = m.x + _MOUSEMOVEMENTX
             m.y = m.y + _MOUSEMOVEMENTY
         $END IF
@@ -237,11 +242,11 @@ SUB Input_Update (player AS Player, map( ,) AS _UNSIGNED LONG)
     WEND
 
     IF mouseUsed THEN
-        $IF WINDOWS OR MACOSX THEN
+        $IF WINDOWS THEN
             IF m.x _ORELSE m.y THEN
                 _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
             END IF
-        $ELSEIF LINUX THEN
+        $ELSEIF MACOSX OR LINUX THEN
             m.x = _MOUSEX - SCREEN_HALF_WIDTH
             m.y = _MOUSEY - SCREEN_HALF_HEIGHT
 
@@ -262,9 +267,14 @@ SUB Input_Update (player AS Player, map( ,) AS _UNSIGNED LONG)
     END IF
 
     IF mouseUsed THEN
-        player.camera.angle = (player.camera.angle + m.x * PLAYER_LOOK_SPEED)
+        player.camera.angle = player.camera.angle + m.x * PLAYER_LOOK_SPEED_X
         IF player.camera.angle >= 360! THEN player.camera.angle = player.camera.angle - 360!
         IF player.camera.angle < 0! THEN player.camera.angle = player.camera.angle + 360!
+
+        player.camera.pitch = player.camera.pitch + m.y * PLAYER_LOOK_SPEED_Y
+        IF player.camera.pitch > 1! THEN player.camera.pitch = 1!
+        IF player.camera.pitch < -1! THEN player.camera.pitch = -1!
+
         Camera_Update player
     END IF
 
@@ -357,6 +367,8 @@ SUB Sky_Draw (player AS Player, environmentImg AS LONG)
     skySize.y = _HEIGHT(environmentImg)
 
     skyPos.x = (player.camera.angle * skySize.x) \ 360
+    skyPos.y = SCREEN_HALF_HEIGHT + player.camera.pitch * SCREEN_HALF_HEIGHT
+
 
     IF skyPos.x + SCREEN_WIDTH > skySize.x THEN
         DIM partialWidth AS LONG: partialWidth = skySize.x - skyPos.x
@@ -392,6 +404,8 @@ END FUNCTION
 
 
 SUB Game_RenderFrame (player AS Player, map( ,) AS _UNSIGNED LONG, environmentImg AS LONG, automapImg AS LONG)
+    CLS 1, 0
+
     Sky_Draw player, environmentImg
 
     DIM rayAngle AS SINGLE
@@ -425,7 +439,10 @@ SUB Game_RenderFrame (player AS Player, map( ,) AS _UNSIGNED LONG, environmentIm
         IF wallColor THEN
             distance = SQR((player.position.x - rayPosition.x) ^ 2! + (player.position.y - rayPosition.y) ^ 2!) * COS(_D2R(player.camera.angle - rayAngle))
             wallHeight = SCREEN_HALF_HEIGHT / distance
-            LINE (i, SCREEN_HALF_HEIGHT - wallHeight)-(i, SCREEN_HALF_HEIGHT + wallHeight), wallColor, BF
+
+            DIM pitchOffset AS LONG: pitchOffset = player.camera.pitch * SCREEN_HALF_HEIGHT
+
+            LINE (i, SCREEN_HALF_HEIGHT - wallHeight - pitchOffset)-(i, SCREEN_HALF_HEIGHT + wallHeight - pitchOffset), wallColor, BF
         END IF
 
         rayAngle = rayAngle + RAYCAST_INCREMENT_ANGLE

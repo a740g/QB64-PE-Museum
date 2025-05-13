@@ -322,7 +322,7 @@ SUB Input_Update
 
     IF mouseUsed THEN
         $IF WINDOWS THEN
-            IF _MOUSEX <> SCREEN_HALF_WIDTH _ORELSE _MOUSEY <> SCREEN_HALF_HEIGHT THEN
+            IF m.x _ORELSE m.y THEN
                 _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
             END IF
         $ELSEIF MACOSX OR LINUX THEN
