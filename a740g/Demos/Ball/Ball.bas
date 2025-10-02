@@ -4,9 +4,11 @@ _DEFINE A-Z AS LONG
 OPTION _EXPLICIT
 
 SCREEN _NEWIMAGE(1280, 720, 32)
-_TITLE "Textured Sphere with _MAPTRIANGLE (Optimized)"
+_TITLE "Textured Sphere with _MAPTRIANGLE"
+$RESIZE:SMOOTH
+_ALLOWFULLSCREEN OFF , _SMOOTH
 
-CONST RADIUS! = 150!
+CONST RADIUS_MAX! = 150!
 CONST CENTERX! = 640!
 CONST CENTERY! = 360!
 CONST LAT_STEPS& = 18&
@@ -27,6 +29,11 @@ END IF
 texWidth = _WIDTH(texture)
 texHeight = _HEIGHT(texture)
 
+TYPE Vector2D
+    x AS SINGLE
+    y AS SINGLE
+END TYPE
+
 TYPE Vector3D
     x AS SINGLE
     y AS SINGLE
@@ -38,14 +45,16 @@ DIM SHARED nLon AS LONG: nLon = LON_STEPS
 DIM SHARED nVerts AS LONG: nVerts = (nLat + 1) * (nLon + 1)
 DIM SHARED nTris AS LONG: nTris = 2 * nLat * nLon
 
-REDIM SHARED vx(0) AS SINGLE, vy(0) AS SINGLE, vz(0) AS SINGLE
+REDIM SHARED v(0) AS Vector3D
+
 REDIM SHARED vu(0) AS SINGLE, vv(0) AS SINGLE
 
-REDIM SHARED sx(0) AS SINGLE, sy(0) AS SINGLE, sz(0) AS SINGLE
+REDIM SHARED s(0) AS Vector3D
 
 REDIM SHARED t1(0) AS LONG, t2(0) AS LONG, t3(0) AS LONG
 
-DIM angleX AS SINGLE, angleY AS SINGLE
+DIM animCounter AS SINGLE
+DIM AS Vector2D angle, currentCenter, c, s
 
 InitMesh
 
@@ -54,11 +63,19 @@ _SNDLOOP _SNDOPEN("jb-alacrity.mod")
 DO
     CLS
 
-    angleX = angleX + 0.01!
-    angleY = angleY + 0.02!
+    animCounter = animCounter + 0.05!
+    angle.x = angle.x + 0.01!
+    angle.y = angle.y + 0.02!
 
-    RotateAndProject angleX, angleY
-    DrawMesh
+    currentCenter.x = CENTERX + SIN(animCounter * 0.5!) * 200!
+    currentCenter.y = CENTERY - ABS(SIN(animCounter)) * 100!
+    DIM scaledRadius AS SINGLE: scaledRadius = RADIUS_MAX + SIN(animCounter * 0.7!) * 50!
+
+    c.x = COS(angle.x): s.x = SIN(angle.x)
+    c.y = COS(angle.y): s.y = SIN(angle.y)
+
+    RotateAndProject c, s
+    DrawMesh currentCenter, scaledRadius
 
     _PRINTSTRING (0, 0), _TOSTR$(CalculateFPS) + " FPS"
 
@@ -70,9 +87,9 @@ LOOP UNTIL _KEYHIT = _KEY_ESC
 SYSTEM
 
 SUB InitMesh
-    REDIM vx(0 TO nVerts - 1) AS SINGLE, vy(0 TO nVerts - 1) AS SINGLE, vz(0 TO nVerts - 1) AS SINGLE
+    REDIM v(0 TO nVerts - 1) AS Vector3D
     REDIM vu(0 TO nVerts - 1) AS SINGLE, vv(0 TO nVerts - 1) AS SINGLE
-    REDIM sx(0 TO nVerts - 1) AS SINGLE, sy(0 TO nVerts - 1) AS SINGLE, sz(0 TO nVerts - 1) AS SINGLE
+    REDIM s(0 TO nVerts - 1) AS Vector3D
     REDIM t1(0 TO nTris - 1) AS LONG, t2(0 TO nTris - 1) AS LONG, t3(0 TO nTris - 1) AS LONG
 
     DIM AS SINGLE dLatMesh, dLon, latDegMesh, lonDeg, latRadMesh, latDegTex, latRadTex
@@ -98,12 +115,11 @@ SUB InitMesh
             lonDeg = iLon * dLon
             DIM lonRad AS SINGLE: lonRad = _D2R(lonDeg)
             DIM cLon AS SINGLE, sLon AS SINGLE
-            cLon = COS(lonRad)
-            sLon = SIN(lonRad)
+            cLon = COS(lonRad): sLon = SIN(lonRad)
 
-            vx(v) = RADIUS * cLat * cLon
-            vy(v) = RADIUS * sLat
-            vz(v) = -RADIUS * cLat * sLon
+            v(v).x = RADIUS_MAX * cLat * cLon
+            v(v).y = RADIUS_MAX * sLat
+            v(v).z = -RADIUS_MAX * cLat * sLon
 
             vu(v) = (1! - (lonDeg / 360!)) * tw
 
@@ -117,7 +133,7 @@ SUB InitMesh
             IF y > yMax THEN y = yMax
             IF y < -yMax THEN y = -yMax
 
-            vv(v) = ((yMax - y) / (2! * yMax)) * th
+            vv(v) = (yMax - y) / (2! * yMax) * th
 
             v = v + 1
         NEXT
@@ -138,40 +154,38 @@ SUB InitMesh
     NEXT
 END SUB
 
-SUB RotateAndProject (ax AS SINGLE, ay AS SINGLE)
-    DIM cx AS SINGLE, sx AS SINGLE, cy AS SINGLE, sy AS SINGLE
-    cx = COS(ax): sx = SIN(ax)
-    cy = COS(ay): sy = SIN(ay)
-
+SUB RotateAndProject (c AS Vector2D, s AS Vector2D)
     DIM i AS LONG
     DIM x AS SINGLE, y AS SINGLE, z AS SINGLE
     DIM ry AS SINGLE, rz AS SINGLE, rx AS SINGLE, rz2 AS SINGLE
 
     FOR i = 0 TO nVerts - 1
-        x = vx(i): y = vy(i): z = vz(i)
+        x = v(i).x: y = v(i).y: z = v(i).z
 
-        ry = y * cx - z * sx
-        rz = y * sx + z * cx
+        ry = y * c.x - z * s.x
+        rz = y * s.x + z * c.x
 
-        rx = x * cy + rz * sy
-        rz2 = -x * sy + rz * cy
+        rx = x * c.y + rz * s.y
+        rz2 = -x * s.y + rz * c.y
 
-        sx(i) = CENTERX + rx
-        sy(i) = CENTERY + ry
-        sz(i) = rz2
+        s(i).x = rx
+        s(i).y = ry
+        s(i).z = rz2
     NEXT
 END SUB
 
-SUB DrawMesh
+SUB DrawMesh (center AS Vector2D, radius AS SINGLE)
     DIM i AS LONG, a AS LONG, b AS LONG, c AS LONG
     DIM avgZ AS SINGLE
+    DIM scaleFactor AS SINGLE: scaleFactor = radius / RADIUS_MAX
 
     FOR i = 0 TO nTris - 1
         a = t1(i): b = t2(i): c = t3(i)
-        avgZ = (sz(a) + sz(b) + sz(c)) * 0.3333333!
+
+        avgZ = (s(a).z + s(b).z + s(c).z) * 0.3333333!
 
         IF avgZ >= 0! THEN
-            _MAPTRIANGLE (vu(a), vv(a))-(vu(b), vv(b))-(vu(c), vv(c)), texture TO(sx(a), sy(a))-(sx(b), sy(b))-(sx(c), sy(c)), _SMOOTH
+            _MAPTRIANGLE (vu(a), vv(a))-(vu(b), vv(b))-(vu(c), vv(c)), texture TO(center.x + s(a).x * scaleFactor, center.y + s(a).y * scaleFactor)-(center.x + s(b).x * scaleFactor, center.y + s(b).y * scaleFactor)-(center.x + s(c).x * scaleFactor, center.y + s(c).y * scaleFactor), _SMOOTH
         END IF
     NEXT
 END SUB
@@ -181,18 +195,18 @@ FUNCTION CalculateFPS~&
         FUNCTION GetTicks~&&
     END DECLARE
 
-    STATIC AS _UNSIGNED LONG counter, finalFPS
+    STATIC AS _UNSIGNED LONG finalFPS, frameCount
     STATIC lastTime AS _UNSIGNED _INTEGER64
 
     DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
 
     IF currentTime >= lastTime + 1000 THEN
         lastTime = currentTime
-        finalFPS = counter
-        counter = 0
+        finalFPS = frameCount
+        frameCount = 0
     END IF
 
-    counter = counter + 1
+    frameCount = frameCount + 1
 
     CalculateFPS = finalFPS
 END FUNCTION
