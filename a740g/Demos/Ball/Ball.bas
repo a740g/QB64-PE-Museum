@@ -34,10 +34,16 @@ TYPE Vector2D
     y AS SINGLE
 END TYPE
 
-TYPE Vector3D
+TYPE Vertex
     x AS SINGLE
     y AS SINGLE
     z AS SINGLE
+END TYPE
+
+TYPE Triangle
+    v1 AS LONG
+    v2 AS LONG
+    v3 AS LONG
 END TYPE
 
 DIM SHARED nLat AS LONG: nLat = LAT_STEPS
@@ -45,13 +51,10 @@ DIM SHARED nLon AS LONG: nLon = LON_STEPS
 DIM SHARED nVerts AS LONG: nVerts = (nLat + 1) * (nLon + 1)
 DIM SHARED nTris AS LONG: nTris = 2 * nLat * nLon
 
-REDIM SHARED v(0) AS Vector3D
-
-REDIM SHARED vu(0) AS SINGLE, vv(0) AS SINGLE
-
-REDIM SHARED s(0) AS Vector3D
-
-REDIM SHARED t1(0) AS LONG, t2(0) AS LONG, t3(0) AS LONG
+REDIM SHARED vertices(0) AS Vertex
+REDIM SHARED texCoords(0) AS Vector2D
+REDIM SHARED screenCoords(0) AS Vertex
+REDIM SHARED triangles(0) AS Triangle
 
 DIM animCounter AS SINGLE
 DIM AS Vector2D angle, currentCenter, c, s
@@ -75,7 +78,7 @@ DO
     c.y = COS(angle.y): s.y = SIN(angle.y)
 
     RotateAndProject c, s
-    DrawMesh currentCenter, scaledRadius
+    DrawMesh currentCenter, scaledRadius, texCoords(), screenCoords(), triangles()
 
     _PRINTSTRING (0, 0), _TOSTR$(CalculateFPS) + " FPS"
 
@@ -87,10 +90,10 @@ LOOP UNTIL _KEYHIT = _KEY_ESC
 SYSTEM
 
 SUB InitMesh
-    REDIM v(0 TO nVerts - 1) AS Vector3D
-    REDIM vu(0 TO nVerts - 1) AS SINGLE, vv(0 TO nVerts - 1) AS SINGLE
-    REDIM s(0 TO nVerts - 1) AS Vector3D
-    REDIM t1(0 TO nTris - 1) AS LONG, t2(0 TO nTris - 1) AS LONG, t3(0 TO nTris - 1) AS LONG
+    REDIM vertices(0 TO nVerts - 1) AS Vertex
+    REDIM texCoords(0 TO nVerts - 1) AS Vector2D
+    REDIM screenCoords(0 TO nVerts - 1) AS Vertex
+    REDIM triangles(0 TO nTris - 1) AS Triangle
 
     DIM AS SINGLE dLatMesh, dLon, latDegMesh, lonDeg, latRadMesh, latDegTex, latRadTex
     dLatMesh = (MESH_LAT_MAX - MESH_LAT_MIN) / nLat
@@ -117,11 +120,11 @@ SUB InitMesh
             DIM cLon AS SINGLE, sLon AS SINGLE
             cLon = COS(lonRad): sLon = SIN(lonRad)
 
-            v(v).x = RADIUS_MAX * cLat * cLon
-            v(v).y = RADIUS_MAX * sLat
-            v(v).z = -RADIUS_MAX * cLat * sLon
+            vertices(v).x = RADIUS_MAX * cLat * cLon
+            vertices(v).y = RADIUS_MAX * sLat
+            vertices(v).z = -RADIUS_MAX * cLat * sLon
 
-            vu(v) = (1! - (lonDeg / 360!)) * tw
+            texCoords(v).x = (1! - (lonDeg / 360!)) * tw
 
             latDegTex = latDegMesh
             IF latDegTex > TEX_LAT_MAX! THEN latDegTex = TEX_LAT_MAX!
@@ -133,7 +136,7 @@ SUB InitMesh
             IF y > yMax THEN y = yMax
             IF y < -yMax THEN y = -yMax
 
-            vv(v) = (yMax - y) / (2! * yMax) * th
+            texCoords(v).y = (yMax - y) / (2! * yMax) * th
 
             v = v + 1
         NEXT
@@ -148,8 +151,8 @@ SUB InitMesh
             i11 = (iLat + 1) * (nLon + 1) + (iLon + 1)
             i01 = iLat * (nLon + 1) + (iLon + 1)
 
-            t1(t) = i00: t2(t) = i10: t3(t) = i11: t = t + 1
-            t1(t) = i00: t2(t) = i11: t3(t) = i01: t = t + 1
+            triangles(t).v1 = i00: triangles(t).v2 = i10: triangles(t).v3 = i11: t = t + 1
+            triangles(t).v1 = i00: triangles(t).v2 = i11: triangles(t).v3 = i01: t = t + 1
         NEXT
     NEXT
 END SUB
@@ -160,7 +163,7 @@ SUB RotateAndProject (c AS Vector2D, s AS Vector2D)
     DIM ry AS SINGLE, rz AS SINGLE, rx AS SINGLE, rz2 AS SINGLE
 
     FOR i = 0 TO nVerts - 1
-        x = v(i).x: y = v(i).y: z = v(i).z
+        x = vertices(i).x: y = vertices(i).y: z = vertices(i).z
 
         ry = y * c.x - z * s.x
         rz = y * s.x + z * c.x
@@ -168,24 +171,24 @@ SUB RotateAndProject (c AS Vector2D, s AS Vector2D)
         rx = x * c.y + rz * s.y
         rz2 = -x * s.y + rz * c.y
 
-        s(i).x = rx
-        s(i).y = ry
-        s(i).z = rz2
+        screenCoords(i).x = rx
+        screenCoords(i).y = ry
+        screenCoords(i).z = rz2
     NEXT
 END SUB
 
-SUB DrawMesh (center AS Vector2D, radius AS SINGLE)
+SUB DrawMesh (center AS Vector2D, radius AS SINGLE, tc() AS Vector2D, sc() AS Vertex, tris() AS Triangle)
     DIM i AS LONG, a AS LONG, b AS LONG, c AS LONG
     DIM avgZ AS SINGLE
     DIM scaleFactor AS SINGLE: scaleFactor = radius / RADIUS_MAX
 
     FOR i = 0 TO nTris - 1
-        a = t1(i): b = t2(i): c = t3(i)
+        a = tris(i).v1: b = tris(i).v2: c = tris(i).v3
 
-        avgZ = (s(a).z + s(b).z + s(c).z) * 0.3333333!
+        avgZ = (sc(a).z + sc(b).z + sc(c).z) * 0.3333333!
 
         IF avgZ >= 0! THEN
-            _MAPTRIANGLE (vu(a), vv(a))-(vu(b), vv(b))-(vu(c), vv(c)), texture TO(center.x + s(a).x * scaleFactor, center.y + s(a).y * scaleFactor)-(center.x + s(b).x * scaleFactor, center.y + s(b).y * scaleFactor)-(center.x + s(c).x * scaleFactor, center.y + s(c).y * scaleFactor), _SMOOTH
+            _MAPTRIANGLE (tc(a).x, tc(a).y)-(tc(b).x, tc(b).y)-(tc(c).x, tc(c).y), texture TO(center.x + sc(a).x * scaleFactor, center.y + sc(a).y * scaleFactor)-(center.x + sc(b).x * scaleFactor, center.y + sc(b).y * scaleFactor)-(center.x + sc(c).x * scaleFactor, center.y + sc(c).y * scaleFactor), _SMOOTH
         END IF
     NEXT
 END SUB
