@@ -134,7 +134,7 @@ SUB Map_Load (map( ,) AS _UNSIGNED LONG)
     FOR m.y = 0 TO mapMax.y
         FOR m.x = 0 TO mapMax.x
             READ d
-            map(m.x, mapMax.y - m.y) = VAL("&H" + d)
+            map(m.x, mapMax.y - m.y) = VAL("&H" + d, _UNSIGNED LONG)
         NEXT m.x
     NEXT m.y
 END SUB
