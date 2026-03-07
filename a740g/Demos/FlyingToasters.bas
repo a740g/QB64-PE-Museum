@@ -1,5 +1,5 @@
 ' Flying toasters - a740g
-' I am not sure where the toaster sprites came from. Sorry.
+' I do not remember where the toaster sprites came from. Sorry.
 ' C version - 2003
 ' QB64-PE port - 2024
 
@@ -30,7 +30,7 @@ SCREEN _NEWIMAGE(640, 400, 256)
 _FULLSCREEN _SQUAREPIXELS , _SMOOTH
 _PRINTMODE _KEEPBACKGROUND
 
-LoadAssets
+Toaster_LoadAssets
 
 _COPYPALETTE bmpToaster(1), _DEST
 
@@ -49,11 +49,11 @@ DIM mY AS LONG: mY = _HEIGHT - 1
 
 ' Draw funny lines
 FOR i = 0 TO mX
-    DrawFunnyLine 0, mY, i, 0
+    Toaster_DrawFunnyLine 0, mY, i, 0
 NEXT i
 
 FOR i = 0 TO mY
-    DrawFunnyLine 0, mY, mX, i
+    Toaster_DrawFunnyLine 0, mY, mX, i
 NEXT i
 
 ' Draw circles
@@ -77,7 +77,7 @@ DO
 
     ' Blit and make all the toasters go
     FOR i = 1 TO NUMTOASTERS
-        Toaster_Go toaster(i)
+        Toaster_Update toaster(i)
 
         ' Select the actual bitmap frame
         DIM frame AS LONG
@@ -104,7 +104,7 @@ DO
         isPalMorphed = Graphics_MorphPalette(_DEST, bmpCircle, 0, 255)
     END IF
 
-    _PRINTSTRING (0, 0), STR$(Time_GetHertz) + " FPS"
+    _PRINTSTRING (0, 0), STR$(Time_MeasureHertz) + " FPS"
 
     _DISPLAY
 
@@ -122,7 +122,6 @@ _FREEIMAGE bmpCircle
 
 SYSTEM
 
-
 SUB Toaster_Init (t AS ToasterType)
     SHARED bmpToaster() AS LONG
 
@@ -132,8 +131,7 @@ SUB Toaster_Init (t AS ToasterType)
     t.speed = RND * 3 + 1
 END SUB
 
-
-SUB Toaster_Go (t AS ToasterType)
+SUB Toaster_Update (t AS ToasterType)
     SHARED bmpToaster() AS LONG
 
     ' Move the toaster
@@ -148,9 +146,8 @@ SUB Toaster_Go (t AS ToasterType)
     IF (t.x < -_WIDTH(bmpToaster(1))) OR (t.y >= _HEIGHT) THEN Toaster_Init t
 END SUB
 
-
 ' Draws "funny lines"
-SUB DrawFunnyLine (a AS LONG, b AS LONG, c AS LONG, d AS LONG)
+SUB Toaster_DrawFunnyLine (a AS LONG, b AS LONG, c AS LONG, d AS LONG)
     DIM AS LONG al, bl, i, s, d1x, d1y, d2x, d2y, u, v, m, n, count
 
     al = a
@@ -191,8 +188,7 @@ SUB DrawFunnyLine (a AS LONG, b AS LONG, c AS LONG, d AS LONG)
     NEXT i
 END SUB
 
-
-SUB LoadAssets
+SUB Toaster_LoadAssets
     SHARED bmpToaster() AS LONG
     SHARED bmpCircle
 
@@ -211,7 +207,7 @@ SUB LoadAssets
     "Uqi10lqj984Ygzknay323pxzuPfy3uO3S1YJDEIBDMPb3f/Ak+B0vn2+4JDgb1Co95wO/M9v22d+Bk1TJ1VSd90ARAcePDCL4r/na+Zd32BJr3zo" + _
     "hctcz33+H3zZsq2X/yeB7KnRS5/AaxBJv6ECfMkgvdLXgFHbwqkTSBn0ttOfAzDTnPSQOgGFbEY5C7QsaICdaW4LmN0L8N2fQQ=="
 
-    bmpToaster(1) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER1_BMP_2518, SIZE_TOASTER1_BMP_2518, COMP_TOASTER1_BMP_2518), _TRUE, _FALSE, "memory", 0)
+    bmpToaster(1) = Graphics_LoadImage(Resource_LoadBase64String(DATA_TOASTER1_BMP_2518, SIZE_TOASTER1_BMP_2518, COMP_TOASTER1_BMP_2518), _TRUE, _FALSE, "memory", 0)
 
     CONST SIZE_TOASTER2_BMP_2518~& = 2518~&
     CONST COMP_TOASTER2_BMP_2518%% = -1%%
@@ -228,7 +224,7 @@ SUB LoadAssets
     "tVZaa/TeGWMw52Stxd6bcw73Xt57iAi/XTrQoBCM4Si+U+3+9f4P3LWF1fIlBOinBGcjtm2bfR7gbG3e6+f5vu8D08SVXbEsv5RDzeCH8/N6L8V7" + _
     "17ubuccTFLjtS/aIvj+Res9oP9pB5ZkINOhROOYmBvvdAQlUeRBI1Rd3R1LLc4Bzv+78yIo0uk8vD++515+X/QEUV5we"
 
-    bmpToaster(2) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER2_BMP_2518, SIZE_TOASTER2_BMP_2518, COMP_TOASTER2_BMP_2518), _TRUE, _FALSE, "memory", 0)
+    bmpToaster(2) = Graphics_LoadImage(Resource_LoadBase64String(DATA_TOASTER2_BMP_2518, SIZE_TOASTER2_BMP_2518, COMP_TOASTER2_BMP_2518), _TRUE, _FALSE, "memory", 0)
 
     CONST SIZE_TOASTER3_BMP_2518~& = 2518~&
     CONST COMP_TOASTER3_BMP_2518%% = -1%%
@@ -245,7 +241,7 @@ SUB LoadAssets
     "OWdKKdRaaa3Re2eMwZyTtRZ7b8453Ht57/3252iFYRCAoWhjeyf9/x8eFDJxxFWhj7vPR43bOGBbCTd5Hy2SlgCyJ/Baq0R+gcRVzd3Iq+/8lD1r" + _
     "HuT2fc2Xoi7ynKrjeF1dh1q/5vvf9x4Gnt677AN32QftgseVKd/4lG96zrsbHwu89+dX2bvn/b/negMelJyn"
 
-    bmpToaster(3) = Graphics_LoadImage(Base64_LoadResourceString(DATA_TOASTER3_BMP_2518, SIZE_TOASTER3_BMP_2518, COMP_TOASTER3_BMP_2518), _TRUE, _FALSE, "memory", 0)
+    bmpToaster(3) = Graphics_LoadImage(Resource_LoadBase64String(DATA_TOASTER3_BMP_2518, SIZE_TOASTER3_BMP_2518, COMP_TOASTER3_BMP_2518), _TRUE, _FALSE, "memory", 0)
 
     bmpCircle = _NEWIMAGE(5, 5, 256)
     _COPYPALETTE bmpToaster(1), bmpCircle
@@ -257,29 +253,30 @@ SUB LoadAssets
     _DEST oldDest
 END SUB
 
-
-' Calculates and returns the hertz value when repeatedly called inside a loop
-FUNCTION Time_GetHertz~&
+''' @brief Measures the number of times this function is called per second.
+''' @return The number of calls per second.
+FUNCTION Time_MeasureHertz~&
     DECLARE LIBRARY
-        FUNCTION GetTicks~&&
+        ''' @brief Retrieves the number of ticks since the application started.
+        ''' @return Number of ticks (1000 ticks = 1 second) as a 64-bit integer.
+        FUNCTION Time_GetTicks~&& ALIAS "GetTicks"
     END DECLARE
 
-    STATIC AS _UNSIGNED LONG counter, finalFPS
-    STATIC lastTime AS _UNSIGNED _INTEGER64
+    STATIC AS _UNSIGNED LONG counter, finalHz
+    STATIC lastMs AS _UNSIGNED _INTEGER64
 
-    DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
+    DIM currentMs AS _UNSIGNED _INTEGER64: currentMs = Time_GetTicks
 
-    IF currentTime >= lastTime + 1000 THEN
-        lastTime = currentTime
-        finalFPS = counter
+    IF currentMs - lastMs >= 1000 THEN
+        lastMs = currentMs
+        finalHz = counter
         counter = 0
     END IF
 
     counter = counter + 1
 
-    Time_GetHertz = finalFPS
+    Time_MeasureHertz = finalHz
 END FUNCTION
-
 
 ' Loads an image and returns and image handle
 ' fileName - filename or memory buffer of the image
@@ -308,7 +305,6 @@ FUNCTION Graphics_LoadImage& (fileName AS STRING, is8bpp AS _BYTE, isHardware AS
 
     Graphics_LoadImage = handle
 END FUNCTION
-
 
 ' Rotates an image palette left or right
 SUB Graphics_RotatePalette (dstImage AS LONG, isForward AS _BYTE, startIndex AS _UNSIGNED _BYTE, stopIndex AS _UNSIGNED _BYTE)
@@ -340,7 +336,6 @@ SUB Graphics_RotatePalette (dstImage AS LONG, isForward AS _BYTE, startIndex AS 
         END IF
     END IF
 END SUB
-
 
 ' This will progressively change the palette of dstImg to that of srcImg
 ' Keep calling this repeatedly until it returns true
@@ -392,7 +387,6 @@ FUNCTION Graphics_MorphPalette%% (dstImage AS LONG, srcImage AS LONG, startIndex
     NEXT i
 END FUNCTION
 
-
 ' Sets the complete palette to a single color
 SUB Graphics_ResetPalette (dstImage AS LONG, resetColor AS _UNSIGNED LONG)
     DIM i AS LONG: FOR i = 0 TO 255
@@ -400,14 +394,17 @@ SUB Graphics_ResetPalette (dstImage AS LONG, resetColor AS _UNSIGNED LONG)
     NEXT i
 END SUB
 
-
-' This function loads a resource directly from a string variable or constant (like the ones made by Bin2Data)
-FUNCTION Base64_LoadResourceString$ (src AS STRING, ogSize AS _UNSIGNED LONG, isComp AS _BYTE)
+''' @brief Loads a binary file encoded with Bin2Data (CONST).
+''' @param src The base64 STRING containing the encoded data.
+''' @param ogSize The original size of the data.
+''' @param isComp Whether the data is compressed.
+''' @return The normal STRING or binary data.
+FUNCTION Resource_LoadBase64String$ (src AS STRING, ogSize AS _UNSIGNED LONG, isComp AS _BYTE)
     ' Decode the data
     DIM buffer AS STRING: buffer = _BASE64DECODE$(src)
 
     ' Expand the data if needed
     IF isComp THEN buffer = _INFLATE$(buffer, ogSize)
 
-    Base64_LoadResourceString = buffer
+    Resource_LoadBase64String = buffer
 END FUNCTION
