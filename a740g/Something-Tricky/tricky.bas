@@ -124,16 +124,12 @@ END FUNCTION
 
 ' Calculates and returns the hertz value when repeatedly called inside a loop
 FUNCTION GetHertz~&
-    DECLARE LIBRARY
-        FUNCTION GetTicks~&&
-    END DECLARE
-
     STATIC AS _UNSIGNED LONG counter, finalFPS
-    STATIC lastTime AS _UNSIGNED _INTEGER64
+    STATIC lastTime AS DOUBLE
 
-    DIM currentTime AS _UNSIGNED _INTEGER64: currentTime = GetTicks
+    DIM currentTime AS DOUBLE: currentTime = _UPTIME
 
-    IF currentTime >= lastTime + 1000 THEN
+    IF currentTime >= lastTime + 1.0# THEN
         lastTime = currentTime
         finalFPS = counter
         counter = 0

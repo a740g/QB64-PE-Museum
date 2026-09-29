@@ -206,25 +206,11 @@ END SUB
 
 
 SUB Input_Initialize
-    $IF MACOSX AND VERSION < 4.1.0 THEN
-        DECLARE LIBRARY
-            SUB CGAssociateMouseAndMouseCursorPosition (BYVAL connected AS _BYTE)
-        END DECLARE
-    $END IF
-
-    _MOUSEHIDE
-
-    $IF MACOSX AND VERSION < 4.1.0 THEN
-        CGAssociateMouseAndMouseCursorPosition _FALSE ' screw you apple!
-    $END IF
+    _MOUSEHIDE _DISABLE
 END SUB
 
 
 SUB Input_Shutdown
-    $IF MACOSX AND VERSION < 4.1.0 THEN
-        CGAssociateMouseAndMouseCursorPosition _TRUE ' screw you apple!
-    $END IF
-
     _MOUSESHOW
 END SUB
 
@@ -233,28 +219,11 @@ SUB Input_Update (player AS Player, map( ,) AS _UNSIGNED LONG)
     DIM mouseUsed AS _BYTE, m AS Vector2i
 
     WHILE _MOUSEINPUT
-        $IF WINDOWS THEN
-            m.x = m.x + _MOUSEMOVEMENTX
-            m.y = m.y + _MOUSEMOVEMENTY
-        $END IF
+        m.x = m.x + _MOUSEMOVEMENTX
+        m.y = m.y + _MOUSEMOVEMENTY
 
         mouseUsed = _TRUE
     WEND
-
-    IF mouseUsed THEN
-        $IF WINDOWS THEN
-            IF m.x _ORELSE m.y THEN
-                _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-            END IF
-        $ELSEIF MACOSX OR LINUX THEN
-            m.x = _MOUSEX - SCREEN_HALF_WIDTH
-            m.y = _MOUSEY - SCREEN_HALF_HEIGHT
-
-            IF m.x _ORELSE m.y THEN
-                _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-            END IF
-        $END IF
-    END IF
 
     IF _KEYDOWN(_KEY_LEFT) THEN
         m.x = m.x - PLAYER_MOVE_SPEED * 100

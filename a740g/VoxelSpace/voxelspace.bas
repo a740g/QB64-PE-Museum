@@ -58,7 +58,7 @@ CONST SCREEN_MODE& = 32&
 CONST MAP_ID_MIN~%% = 1~%%
 CONST MAP_ID_MAX~%% = 29~%%
 CONST MAP_ID_DEFAULT~%% = MAP_ID_MIN
-CONST MAP_SCALER = _STR_EMPTY ' use something like "HQ2XA" or "SXBR2" here for some extra eye-candy
+CONST MAP_SCALER = _STR_EMPTY ' "MMPX2"
 CONST MAP_HEIGHT_MULTIPLIER! = 384!
 CONST SKY_COUNT& = 5&
 CONST PLAYER_MOVE_SPEED! = 1!
@@ -111,7 +111,7 @@ TYPE Renderer
     distance AS LONG
     deltaZIncrement AS SINGLE
     scaleHeight AS SINGLE
-    ticks AS _UNSIGNED LONG
+    wallTime AS DOUBLE
     fpsCounter AS _UNSIGNED LONG
     fps AS _UNSIGNED LONG
 END TYPE
@@ -278,28 +278,12 @@ END SUB
 
 
 SUB Input_Initialize
-    $IF MACOSX AND VERSION < 4.1.0 THEN
-        DECLARE LIBRARY
-            SUB CGAssociateMouseAndMouseCursorPosition (BYVAL connected AS _BYTE)
-        END DECLARE
-    $END IF
-
-    _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-    _MOUSEHIDE
-
-    $IF MACOSX AND VERSION < 4.1.0 THEN
-        CGAssociateMouseAndMouseCursorPosition _FALSE ' screw you apple!
-    $END IF
+    _MOUSEHIDE _DISABLE
 END SUB
 
 
 SUB Input_Shutdown
-    $IF MACOSX AND VERSION < 4.1.0 THEN
-        CGAssociateMouseAndMouseCursorPosition _TRUE ' screw you apple!
-    $END IF
-
     _MOUSESHOW
-    _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
 END SUB
 
 
@@ -309,43 +293,25 @@ SUB Input_Update
 
     game.event = EVENT_NONE
 
-    DIM mouseUsed AS _BYTE, m AS Vector2i
+    DIM hasInput AS _BYTE, m AS Vector2i
 
     WHILE _MOUSEINPUT
-        $IF WINDOWS THEN
-            m.x = m.x + _MOUSEMOVEMENTX
-            m.y = m.y + _MOUSEMOVEMENTY
-        $END IF
-
-        mouseUsed = _TRUE
+        m.x = m.x + _MOUSEMOVEMENTX
+        m.y = m.y + _MOUSEMOVEMENTY
+        hasInput = _TRUE
     WEND
-
-    IF mouseUsed THEN
-        $IF WINDOWS THEN
-            IF m.x _ORELSE m.y THEN
-                _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-            END IF
-        $ELSEIF MACOSX OR LINUX THEN
-            m.x = _MOUSEX - SCREEN_HALF_WIDTH
-            m.y = _MOUSEY - SCREEN_HALF_HEIGHT
-
-            IF m.x _ORELSE m.y THEN
-                _MOUSEMOVE SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT
-            END IF
-        $END IF
-    END IF
 
     IF _KEYDOWN(_KEY_LEFT) THEN
         m.x = m.x - PLAYER_MOVE_SPEED * 10
-        mouseUsed = _TRUE
+        hasInput = _TRUE
     END IF
 
     IF _KEYDOWN(_KEY_RIGHT) THEN
         m.x = m.x + PLAYER_MOVE_SPEED * 10
-        mouseUsed = _TRUE
+        hasInput = _TRUE
     END IF
 
-    IF mouseUsed THEN
+    IF hasInput THEN
         game.player.camera.angle = (game.player.camera.angle + m.x * PLAYER_LOOK_SPEED)
         IF game.player.camera.angle >= 360! THEN game.player.camera.angle = game.player.camera.angle - 360!
         IF game.player.camera.angle < 0! THEN game.player.camera.angle = game.player.camera.angle + 360!
@@ -455,16 +421,12 @@ END SUB
 
 
 SUB Renderer_Initialize
-    DECLARE LIBRARY
-        FUNCTION Renderer_GetTicks~&& ALIAS "GetTicks"
-    END DECLARE
-
     SHARED game AS Game
 
     game.renderer.distance = RENDERER_DISTANCE_MAX
     game.renderer.deltaZIncrement = RENDERER_DELTA_Z_INCREMENT_MIN
     game.renderer.scaleHeight = MAP_HEIGHT_MULTIPLIER * game.mapLength / SCREEN_HEIGHT
-    game.renderer.ticks = Renderer_GetTicks
+    game.renderer.wallTime = _UPTIME
     game.renderer.fpsCounter = RENDERER_TARGET_FPS
     game.renderer.fps = RENDERER_TARGET_FPS
 END SUB
@@ -473,10 +435,10 @@ END SUB
 SUB Renderer_AutoAdjustLOD
     SHARED game AS Game
 
-    DIM ticks AS _UNSIGNED _INTEGER64: ticks = Renderer_GetTicks
+    DIM wallTime AS DOUBLE: wallTime = _UPTIME
 
-    IF ticks >= game.renderer.ticks + 1000 THEN
-        game.renderer.ticks = ticks
+    IF wallTime >= game.renderer.wallTime + 1# THEN
+        game.renderer.wallTime = wallTime
         game.renderer.fps = game.renderer.fpsCounter
         game.renderer.fpsCounter = 0
 
