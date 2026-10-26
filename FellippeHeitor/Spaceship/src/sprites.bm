@@ -1,0 +1,167 @@
+'Spaceship - sprite library
+'
+'File format (data/sprites.txt), pure ASCII:
+'  SPRITE <name> <width> <height>
+'  MAP <char> <cp437 code>      remaps one ASCII character for this sprite
+'  FRAME                        followed by <height> lines like |....|
+'  COLORS                       optional, right after a frame: hex digit per cell,
+'                               "-" or space = use the entity's color
+'  END
+'Default legend: # 219  ^ 223  _ 220  [ 221  ] 222  . 176  : 177  % 178
+'Space is transparent. Any other character is printed as itself.
+
+SUB LoadSprites (f AS STRING)
+    DIM fh AS LONG, l AS STRING, cmd AS STRING
+    DIM mp(0 TO 255) AS INTEGER
+    DIM i AS INTEGER, cur AS INTEGER, rowsLeft AS INTEGER, inColors AS _BYTE
+    DIM frameBase AS LONG, r AS INTEGER, c AS INTEGER, w AS INTEGER, h AS INTEGER
+    DIM p1 AS INTEGER, p2 AS INTEGER, content AS STRING, ch AS INTEGER, hv AS INTEGER
+
+    IF _FILEEXISTS(f) = 0 THEN LogMsg "Missing sprite file: " + f: EXIT SUB
+    fh = FREEFILE
+    OPEN f FOR INPUT AS #fh
+    DO UNTIL EOF(fh)
+        LINE INPUT #fh, l
+        IF rowsLeft > 0 THEN
+            p1 = INSTR(l, "|")
+            p2 = _INSTRREV(l, "|")
+            IF p1 > 0 AND p2 > p1 THEN
+                content = MID$(l, p1 + 1, p2 - p1 - 1)
+            ELSE
+                content = ""
+            END IF
+            w = Sprites(cur).W
+            h = Sprites(cur).H
+            IF LEN(content) < w THEN content = content + SPACE$(w - LEN(content))
+            r = h - rowsLeft
+            FOR c = 1 TO w
+                ch = ASC(content, c)
+                IF inColors THEN
+                    hv = HexVal%(CHR$(ch))
+                    SprCol(frameBase + r * w + c - 1) = hv
+                ELSE
+                    SprChar(frameBase + r * w + c - 1) = mp(ch)
+                END IF
+            NEXT
+            rowsLeft = rowsLeft - 1
+        ELSE
+            l = _TRIM$(l)
+            IF LEN(l) = 0 OR LEFT$(l, 1) = ";" THEN _CONTINUE
+            cmd = UCASE$(Word$(l, 1))
+            SELECT CASE cmd
+                CASE "SPRITE"
+                    IF SpriteCount >= UBOUND(Sprites) THEN LogMsg "Too many sprites": EXIT DO
+                    SpriteCount = SpriteCount + 1
+                    cur = SpriteCount
+                    Sprites(cur).Nm = UCASE$(Word$(l, 2))
+                    Sprites(cur).W = VAL(Word$(l, 3))
+                    Sprites(cur).H = VAL(Word$(l, 4))
+                    Sprites(cur).Frames = 0
+                    Sprites(cur).CharOfs = SprUsed + 1
+                    FOR i = 0 TO 255
+                        mp(i) = i
+                    NEXT
+                    mp(ASC("#")) = 219
+                    mp(ASC("^")) = 223
+                    mp(ASC("_")) = 220
+                    mp(ASC("[")) = 221
+                    mp(ASC("]")) = 222
+                    mp(ASC(".")) = 176
+                    mp(ASC(":")) = 177
+                    mp(ASC("%")) = 178
+                CASE "MAP"
+                    IF LEN(Word$(l, 2)) THEN mp(ASC(Word$(l, 2))) = VAL(Word$(l, 3))
+                CASE "FRAME"
+                    w = Sprites(cur).W
+                    h = Sprites(cur).H
+                    Sprites(cur).Frames = Sprites(cur).Frames + 1
+                    frameBase = SprUsed + 1
+                    IF SprUsed + w * h > UBOUND(SprChar) THEN
+                        REDIM _PRESERVE SprChar(1 TO SprUsed + w * h + 4096) AS _UNSIGNED _BYTE
+                        REDIM _PRESERVE SprCol(1 TO SprUsed + w * h + 4096) AS _BYTE
+                    END IF
+                    FOR i = 0 TO w * h - 1
+                        SprChar(frameBase + i) = 32
+                        SprCol(frameBase + i) = -1
+                    NEXT
+                    SprUsed = SprUsed + w * h
+                    rowsLeft = h
+                    inColors = 0
+                CASE "COLORS"
+                    rowsLeft = Sprites(cur).H
+                    inColors = -1
+            END SELECT
+        END IF
+    LOOP
+    CLOSE #fh
+END SUB
+
+FUNCTION SpriteID% (n AS STRING)
+    DIM i AS INTEGER
+    FOR i = 1 TO SpriteCount
+        IF RTRIM$(Sprites(i).Nm) = UCASE$(n) THEN SpriteID% = i: EXIT FUNCTION
+    NEXT
+    IF LEN(n) THEN LogMsg "Unknown sprite: " + n
+    SpriteID% = 0
+END FUNCTION
+
+'mode: 0 normal, 1 white flash, 2 dimmed (fog), 3 cloaked shimmer
+SUB DrawSprite (id AS INTEGER, frame AS INTEGER, x AS INTEGER, y AS INTEGER, clr AS INTEGER, mode AS INTEGER)
+    DIM w AS INTEGER, h AS INTEGER, r AS INTEGER, c AS INTEGER, bOfs AS LONG
+    DIM ch AS INTEGER, cc AS INTEGER, lastC AS INTEGER, xx AS INTEGER, yy AS INTEGER, f AS INTEGER
+    IF id < 1 OR id > SpriteCount THEN EXIT SUB
+    w = Sprites(id).W
+    h = Sprites(id).H
+    f = frame
+    IF f < 1 OR f > Sprites(id).Frames THEN f = 1
+    bOfs = Sprites(id).CharOfs + (f - 1) * w * h
+    lastC = -99
+    FOR r = 0 TO h - 1
+        yy = y + r
+        IF yy >= PLAY_TOP AND yy <= 25 THEN
+            FOR c = 0 TO w - 1
+                xx = x + c
+                IF xx >= 1 AND xx <= 80 THEN
+                    ch = SprChar(bOfs + r * w + c)
+                    IF ch <> 32 THEN
+                        SELECT CASE mode
+                            CASE 1: cc = 15
+                            CASE 2: cc = 8
+                            CASE 3
+                                cc = 8
+                                IF RND < .7 THEN ch = 250
+                            CASE ELSE
+                                cc = SprCol(bOfs + r * w + c)
+                                IF cc < 0 THEN cc = clr
+                        END SELECT
+                        IF cc <> lastC THEN COLOR cc: lastC = cc
+                        _PRINTSTRING (xx, yy), CHR$(ch)
+                    END IF
+                END IF
+            NEXT
+        END IF
+    NEXT
+END SUB
+
+'Writes a collision code for every visible cell of a sprite
+SUB MapSprite (id AS INTEGER, frame AS INTEGER, x AS INTEGER, y AS INTEGER, code AS INTEGER)
+    DIM w AS INTEGER, h AS INTEGER, r AS INTEGER, c AS INTEGER, bOfs AS LONG
+    DIM xx AS INTEGER, yy AS INTEGER, f AS INTEGER
+    IF id < 1 OR id > SpriteCount THEN EXIT SUB
+    w = Sprites(id).W
+    h = Sprites(id).H
+    f = frame
+    IF f < 1 OR f > Sprites(id).Frames THEN f = 1
+    bOfs = Sprites(id).CharOfs + (f - 1) * w * h
+    FOR r = 0 TO h - 1
+        yy = y + r
+        IF yy >= PLAY_TOP AND yy <= 25 THEN
+            FOR c = 0 TO w - 1
+                xx = x + c
+                IF xx >= 1 AND xx <= 80 THEN
+                    IF SprChar(bOfs + r * w + c) <> 32 THEN ScreenMap(xx, yy) = code
+                END IF
+            NEXT
+        END IF
+    NEXT
+END SUB

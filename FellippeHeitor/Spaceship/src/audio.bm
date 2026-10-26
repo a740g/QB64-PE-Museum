@@ -1,0 +1,131 @@
+'Spaceship - audio
+
+FUNCTION LoadSnd& (f AS STRING)
+    DIM p AS STRING
+    p = BasePath + "Audio" + Sep + f
+    IF _FILEEXISTS(p) THEN
+        LoadSnd& = _SNDOPEN(p)
+    ELSE
+        LoadSnd& = 0
+        LogMsg "Missing audio file: " + f
+    END IF
+END FUNCTION
+
+SUB LoadAudio
+    DIM i AS INTEGER
+    SongName(SONG_TITLE) = "levelintro.ogg"
+    SongName(SONG_BOSS) = "bossfight.ogg"
+    SongName(SONG_SECTOR1) = "level1.ogg"
+    SongName(SONG_SECTOR2) = "sector2.mid"
+    SongName(SONG_SECTOR3) = "sector3.mid"
+    SongName(SONG_SECTOR4) = "sector4.mid"
+    SongName(SONG_SECTOR5) = "sector5.mid"
+    SongName(SONG_FINAL) = "final.mid"
+    SongName(SONG_ENDING) = "ending.mid"
+    SongName(SONG_BONUS) = "bonus.mid"
+    SongName(SONG_ZEN) = "zen.mid"
+    FOR i = 1 TO SONG_ZEN
+        Songs(i) = LoadSnd&(SongName(i))
+    NEXT
+    'Fallbacks if any generated track is missing
+    FOR i = SONG_SECTOR2 TO SONG_ZEN
+        IF Songs(i) = 0 THEN Songs(i) = Songs(SONG_SECTOR1)
+    NEXT
+    IF Songs(SONG_FINAL) = Songs(SONG_SECTOR1) THEN Songs(SONG_FINAL) = Songs(SONG_BOSS)
+
+    SndBlizzard = LoadSnd&("Blizzard.wav")
+    SndIntercom = LoadSnd&("Intercom.wav")
+    SndCatchEnergy = LoadSnd&("CatchEnergy.wav")
+    SndFullRecharge = LoadSnd&("FullRecharge.wav")
+    SndShieldAppear = LoadSnd&("ShieldAPPEAR.wav")
+    SndShieldOn = LoadSnd&("ShieldON.wav")
+    SndShieldOff = LoadSnd&("ShieldOFF.wav")
+    SndLaser1 = LoadSnd&("Laser1.wav")
+    SndLaser2 = LoadSnd&("Laser2.wav")
+    SndShipDamage = LoadSnd&("ShipDamage.wav")
+    SndShipGrow = LoadSnd&("ShipGrow.wav")
+    SndEnergyUp = LoadSnd&("EnergyUP.wav")
+    SndExplosion = LoadSnd&("Explosion1.wav")
+    SndOutOfEnergy = LoadSnd&("OutOfEnergy.wav")
+    SndExtraLife = LoadSnd&("ExtraLife.wav")
+    SndSiren = LoadSnd&("Siren.wav")
+    SndPickup = LoadSnd&("Pickup.wav")
+    SndMenuMove = LoadSnd&("MenuMove.wav")
+    SndMenuSelect = LoadSnd&("MenuSelect.wav")
+    SndBomb = LoadSnd&("Bomb.wav")
+    SndMissile = LoadSnd&("Missile.wav")
+    SndWeaponUp = LoadSnd&("WeaponUp.wav")
+    SndZap = LoadSnd&("Zap.wav")
+    SndBossDeath = LoadSnd&("BossDeath.wav")
+    SndBeep = LoadSnd&("Beep.wav")
+    IF SndPickup = 0 THEN SndPickup = SndCatchEnergy
+    IF SndBossDeath = 0 THEN SndBossDeath = SndExplosion
+    IF SndBomb = 0 THEN SndBomb = SndExplosion
+END SUB
+
+SUB PlaySfx (h AS LONG)
+    IF h = 0 OR Game.Mute OR Test.Fast THEN EXIT SUB
+    IF Game.SfxVol <= 0 THEN EXIT SUB
+    _SNDPLAYCOPY h, Game.SfxVol / 10
+END SUB
+
+SUB PlaySong (i AS INTEGER)
+    DIM j AS INTEGER
+    IF i < 1 OR i > MAX_SONGS THEN EXIT SUB
+    CurrentSong = i
+    IF Test.Fast THEN EXIT SUB
+    FOR j = 1 TO MAX_SONGS
+        IF Songs(j) <> 0 AND Songs(j) <> Songs(i) THEN
+            IF _SNDPLAYING(Songs(j)) OR _SNDPAUSED(Songs(j)) THEN _SNDSTOP Songs(j)
+        END IF
+    NEXT
+    IF Songs(i) = 0 THEN EXIT SUB
+    _SNDVOL Songs(i), Game.MusicVol / 10
+    IF Game.Mute OR Game.MusicVol = 0 THEN
+        IF _SNDPLAYING(Songs(i)) THEN _SNDPAUSE Songs(i)
+        EXIT SUB
+    END IF
+    IF NOT _SNDPLAYING(Songs(i)) THEN _SNDLOOP Songs(i)
+END SUB
+
+SUB PauseMusic
+    DIM j AS INTEGER
+    FOR j = 1 TO MAX_SONGS
+        IF Songs(j) THEN
+            IF _SNDPLAYING(Songs(j)) THEN _SNDPAUSE Songs(j)
+        END IF
+    NEXT
+END SUB
+
+SUB ResumeMusic
+    IF CurrentSong > 0 THEN PlaySong CurrentSong
+END SUB
+
+SUB StopMusic
+    DIM j AS INTEGER
+    FOR j = 1 TO MAX_SONGS
+        IF Songs(j) THEN _SNDSTOP Songs(j)
+    NEXT
+END SUB
+
+SUB ToggleMute
+    Game.Mute = NOT Game.Mute
+    IF Game.Mute THEN PauseMusic ELSE ResumeMusic
+END SUB
+
+FUNCTION SongForName% (n AS STRING)
+    SELECT CASE UCASE$(n)
+        CASE "TITLE": SongForName% = SONG_TITLE
+        CASE "BOSS": SongForName% = SONG_BOSS
+        CASE "SECTOR1": SongForName% = SONG_SECTOR1
+        CASE "SECTOR2": SongForName% = SONG_SECTOR2
+        CASE "SECTOR3": SongForName% = SONG_SECTOR3
+        CASE "SECTOR4": SongForName% = SONG_SECTOR4
+        CASE "SECTOR5": SongForName% = SONG_SECTOR5
+        CASE "FINAL": SongForName% = SONG_FINAL
+        CASE "ENDING": SongForName% = SONG_ENDING
+        CASE "BONUS": SongForName% = SONG_BONUS
+        CASE "ZEN": SongForName% = SONG_ZEN
+        CASE ELSE: SongForName% = SONG_SECTOR1
+    END SELECT
+END FUNCTION

@@ -1,0 +1,659 @@
+'Spaceship - zen mode
+'
+'No enemies, no damage, no score: the ship drifts through a deep starfield while
+'scenery floats by. The map is many screens tall and split into areas (data/zen.txt),
+'each with its own looping scenery. Up and down scroll the view while the ship stays
+'centered; only at the top or bottom of the map does the ship move off the center. Right speeds up,
+'left slows down. Stars sit on three depth layers and scenery has its own depth, so
+'everything slides at its own pace (parallax).
+'
+'The goal is to find the portal, hidden at some height in one of the other areas. It
+'drifts past every so often; touching it engages overdrive, the ship blasts off to the
+'right like after a won chapter, and a tally closes the session.
+'
+'Scenery positions: an object's Y is where it appears on screen when the view is at
+'CamY = 0. With the view at CamY it shows at Y - CamY * depth, so far things barely
+'move as you climb and near things slide past quickly.
+
+SUB LoadZenScenes (f AS STRING)
+    DIM fh AS LONG, l AS STRING, a AS INTEGER
+    ZenSceneCount = 0
+    ZenAreaCount = 0
+    IF _FILEEXISTS(f) = 0 THEN LogMsg "Missing zen scenery: " + f: EXIT SUB
+    fh = FREEFILE
+    OPEN f FOR INPUT AS #fh
+    DO UNTIL EOF(fh)
+        LINE INPUT #fh, l
+        l = _TRIM$(l)
+        IF LEN(l) = 0 OR LEFT$(l, 1) = ";" THEN _CONTINUE
+        SELECT CASE UCASE$(Word$(l, 1))
+            CASE "AREA"
+                IF ZenAreaCount < MAX_ZEN_AREAS THEN
+                    ZenAreaCount = ZenAreaCount + 1
+                    a = ZenAreaCount
+                    ZenAreas(a).CamFrom = VAL(Word$(l, 2))
+                    ZenAreas(a).CamTo = VAL(Word$(l, 3))
+                    ZenAreas(a).Nm = UCASE$(Rest$(l, 4))
+                    ZenAreas(a).FirstScene = ZenSceneCount + 1
+                    ZenAreas(a).LastScene = ZenSceneCount
+                END IF
+            CASE "SCENE"
+                IF ZenAreaCount = 0 THEN
+                    'Scenes before any AREA line get a one-screen area of their own
+                    ZenAreaCount = 1
+                    ZenAreas(1).CamFrom = -12
+                    ZenAreas(1).CamTo = 12
+                    ZenAreas(1).Nm = ""
+                    ZenAreas(1).FirstScene = 1
+                    ZenAreas(1).LastScene = 0
+                END IF
+                IF ZenSceneCount < MAX_ZEN_SCENES THEN
+                    IF SpriteID%(Word$(l, 3)) = 0 THEN
+                        LogMsg "Unknown zen sprite: " + Word$(l, 3)
+                    ELSE
+                        ZenSceneCount = ZenSceneCount + 1
+                        ZenScenes(ZenSceneCount).Gap = VAL(Word$(l, 2))
+                        ZenScenes(ZenSceneCount).Sprite = SpriteID%(Word$(l, 3))
+                        ZenScenes(ZenSceneCount).Depth = VAL(Word$(l, 4))
+                        ZenScenes(ZenSceneCount).Clr = VAL(Word$(l, 5))
+                        ZenScenes(ZenSceneCount).Row = VAL(Word$(l, 6))
+                        ZenAreas(ZenAreaCount).LastScene = ZenSceneCount
+                    END IF
+                END IF
+        END SELECT
+    LOOP
+    CLOSE #fh
+END SUB
+
+SUB StartZen
+    DIM i AS INTEGER, k AS INTEGER
+    ClearEnemies
+    ClearBullets
+    ClearFX
+    FOR i = 1 TO MAX_PK
+        Pk(i).Active = 0
+    NEXT
+    FOR i = 1 TO MAX_ZEN_OBJS
+        ZenObjs(i).Active = 0
+    NEXT
+    FOR i = 1 TO MAX_ZEN_STARS
+        NewZenStar i, 0
+    NEXT
+    'The map spans all the areas; the view starts at 0
+    Zen.MapTop = 0
+    Zen.MapBot = 0
+    FOR i = 1 TO ZenAreaCount
+        IF ZenAreas(i).CamFrom < Zen.MapTop THEN Zen.MapTop = ZenAreas(i).CamFrom
+        IF ZenAreas(i).CamTo > Zen.MapBot THEN Zen.MapBot = ZenAreas(i).CamTo
+        ZenAreas(i).Scene = ZenAreas(i).FirstScene - 1
+        ZenAreas(i).NextAt = RND * 4
+    NEXT
+    Zen.CamY = 0
+    Zen.Speed = 1
+    Zen.Dist = 0
+    Zen.DCam = 0
+    Zen.DShip = 0
+    Zen.VY = 0
+    Zen.VIn = 0
+    'Let the world run for a minute so every area already has scenery in flight
+    FOR k = 1 TO 600
+        UpdateZenWorld .1
+    NEXT
+    Zen.Area = ZenAreaAt%(Zen.CamY)
+    Zen.AreaT = -100
+    Zen.VMoveT = -100
+    Zen.Visited = 0
+    IF Zen.Area > 0 THEN Zen.Visited = 2 ^ (Zen.Area - 1)
+    Zen.Seen = 0
+    FOR i = 1 TO MAX_ZEN_OBJS
+        ZenObjs(i).Seen = 0
+    NEXT
+    PlacePortal
+    Zen.LastReal = RealNow#
+    'The ship glides in from the left edge
+    Ply.X = 1
+    Ply.Y = 25
+    Ply.Size = 2
+    Ply.Alive = -1
+    Ply.Dying = 0
+    Ply.Shield = 0
+    Ply.Freeze = 0
+    Ply.Recharge = 0
+    Ply.ExitPhase = 3 'draws the engine flame
+    Ply.ExitV = 0
+    'Game.T restarts here, so any timer measured against it must be reset too
+    '(a flash left over from the last portal would otherwise turn the sky white)
+    Game.T = 0
+    Game.FlashUntil = 0
+    Ply.LastDamage = -100
+    Ply.LastGrow = -100
+    Ply.SmokeT = -100
+    Ply.MuzzleT = -100
+    Ply.PrevX = 1
+    GoState ST_ZEN
+    PlaySong SONG_ZEN
+END SUB
+
+SUB NewZenStar (i AS INTEGER, atEdge AS _BYTE)
+    DIM r AS SINGLE
+    IF atEdge THEN ZenStars(i).X = 81 + RND * 4 ELSE ZenStars(i).X = 1 + RND * 80
+    ZenStars(i).Y = 1 + RND * 25
+    r = RND
+    IF r < .45 THEN
+        ZenStars(i).Layer = 1
+    ELSEIF r < .8 THEN
+        ZenStars(i).Layer = 2
+    ELSE
+        ZenStars(i).Layer = 3
+    END IF
+    SELECT CASE ZenStars(i).Layer
+        CASE 1: ZenStars(i).Clr = 8: ZenStars(i).Ch = CHR$(250)
+        CASE 2: ZenStars(i).Clr = 8: ZenStars(i).Ch = CHR$(249)
+        CASE 3: ZenStars(i).Clr = 7: ZenStars(i).Ch = CHR$(249)
+    END SELECT
+    'A few tinted stars
+    IF ZenStars(i).Layer > 1 AND RND < .12 THEN
+        SELECT CASE INT(RND * 4)
+            CASE 0: ZenStars(i).Clr = 9
+            CASE 1: ZenStars(i).Clr = 11
+            CASE 2: ZenStars(i).Clr = 14
+            CASE ELSE: ZenStars(i).Clr = 13
+        END SELECT
+    END IF
+END SUB
+
+SUB ZenFrame
+    DIM now AS DOUBLE, dt AS SINGLE, age AS DOUBLE, a AS INTEGER
+    IF MenuBack% OR InPressed(A_START) THEN
+        Ply.ExitPhase = 0
+        Ply.Bank = 0
+        GoTitle
+        EXIT SUB
+    END IF
+    now = RealNow#
+    dt = now - Zen.LastReal
+    Zen.LastReal = now
+    IF dt > .05 THEN dt = .05
+    IF dt < 0 THEN dt = 0
+    Game.T = Game.T + dt
+    age = UINow# - Game.StateT
+
+    UpdateZenShip dt, age
+    IF Game.State <> ST_ZEN THEN EXIT SUB
+    UpdateZenWorld dt
+    UpdateFX dt
+    'Flying into a new area shows its name
+    a = ZenAreaAt%(Zen.CamY)
+    IF a <> Zen.Area THEN
+        Zen.Area = a
+        IF a > 0 THEN
+            Zen.AreaT = Game.T
+            Zen.Visited = Zen.Visited OR 2 ^ (a - 1)
+        END IF
+    END IF
+    CheckPortalTouch
+    RenderZen age
+END SUB
+
+'Which area the view is in (0 if none)
+FUNCTION ZenAreaAt% (cam AS SINGLE)
+    DIM i AS INTEGER
+    ZenAreaAt% = 0
+    FOR i = 1 TO ZenAreaCount
+        IF cam >= ZenAreas(i).CamFrom AND cam <= ZenAreas(i).CamTo THEN ZenAreaAt% = i: EXIT FUNCTION
+    NEXT
+END FUNCTION
+
+SUB UpdateZenShip (dt AS SINGLE, age AS DOUBLE)
+    DIM sp AS SINGLE, target AS SINGLE, prevY AS SINGLE, camBefore AS SINGLE, dir AS INTEGER, fr AS SINGLE
+    IF Zen.Found THEN
+        'Overdrive: the same blast-off as a won chapter, stars streaking past
+        UpdateExitSequence dt
+        Zen.Speed = Zen.Speed + (7 - Zen.Speed) * Clamp!(dt * 1.5, 0, 1)
+        Zen.DCam = 0
+        Zen.DShip = 0
+        IF Ply.X > 100 THEN EnterZenTally
+        EXIT SUB
+    END IF
+    camBefore = Zen.CamY
+    prevY = Ply.Y
+    IF age < 1.2 THEN
+        'Glide in, no control yet
+        Ply.X = Ply.X + (14 - Ply.X) * (dt * 3)
+    ELSE
+        sp = 24 * dt
+        'Vertical speed follows the keys through two layers of easing: the keys move a
+        'smoothed "intent" and the speed follows the intent. That gives an S-shaped
+        'ramp, so slides start gently, cruise, and glide to a stop with no hard edges.
+        dir = 0
+        IF InHeld(A_UP) THEN dir = dir - 1
+        IF InHeld(A_DOWN) THEN dir = dir + 1
+        Zen.VIn = Zen.VIn + (dir - Zen.VIn) * (1 - EXP(-ZEN_V_INTENT * dt))
+        Zen.VY = Zen.VY + (Zen.VIn * ZEN_VMAX - Zen.VY) * (1 - EXP(-ZEN_V_FOLLOW * dt))
+        IF dir = 0 AND ABS(Zen.VY) < .2 AND ABS(Zen.VIn) < .01 THEN Zen.VY = 0: Zen.VIn = 0
+        ZenSlide Zen.VY * dt
+        'The faster it slides, the more it banks (wings drawn closer together);
+        'it levels out at slightly lower speeds than it banks, so it doesn't flicker
+        fr = ABS(Zen.VY) / ZEN_VMAX
+        SELECT CASE Ply.Bank
+            CASE 0: IF fr > .35 THEN Ply.Bank = 1
+            CASE 1
+                IF fr > .75 THEN
+                    Ply.Bank = 2
+                ELSEIF fr < .25 THEN
+                    Ply.Bank = 0
+                END IF
+            CASE ELSE: IF fr < .62 THEN Ply.Bank = 1
+        END SELECT
+        'Left and right: drift on screen and change cruising speed
+        IF InHeld(A_RIGHT) AND Ply.X < 50 THEN Ply.X = Ply.X + sp / 2
+        IF InHeld(A_LEFT) AND Ply.X > 8 THEN Ply.X = Ply.X - sp / 2
+    END IF
+    target = 1
+    IF InHeld(A_RIGHT) THEN target = 3
+    IF InHeld(A_LEFT) THEN target = .3
+    Zen.Speed = Zen.Speed + (target - Zen.Speed) * Clamp!(dt * 1.2, 0, 1)
+    Ply.ExitV = (Zen.Speed - .6) * 15
+    IF Ply.ExitV < 0 THEN Ply.ExitV = 0
+    IF INT(Ply.X) > Ply.PrevX THEN Ply.SmokeT = Game.T
+    Ply.PrevX = INT(Ply.X)
+    'How far the view and the ship moved this frame, in rows (for the star parallax)
+    Zen.DCam = Zen.CamY - camBefore
+    Zen.DShip = (Ply.Y - prevY) / 2
+    IF Zen.DCam <> 0 THEN Zen.VMoveT = Game.T
+END SUB
+
+'Moves the ship up (negative) or down by this many half-rows. The ship stays centered
+'and the view scrolls; only at the top or bottom of the map, where the view can't go
+'further, does the ship leave the center. Heading back, it re-centers first.
+SUB ZenSlide (amount AS SINGLE)
+    DIM a AS SINGLE, s AS SINGLE
+    IF amount < 0 THEN
+        a = -amount
+        IF Ply.Y > ZEN_CENTER THEN
+            s = MinS!(a, Ply.Y - ZEN_CENTER)
+            Ply.Y = Ply.Y - s
+            a = a - s
+        END IF
+        IF a > 0 AND Zen.CamY > Zen.MapTop THEN
+            s = MinS!(a / 2, Zen.CamY - Zen.MapTop)
+            Zen.CamY = Zen.CamY - s
+            a = a - s * 2
+        END IF
+        IF a > 0 THEN Ply.Y = Ply.Y - a
+        IF Ply.Y <= UpperLimit% THEN Ply.Y = UpperLimit%: Zen.VY = 0: Zen.VIn = 0
+    ELSEIF amount > 0 THEN
+        a = amount
+        IF Ply.Y < ZEN_CENTER THEN
+            s = MinS!(a, ZEN_CENTER - Ply.Y)
+            Ply.Y = Ply.Y + s
+            a = a - s
+        END IF
+        IF a > 0 AND Zen.CamY < Zen.MapBot THEN
+            s = MinS!(a / 2, Zen.MapBot - Zen.CamY)
+            Zen.CamY = Zen.CamY + s
+            a = a - s * 2
+        END IF
+        IF a > 0 THEN Ply.Y = Ply.Y + a
+        IF Ply.Y >= LowerLimit% THEN Ply.Y = LowerLimit%: Zen.VY = 0: Zen.VIn = 0
+    END IF
+END SUB
+
+FUNCTION MinS! (a AS SINGLE, b AS SINGLE)
+    IF a < b THEN MinS! = a ELSE MinS! = b
+END FUNCTION
+
+SUB UpdateZenWorld (dt AS SINGLE)
+    DIM i AS INTEGER, k AS INTEGER, a AS INTEGER, sc AS INTEGER, vy AS SINGLE, cam AS SINGLE
+    'Stars: nearer layers scroll faster and slide more when the view moves
+    FOR i = 1 TO MAX_ZEN_STARS
+        k = ZenStars(i).Layer
+        ZenStars(i).X = ZenStars(i).X - ZenLayerSpeed!(k) * Zen.Speed * dt
+        vy = Zen.DCam * ZenLayerDepth!(k) + Zen.DShip * .15 * k
+        ZenStars(i).Y = ZenStars(i).Y - vy
+        IF ZenStars(i).Y < 1 THEN ZenStars(i).Y = ZenStars(i).Y + 25
+        IF ZenStars(i).Y >= 26 THEN ZenStars(i).Y = ZenStars(i).Y - 25
+        IF ZenStars(i).X < 0 THEN NewZenStar i, -1
+        'Twinkle
+        IF k = 3 AND RND < .002 THEN
+            SELECT CASE ZenStars(i).Clr
+                CASE 7: ZenStars(i).Clr = 15
+                CASE 15: ZenStars(i).Clr = 7
+            END SELECT
+        END IF
+    NEXT
+    Zen.DCam = 0
+    Zen.DShip = 0
+    'Scenery drifts left at its own depth; its place on the map stays put
+    FOR i = 1 TO MAX_ZEN_OBJS
+        IF ZenObjs(i).Active THEN
+            ZenObjs(i).X = ZenObjs(i).X - Zen.Speed * ZenObjs(i).Depth * 22 * dt
+            IF ZenObjs(i).X + Sprites(ZenObjs(i).Sprite).W < 0 THEN ZenObjs(i).Active = 0
+        END IF
+    NEXT
+    'The portal drifts across at its height every so often (slower than the scenery
+    'near it, so it can be caught; slowing down helps)
+    IF Zen.PortalOn THEN
+        Zen.PortalX = Zen.PortalX - 7 * Zen.Speed * dt
+        IF Zen.PortalX < -14 THEN
+            Zen.PortalOn = 0
+            Zen.PortalNext = Zen.Dist + ZEN_PORTAL_EVERY * (.8 + RND * .4)
+        END IF
+    ELSEIF Zen.Dist >= Zen.PortalNext AND Zen.PortalNext > 0 AND NOT Zen.Found THEN
+        Zen.PortalOn = -1
+        Zen.PortalX = 81
+    END IF
+    'Every area runs its own scenery loop, on screen or not
+    Zen.Dist = Zen.Dist + Zen.Speed * dt
+    FOR a = 1 TO ZenAreaCount
+        IF ZenAreas(a).LastScene >= ZenAreas(a).FirstScene THEN
+            IF Zen.Dist >= ZenAreas(a).NextAt THEN
+                ZenAreas(a).Scene = ZenAreas(a).Scene + 1
+                IF ZenAreas(a).Scene > ZenAreas(a).LastScene THEN ZenAreas(a).Scene = ZenAreas(a).FirstScene
+                sc = ZenAreas(a).Scene
+                'Somewhere in the area: the scene's row is where it shows with the view there
+                cam = ZenAreas(a).CamFrom + RND * (ZenAreas(a).CamTo - ZenAreas(a).CamFrom)
+                SpawnZenObj sc, ZenScenes(sc).Row + cam * ZenScenes(sc).Depth
+                IF sc < ZenAreas(a).LastScene THEN sc = sc + 1 ELSE sc = ZenAreas(a).FirstScene
+                ZenAreas(a).NextAt = Zen.Dist + ZenScenes(sc).Gap
+            END IF
+        END IF
+    NEXT
+END SUB
+
+SUB SpawnZenObj (sc AS INTEGER, mapY AS SINGLE)
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_ZEN_OBJS
+        IF ZenObjs(i).Active = 0 THEN
+            ZenObjs(i).Active = -1
+            ZenObjs(i).Sprite = ZenScenes(sc).Sprite
+            ZenObjs(i).X = 81
+            ZenObjs(i).Y = mapY
+            ZenObjs(i).Depth = ZenScenes(sc).Depth
+            ZenObjs(i).Clr = ZenScenes(sc).Clr
+            EXIT SUB
+        END IF
+    NEXT
+END SUB
+
+FUNCTION ZenLayerSpeed! (k AS INTEGER)
+    SELECT CASE k
+        CASE 1: ZenLayerSpeed! = 2.5
+        CASE 2: ZenLayerSpeed! = 6
+        CASE ELSE: ZenLayerSpeed! = 13
+    END SELECT
+END FUNCTION
+
+FUNCTION ZenLayerDepth! (k AS INTEGER)
+    SELECT CASE k
+        CASE 1: ZenLayerDepth! = .3
+        CASE 2: ZenLayerDepth! = .6
+        CASE ELSE: ZenLayerDepth! = 1
+    END SELECT
+END FUNCTION
+
+SUB RenderZen (age AS DOUBLE)
+    DIM t AS SINGLE
+    CLS , 0
+    COLOR , 0
+    IF Game.T < Game.FlashUntil THEN
+        _PALETTECOLOR 0, Game.FlashClr
+    ELSE
+        _PALETTECOLOR 0, _RGBA32(0, 0, 0, 0)
+    END IF
+    'Back to front: far scenery, far stars, near scenery, near stars, portal, ship
+    DrawZenObjs 0, .3
+    DrawZenStars 1
+    DrawZenStars 2
+    DrawZenObjs .3, 2
+    DrawZenStars 3
+    DrawZenPortal
+    DrawPlayer
+    DrawFX
+
+    IF Zen.Found THEN
+        IF Game.T - Zen.FoundT < 2.5 AND INT(Game.T * 6) MOD 2 = 0 THEN Banner 11, " O V E R D R I V E ! ", 15, 5
+        EXIT SUB
+    END IF
+
+    'Title, then the name of each new area as you fly into it
+    IF age < 6 THEN
+        COLOR FadeColor%(age, 6)
+        CenterText 11, "Z  E  N"
+    ELSE
+        t = Game.T - Zen.AreaT
+        IF t < 5 AND Zen.Area > 0 THEN
+            COLOR FadeColor%(t, 5)
+            CenterText 11, SpacedOut$(RTRIM$(ZenAreas(Zen.Area).Nm))
+        END IF
+    END IF
+    IF age < 9 THEN
+        COLOR 8
+        CenterText 25, "ARROWS: DRIFT, CLIMB AND DIVE    ESC: MENU"
+    END IF
+    'Altitude gauge on the right edge while climbing or diving
+    IF Game.T - Zen.VMoveT < 2.5 THEN DrawZenGauge
+    IF Game.Mute THEN COLOR 0, 7: PutText 75, 1, " MUTE ": COLOR , 0
+END SUB
+
+'Dim, bright, then dim again over a message's lifetime
+FUNCTION FadeColor% (t AS SINGLE, life AS SINGLE)
+    IF t < .6 OR t > life - .6 THEN
+        FadeColor% = 8
+    ELSEIF t < 1.2 OR t > life - 1.4 THEN
+        FadeColor% = 7
+    ELSE
+        FadeColor% = 15
+    END IF
+END FUNCTION
+
+FUNCTION SpacedOut$ (s AS STRING)
+    DIM i AS INTEGER, r AS STRING
+    FOR i = 1 TO LEN(s)
+        r = r + MID$(s, i, 1)
+        IF i < LEN(s) THEN r = r + " "
+    NEXT
+    SpacedOut$ = r
+END FUNCTION
+
+SUB DrawZenGauge
+    DIM r AS INTEGER, mark AS INTEGER, span AS SINGLE
+    span = Zen.MapBot - Zen.MapTop
+    IF span <= 0 THEN EXIT SUB
+    COLOR 8
+    FOR r = 4 TO 22
+        _PRINTSTRING (80, r), CHR$(179)
+    NEXT
+    'After a long search the portal's height shows on the gauge too
+    IF Game.T > ZEN_HINT_AFTER THEN
+        mark = 4 + INT((PortalViewY! - Zen.MapTop) / span * 18 + .5)
+        IF INT(Game.T * 4) MOD 2 THEN COLOR 13 ELSE COLOR 5
+        _PRINTSTRING (80, mark), CHR$(4)
+    END IF
+    mark = 4 + INT((Zen.CamY - Zen.MapTop) / span * 18 + .5)
+    COLOR 15
+    _PRINTSTRING (80, mark), CHR$(254)
+END SUB
+
+'--- The portal -------------------------------------------------------------------
+
+'Hides the portal somewhere in an area other than the starting one
+SUB PlacePortal
+    DIM a AS INTEGER, tries AS INTEGER, startA AS INTEGER
+    startA = ZenAreaAt%(0)
+    a = startA
+    IF ZenAreaCount > 1 THEN
+        DO
+            a = INT(RND * ZenAreaCount) + 1
+            tries = tries + 1
+        LOOP WHILE a = startA AND tries < 50
+    END IF
+    IF a > 0 THEN
+        Zen.PortalCam = ZenAreas(a).CamFrom + RND * (ZenAreas(a).CamTo - ZenAreas(a).CamFrom)
+    ELSE
+        Zen.PortalCam = 0
+    END IF
+    Zen.PortalRow = 6 + RND * 12
+    Zen.PortalOn = 0
+    Zen.PortalNext = Zen.Dist + 8 + RND * 6
+    Zen.Found = 0
+    IF Test.Active THEN LogMsg "Zen portal in area" + STR$(a) + " at view" + STR$(INT(Zen.PortalCam))
+END SUB
+
+'View position that puts the portal in the middle of the screen
+FUNCTION PortalViewY!
+    PortalViewY! = Zen.PortalCam + Zen.PortalRow + 3 - 12.5
+END FUNCTION
+
+FUNCTION PortalScreenY%
+    PortalScreenY% = INT(Zen.PortalRow + Zen.PortalCam - Zen.CamY)
+END FUNCTION
+
+SUB DrawZenPortal
+    DIM id AS INTEGER, x AS INTEGER, y AS INTEGER, clr AS INTEGER
+    IF NOT Zen.PortalOn OR Zen.Found THEN EXIT SUB
+    id = SpriteID%("ZEN_PORTAL")
+    IF id = 0 THEN EXIT SUB
+    x = INT(Zen.PortalX)
+    y = PortalScreenY%
+    SELECT CASE INT(Game.T * 3) MOD 3
+        CASE 0: clr = 13
+        CASE 1: clr = 11
+        CASE ELSE: clr = 9
+    END SELECT
+    DrawSprite id, INT(Game.T * 8) MOD 4 + 1, x, y, clr, 0
+    'Just out of sight above or below: a pulsing arrow at the screen edge
+    IF x >= -6 AND x <= 74 THEN
+        IF INT(Game.T * 4) MOD 2 THEN COLOR 13 ELSE COLOR 5
+        IF y + 6 <= PLAY_TOP AND y > -30 THEN _PRINTSTRING (x + 6, PLAY_TOP), CHR$(30)
+        IF y > 25 AND y < 55 THEN _PRINTSTRING (x + 6, 25), CHR$(31)
+    END IF
+END SUB
+
+SUB CheckPortalTouch
+    DIM i AS INTEGER, x AS INTEGER, y AS INTEGER
+    IF NOT Zen.PortalOn OR Zen.Found THEN EXIT SUB
+    x = INT(Zen.PortalX)
+    y = PortalScreenY%
+    ComputeShipLayout
+    FOR i = 1 TO ShipN
+        IF ShipCX(i) >= x + 1 AND ShipCX(i) <= x + 10 AND ShipCY(i) >= y + 1 AND ShipCY(i) <= y + 4 THEN
+            EngagePortal
+            EXIT SUB
+        END IF
+    NEXT
+END SUB
+
+SUB EngagePortal
+    DIM k AS INTEGER, cx AS SINGLE, cy AS SINGLE, a AS SINGLE
+    cx = Zen.PortalX + 6
+    cy = PortalScreenY% + 3
+    Zen.Found = -1
+    Zen.FoundT = Game.T
+    Zen.VY = 0
+    Zen.VIn = 0
+    Ply.Bank = 0
+    Zen.PortalOn = 0
+    Ply.ExitPhase = 3
+    Ply.ExitT = Game.T
+    Ply.ExitV = 0
+    SetFlash 255, 255, 255, .2
+    PlaySfx SndWeaponUp
+    PlaySfx SndFullRecharge
+    'The portal bursts into sparks
+    FOR k = 1 TO 40
+        a = RND * 6.2832
+        AddParticle cx, cy, COS(a) * RndRange!(6, 22), SIN(a) * RndRange!(3, 10), RndRange!(.4, .9)
+    NEXT
+    IF Test.Active THEN LogMsg "Zen portal found after" + STR$(INT(Game.T)) + "s"
+END SUB
+
+'--- Tally ---------------------------------------------------------------------------
+
+SUB EnterZenTally
+    Ply.ExitPhase = 0
+    Ply.Bank = 0
+    Game.FlashUntil = 0
+    GoState ST_ZENTALLY
+END SUB
+
+SUB ZenTallyFrame
+    DIM age AS DOUBLE, n AS INTEGER, row AS INTEGER, i AS INTEGER, areas AS INTEGER, secs AS LONG
+    STATIC lastN AS INTEGER
+    MenuBackground
+    age = UINow# - Game.StateT
+    n = INT(age / .45)
+    IF n <> lastN AND n <= 5 THEN PlaySfx SndBeep
+    lastN = n
+    Banner 5, " PORTAL FOUND ", 15, 5
+    COLOR 7
+    CenterText 7, "ZEN MODE"
+    FOR i = 1 TO ZenAreaCount
+        IF Zen.Visited AND 2 ^ (i - 1) THEN areas = areas + 1
+    NEXT
+    secs = INT(Zen.FoundT)
+    row = 10
+    IF n >= 1 THEN TallyLine row, "TIME ADRIFT", NumStr$(secs \ 60) + ":" + RIGHT$("0" + NumStr$(secs MOD 60), 2)
+    IF n >= 2 THEN TallyLine row + 2, "AREAS EXPLORED", NumStr$(areas) + " OF " + NumStr$(ZenAreaCount)
+    IF n >= 3 THEN TallyLine row + 4, "SIGHTS SEEN", NumStr$(Zen.Seen)
+    IF n >= 4 THEN TallyLine row + 6, "DISTANCE FLOWN", NumStr$(INT(Zen.Dist * 3)) + " LY"
+    IF n >= 5 THEN
+        IF INT(UINow# * 2) MOD 2 THEN COLOR 15 ELSE COLOR 8
+        CenterText 23, "PRESS FIRE TO CONTINUE"
+    END IF
+    IF MenuBack% THEN
+        lastN = -1
+        GoTitle
+    ELSEIF MenuOK% OR age > 30 THEN
+        IF n < 5 AND age <= 30 THEN
+            Game.StateT = UINow# - 5 * .45
+        ELSE
+            lastN = -1
+            GoTitle
+        END IF
+    END IF
+END SUB
+
+SUB DrawZenStars (layer AS INTEGER)
+    DIM i AS INTEGER, ch AS STRING
+    FOR i = 1 TO MAX_ZEN_STARS
+        IF ZenStars(i).Layer = layer THEN
+            IF ZenStars(i).X >= 1 AND ZenStars(i).X < 81 THEN
+                ch = ZenStars(i).Ch
+                IF Zen.Speed > 2.4 AND layer = 3 THEN ch = CHR$(196)
+                COLOR ZenStars(i).Clr
+                _PRINTSTRING (INT(ZenStars(i).X), INT(ZenStars(i).Y)), ch
+            END IF
+        END IF
+    NEXT
+END SUB
+
+'Draws the on-screen scenery whose depth is in [d0, d1), farthest first
+SUB DrawZenObjs (d0 AS SINGLE, d1 AS SINGLE)
+    DIM i AS INTEGER, j AS INTEGER, n AS INTEGER, t AS INTEGER, sy AS INTEGER
+    DIM order(1 TO MAX_ZEN_OBJS) AS INTEGER
+    FOR i = 1 TO MAX_ZEN_OBJS
+        IF ZenObjs(i).Active AND ZenObjs(i).Depth >= d0 AND ZenObjs(i).Depth < d1 THEN
+            IF ZenObjs(i).X < 81 THEN
+                sy = INT(ZenObjs(i).Y - Zen.CamY * ZenObjs(i).Depth)
+                IF sy <= 25 AND sy + Sprites(ZenObjs(i).Sprite).H > PLAY_TOP THEN
+                    n = n + 1
+                    order(n) = i
+                    IF NOT ZenObjs(i).Seen THEN ZenObjs(i).Seen = -1: Zen.Seen = Zen.Seen + 1
+                END IF
+            END IF
+        END IF
+    NEXT
+    FOR i = 2 TO n
+        j = i
+        DO WHILE j > 1
+            IF ZenObjs(order(j)).Depth >= ZenObjs(order(j - 1)).Depth THEN EXIT DO
+            t = order(j): order(j) = order(j - 1): order(j - 1) = t
+            j = j - 1
+        LOOP
+    NEXT
+    FOR i = 1 TO n
+        sy = INT(ZenObjs(order(i)).Y - Zen.CamY * ZenObjs(order(i)).Depth)
+        DrawSprite ZenObjs(order(i)).Sprite, 1, INT(ZenObjs(order(i)).X), sy, ZenObjs(order(i)).Clr, 0
+    NEXT
+END SUB

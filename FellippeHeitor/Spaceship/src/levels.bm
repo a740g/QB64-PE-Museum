@@ -1,0 +1,605 @@
+'Spaceship - campaign and level scripts
+'
+'data/campaign.txt lists sectors and chapters in order:
+'  SECTOR <name>
+'  BRIEF <text line>          (any number, shown before the sector starts)
+'  CHAPTER <file.lvl>
+'
+'Level files (data/levels/*.lvl). Lines without AT/EVERY run when the level loads.
+'  NAME <text>                 use | to split into two lines
+'  MUSIC <TITLE|BOSS|SECTOR1..5|FINAL|ENDING|BONUS>
+'  GOAL KILLS n | SURVIVE secs | DISTANCE secs | COLLECT n | BOSS
+'  STEP secs                   step interval for PATTERN enemies (original EnemiesSpeed)
+'  STARS secs                  starfield base interval (lower = faster)
+'  POOL n DEF[:weight] ...     keep n of these enemies alive (POOL 0 stops)
+'  BACKDROP PLANET|ROCKS|NEBULA|ARMADA|HIVE|NONE
+'  TERRAIN ROCK|FORTRESS|ORGANIC|OFF [mingap] [speed] [maxheight]
+'  FOG ON|OFF
+'  STORM ON [secs]|OFF          ion storm lightning
+'  PICKUPS ON|OFF               random power-ups
+'  BONUS                        marks a bonus stage
+'  LOOP from to                 timeline repeats between these times until the goal is met
+'  AT t <command>               runs once when the chapter clock reaches t
+'  EVERY p [FROM a] [TO b] <command>   repeats
+'Commands: TIP WHO:TEXT|LINE2, MESSAGE text, WAVE DEF xN [LINE|COLUMN|V|RANDOM|SNAKE] [Y=n],
+'          SPAWN DEF [x|RIGHT] [y|RANDOM|TOP|BOTTOM|PLAYER|CENTER], PICKUP KIND|RANDOM [y],
+'          BOSS DEF [DEF...], and POOL/TERRAIN/FOG/STORM/PICKUPS/STEP as above.
+
+SUB LoadCampaign (f AS STRING)
+    DIM fh AS LONG, l AS STRING, cmd AS STRING, num AS INTEGER, i AS INTEGER
+    IF _FILEEXISTS(f) = 0 THEN LogMsg "Missing campaign: " + f: EXIT SUB
+    fh = FREEFILE
+    OPEN f FOR INPUT AS #fh
+    DO UNTIL EOF(fh)
+        LINE INPUT #fh, l
+        l = _TRIM$(l)
+        IF LEN(l) = 0 OR LEFT$(l, 1) = ";" THEN _CONTINUE
+        cmd = UCASE$(Word$(l, 1))
+        SELECT CASE cmd
+            CASE "SECTOR"
+                IF SectorCount < MAX_SECTORS THEN
+                    SectorCount = SectorCount + 1
+                    Sectors(SectorCount).Nm = UCASE$(Rest$(l, 2))
+                    Sectors(SectorCount).Brief = ""
+                    Sectors(SectorCount).FirstChapter = ChapterCount + 1
+                END IF
+            CASE "BRIEF"
+                Sectors(SectorCount).Brief = RTRIM$(Sectors(SectorCount).Brief) + Rest$(l, 2) + "|"
+            CASE "CHAPTER"
+                IF ChapterCount < MAX_CHAPTERS THEN
+                    ChapterCount = ChapterCount + 1
+                    Chapters(ChapterCount).File = Word$(l, 2)
+                    Chapters(ChapterCount).Sector = SectorCount
+                END IF
+        END SELECT
+    LOOP
+    CLOSE #fh
+    'Peek at each level for its name and bonus flag
+    num = 0
+    FOR i = 1 TO ChapterCount
+        PeekLevel i
+        IF NOT Chapters(i).Bonus THEN num = num + 1
+        Chapters(i).Num = num
+    NEXT
+END SUB
+
+SUB PeekLevel (i AS INTEGER)
+    DIM fh AS LONG, l AS STRING, f AS STRING
+    f = DataPath$("levels" + Sep + RTRIM$(Chapters(i).File))
+    Chapters(i).Bonus = 0
+    Chapters(i).Nm = ""
+    IF _FILEEXISTS(f) = 0 THEN LogMsg "Missing level: " + f: EXIT SUB
+    fh = FREEFILE
+    OPEN f FOR INPUT AS #fh
+    DO UNTIL EOF(fh)
+        LINE INPUT #fh, l
+        l = _TRIM$(l)
+        SELECT CASE UCASE$(Word$(l, 1))
+            CASE "NAME": Chapters(i).Nm = Rest$(l, 2)
+            CASE "BONUS": Chapters(i).Bonus = -1
+        END SELECT
+    LOOP
+    CLOSE #fh
+END SUB
+
+SUB ResetLevelState
+    DIM i AS INTEGER
+    Lvl.Nm = ""
+    Lvl.Song = SONG_SECTOR1
+    Lvl.GoalType = GOAL_KILLS
+    Lvl.GoalN = 50
+    Lvl.Progress = 0
+    Lvl.StepInterval = .08
+    Lvl.PoolMax = 0
+    Lvl.PoolKinds = 0
+    Lvl.T = 0
+    Lvl.Started = 0
+    Lvl.Terrain = TER_NONE
+    Lvl.TerSpeed = 10
+    Lvl.TerMinGap = 10
+    Lvl.TerMaxH = 7
+    Lvl.Fog = 0
+    Lvl.Storm = 0
+    Lvl.StormRate = 3
+    Lvl.NextStorm = 0
+    Lvl.GoalDone = 0
+    Lvl.Countdown = 0
+    Lvl.BossQueue = ""
+    Lvl.BossPending = 0
+    Lvl.BossSpawnT = 0
+    Lvl.BossSeen = 0
+    Lvl.Kills = 0
+    Lvl.Shots = 0
+    Lvl.Hits = 0
+    Lvl.Damage = 0
+    Lvl.Collected = 0
+    Lvl.Pickups = -1
+    Lvl.Bonus = 0
+    Lvl.EventCount = 0
+    Lvl.LoopFrom = 0
+    Lvl.LoopTo = 0
+    Lvl.TallyBonus = 0
+    FOR i = 1 TO 8
+        PoolDef(i) = 0
+        PoolWeight(i) = 0
+    NEXT
+    Game.StarBase = .08
+    Game.BossDeadT = 0
+    Game.BossMax = 0
+    Game.WarningUntil = 0
+    Game.TipUntil = 0
+    Game.MsgUntil = 0
+    SetBackdrop "NONE"
+END SUB
+
+SUB LoadLevel (idx AS INTEGER)
+    DIM fh AS LONG, l AS STRING, f AS STRING, w1 AS STRING, n AS INTEGER, k AS INTEGER
+    DIM t AS SINGLE, per AS SINGLE, untilT AS SINGLE, restS AS STRING
+    ResetLevelState
+    Lvl.File = Chapters(idx).File
+    Lvl.Sector = Chapters(idx).Sector
+    f = DataPath$("levels" + Sep + RTRIM$(Chapters(idx).File))
+    IF _FILEEXISTS(f) = 0 THEN LogMsg "Missing level: " + f: EXIT SUB
+    fh = FREEFILE
+    OPEN f FOR INPUT AS #fh
+    DO UNTIL EOF(fh)
+        LINE INPUT #fh, l
+        l = _TRIM$(l)
+        IF LEN(l) = 0 OR LEFT$(l, 1) = ";" THEN _CONTINUE
+        w1 = UCASE$(Word$(l, 1))
+        IF w1 = "AT" OR w1 = "EVERY" THEN
+            IF Lvl.EventCount >= MAX_EVENTS THEN _CONTINUE
+            per = 0
+            untilT = 0
+            IF w1 = "AT" THEN
+                t = VAL(Word$(l, 2))
+                k = 3
+            ELSE
+                per = VAL(Word$(l, 2))
+                t = 0
+                k = 3
+                DO
+                    IF UCASE$(Word$(l, k)) = "FROM" THEN
+                        t = VAL(Word$(l, k + 1)): k = k + 2
+                    ELSEIF UCASE$(Word$(l, k)) = "TO" THEN
+                        untilT = VAL(Word$(l, k + 1)): k = k + 2
+                    ELSE
+                        EXIT DO
+                    END IF
+                LOOP
+            END IF
+            restS = Rest$(l, k)
+            Lvl.EventCount = Lvl.EventCount + 1
+            n = Lvl.EventCount
+            Ev(n).T = t
+            Ev(n).T0 = t
+            Ev(n).Period = per
+            Ev(n).UntilT = untilT
+            Ev(n).Cmd = 0
+            Ev(n).Arg = restS
+            Ev(n).Done = 0
+        ELSE
+            ExecCommand l
+        END IF
+    LOOP
+    CLOSE #fh
+END SUB
+
+'Runs one script command (header line or event)
+SUB ExecCommand (l AS STRING)
+    DIM cmd AS STRING, a AS STRING, k AS INTEGER, w AS STRING, p AS INTEGER, d AS INTEGER
+    DIM y AS SINGLE, kind AS INTEGER, dummy AS INTEGER
+    cmd = UCASE$(Word$(l, 1))
+    a = Rest$(l, 2)
+    SELECT CASE cmd
+        CASE "NAME": Lvl.Nm = a
+        CASE "MUSIC": Lvl.Song = SongForName%(a)
+        CASE "GOAL"
+            SELECT CASE UCASE$(Word$(a, 1))
+                CASE "KILLS": Lvl.GoalType = GOAL_KILLS
+                CASE "SURVIVE": Lvl.GoalType = GOAL_SURVIVE
+                CASE "DISTANCE": Lvl.GoalType = GOAL_DISTANCE
+                CASE "COLLECT": Lvl.GoalType = GOAL_COLLECT
+                CASE "BOSS": Lvl.GoalType = GOAL_BOSS
+            END SELECT
+            Lvl.GoalN = VAL(Word$(a, 2))
+            IF Lvl.GoalN <= 0 THEN Lvl.GoalN = 1
+        CASE "STEP": Lvl.StepInterval = VAL(a)
+        CASE "STARS": Game.StarBase = VAL(a): Game.StarInterval = Game.StarBase
+        CASE "POOL"
+            Lvl.PoolMax = VAL(Word$(a, 1))
+            Lvl.PoolKinds = 0
+            k = 2
+            DO
+                w = Word$(a, k)
+                IF w = "" OR Lvl.PoolKinds >= 8 THEN EXIT DO
+                p = INSTR(w, ":")
+                IF p THEN
+                    d = DefIndex%(LEFT$(w, p - 1))
+                ELSE
+                    d = DefIndex%(w)
+                END IF
+                IF d THEN
+                    Lvl.PoolKinds = Lvl.PoolKinds + 1
+                    PoolDef(Lvl.PoolKinds) = d
+                    IF p THEN PoolWeight(Lvl.PoolKinds) = VAL(MID$(w, p + 1)) ELSE PoolWeight(Lvl.PoolKinds) = 1
+                END IF
+                k = k + 1
+            LOOP
+        CASE "BACKDROP": SetBackdrop a
+        CASE "TERRAIN"
+            SELECT CASE UCASE$(Word$(a, 1))
+                CASE "ROCK": Lvl.Terrain = TER_ROCK
+                CASE "FORTRESS": Lvl.Terrain = TER_FORTRESS
+                CASE "ORGANIC": Lvl.Terrain = TER_ORGANIC
+                CASE ELSE: Lvl.Terrain = TER_NONE
+            END SELECT
+            IF LEN(Word$(a, 2)) THEN Lvl.TerMinGap = VAL(Word$(a, 2))
+            IF LEN(Word$(a, 3)) THEN Lvl.TerSpeed = VAL(Word$(a, 3))
+            IF LEN(Word$(a, 4)) THEN Lvl.TerMaxH = VAL(Word$(a, 4))
+        CASE "FOG": Lvl.Fog = (UCASE$(Word$(a, 1)) = "ON")
+        CASE "STORM"
+            Lvl.Storm = (UCASE$(Word$(a, 1)) = "ON")
+            IF LEN(Word$(a, 2)) THEN Lvl.StormRate = VAL(Word$(a, 2))
+            Lvl.NextStorm = Lvl.T + 1
+        CASE "PICKUPS": Lvl.Pickups = (UCASE$(Word$(a, 1)) <> "OFF")
+        CASE "BONUS": Lvl.Bonus = -1
+        CASE "LOOP"
+            Lvl.LoopFrom = VAL(Word$(a, 1))
+            Lvl.LoopTo = VAL(Word$(a, 2))
+        CASE "TIP"
+            Game.TipText = a
+            Game.TipUntil = Game.T + 5
+            PlaySfx SndIntercom
+        CASE "MESSAGE"
+            ShowMessage a, 1, 2.5
+        CASE "WAVE"
+            SpawnWave a
+        CASE "SPAWN"
+            d = DefIndex%(Word$(a, 1))
+            IF d THEN SpawnAt d, Word$(a, 2), Word$(a, 3)
+        CASE "PICKUP"
+            IF UCASE$(Word$(a, 1)) = "RANDOM" THEN kind = UsefulPickupKind% ELSE kind = PickupKindFromName%(Word$(a, 1))
+            IF LEN(Word$(a, 2)) THEN y = VAL(Word$(a, 2)) ELSE y = -1
+            dummy = SpawnPickup%(kind, 80, y, -1)
+        CASE "BOSS"
+            Lvl.BossQueue = a
+            QueueNextBoss
+        CASE ELSE
+            IF LEN(cmd) THEN LogMsg "Unknown level command: " + cmd
+    END SELECT
+END SUB
+
+SUB QueueNextBoss
+    DIM q AS STRING, first AS STRING
+    q = _TRIM$(Lvl.BossQueue)
+    IF q = "" THEN EXIT SUB
+    first = Word$(q, 1)
+    Lvl.BossQueue = Rest$(q, 2)
+    Lvl.BossPending = DefIndex%(first)
+    Lvl.BossSpawnT = Game.T + 3
+    Game.WarningUntil = Game.T + 3
+    PlaySfx SndSiren
+    StopMusic
+END SUB
+
+FUNCTION ClampSpawnY! (y AS SINGLE, h AS INTEGER)
+    DIM r AS SINGLE
+    r = y
+    IF r < 2 THEN r = 2
+    IF r + h - 1 > 25 THEN r = 26 - h
+    ClampSpawnY! = r
+END FUNCTION
+
+SUB SpawnAt (d AS INTEGER, xs AS STRING, ys AS STRING)
+    DIM x AS SINGLE, y AS SINGLE, h AS INTEGER, i AS INTEGER, u AS STRING
+    h = Sprites(Defs(d).Sprite).H
+    u = UCASE$(xs)
+    IF u = "" OR u = "RIGHT" THEN x = 82 ELSE x = VAL(xs)
+    u = UCASE$(ys)
+    SELECT CASE u
+        CASE "", "RANDOM": y = RndInt%(2, 26 - h)
+        CASE "TOP": y = TerrainTopRow%(80)
+        CASE "BOTTOM": y = TerrainBotRow%(80) - h + 1
+        CASE "PLAYER": y = ShipRow! - h / 2
+        CASE "CENTER": y = 13 - h / 2
+        CASE ELSE: y = VAL(ys)
+    END SELECT
+    IF u <> "TOP" AND u <> "BOTTOM" THEN y = ClampSpawnY!(y, h)
+    i = SpawnEnemy%(d, x, y)
+    IF i THEN En(i).BaseY = y
+END SUB
+
+SUB SpawnWave (a AS STRING)
+    DIM d AS INTEGER, n AS INTEGER, form AS STRING, baseY AS SINGLE, k AS INTEGER, w AS STRING
+    DIM i AS INTEGER, h AS INTEGER, wd AS INTEGER, x AS SINGLE, y AS SINGLE, midK AS SINGLE, j AS INTEGER
+    d = DefIndex%(Word$(a, 1))
+    IF d = 0 THEN EXIT SUB
+    n = 1
+    form = "RANDOM"
+    baseY = -1
+    FOR j = 2 TO 6
+        w = UCASE$(Word$(a, j))
+        IF LEFT$(w, 1) = "X" AND VAL(MID$(w, 2)) > 0 THEN
+            n = VAL(MID$(w, 2))
+        ELSEIF LEFT$(w, 2) = "Y=" THEN
+            baseY = VAL(MID$(w, 3))
+        ELSEIF LEN(w) THEN
+            form = w
+        END IF
+    NEXT
+    h = Sprites(Defs(d).Sprite).H
+    wd = Sprites(Defs(d).Sprite).W
+    IF baseY < 0 THEN baseY = RndInt%(4, 22 - h)
+    midK = (n - 1) / 2
+    FOR k = 0 TO n - 1
+        SELECT CASE form
+            CASE "LINE"
+                x = 82 + k * (wd + 3)
+                y = baseY
+            CASE "COLUMN"
+                x = 82
+                y = baseY + (k - midK) * (h + 1)
+            CASE "V"
+                x = 82 + ABS(k - midK) * 4
+                y = baseY + (k - midK) * h
+            CASE "SNAKE"
+                x = 82 + k * (wd + 2)
+                y = baseY
+            CASE ELSE
+                x = 82 + k * 6
+                y = RndInt%(2, 26 - h)
+        END SELECT
+        y = ClampSpawnY!(y, h)
+        i = SpawnEnemy%(d, x, y)
+        IF i THEN
+            En(i).BaseY = y
+            IF form = "SNAKE" THEN En(i).Phase = -k * .7: En(i).Born = Game.ET
+            IF form = "LINE" OR form = "V" OR form = "COLUMN" THEN En(i).Phase = 0
+        END IF
+    NEXT
+END SUB
+
+SUB SpawnPoolEnemy
+    DIM total AS INTEGER, r AS INTEGER, k AS INTEGER, d AS INTEGER, i AS INTEGER, h AS INTEGER
+    FOR k = 1 TO Lvl.PoolKinds
+        total = total + PoolWeight(k)
+    NEXT
+    IF total <= 0 THEN EXIT SUB
+    r = INT(RND * total)
+    FOR k = 1 TO Lvl.PoolKinds
+        IF r < PoolWeight(k) THEN d = PoolDef(k): EXIT FOR
+        r = r - PoolWeight(k)
+    NEXT
+    IF d = 0 THEN EXIT SUB
+    h = Sprites(Defs(d).Sprite).H
+    i = SpawnEnemy%(d, 80 + _CEIL(RND * Defs(d).Spread), _CEIL(RND * 24) + 1)
+    IF i THEN
+        En(i).Pool = -1
+        IF En(i).Move <> MV_PATTERN THEN
+            En(i).Y = ClampSpawnY!(En(i).Y, h)
+            En(i).BaseY = En(i).Y
+        END IF
+    END IF
+END SUB
+
+FUNCTION PoolAlive%
+    DIM i AS INTEGER, n AS INTEGER
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Pool THEN n = n + 1
+    NEXT
+    PoolAlive% = n
+END FUNCTION
+
+SUB UpdateLevel (dt AS SINGLE)
+    DIM i AS INTEGER, n AS INTEGER, done AS _BYTE, guard AS INTEGER
+    IF NOT Lvl.Started OR Ply.Dying THEN EXIT SUB
+    IF NOT Ply.Freeze THEN Lvl.T = Lvl.T + dt
+
+    IF NOT Lvl.GoalDone THEN
+        'Timeline events
+        FOR i = 1 TO Lvl.EventCount
+            IF NOT Ev(i).Done THEN
+                IF Lvl.T >= Ev(i).T THEN
+                    ExecCommand RTRIM$(Ev(i).Arg)
+                    IF Ev(i).Period > 0 THEN
+                        Ev(i).T = Ev(i).T + Ev(i).Period
+                        IF Ev(i).UntilT > 0 AND Ev(i).T > Ev(i).UntilT THEN Ev(i).Done = -1
+                    ELSE
+                        Ev(i).Done = -1
+                    END IF
+                END IF
+            END IF
+        NEXT
+        'Looping timeline
+        IF Lvl.LoopTo > 0 AND Lvl.T >= Lvl.LoopTo THEN
+            Lvl.T = Lvl.LoopFrom
+            FOR i = 1 TO Lvl.EventCount
+                IF Ev(i).T0 >= Lvl.LoopFrom AND Ev(i).T0 < Lvl.LoopTo THEN
+                    Ev(i).T = Ev(i).T0
+                    Ev(i).Done = 0
+                ELSEIF Ev(i).Period > 0 AND Ev(i).T0 < Lvl.LoopFrom THEN
+                    Ev(i).T = Lvl.LoopFrom
+                    Ev(i).Done = 0
+                END IF
+            NEXT
+        END IF
+
+        'Keep the enemy pool topped up (the original "ten on the radar")
+        IF Lvl.PoolMax > 0 AND NOT Ply.Recharge THEN
+            n = PoolAlive%
+            guard = 0
+            DO WHILE n < Lvl.PoolMax AND guard < 4
+                SpawnPoolEnemy
+                n = n + 1
+                guard = guard + 1
+            LOOP
+        END IF
+
+        IF Lvl.Storm AND Lvl.T >= Lvl.NextStorm THEN
+            Lvl.NextStorm = Lvl.T + Lvl.StormRate * RndRange!(.6, 1.4)
+            i = SpawnByName%("LIGHTNING", RndInt%(15, 76), 2)
+        END IF
+
+        IF Lvl.Pickups AND Game.T >= Game.NextPickupRoll THEN
+            Game.NextPickupRoll = Game.T + 1
+            RollPickup
+        END IF
+    END IF
+
+    'Bosses
+    IF Lvl.BossPending > 0 AND Game.T >= Lvl.BossSpawnT THEN
+        SpawnBoss Lvl.BossPending
+        Lvl.BossPending = 0
+    END IF
+    IF Lvl.BossSeen AND Lvl.BossPending = 0 AND NOT BossActive% AND Game.BossDeadT > 0 THEN
+        IF LEN(_TRIM$(Lvl.BossQueue)) > 0 AND Game.T - Game.BossDeadT > 3 THEN QueueNextBoss
+    END IF
+    UpdateBossDeath dt
+
+    'Goals
+    IF NOT Lvl.GoalDone THEN
+        SELECT CASE Lvl.GoalType
+            CASE GOAL_KILLS
+                Lvl.Progress = Lvl.Kills / Lvl.GoalN
+                done = (Lvl.Kills >= Lvl.GoalN)
+            CASE GOAL_SURVIVE, GOAL_DISTANCE
+                Lvl.Progress = Lvl.T / Lvl.GoalN
+                done = (Lvl.T >= Lvl.GoalN)
+            CASE GOAL_COLLECT
+                Lvl.Progress = Lvl.Collected / Lvl.GoalN
+                done = (Lvl.Collected >= Lvl.GoalN)
+            CASE GOAL_BOSS
+                Lvl.Progress = 0
+                IF Lvl.BossSeen AND Lvl.BossPending = 0 AND NOT BossActive% AND LEN(_TRIM$(Lvl.BossQueue)) = 0 THEN
+                    IF Game.BossDeadT > 0 AND Game.T - Game.BossDeadT > 2.5 THEN done = -1
+                END IF
+        END SELECT
+        IF done THEN GoalReached
+    ELSE
+        'Exit sequence: grab any pickups still on screen, give enemies a moment to flee,
+        'then line up and blast off
+        IF Ply.ExitPhase = 1 AND NOT Ply.Recharge THEN
+            IF ExitPickupTarget% > 0 THEN
+                Ply.ExitPhase = 4
+                Ply.ExitT = Game.T
+                Ply.ExitVX = 0
+                Ply.ExitVY = 0
+            ELSEIF Game.T - Lvl.Countdown > 1.8 THEN
+                StartExitSwing
+            END IF
+        END IF
+        IF Ply.ExitPhase = 3 AND Ply.X > 100 THEN
+            Ply.ExitPhase = 0
+            Lvl.Countdown = 0
+            EnterTally
+        END IF
+    END IF
+END SUB
+
+SUB GoalReached
+    DIM i AS INTEGER
+    Lvl.GoalDone = -1
+    Lvl.Countdown = Game.T
+    Lvl.Storm = 0
+    Ply.ExitPhase = 1
+    Ply.Freeze = 0
+    ShowMessage "MISSION COMPLETE", 2, 2
+    PlaySfx SndFullRecharge
+    IF Test.Active THEN LogMsg "Goal reached: chapter" + STR$(Game.ChapterIdx) + " at t=" + STR$(INT(Lvl.T))
+    'Remaining enemies flee (the original MakeEnemyEscape)
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Boss = 0 THEN
+            SELECT CASE En(i).Move
+                CASE MV_PATTERN, MV_SINE, MV_STRAIGHT, MV_DIVE, MV_HOVER, MV_JELLY, MV_PHANTOM, MV_DRIFT, MV_MIRROR
+                    En(i).Pool = 0
+                    SetEscape i
+                    IF En(i).Speed < 1 THEN En(i).Speed = 1
+                CASE MV_LIGHTNING, MV_EGG, MV_MINE
+                    En(i).Active = 0
+            END SELECT
+        END IF
+    NEXT
+    FOR i = 1 TO MAX_BUL
+        IF Bul(i).Owner = 2 THEN Bul(i).Active = 0
+    NEXT
+END SUB
+
+SUB StartChapter (idx AS INTEGER)
+    DIM i AS INTEGER
+    IF idx < 1 OR idx > ChapterCount THEN EXIT SUB
+    Game.ChapterIdx = idx
+    ClearEnemies
+    ClearBullets
+    ClearFX
+    FOR i = 1 TO MAX_PK
+        Pk(i).Active = 0
+    NEXT
+    ResetTerrain
+    LoadLevel idx
+    Lvl.ChapterNo = Chapters(idx).Num
+    Lvl.ShowNameT = Game.T
+    Lvl.StartScore = Ply.Score
+    'The ship slides in from the left, like at the start of the game
+    Ply.X = 5
+    Ply.Y = 25
+    Ply.SlideIn = -1
+    Ply.ExitPhase = 0
+    Ply.Recharge = -1
+    Ply.Energy = 0
+    Ply.RechargeT = Game.T
+    Ply.Freeze = 0
+    Ply.Alive = -1
+    Ply.Dying = 0
+    Game.StarInterval = Game.StarBase
+    Game.LastStepT = Game.ET
+    Game.NextPickupRoll = Game.T + 2
+    ResetStars
+    PlaySfx SndFullRecharge
+    PlaySong Lvl.Song
+    IF Game.Unlocked < Lvl.Sector THEN Game.Unlocked = Lvl.Sector: SaveConfig
+    Game.State = ST_PLAY
+    Game.Paused = 0
+    IF Test.Active THEN
+        LogMsg "Start chapter" + STR$(idx) + ": " + RTRIM$(Lvl.Nm)
+        IF Test.MaxChapter < idx THEN Test.MaxChapter = idx
+    END IF
+END SUB
+
+SUB EnterTally
+    DIM acc AS SINGLE
+    Game.State = ST_TALLY
+    Game.StateT = UINow#
+    Lvl.TallyBonus = 0
+    IF Lvl.Shots > 0 THEN acc = Lvl.Hits / Lvl.Shots ELSE acc = 0
+    IF acc > 1 THEN acc = 1
+    IF NOT Lvl.Bonus THEN
+        Lvl.TallyBonus = INT(acc * 100) * 20
+        IF Lvl.Damage = 0 THEN Lvl.TallyBonus = Lvl.TallyBonus + 2000 + 500 * Lvl.Sector
+    ELSE
+        Lvl.TallyBonus = Lvl.Collected * 100
+    END IF
+    IF Test.Active THEN LogMsg "Tally: kills" + STR$(Lvl.Kills) + " acc" + STR$(INT(acc * 100)) + "% dmg" + STR$(Lvl.Damage) + " score" + STR$(Ply.Score)
+END SUB
+
+'Moves on after the tally screen
+SUB NextChapter
+    DIM nx AS INTEGER
+    nx = Game.ChapterIdx + 1
+    IF Test.StopAtChapter > 0 AND nx > Test.StopAtChapter THEN FinishTest "stop chapter reached"
+    IF nx > ChapterCount THEN
+        Game.State = ST_ENDING
+        Game.StateT = UINow#
+        PlaySong SONG_ENDING
+        IF Test.Active THEN LogMsg "Campaign complete! Score" + STR$(Ply.Score)
+        EXIT SUB
+    END IF
+    IF Chapters(nx).Sector <> Chapters(Game.ChapterIdx).Sector THEN
+        Game.ChapterIdx = nx
+        Game.State = ST_BRIEFING
+        Game.StateT = UINow#
+        PlaySong SONG_TITLE
+    ELSE
+        StartChapter nx
+    END IF
+END SUB

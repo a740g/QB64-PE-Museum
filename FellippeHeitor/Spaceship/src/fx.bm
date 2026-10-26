@@ -1,0 +1,155 @@
+'Spaceship - visual effects (explosions, floating text, particles)
+
+FUNCTION FreeFX%
+    DIM i AS INTEGER
+    STATIC lastI AS INTEGER
+    FreeFX% = 0
+    FOR i = 1 TO MAX_FX
+        lastI = lastI MOD MAX_FX + 1
+        IF FX(lastI).Active = 0 THEN FreeFX% = lastI: EXIT FUNCTION
+    NEXT
+END FUNCTION
+
+'style: 0 enemy explosion, 1 big (boss), 2 player death
+SUB AddExplosion (x AS SINGLE, y AS SINGLE, style AS INTEGER)
+    DIM i AS INTEGER, k AS INTEGER, a AS SINGLE
+    i = FreeFX%
+    IF i = 0 THEN EXIT SUB
+    FX(i).Active = -1
+    FX(i).Kind = FX_EXPLO
+    FX(i).X = x
+    FX(i).Y = y
+    FX(i).Born = Game.T
+    FX(i).Life = 8 / 24
+    FX(i).Big = style
+    'A few debris particles
+    FOR k = 1 TO 4 + style * 4
+        a = RND * 6.2832
+        AddParticle x, y, COS(a) * RndRange!(8, 22), SIN(a) * RndRange!(4, 11), RndRange!(.3, .7)
+    NEXT
+END SUB
+
+SUB AddParticle (x AS SINGLE, y AS SINGLE, dx AS SINGLE, dy AS SINGLE, life AS SINGLE)
+    DIM i AS INTEGER
+    i = FreeFX%
+    IF i = 0 THEN EXIT SUB
+    FX(i).Active = -1
+    FX(i).Kind = FX_PART
+    FX(i).X = x
+    FX(i).Y = y
+    FX(i).DX = dx
+    FX(i).DY = dy
+    FX(i).Born = Game.T
+    FX(i).Life = life
+    SELECT CASE INT(RND * 3)
+        CASE 0: FX(i).Ch = CHR$(250)
+        CASE 1: FX(i).Ch = CHR$(249)
+        CASE ELSE: FX(i).Ch = CHR$(7)
+    END SELECT
+    IF RND < .5 THEN FX(i).Clr = 14 ELSE FX(i).Clr = 12
+END SUB
+
+SUB AddFloatText (x AS SINGLE, y AS SINGLE, s AS STRING, clr AS INTEGER)
+    DIM i AS INTEGER
+    i = FreeFX%
+    IF i = 0 THEN EXIT SUB
+    FX(i).Active = -1
+    FX(i).Kind = FX_TEXT
+    FX(i).X = x
+    FX(i).Y = y
+    FX(i).Born = Game.T
+    FX(i).Life = .6
+    FX(i).Txt = s
+    FX(i).Clr = clr
+END SUB
+
+SUB UpdateFX (dt AS SINGLE)
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_FX
+        IF FX(i).Active THEN
+            IF Game.T - FX(i).Born > FX(i).Life THEN
+                FX(i).Active = 0
+            ELSE
+                SELECT CASE FX(i).Kind
+                    CASE FX_PART
+                        FX(i).X = FX(i).X + FX(i).DX * dt
+                        FX(i).Y = FX(i).Y + FX(i).DY * dt
+                    CASE FX_TEXT
+                        FX(i).Y = FX(i).Y - 9 * dt
+                END SELECT
+            END IF
+        END IF
+    NEXT
+END SUB
+
+SUB DrawFX
+    DIM i AS INTEGER, stp AS INTEGER, d AS INTEGER, k AS INTEGER, cx AS INTEGER, cy AS INTEGER
+    DIM xx AS INTEGER, yy AS INTEGER, ch AS STRING, age AS SINGLE, s AS STRING
+    FOR i = 1 TO MAX_FX
+        IF FX(i).Active THEN
+            age = Game.T - FX(i).Born
+            SELECT CASE FX(i).Kind
+                CASE FX_EXPLO
+                    stp = INT(age * 24) + 1
+                    IF stp > 8 THEN stp = 8
+                    cx = INT(FX(i).X)
+                    cy = INT(FX(i).Y)
+                    d = stp
+                    IF FX(i).Big = 1 THEN d = INT(stp * 1.6)
+                    ch = MID$(BoomChars, stp, 1)
+                    SELECT CASE FX(i).Big
+                        CASE 2
+                            SELECT CASE stp
+                                CASE 1 TO 3: COLOR 15
+                                CASE 4 TO 6: COLOR 11
+                                CASE ELSE: COLOR 3
+                            END SELECT
+                        CASE ELSE
+                            IF stp <= 4 THEN COLOR 12 ELSE COLOR 4
+                            IF FX(i).Big = 1 AND stp <= 2 THEN COLOR 15
+                    END SELECT
+                    FOR k = 0 TO 7
+                        SELECT CASE k
+                            CASE 0: xx = cx + d: yy = cy + stp
+                            CASE 1: xx = cx + d: yy = cy - stp
+                            CASE 2: xx = cx + d: yy = cy
+                            CASE 3: xx = cx - d: yy = cy - stp
+                            CASE 4: xx = cx - d: yy = cy + stp
+                            CASE 5: xx = cx - d: yy = cy
+                            CASE 6: xx = cx: yy = cy - stp
+                            CASE 7: xx = cx: yy = cy + stp
+                        END SELECT
+                        IF xx >= 1 AND xx <= 80 AND yy >= 2 AND yy <= 25 THEN _PRINTSTRING (xx, yy), ch
+                    NEXT
+                    COLOR 8
+                    IF cx >= 1 AND cx <= 80 AND cy >= 2 AND cy <= 25 THEN
+                        SELECT CASE stp
+                            CASE 1 TO 4: _PRINTSTRING (cx, cy), CHR$(176)
+                            CASE 5 TO 7: _PRINTSTRING (cx, cy), CHR$(15)
+                        END SELECT
+                    END IF
+                CASE FX_PART
+                    xx = INT(FX(i).X)
+                    yy = INT(FX(i).Y)
+                    IF age > FX(i).Life * .6 THEN COLOR 8 ELSE COLOR FX(i).Clr
+                    IF xx >= 1 AND xx <= 80 AND yy >= 2 AND yy <= 25 THEN _PRINTSTRING (xx, yy), FX(i).Ch
+                CASE FX_TEXT
+                    SELECT CASE age / FX(i).Life
+                        CASE IS < .5: COLOR FX(i).Clr
+                        CASE IS < .8: COLOR 7
+                        CASE ELSE: COLOR 8
+                    END SELECT
+                    s = RTRIM$(FX(i).Txt)
+                    yy = INT(FX(i).Y)
+                    IF yy >= 2 AND yy <= 25 THEN PutText INT(FX(i).X), yy, s
+            END SELECT
+        END IF
+    NEXT
+END SUB
+
+SUB ClearFX
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_FX
+        FX(i).Active = 0
+    NEXT
+END SUB

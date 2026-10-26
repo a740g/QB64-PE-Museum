@@ -1,0 +1,353 @@
+'Spaceship - command line options, autopilot and automated test runs
+'
+'  -god              invincible ship, cheat keys (L finish chapter, F freeze, W weapon, B specials)
+'  -chapter N        start straight at chapter N
+'  -window           stay in a window this run, even if fullscreen is on in the options
+'  -parallax        the starfield slides up and down as the ship climbs and dives
+'  -difficulty N     1 easy, 2 normal, 3 hard (does not touch your saved settings)
+'  -autotest SECS    play by itself for SECS of game time, log to autotest.log, then quit
+'  -fast             run the simulation as fast as possible (autotest)
+'  -shots DIR        save a PNG screenshot every few seconds into DIR (autotest)
+'  -every SECS       screenshot interval (default 10)
+'  -stopat N         end the autotest after chapter N
+'  -log FILE         log file name
+'  -menus            autotest walks through the menus first (screenshots of each)
+'  -sound            autotest runs are muted unless this is given
+
+SUB ParseArgs
+    DIM i AS INTEGER, a AS STRING, startCh AS INTEGER, diff AS INTEGER, wantSound AS _BYTE
+    Test.ShotEvery = 0
+    'Fixed-length strings start out as zero bytes, which RTRIM$ keeps: blank them
+    Test.ShotDir = ""
+    Test.LogFile = ""
+    FOR i = 1 TO _COMMANDCOUNT
+        a = LCASE$(COMMAND$(i))
+        SELECT CASE a
+            CASE "-god": Game.God = -1
+            CASE "-window": Test.Windowed = -1
+            CASE "-parallax": Game.Parallax = -1
+            CASE "-chapter": startCh = VAL(COMMAND$(i + 1)): i = i + 1
+            CASE "-difficulty": diff = VAL(COMMAND$(i + 1)): i = i + 1
+            CASE "-autotest"
+                Test.Active = -1
+                Test.Bot = -1
+                Test.Limit = VAL(COMMAND$(i + 1))
+                i = i + 1
+            CASE "-fast": Test.Fast = -1
+            CASE "-shots"
+                Test.ShotDir = COMMAND$(i + 1)
+                i = i + 1
+                IF Test.ShotEvery = 0 THEN Test.ShotEvery = 10
+            CASE "-every": Test.ShotEvery = VAL(COMMAND$(i + 1)): i = i + 1
+            CASE "-stopat": Test.StopAtChapter = VAL(COMMAND$(i + 1)): i = i + 1
+            CASE "-log": Test.LogFile = COMMAND$(i + 1): i = i + 1
+            CASE "-sound": wantSound = -1
+            CASE "-menus": TestMenuScript = "S D D O S S S B D D D O S R S L B D O S B U U U U S O"
+        END SELECT
+    NEXT
+    Game.StartChapter = startCh
+    IF diff >= 1 AND diff <= 3 THEN Game.Difficulty = diff
+    IF Test.Active AND Test.Limit <= 0 THEN Test.Limit = 120
+    IF NOT Test.Active THEN Test.Fast = 0
+    'Test runs are silent unless -sound is given
+    IF Test.Active AND NOT wantSound THEN Game.Mute = -1
+END SUB
+
+SUB TestHooks
+    STATIC lastState AS INTEGER, shotDue AS _BYTE
+    Test.Frames = Test.Frames + 1
+    IF Test.Fast AND Test.Frames MOD 30 = 0 THEN _DISPLAY
+    'One screenshot of each non-play screen, shortly after it appears
+    IF Game.State <> lastState THEN
+        lastState = Game.State
+        shotDue = -1
+    END IF
+    IF shotDue AND Game.State <> ST_PLAY AND UINow# - Game.StateT > .5 AND LEN(RTRIM$(Test.ShotDir)) THEN
+        SaveShot "state" + NumStr$(Game.State)
+        shotDue = 0
+    END IF
+    IF Game.State = ST_PLAY THEN CheckPickupsClear
+    IF Game.T >= Test.Limit THEN FinishTest "time limit"
+    IF UINow# > Test.Limit * 4 + 60 THEN FinishTest "wall clock limit"
+END SUB
+
+SUB FinishTest (reason AS STRING)
+    LogMsg "=== AUTOTEST FINISHED: " + reason
+    LogMsg "    furthest chapter:" + STR$(Test.MaxChapter) + "  current:" + STR$(Game.ChapterIdx)
+    LogMsg "    score:" + STR$(Ply.Score) + "  lives:" + STR$(Ply.Lives) + "  deaths:" + STR$(Test.Deaths)
+    LogMsg "    runtime errors:" + STR$(Test.Errors) + "  frames:" + STR$(Test.Frames)
+    SYSTEM
+END SUB
+
+'Logs what hit the ship (only hits that can do damage)
+SUB LogHit (what AS STRING)
+    IF Ply.Dying OR Ply.Recharge OR Lvl.GoalDone OR Ply.Shield THEN EXIT SUB
+    IF Game.T - Ply.LastDamage < GRACE_TIME THEN EXIT SUB
+    LogMsg "Hit by " + what + " (chapter" + STR$(Game.ChapterIdx) + ")"
+END SUB
+
+'Re-runs the bot between ticks of one frame, changing only the movement keys
+'(fire and specials keep the frame's single press)
+SUB BotSteer
+    DIM a AS INTEGER, saved(1 TO A_COUNT) AS _BYTE
+    IF Game.State <> ST_PLAY THEN EXIT SUB
+    FOR a = 1 TO A_COUNT
+        saved(a) = InHeld(a)
+        InHeld(a) = 0
+    NEXT
+    BotInput
+    FOR a = 1 TO A_COUNT
+        SELECT CASE a
+            CASE A_UP, A_DOWN, A_LEFT, A_RIGHT
+            CASE ELSE: InHeld(a) = saved(a)
+        END SELECT
+    NEXT
+END SUB
+
+'Fake input for the autopilot
+SUB BotInput
+    DIM i AS INTEGER, best AS INTEGER, bd AS SINGLE, d AS SINGLE, targetRow AS SINGLE, shipRowNow AS SINGLE
+    DIM dx AS SINGLE, dy AS SINGLE, dodge AS SINGLE, desiredX AS SINGLE, top AS SINGLE, bot AS SINGLE
+    DIM c AS INTEGER, aligned AS _BYTE, cy AS SINGLE, tok AS STRING, tHit AS SINGLE
+    STATIC lastAct AS DOUBLE
+
+    IF Game.State <> ST_PLAY AND LEN(TestMenuScript) > 0 THEN
+        'Scripted menu walk: D/U/L/R move, O ok, B back, S screenshot
+        IF UINow# - lastAct > .5 THEN
+            lastAct = UINow#
+            tok = Word$(TestMenuScript, 1)
+            TestMenuScript = Rest$(TestMenuScript, 2)
+            SELECT CASE tok
+                CASE "D": InHeld(A_DOWN) = -1
+                CASE "U": InHeld(A_UP) = -1
+                CASE "L": InHeld(A_LEFT) = -1
+                CASE "R": InHeld(A_RIGHT) = -1
+                CASE "O": InHeld(A_FIRE) = -1
+                CASE "B": KeyHitBuffer = 8
+                CASE "S": RunFrameRenderOnly: SaveShot "menu"
+            END SELECT
+        END IF
+        EXIT SUB
+    END IF
+    IF Game.State <> ST_PLAY THEN
+        'Advance through screens
+        IF UINow# - Game.StateT > .6 AND (Test.Frames MOD 2 = 0) THEN
+            SELECT CASE Game.State
+                CASE ST_NAMEENTRY: InHeld(A_START) = -1
+                CASE ELSE: InHeld(A_FIRE) = -1
+            END SELECT
+        END IF
+        EXIT SUB
+    END IF
+    IF Game.Paused OR Ply.Dying OR Ply.Recharge THEN EXIT SUB
+
+    shipRowNow = ShipRow!
+    targetRow = 13
+    best = 0
+    bd = 1E+09
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Visible AND NOT En(i).Cloaked THEN
+            IF En(i).Move <> MV_GATE AND En(i).Move <> MV_LIGHTNING AND NOT Defs(En(i).DefID).Invuln AND NOT En(i).Invuln THEN
+                dx = En(i).X - Ply.X
+                IF dx > -1 THEN
+                    d = dx + ABS(En(i).Y + En(i).H / 2 - shipRowNow) * 3
+                    IF d < bd THEN bd = d: best = i
+                END IF
+            END IF
+        END IF
+    NEXT
+    IF best THEN targetRow = En(best).Y + En(best).H / 2
+
+    'Go for useful pickups
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active AND Pk(i).X > Ply.X - 2 AND Pk(i).X < Ply.X + 30 THEN
+            IF NOT (Pk(i).Kind = PK_ENERGY AND (Pk(i).Spent OR Ply.Energy > 80)) THEN
+                targetRow = Pk(i).Y + 1
+                EXIT FOR
+            END IF
+        END IF
+    NEXT
+
+    'Ship rows that keep the whole hull off the walls, with a short lookahead
+    'since walls scroll in from the right (Y is in half-rows)
+    top = 0
+    bot = 0
+    FOR c = UpperLimit% TO LowerLimit%
+        IF BotHullClear%(c) THEN
+            IF top = 0 THEN top = c
+            bot = c
+        END IF
+    NEXT
+    IF top = 0 THEN
+        top = Ply.Y / 2
+        bot = top
+    ELSE
+        'Aim one half-row inside the edges so the steering deadband can't carry the hull out
+        IF bot - top >= 2 THEN top = top + 1: bot = bot - 1
+        top = top / 2
+        bot = bot / 2
+    END IF
+
+    'Dodge bullets and bodies ahead
+    dodge = 0
+    'Only bullets whose path crosses the hull soon count (not ones flying past or away)
+    FOR i = 1 TO MAX_BUL
+        IF Bul(i).Active AND Bul(i).Owner = 2 THEN
+            tHit = -1
+            IF Bul(i).X >= Ply.X - 5 AND Bul(i).X <= Ply.X + 1 THEN
+                tHit = 0
+            ELSEIF Bul(i).X > Ply.X + 1 AND Bul(i).DX < 0 THEN
+                tHit = (Bul(i).X - Ply.X - 1) / -Bul(i).DX
+            ELSEIF Bul(i).X < Ply.X - 5 AND Bul(i).DX > 0 THEN
+                tHit = (Ply.X - 5 - Bul(i).X) / Bul(i).DX
+            END IF
+            IF tHit >= 0 AND tHit < .8 THEN
+                dy = Bul(i).Y + Bul(i).DY * tHit - shipRowNow
+                IF ABS(dy) < 2.5 THEN
+                    IF dy >= 0 THEN dodge = dodge - 1 ELSE dodge = dodge + 1
+                END IF
+            END IF
+        END IF
+    NEXT
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Visible THEN
+            dx = En(i).X - Ply.X
+            cy = En(i).Y + En(i).H / 2
+            IF En(i).Move = MV_LIGHTNING THEN
+                IF ABS(En(i).X - (Ply.X - 2)) < 4 THEN
+                    IF En(i).X > Ply.X - 2 THEN InHeld(A_LEFT) = -1 ELSE InHeld(A_RIGHT) = -1
+                END IF
+            ELSEIF dx > -6 AND dx < 9 AND shipRowNow >= En(i).Y - 2 AND shipRowNow <= En(i).Y + En(i).H + 1 THEN
+                IF shipRowNow < cy THEN dodge = dodge - 2 ELSE dodge = dodge + 2
+            END IF
+        END IF
+    NEXT
+    IF dodge <> 0 THEN
+        targetRow = shipRowNow + SGN(dodge) * 5
+        'No room that way: dodge the other way instead of into the wall
+        IF targetRow < top OR targetRow > bot THEN targetRow = shipRowNow - SGN(dodge) * 5
+    END IF
+    'Walls win over everything else
+    IF targetRow < top THEN targetRow = top
+    IF targetRow > bot THEN targetRow = bot
+
+    IF targetRow * 2 > Ply.Y + 1 THEN InHeld(A_DOWN) = -1
+    IF targetRow * 2 < Ply.Y - 1 THEN InHeld(A_UP) = -1
+
+    'Get within laser range of the target (lasers reach about 24 cells)
+    desiredX = 20
+    IF best THEN
+        desiredX = En(best).X - 18
+        IF desiredX < 10 THEN desiredX = 10
+        IF desiredX > 48 THEN desiredX = 48
+    END IF
+    IF Ply.X < desiredX - 2 AND InHeld(A_LEFT) = 0 THEN InHeld(A_RIGHT) = -1
+    IF Ply.X > desiredX + 3 AND InHeld(A_RIGHT) = 0 THEN InHeld(A_LEFT) = -1
+
+    'Keep clear of armored hulls and gates (they can't be shot down)
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Visible THEN
+            IF Defs(En(i).DefID).Invuln OR (En(i).Invuln AND En(i).W > 12) THEN
+                IF desiredX > En(i).X - 10 THEN desiredX = En(i).X - 10
+                IF Ply.X >= En(i).X - 7 AND Ply.X - 5 <= En(i).X + En(i).W AND shipRowNow >= En(i).Y - 2 AND shipRowNow <= En(i).Y + En(i).H + 1 THEN
+                    InHeld(A_LEFT) = -1
+                    InHeld(A_RIGHT) = 0
+                END IF
+            END IF
+        END IF
+    NEXT
+    IF desiredX < 6 THEN desiredX = 6
+    IF Ply.X > desiredX + 3 THEN InHeld(A_LEFT) = -1: InHeld(A_RIGHT) = 0
+
+    'Laser gates: back off while one ahead is lit or blinking, slip through when it's dark
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Move = MV_GATE AND En(i).State <> 0 THEN
+            IF En(i).X > Ply.X - 6 AND En(i).X < Ply.X + 8 THEN
+                InHeld(A_LEFT) = -1
+                InHeld(A_RIGHT) = 0
+            END IF
+        END IF
+    NEXT
+
+    'Shoot when lined up with a target in laser range; spray only with energy to spare
+    'so the gun gets time to recharge (it only refills while not firing)
+    IF best THEN
+        aligned = ABS(En(best).Y + En(best).H / 2 - shipRowNow) < 2 AND En(best).X - Ply.X < 26
+        IF aligned AND Ply.Energy > 8 THEN InHeld(A_FIRE) = -1
+        IF Ply.Energy > 60 AND (Ply.Weapon >= 3 OR En(best).X - Ply.X < 26) THEN InHeld(A_FIRE) = -1
+    END IF
+
+    IF Game.T - Test.BotT > 4 THEN
+        IF SpecialCount(Ply.CurSpecial) > 0 AND (VisibleEnemyCount% >= 6 OR BossActive%) THEN
+            Test.BotT = Game.T
+            InHeld(A_SPECIAL) = -1
+        ELSEIF Test.Frames MOD 97 = 0 THEN
+            InHeld(A_SELECT) = -1
+        END IF
+    END IF
+END SUB
+
+'True when the ship at half-row y would clear the walls under it and a few columns ahead
+FUNCTION BotHullClear% (y AS INTEGER)
+    DIM saveY AS SINGLE, i AS INTEGER, c AS INTEGER, ok AS _BYTE
+    saveY = Ply.Y
+    Ply.Y = y
+    ComputeShipLayout
+    ok = -1
+    FOR i = 1 TO ShipN
+        FOR c = ShipCX(i) - 3 TO ShipCX(i) + 6
+            IF ShipCY(i) < TerrainTopRow%(c) OR ShipCY(i) > TerrainBotRow%(c) THEN ok = 0: EXIT FOR
+        NEXT
+        IF NOT ok THEN EXIT FOR
+    NEXT
+    Ply.Y = saveY
+    ComputeShipLayout
+    BotHullClear% = ok
+END FUNCTION
+
+'Draws the current non-play screen without handling input (for menu screenshots)
+SUB RunFrameRenderOnly
+    DIM saved(1 TO A_COUNT) AS _BYTE, a AS INTEGER, k AS LONG
+    'Menu frames draw and read input in one go; feed them no input
+    FOR a = 1 TO A_COUNT
+        saved(a) = InPressed(a)
+        InPressed(a) = 0
+    NEXT
+    k = KeyHitBuffer
+    KeyHitBuffer = 0
+    SELECT CASE Game.State
+        CASE ST_TITLE: TitleFrame
+        CASE ST_OPTIONS: OptionsFrame
+        CASE ST_CONTROLS: ControlsFrame
+        CASE ST_SCORES: ScoresFrame
+        CASE ST_SECTORSEL: SectorSelFrame
+    END SELECT
+    FOR a = 1 TO A_COUNT
+        InPressed(a) = saved(a)
+    NEXT
+    KeyHitBuffer = k
+END SUB
+
+'Test check: no pickup cell may overlap terrain (it couldn't be collected)
+SUB CheckPickupsClear
+    DIM i AS INTEGER, c AS INTEGER, r AS INTEGER, w AS INTEGER, h AS INTEGER, yy AS INTEGER
+    STATIC reported AS LONG
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active AND Pk(i).Sprite > 0 THEN
+            w = Sprites(Pk(i).Sprite).W
+            h = Sprites(Pk(i).Sprite).H
+            FOR c = INT(Pk(i).X) TO INT(Pk(i).X) + w - 1
+                IF c >= 1 AND c <= 80 THEN
+                    FOR r = 0 TO h - 1
+                        yy = INT(Pk(i).Y) + r
+                        IF yy <= 1 + TerTop(c) OR yy >= 26 - TerBot(c) THEN
+                            IF reported < 20 THEN LogMsg "PICKUP IN TERRAIN: kind" + STR$(Pk(i).Kind) + " at" + STR$(c) + "," + STR$(yy)
+                            reported = reported + 1
+                            EXIT SUB
+                        END IF
+                    NEXT
+                END IF
+            NEXT
+        END IF
+    NEXT
+END SUB

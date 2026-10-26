@@ -1,0 +1,420 @@
+'Spaceship - images, HUD and frame composition
+
+SUB CreateImages
+    DIM canvas AS LONG, c AS INTEGER, i AS INTEGER
+
+    'Smoke puffs drawn behind the ship when it moves forward
+    canvas = _NEWIMAGE(3 * _FONTWIDTH, _FONTHEIGHT, 32)
+    _DEST canvas
+    COLOR _RGB32(89, 89, 89), _RGBA32(0, 0, 0, 0)
+    _PRINTSTRING (0, 0), CHR$(176) + CHR$(177)
+    COLOR _RGB32(144, 144, 144), _RGBA32(0, 0, 0, 0)
+    _PRINTSTRING (0, 0), CHR$(32) + CHR$(32) + CHR$(178)
+    SmokeImages(3) = _COPYIMAGE(canvas, 33)
+    CLS
+    COLOR _RGB32(89, 89, 89), _RGBA32(0, 0, 0, 0)
+    _PRINTSTRING (0, 0), CHR$(32) + CHR$(177) + CHR$(178)
+    COLOR _RGB32(144, 144, 144), _RGBA32(0, 0, 0, 0)
+    _PRINTSTRING (0, 0), CHR$(32) + CHR$(32) + CHR$(178)
+    SmokeImages(2) = _COPYIMAGE(canvas, 33)
+    CLS
+    COLOR _RGB32(89, 89, 89), _RGBA32(0, 0, 0, 0)
+    _PRINTSTRING (0, 0), CHR$(32) + CHR$(32) + CHR$(178)
+    COLOR _RGB32(144, 144, 144), _RGBA32(0, 0, 0, 0)
+    _PRINTSTRING (0, 0), CHR$(32) + CHR$(32) + CHR$(178)
+    SmokeImages(1) = _COPYIMAGE(canvas, 33)
+    _DEST 0
+    _FREEIMAGE canvas
+
+    'Shield bubbles
+    canvas = _NEWIMAGE(7 * _FONTWIDTH, 4 * _FONTHEIGHT, 32)
+    _DEST canvas
+    FOR c = 1 TO 10
+        CLS , _RGBA32(0, 0, 0, 0)
+        COLOR _RGBA32(RND * 200 + 50, RND * 200 + 50, RND * 200 + 50, 25.5 * c), _RGBA32(0, 0, 0, 0)
+        FOR i = 1 TO 4
+            _PRINTSTRING (0, _FONTHEIGHT * i - _FONTHEIGHT), STRING$(7, 176)
+        NEXT i
+        ShieldImages(c) = _COPYIMAGE(canvas, 33)
+    NEXT c
+    _DEST 0
+    _FREEIMAGE canvas
+
+    'Progress bar (kills / time) and boss health bar
+    canvas = _NEWIMAGE(80 * _FONTWIDTH, _FONTHEIGHT, 32)
+    _DEST canvas
+    CLS , _RGBA32(0, 0, 0, 0)
+    FOR i = 1 TO 80
+        COLOR _RGBA32(255, 0, 0, (150 * (i / 80)) + 105), _RGBA32(0, 0, 0, 0)
+        _PRINTSTRING (i * _FONTWIDTH - _FONTWIDTH, 0), CHR$(219)
+    NEXT
+    LifeBarImage = _COPYIMAGE(canvas, 33)
+    CLS , _RGBA32(0, 0, 0, 0)
+    FOR i = 1 TO 80
+        COLOR _RGBA32(200 - i, 60 + i, 255, (120 * (i / 80)) + 135), _RGBA32(0, 0, 0, 0)
+        _PRINTSTRING (i * _FONTWIDTH - _FONTWIDTH, 0), CHR$(219)
+    NEXT
+    BossBarImage = _COPYIMAGE(canvas, 33)
+    _DEST 0
+    _FREEIMAGE canvas
+END SUB
+
+FUNCTION RestoreImage& (PixelColor AS _UNSIGNED LONG)
+    'Call after RESTORE points at an image DATA block
+    DIM w AS INTEGER, h AS INTEGER, a AS LONG, prevDest AS LONG
+    DIM ih AS INTEGER, iw AS INTEGER, b AS STRING, c AS INTEGER, p AS INTEGER
+    READ w
+    READ h
+    a = _NEWIMAGE(w, h, 32)
+    prevDest = _DEST
+    _DEST a
+    ih = 0: iw = 0
+    DO
+        READ b
+        IF b = "*" THEN
+            ih = ih + 1
+            iw = 0
+            IF ih = h THEN EXIT DO
+            _CONTINUE
+        END IF
+        c = VAL(LEFT$(b, LEN(b) - 1))
+        IF RIGHT$(b, 1) = "W" THEN
+            FOR p = iw TO iw + c - 1
+                PSET (p, ih), PixelColor
+            NEXT
+        END IF
+        iw = iw + c
+    LOOP
+    RestoreImage& = _COPYIMAGE(a, 33)
+    _FREEIMAGE a
+    _DEST prevDest
+END FUNCTION
+
+SUB DrawLogo (y AS INTEGER, fade AS INTEGER)
+    DIM f AS INTEGER
+    f = fade
+    IF f < 1 THEN f = 1
+    IF f > 16 THEN f = 16
+    IF LogoImages(f) < -1 THEN
+        _PUTIMAGE (((80 * _FONTWIDTH) \ 2) - (_WIDTH(LogoImages(f)) \ 2), y), LogoImages(f), 0
+    END IF
+END SUB
+
+SUB SetFlash (r AS INTEGER, g AS INTEGER, b AS INTEGER, secs AS SINGLE)
+    Game.FlashClr = _RGB32(r, g, b)
+    Game.FlashUntil = Game.T + secs
+END SUB
+
+SUB ShowMessage (s AS STRING, clr AS INTEGER, secs AS SINGLE)
+    Game.MsgText = s
+    Game.MsgClr = clr
+    Game.MsgUntil = Game.T + secs
+END SUB
+
+'Message box centered on the screen: fg on bg
+SUB Banner (y AS INTEGER, s AS STRING, fg AS INTEGER, bg AS INTEGER)
+    COLOR fg, bg
+    CenterText y, s
+    COLOR , 0
+END SUB
+
+'A top-bar banner that runs in from the right, pauses at the center, then runs off
+'to the left. It's on screen from t0 for dur seconds.
+SUB SlideBanner (s AS STRING, fg AS INTEGER, bg AS INTEGER, t0 AS DOUBLE, dur AS SINGLE)
+    DIM slide AS SINGLE, age AS SINGLE
+    slide = dur * .2
+    IF slide > .3 THEN slide = .3
+    age = Game.T - t0
+    IF age > dur - slide THEN
+        SlideBannerAt s, fg, bg, age, age - (dur - slide), slide
+    ELSE
+        SlideBannerAt s, fg, bg, age, -1, slide
+    END IF
+END SUB
+
+'Draws a sliding top-bar banner: inAge is how long since it appeared, outAge how long
+'since it started leaving (negative while it isn't), and each slide takes this long.
+SUB SlideBannerAt (s AS STRING, fg AS INTEGER, bg AS INTEGER, inAge AS SINGLE, outAge AS SINGLE, slide AS SINGLE)
+    SlideTextAt 1, s, fg, bg, 1, inAge, outAge, slide
+END SUB
+
+'Text sliding along screen row y (see SlideBannerAt); trailBg is the color behind the trail
+SUB SlideTextAt (y AS INTEGER, s AS STRING, fg AS INTEGER, bg AS INTEGER, trailBg AS INTEGER, inAge AS SINGLE, outAge AS SINGLE, slide AS SINGLE)
+    DIM mid AS INTEGER, x AS SINGLE, p AS SINGLE, speed AS SINGLE
+    DIM n AS INTEGER, k AS INTEGER, cx AS INTEGER, c AS INTEGER, fr AS SINGLE, ch AS STRING
+    mid = 41 - LEN(s) \ 2
+    x = mid
+    IF outAge >= 0 THEN
+        'Leave: ease out of the center, speeding off the left edge
+        p = Clamp!(outAge / slide, 0, 1)
+        x = mid + (1 - LEN(s) - mid) * p * p
+        IF p < 1 THEN speed = 2 * (mid - (1 - LEN(s))) * p / slide
+    ELSEIF inAge < slide THEN
+        'Arrive: fast at first, easing into the center
+        p = 1 - Clamp!(inAge / slide, 0, 1)
+        x = mid + (81 - mid) * p * p
+        speed = 2 * (81 - mid) * p / slide
+    END IF
+    COLOR fg, bg
+    PutText INT(x + .5), y, s
+
+    'Trail streaming off its right end while it moves, like the ship's jets:
+    'white hot, then yellow, red, and flickering embers; longer the faster it goes
+    n = INT(speed * .04)
+    IF n > 16 THEN n = 16
+    IF n >= 2 THEN
+        n = n + INT(RND * 3) - 1
+        FOR k = 0 TO n - 1
+            cx = INT(x + .5) + LEN(s) + k
+            IF cx > 80 THEN EXIT FOR
+            IF cx >= 1 THEN
+                fr = k / n
+                ch = CHR$(254)
+                SELECT CASE fr
+                    CASE IS < .15: c = 15
+                    CASE IS < .35: c = 14
+                    CASE IS < .6: c = 12
+                    CASE IS < .8: c = 4
+                    CASE ELSE
+                        c = 8
+                        ch = CHR$(250)
+                END SELECT
+                IF c <> 8 OR RND < .5 THEN
+                    COLOR c, trailBg
+                    PutText cx, y, ch
+                END IF
+            END IF
+        NEXT
+    END IF
+    COLOR , 0
+END SUB
+
+SUB RenderPlay
+    CLS , 0
+    COLOR , 0
+    IF Game.T < Game.FlashUntil THEN
+        _PALETTECOLOR 0, Game.FlashClr
+    ELSE
+        _PALETTECOLOR 0, _RGBA32(0, 0, 0, 0)
+    END IF
+
+    DrawBackdrop
+    DrawStars
+    DrawTerrain
+    DrawPickups
+    DrawEnemies
+    DrawBullets
+    DrawPlayer
+    DrawFX
+    DrawHUD
+    DrawOverlays
+    IF Game.Demo THEN DrawDemoOverlay
+END SUB
+
+SUB DrawHUD
+    DIM e AS STRING, i AS INTEGER, energyClr AS INTEGER, s AS STRING, x AS INTEGER
+    DIM fr AS SINGLE, w AS INTEGER, ob AS INTEGER
+    STATIC warnToggle AS _BYTE, warnT AS DOUBLE, blink AS _BYTE
+    STATIC warnOn AS _BYTE, warnOnT AS DOUBLE, warnOffT AS DOUBLE, warnS AS STRING
+
+    COLOR 15, 1
+    PutText 1, 1, SPACE$(80)
+    COLOR 14
+    PutText 2, 1, CHR$(220) + CHR$(223) + CHR$(220)
+    COLOR 15
+    IF Ply.Lives >= 0 THEN PutText 6, 1, "x" + NumStr$(Ply.Lives) ELSE PutText 6, 1, "x0"
+    PutText 10, 1, PadNum$(Ply.Score, 7)
+    IF Game.Mute THEN COLOR 0, 7: PutText 18, 1, " MUTE ": COLOR 15, 1
+
+    IF Ply.Combo >= 3 THEN
+        COLOR 14
+        PutText 25, 1, "x" + NumStr$(ComboMult%) + " COMBO"
+    END IF
+
+    'Overcharge blocks make the energy bar grow to the left, pushing the gun
+    'and specials over with it (one column per block)
+    ob = _CEIL(Ply.Over / 10)
+    IF ob > OVER_MAX \ 10 THEN ob = OVER_MAX \ 10
+
+    'Weapon level
+    COLOR 7
+    PutText 49 - ob, 1, "GUN"
+    FOR i = 1 TO 4
+        IF i <= Ply.Weapon THEN COLOR 12 ELSE COLOR 8
+        PutText 52 - ob + i, 1, CHR$(254)
+    NEXT
+
+    'Specials: F(reeze) B(omb) M(issiles) O(verdrive)
+    x = 58 - ob
+    FOR i = 1 TO SP_COUNT
+        s = LEFT$(SpecialName(i), 1) + NumStr$(SpecialCount(i))
+        IF i = Ply.CurSpecial THEN
+            COLOR 0, 7
+        ELSE
+            COLOR 15, 1
+            IF SpecialCount(i) = 0 THEN COLOR 8
+        END IF
+        PutText x, 1, s
+        COLOR 15, 1
+        x = x + 3
+    NEXT
+
+    'Energy
+    IF Ply.Energy > 100 THEN Ply.Energy = 100
+    e = STRING$(INT(Ply.Energy / 10), 254)
+    e = e + STRING$(10 - LEN(e), 249)
+    SELECT CASE Ply.Energy
+        CASE IS <= 10: energyClr = 28
+        CASE IS <= 30: energyClr = 12
+        CASE IS <= 60: energyClr = 14
+        CASE ELSE: energyClr = 10
+    END SELECT
+    IF Game.T - Ply.LastEnergyUp <= .5 THEN
+        blink = NOT blink
+        IF blink THEN energyClr = 9 ELSE energyClr = 10
+    END IF
+    COLOR energyClr, 1
+    PutText 70 - ob, 1, e
+    'Overcharge from energy cells: bright cyan blocks past full, at the right end
+    'so they drain first
+    IF ob > 0 THEN
+        COLOR 11, 1
+        PutText 80 - ob, 1, STRING$(ob, 254)
+    END IF
+
+    'Center of the top bar: the low-energy warning slides in when energy runs low,
+    'stays while it is, and slides out when it recovers
+    IF Ply.Energy <= 10 AND Ply.Alive AND NOT Ply.Recharge AND NOT Ply.Dying THEN
+        IF NOT warnOn THEN warnOn = -1: warnOnT = Game.T
+        IF Game.T - warnT > 1 THEN warnT = Game.T: warnToggle = NOT warnToggle
+        IF Ply.Energy < ShotCost! THEN
+            warnS = " GUNS RECHARGING "
+        ELSEIF warnToggle THEN
+            warnS = "   LOW ENERGY    "
+        ELSE
+            warnS = "  EASE OFF FIRE  "
+        END IF
+        SlideBannerAt warnS, 15, 4, Game.T - warnOnT, -1, .3
+    ELSE
+        IF warnOn THEN warnOn = 0: warnOffT = Game.T
+        IF Game.T - warnOffT < .3 AND LEN(warnS) > 0 THEN SlideBannerAt warnS, 15, 4, 99, Game.T - warnOffT, .3
+    END IF
+    IF Game.T - Ply.ShieldT < 1 AND Ply.Shield THEN SlideBanner " SHIELD ENGAGED ", 0, 7, Ply.ShieldT, 1
+    'Top-bar messages (gun level, shield, overdrive...) go over the HUD
+    IF Game.T < Game.TopMsgUntil THEN SlideBanner RTRIM$(Game.TopMsg), 0, 7, Game.TopMsgT, Game.TopMsgUntil - Game.TopMsgT
+
+    'Bottom bar: chapter progress or boss health
+    COLOR , 0
+    IF BossActive% THEN
+        fr = BossHPFraction!
+        w = INT(fr * 80 * _FONTWIDTH)
+        IF w > 0 THEN _PUTIMAGE (0, 24 * _FONTHEIGHT), BossBarImage, 0, (0, 0)-STEP(w, _FONTHEIGHT)
+        COLOR 15
+        PutText 2, 25, RTRIM$(Game.BossTitle)
+    ELSEIF Lvl.Started AND NOT Lvl.GoalDone THEN
+        fr = Clamp!(Lvl.Progress, 0, 1)
+        w = INT(fr * 80 * _FONTWIDTH)
+        IF w > 0 THEN _PUTIMAGE (0, 24 * _FONTHEIGHT), LifeBarImage, 0, (0, 0)-STEP(w, _FONTHEIGHT)
+        IF Lvl.GoalType = GOAL_SURVIVE OR Lvl.GoalType = GOAL_DISTANCE THEN
+            COLOR 8
+            PutText 2, 25, NumStr$(INT(Lvl.GoalN - Lvl.T + .99)) + "s"
+        ELSEIF Lvl.GoalType = GOAL_COLLECT THEN
+            COLOR 8
+            PutText 2, 25, NumStr$(Lvl.Collected) + "/" + NumStr$(Lvl.GoalN)
+        END IF
+    END IF
+    COLOR , 0
+END SUB
+
+SUB DrawOverlays
+    DIM s AS STRING, p AS INTEGER, remain AS DOUBLE, i AS INTEGER, who AS STRING, l1 AS STRING, l2 AS STRING
+    DIM n AS INTEGER
+
+    'Chapter name
+    IF Game.T - Lvl.ShowNameT < 2.5 AND NOT Ply.Dying THEN
+        IF Lvl.Bonus THEN
+            s = " BONUS STAGE "
+        ELSE
+            s = " CHAPTER " + NumStr$(Lvl.ChapterNo) + " "
+        END IF
+        Banner 11, s, 15, 1
+        s = RTRIM$(Lvl.Nm)
+        p = INSTR(s, "|")
+        IF p = 0 THEN
+            Banner 12, " " + s + " ", 15, 1
+        ELSE
+            Banner 12, " " + LEFT$(s, p - 1) + " ", 15, 1
+            Banner 13, " " + MID$(s, p + 1) + " ", 15, 1
+        END IF
+    END IF
+
+    'Radio chatter (bottom left)
+    IF Game.T < Game.TipUntil AND LEN(RTRIM$(Game.TipText)) THEN
+        s = RTRIM$(Game.TipText)
+        p = INSTR(s, ":")
+        who = LEFT$(s, p)
+        s = MID$(s, p + 1)
+        p = INSTR(s, "|")
+        IF p THEN l1 = LEFT$(s, p - 1): l2 = MID$(s, p + 1) ELSE l1 = s: l2 = ""
+        COLOR 15, 1
+        PutText 1, 22, " " + who + " "
+        PutText 1, 23, " " + l1 + " "
+        IF LEN(l2) THEN PutText 1, 24, " " + l2 + " "
+        COLOR , 0
+    END IF
+
+    'Boss warning
+    IF Game.T < Game.WarningUntil THEN
+        IF INT(Game.T * 4) MOD 2 = 0 THEN
+            Banner 11, "                         ", 15, 4
+            Banner 12, "   !!!   WARNING   !!!   ", 15, 4
+            Banner 13, "                         ", 15, 4
+        END IF
+    END IF
+
+    'Freeze / overdrive timers
+    IF Ply.Freeze AND Ply.Alive THEN
+        n = INT(10 - (Game.T - Ply.FreezeT))
+        IF n < 0 THEN n = 0
+        IF n > 10 THEN n = 10
+        IF n <= 3 THEN COLOR 9 + 16 ELSE COLOR 9
+        PutText 2, 3, STRING$(n, 219) + STRING$(10 - n, 220)
+        IF n <= 3 THEN COLOR 11 + 16 ELSE COLOR 11
+        PutText 2, 4, "TIME FREEZE"
+    END IF
+    IF Game.T < Ply.OverdriveEnd AND Ply.Alive THEN
+        n = INT(Ply.OverdriveEnd - Game.T + .99)
+        IF n > 8 THEN n = 8
+        COLOR 10
+        PutText 2, 5, STRING$(n, 219) + STRING$(8 - n, 220)
+        COLOR 2
+        PutText 2, 6, "OVERDRIVE"
+    END IF
+
+    'Generic message
+    IF Game.T < Game.MsgUntil THEN
+        Banner 13, " " + RTRIM$(Game.MsgText) + " ", 15, Game.MsgClr
+    END IF
+
+    'Death message
+    IF Ply.Dying THEN Banner 13, " " + RTRIM$(Ply.DeathMsg) + " ", 15, 4
+
+    IF Game.Paused THEN
+        DrawLogo 100, 8 + INT(8 * ABS(SIN(RealNow# * 2)))
+        Banner 13, "     PAUSED      ", 15, 1
+        COLOR 7, 0
+        CenterText 15, "START: RESUME   SELECT/Q: QUIT TO TITLE   M: MUTE"
+    END IF
+    COLOR , 0
+END SUB
+
+'Saves the current frame as PNG (autotest screenshots)
+SUB SaveShot (tag AS STRING)
+    DIM f AS STRING
+    IF LEN(RTRIM$(Test.ShotDir)) = 0 THEN EXIT SUB
+    Test.ShotNo = Test.ShotNo + 1
+    f = RTRIM$(Test.ShotDir) + Sep + PadNum$(Test.ShotNo, 4) + "_" + tag + ".png"
+    _PALETTECOLOR 0, _RGB32(0, 0, 0)
+    _SAVEIMAGE f
+    _PALETTECOLOR 0, _RGBA32(0, 0, 0, 0)
+END SUB

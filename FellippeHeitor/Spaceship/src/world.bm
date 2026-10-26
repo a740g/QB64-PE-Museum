@@ -1,0 +1,256 @@
+'Spaceship - starfield, backdrops and terrain
+
+SUB CreateStar (id AS INTEGER, atEdge AS _BYTE)
+    IF atEdge THEN
+        Stars(id).X = 80
+    ELSE
+        Stars(id).X = INT(RND * 80 + 1)
+    END IF
+    Stars(id).Y = INT(RND * 24 + 1) + 1
+    Stars(id).Speed = INT(RND * 3 + 1)
+    SELECT CASE Stars(id).Speed
+        CASE 1: Stars(id).Clr = 8: Stars(id).Ch = CHR$(250)
+        CASE 2: Stars(id).Clr = 8: Stars(id).Ch = CHR$(249)
+        CASE 3: Stars(id).Clr = 7: Stars(id).Ch = CHR$(249)
+    END SELECT
+END SUB
+
+SUB ResetStars
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_STARS
+        CreateStar i, 0
+    NEXT
+END SUB
+
+SUB UpdateStars (dt AS SINGLE)
+    DIM i AS INTEGER, iv AS SINGLE, dy AS SINGLE, h AS INTEGER
+    STATIC lastShipY AS SINGLE
+
+    'Vertical parallax (off unless -parallax is given): when the ship climbs or dives,
+    'the starfield slides the other way.
+    'Nearer (faster) stars slide more than distant ones; the backdrop barely moves.
+    dy = (Ply.Y - lastShipY) / 2
+    lastShipY = Ply.Y
+    IF ABS(dy) > 1 THEN dy = 0
+    IF dy <> 0 AND NOT Ply.Dying AND Game.Parallax THEN
+        FOR i = 1 TO MAX_STARS
+            Stars(i).Y = Stars(i).Y - dy * .15 * Stars(i).Speed
+            IF Stars(i).Y < 2 THEN Stars(i).Y = Stars(i).Y + 24
+            IF Stars(i).Y >= 26 THEN Stars(i).Y = Stars(i).Y - 24
+        NEXT
+        FOR i = 1 TO MAX_BACK
+            IF Back(i).Active THEN
+                h = Sprites(Back(i).Sprite).H
+                Back(i).Y = Clamp!(Back(i).Y - dy * .08, 2 - h / 2, 25 - h / 2)
+            END IF
+        NEXT
+    END IF
+    'Star interval: lower = faster. Moving forward or recharging speeds the stars up.
+    IF Ply.Recharge OR (Ply.MovingRight AND NOT Ply.Freeze) THEN
+        Game.StarInterval = Game.StarInterval - .15 * dt
+        IF Game.StarInterval < 0 THEN Game.StarInterval = 0
+    ELSEIF NOT Ply.Freeze THEN
+        Game.StarInterval = Game.StarInterval + .15 * dt
+        IF Game.StarInterval > Game.StarBase THEN Game.StarInterval = Game.StarBase
+    END IF
+    IF Ply.Freeze OR Ply.Dying THEN EXIT SUB
+    iv = Game.StarInterval
+    IF iv < 1 / 30 THEN iv = 1 / 30
+    FOR i = 1 TO MAX_STARS
+        Stars(i).X = Stars(i).X - Stars(i).Speed * dt / iv
+        IF Stars(i).X < 1 THEN CreateStar i, -1
+    NEXT
+    'Backdrop objects drift very slowly
+    FOR i = 1 TO MAX_BACK
+        IF Back(i).Active THEN
+            Back(i).X = Back(i).X - Back(i).Speed * dt * (.08 / iv)
+            IF Back(i).X + Sprites(Back(i).Sprite).W < 1 THEN
+                Back(i).X = 81 + RND * 40
+                Back(i).Y = RndInt%(2, 25 - Sprites(Back(i).Sprite).H)
+            END IF
+        END IF
+    NEXT
+END SUB
+
+SUB DrawStars
+    DIM i AS INTEGER, ch AS STRING
+    FOR i = 1 TO MAX_STARS
+        IF Stars(i).X >= 1 AND Stars(i).X <= 80 AND INT(Stars(i).Y) >= 2 AND INT(Stars(i).Y) <= 25 THEN
+            COLOR Stars(i).Clr
+            ch = Stars(i).Ch
+            IF Game.StarInterval = 0 THEN ch = CHR$(196)
+            _PRINTSTRING (INT(Stars(i).X), INT(Stars(i).Y)), ch
+        END IF
+    NEXT
+END SUB
+
+'Backdrop: big, dim scenery behind everything (no collision)
+SUB SetBackdrop (n AS STRING)
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_BACK
+        Back(i).Active = 0
+    NEXT
+    SELECT CASE UCASE$(n)
+        CASE "PLANET"
+            AddBack "BG_PLANET", 50, 4, .3, 8
+        CASE "ROCKS"
+            AddBack "BG_ROCKS", 30, 3, .5, 8
+            AddBack "BG_ROCKS", 75, 16, .4, 8
+        CASE "NEBULA"
+            AddBack "BG_NEBULA", 10, 4, .35, 5
+            AddBack "BG_NEBULA", 55, 15, .3, 1
+        CASE "ARMADA"
+            AddBack "BG_ARMADA", 35, 5, .25, 1
+            AddBack "BG_ARMADA", 80, 16, .2, 1
+        CASE "HIVE"
+            AddBack "BG_HIVE", 20, 3, .3, 5
+            AddBack "BG_HIVE", 65, 14, .3, 4
+    END SELECT
+END SUB
+
+SUB AddBack (spr AS STRING, x AS SINGLE, y AS INTEGER, speed AS SINGLE, clr AS INTEGER)
+    DIM i AS INTEGER, id AS INTEGER
+    id = SpriteID%(spr)
+    IF id = 0 THEN EXIT SUB
+    FOR i = 1 TO MAX_BACK
+        IF Back(i).Active = 0 THEN
+            Back(i).Active = -1
+            Back(i).Sprite = id
+            Back(i).X = x
+            Back(i).Y = y
+            Back(i).Speed = speed
+            Back(i).Clr = clr
+            EXIT SUB
+        END IF
+    NEXT
+END SUB
+
+SUB DrawBackdrop
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_BACK
+        IF Back(i).Active THEN DrawSprite Back(i).Sprite, 1, INT(Back(i).X), INT(Back(i).Y), Back(i).Clr, 0
+    NEXT
+END SUB
+
+'--- Terrain --------------------------------------------------------------
+'TerTop(x): rows filled from row 2 downward. TerBot(x): rows filled from row 25 upward.
+
+SUB ResetTerrain
+    DIM i AS INTEGER
+    FOR i = 1 TO 81
+        TerTop(i) = 0
+        TerBot(i) = 0
+    NEXT
+    Lvl.TerOfs = 0
+END SUB
+
+SUB UpdateTerrain (dt AS SINGLE)
+    DIM i AS INTEGER, t AS INTEGER, b AS INTEGER, anyLeft AS _BYTE
+    IF Ply.Dying OR Ply.Freeze THEN EXIT SUB
+    IF Lvl.Terrain = TER_NONE THEN
+        anyLeft = 0
+        FOR i = 1 TO 81
+            IF TerTop(i) OR TerBot(i) THEN anyLeft = -1: EXIT FOR
+        NEXT
+        IF NOT anyLeft THEN EXIT SUB
+    END IF
+    Lvl.TerOfs = Lvl.TerOfs + Lvl.TerSpeed * dt
+    DO WHILE Lvl.TerOfs >= 1
+        Lvl.TerOfs = Lvl.TerOfs - 1
+        FOR i = 1 TO 80
+            TerTop(i) = TerTop(i + 1)
+            TerBot(i) = TerBot(i + 1)
+        NEXT
+        IF Lvl.Terrain = TER_NONE THEN
+            TerTop(81) = 0
+            TerBot(81) = 0
+        ELSE
+            t = TerTop(80)
+            b = TerBot(80)
+            IF RND < .35 THEN t = t + RndInt%(-1, 1)
+            IF RND < .35 THEN b = b + RndInt%(-1, 1)
+            IF t < 1 THEN t = 1
+            IF b < 1 THEN b = 1
+            IF t > Lvl.TerMaxH THEN t = Lvl.TerMaxH
+            IF b > Lvl.TerMaxH THEN b = Lvl.TerMaxH
+            DO WHILE 24 - t - b < Lvl.TerMinGap
+                IF t > b THEN t = t - 1 ELSE b = b - 1
+                IF t < 0 THEN t = 0
+                IF b < 0 THEN b = 0
+                IF t = 0 AND b = 0 THEN EXIT DO
+            LOOP
+            TerTop(81) = t
+            TerBot(81) = b
+        END IF
+    LOOP
+END SUB
+
+SUB MapTerrain
+    DIM x AS INTEGER, r AS INTEGER, code AS INTEGER
+    code = MAP_TERRAIN * 1000
+    FOR x = 1 TO 80
+        FOR r = 1 TO TerTop(x)
+            IF 1 + r <= 25 THEN ScreenMap(x, 1 + r) = code
+        NEXT
+        FOR r = 1 TO TerBot(x)
+            IF 26 - r >= 2 THEN ScreenMap(x, 26 - r) = code
+        NEXT
+    NEXT
+END SUB
+
+SUB DrawTerrain
+    DIM x AS INTEGER, r AS INTEGER, bodyCh AS STRING, edgeTop AS STRING, edgeBot AS STRING
+    DIM bodyClr AS INTEGER, edgeClr AS INTEGER, st AS INTEGER
+    st = Lvl.Terrain
+    IF st = TER_NONE THEN st = TER_ROCK
+    SELECT CASE st
+        CASE TER_ROCK
+            bodyCh = CHR$(178): edgeTop = CHR$(223): edgeBot = CHR$(220): bodyClr = 6: edgeClr = 8
+        CASE TER_FORTRESS
+            bodyCh = CHR$(219): edgeTop = CHR$(223): edgeBot = CHR$(220): bodyClr = 8: edgeClr = 7
+        CASE TER_ORGANIC
+            bodyCh = CHR$(177): edgeTop = CHR$(176): edgeBot = CHR$(176): bodyClr = 5: edgeClr = 13
+    END SELECT
+    FOR x = 1 TO 80
+        IF TerTop(x) > 0 THEN
+            COLOR bodyClr
+            FOR r = 1 TO TerTop(x) - 1
+                _PRINTSTRING (x, 1 + r), bodyCh
+            NEXT
+            COLOR edgeClr
+            _PRINTSTRING (x, 1 + TerTop(x)), edgeTop
+        END IF
+        IF TerBot(x) > 0 THEN
+            COLOR bodyClr
+            FOR r = 1 TO TerBot(x) - 1
+                _PRINTSTRING (x, 26 - r), bodyCh
+            NEXT
+            COLOR edgeClr
+            _PRINTSTRING (x, 26 - TerBot(x)), edgeBot
+        END IF
+        'Fortress walls get windows and rivets
+        IF st = TER_FORTRESS AND (x + INT(Game.T * 10)) MOD 7 = 0 THEN
+            COLOR 14
+            IF TerTop(x) >= 3 THEN _PRINTSTRING (x, 2), CHR$(250)
+            IF TerBot(x) >= 3 THEN _PRINTSTRING (x, 25), CHR$(250)
+        END IF
+    NEXT
+END SUB
+
+'Top surface row of free space at a column (first empty row from the top)
+FUNCTION TerrainTopRow% (x AS INTEGER)
+    DIM c AS INTEGER
+    c = x
+    IF c < 1 THEN c = 1
+    IF c > 81 THEN c = 81
+    TerrainTopRow% = 2 + TerTop(c)
+END FUNCTION
+
+'Bottom surface row of free space (last empty row)
+FUNCTION TerrainBotRow% (x AS INTEGER)
+    DIM c AS INTEGER
+    c = x
+    IF c < 1 THEN c = 1
+    IF c > 81 THEN c = 81
+    TerrainBotRow% = 25 - TerBot(c)
+END FUNCTION

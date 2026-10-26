@@ -1,0 +1,887 @@
+'Spaceship - enemies: definitions, spawning, behaviors, firing, damage
+
+'--- Definitions (data/enemies.txt) -----------------------------------------
+'One enemy per line:  ENEMY <NAME> key=value key=value ...
+'See the comments at the top of data/enemies.txt for the keys.
+
+SUB LoadDefs (f AS STRING)
+    DIM fh AS LONG, l AS STRING, lines(1 TO MAX_DEFS) AS STRING, n AS INTEGER, i AS INTEGER
+    IF _FILEEXISTS(f) = 0 THEN LogMsg "Missing enemy file: " + f: EXIT SUB
+    fh = FREEFILE
+    OPEN f FOR INPUT AS #fh
+    DO UNTIL EOF(fh)
+        LINE INPUT #fh, l
+        l = _TRIM$(l)
+        IF UCASE$(Word$(l, 1)) = "ENEMY" AND n < MAX_DEFS THEN
+            n = n + 1
+            lines(n) = l
+            Defs(n).Nm = UCASE$(Word$(l, 2))
+        END IF
+    LOOP
+    CLOSE #fh
+    DefCount = n
+    FOR i = 1 TO n
+        ParseDef i, lines(i)
+    NEXT
+END SUB
+
+FUNCTION DefIndex% (n AS STRING)
+    DIM i AS INTEGER
+    FOR i = 1 TO DefCount
+        IF RTRIM$(Defs(i).Nm) = UCASE$(n) THEN DefIndex% = i: EXIT FUNCTION
+    NEXT
+    IF LEN(n) THEN LogMsg "Unknown enemy: " + n
+    DefIndex% = 0
+END FUNCTION
+
+FUNCTION ListToMKI$ (s AS STRING)
+    DIM r AS STRING, p AS INTEGER, st AS INTEGER
+    st = 1
+    r = ""
+    DO
+        p = INSTR(st, s, ",")
+        IF p = 0 THEN
+            r = r + MKI$(VAL(MID$(s, st)))
+            EXIT DO
+        END IF
+        r = r + MKI$(VAL(MID$(s, st, p - st)))
+        st = p + 1
+    LOOP
+    ListToMKI$ = r
+END FUNCTION
+
+FUNCTION MoveFromName% (n AS STRING)
+    SELECT CASE UCASE$(n)
+        CASE "PATTERN": MoveFromName% = MV_PATTERN
+        CASE "STRAIGHT": MoveFromName% = MV_STRAIGHT
+        CASE "SINE": MoveFromName% = MV_SINE
+        CASE "DIVE": MoveFromName% = MV_DIVE
+        CASE "HOVER": MoveFromName% = MV_HOVER
+        CASE "DRIFT": MoveFromName% = MV_DRIFT
+        CASE "ORBIT": MoveFromName% = MV_ORBIT
+        CASE "FOLLOW": MoveFromName% = MV_FOLLOW
+        CASE "ATTACHED": MoveFromName% = MV_ATTACHED
+        CASE "ANCHORED": MoveFromName% = MV_ANCHORED
+        CASE "MIRROR": MoveFromName% = MV_MIRROR
+        CASE "ESCAPE": MoveFromName% = MV_ESCAPE
+        CASE "BOSS": MoveFromName% = MV_BOSS
+        CASE "EGG": MoveFromName% = MV_EGG
+        CASE "MINE": MoveFromName% = MV_MINE
+        CASE "LAYER": MoveFromName% = MV_LAYER
+        CASE "DRILLER": MoveFromName% = MV_DRILLER
+        CASE "GATE": MoveFromName% = MV_GATE
+        CASE "LIGHTNING": MoveFromName% = MV_LIGHTNING
+        CASE "JELLY": MoveFromName% = MV_JELLY
+        CASE "PHANTOM": MoveFromName% = MV_PHANTOM
+        CASE ELSE: MoveFromName% = MV_STRAIGHT
+    END SELECT
+END FUNCTION
+
+FUNCTION FireFromName% (n AS STRING)
+    SELECT CASE UCASE$(n)
+        CASE "BEAM": FireFromName% = FR_BEAM
+        CASE "AIMED": FireFromName% = FR_AIMED
+        CASE "SPREAD3": FireFromName% = FR_SPREAD3
+        CASE "RING8": FireFromName% = FR_RING8
+        CASE "ZAP": FireFromName% = FR_ZAP
+        CASE "SPORE": FireFromName% = FR_SPORE
+        CASE "BURST": FireFromName% = FR_BURST
+        CASE ELSE: FireFromName% = FR_NONE
+    END SELECT
+END FUNCTION
+
+FUNCTION AIFromName% (n AS STRING)
+    SELECT CASE UCASE$(n)
+        CASE "AMOEBA": AIFromName% = AI_AMOEBA
+        CASE "AMOEBA_S": AIFromName% = AI_AMOEBA_S
+        CASE "ROACH": AIFromName% = AI_ROACH
+        CASE "LEVIATHAN": AIFromName% = AI_LEVIATHAN
+        CASE "DREAD": AIFromName% = AI_DREAD
+        CASE "HIVE": AIFromName% = AI_HIVE
+        CASE "CARRIER": AIFromName% = AI_CARRIER
+        CASE ELSE: AIFromName% = AI_NONE
+    END SELECT
+END FUNCTION
+
+SUB ParseDef (i AS INTEGER, l AS STRING)
+    DIM v AS STRING, p AS INTEGER, p2 AS INTEGER
+    Defs(i).Sprite = SpriteID%(KeyVal$(l, "sprite"))
+    v = KeyVal$(l, "sprite2")
+    IF LEN(v) THEN Defs(i).Sprite2 = SpriteID%(v) ELSE Defs(i).Sprite2 = 0
+    v = KeyVal$(l, "title")
+    DO WHILE INSTR(v, "_")
+        MID$(v, INSTR(v, "_"), 1) = " "
+    LOOP
+    Defs(i).Title = UCASE$(v)
+    Defs(i).HP = KeyNum!(l, "hp", 1)
+    Defs(i).Pts = KeyNum!(l, "pts", 50)
+
+    v = UCASE$(KeyVal$(l, "color"))
+    IF v = "RANDOM" THEN
+        Defs(i).Clr = -1
+    ELSEIF v = "SAUCER" THEN
+        Defs(i).Clr = -3
+    ELSEIF INSTR(v, ",") THEN
+        Defs(i).Clr = -2
+        Defs(i).ColorPat = ListToMKI$(v)
+        Defs(i).ColorSteps = LEN(ListToMKI$(v)) \ 2
+    ELSEIF LEN(v) THEN
+        Defs(i).Clr = VAL(v)
+    ELSE
+        Defs(i).Clr = 12
+    END IF
+
+    Defs(i).Move = MoveFromName%(KeyVal$(l, "move"))
+    v = KeyVal$(l, "speed")
+    p = INSTR(v, "-")
+    IF p > 1 THEN
+        Defs(i).Speed = VAL(LEFT$(v, p - 1))
+        Defs(i).SpeedMax = VAL(MID$(v, p + 1))
+    ELSE
+        IF LEN(v) THEN Defs(i).Speed = VAL(v) ELSE Defs(i).Speed = 1
+        Defs(i).SpeedMax = Defs(i).Speed
+    END IF
+    Defs(i).VSpeed = KeyNum!(l, "vspeed", 4)
+    Defs(i).Amp = KeyNum!(l, "amp", 3)
+    Defs(i).Period = KeyNum!(l, "period", 3)
+    Defs(i).Spread = KeyNum!(l, "spread", 80)
+
+    v = KeyVal$(l, "pattern")
+    IF LEN(v) = 0 THEN v = "0"
+    Defs(i).Pattern = ListToMKI$(v)
+    Defs(i).PatSteps = LEN(ListToMKI$(v)) \ 2
+    Defs(i).PatFlip = KeyNum!(l, "patflip", 0) <> 0
+    Defs(i).Reverse = KeyNum!(l, "reverse", 0) <> 0
+    Defs(i).Chase = KeyNum!(l, "chase", 0) <> 0
+
+    Defs(i).Fire = FireFromName%(KeyVal$(l, "fire"))
+    Defs(i).FireRate = KeyNum!(l, "firerate", 2)
+    IF Defs(i).Fire = FR_BEAM THEN
+        Defs(i).BulletSpeed = KeyNum!(l, "bspeed", 30)
+    ELSE
+        Defs(i).BulletSpeed = KeyNum!(l, "bspeed", 16)
+    END IF
+
+    v = KeyVal$(l, "wounded")
+    IF LEN(v) THEN Defs(i).Wounded = DefIndex%(v) ELSE Defs(i).Wounded = 0
+
+    v = UCASE$(KeyVal$(l, "ondeath"))
+    Defs(i).OnDeath = OD_NONE
+    IF LEFT$(v, 5) = "SPLIT" THEN
+        Defs(i).OnDeath = OD_SPLIT
+        p = INSTR(v, ":")
+        p2 = INSTR(p + 1, v, ":")
+        IF p > 0 AND p2 > p THEN
+            Defs(i).DeathDef = DefIndex%(MID$(v, p + 1, p2 - p - 1))
+            Defs(i).DeathCount = VAL(MID$(v, p2 + 1))
+        END IF
+    ELSEIF v = "SHRAPNEL" THEN
+        Defs(i).OnDeath = OD_SHRAPNEL
+    END IF
+
+    v = UCASE$(KeyVal$(l, "drop"))
+    IF LEN(v) THEN
+        p = INSTR(v, ":")
+        IF p THEN
+            Defs(i).DropKind = PickupKindFromName%(LEFT$(v, p - 1))
+            Defs(i).DropChance = VAL(MID$(v, p + 1))
+        END IF
+    END IF
+
+    Defs(i).Boss = KeyNum!(l, "boss", 0)
+    Defs(i).AI = AIFromName%(KeyVal$(l, "ai"))
+    Defs(i).Invuln = KeyNum!(l, "invuln", 0) <> 0
+    Defs(i).Ghost = KeyNum!(l, "ghost", 0) <> 0
+    Defs(i).Knock = KeyNum!(l, "knock", 0)
+    Defs(i).Touch = KeyNum!(l, "touch", 1) <> 0
+    Defs(i).FrameRate = KeyNum!(l, "framerate", .3)
+END SUB
+
+'--- Spawning --------------------------------------------------------------
+
+FUNCTION FreeEnemy%
+    DIM i AS INTEGER
+    FreeEnemy% = 0
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active = 0 THEN FreeEnemy% = i: EXIT FUNCTION
+    NEXT
+END FUNCTION
+
+FUNCTION HPScale!
+    SELECT CASE Game.Difficulty
+        CASE DIFF_EASY: HPScale! = .75
+        CASE DIFF_HARD: HPScale! = 1.25
+        CASE ELSE: HPScale! = 1
+    END SELECT
+END FUNCTION
+
+FUNCTION SpawnEnemy% (d AS INTEGER, x AS SINGLE, y AS SINGLE)
+    DIM i AS INTEGER, c AS INTEGER, m AS STRING, k AS INTEGER
+    SpawnEnemy% = 0
+    IF d < 1 OR d > DefCount THEN EXIT FUNCTION
+    i = FreeEnemy%
+    IF i = 0 THEN EXIT FUNCTION
+    En(i).Active = -1
+    En(i).DefID = d
+    En(i).Sprite = Defs(d).Sprite
+    En(i).X = x
+    En(i).Y = y
+    En(i).W = Sprites(En(i).Sprite).W
+    En(i).H = Sprites(En(i).Sprite).H
+    En(i).HP = Defs(d).HP
+    IF Defs(d).HP > 1 THEN En(i).HP = _CEIL(Defs(d).HP * HPScale!)
+    En(i).MaxHP = En(i).HP
+    En(i).Pts = Defs(d).Pts
+    En(i).Frame = INT(RND * Sprites(En(i).Sprite).Frames) + 1
+    En(i).FrameT = Game.ET
+    En(i).Move = Defs(d).Move
+    En(i).Speed = Defs(d).Speed
+    IF Defs(d).SpeedMax > Defs(d).Speed THEN En(i).Speed = RndRange!(Defs(d).Speed, Defs(d).SpeedMax)
+    IF En(i).Move = MV_PATTERN THEN En(i).Speed = INT(En(i).Speed + .5)
+    En(i).Reverse = Defs(d).Reverse
+    En(i).Chase = Defs(d).Chase
+    En(i).CanShoot = Defs(d).Fire <> FR_NONE
+    En(i).NextFire = Game.ET + RND * Defs(d).FireRate + .5
+    En(i).Born = Game.ET
+    En(i).StepT = Game.ET
+    En(i).Phase = RND * 6.2832
+    En(i).BaseY = y
+    En(i).Parent = 0
+    En(i).OffX = 0
+    En(i).OffY = 0
+    En(i).Param = 0
+    En(i).State = 0
+    En(i).StateT = Game.ET
+    En(i).FlashT = 0
+    En(i).Visible = 0
+    En(i).Pool = 0
+    En(i).Invuln = Defs(d).Invuln
+    En(i).Cloaked = 0
+    En(i).Boss = Defs(d).Boss
+    En(i).VX = -En(i).Speed
+    En(i).VY = 0
+    En(i).ColorStep = 1
+
+    'Colors
+    c = Defs(d).Clr
+    IF c = -3 THEN
+        'Random color cycle (the saucers from chapter 2)
+        DO
+            k = INT(RND * 8) + 8
+        LOOP WHILE k = SHIP_COLOR OR k = 8
+        m = STRING$(15, " ")
+        m = ""
+        FOR c = 1 TO 15: m = m + MKI$(k): NEXT
+        FOR c = 1 TO 5: m = m + MKI$(k - 8): NEXT
+        FOR c = 1 TO 5: m = m + MKI$(8): NEXT
+        FOR c = 1 TO 5: m = m + MKI$(k - 8): NEXT
+        En(i).Clr = -2
+        En(i).ColorPat = m
+        En(i).ColorSteps = LEN(m) \ 2
+    ELSE
+        En(i).Clr = c
+        En(i).ColorPat = Defs(d).ColorPat
+        En(i).ColorSteps = Defs(d).ColorSteps
+    END IF
+
+    'Movement setup
+    En(i).Pattern = Defs(d).Pattern
+    En(i).PatSteps = Defs(d).PatSteps
+    En(i).PatStep = INT(RND * En(i).PatSteps) + 1
+    IF Defs(d).PatFlip AND y <= 12 THEN ReversePattern i
+    SELECT CASE En(i).Move
+        CASE MV_DIVE: En(i).Param = RndRange!(28, 55)
+        CASE MV_HOVER: En(i).Param = RndRange!(50, 68)
+        CASE MV_DRIFT
+            En(i).VX = -En(i).Speed * RndRange!(.7, 1.3)
+            En(i).VY = RndRange!(-Defs(d).VSpeed, Defs(d).VSpeed)
+        CASE MV_DRILLER
+            En(i).Param = RndRange!(48, 64)
+            IF Defs(d).Sprite2 THEN En(i).Sprite = Defs(d).Sprite2
+            En(i).Invuln = 0
+        CASE MV_MIRROR: En(i).Param = RndRange!(58, 70)
+        CASE MV_ESCAPE: SetEscape i
+        CASE MV_PHANTOM: En(i).Cloaked = -1
+        CASE MV_LIGHTNING: En(i).Param = 0
+        CASE MV_BOSS: BossInit i
+    END SELECT
+    SpawnEnemy% = i
+END FUNCTION
+
+FUNCTION SpawnByName% (n AS STRING, x AS SINGLE, y AS SINGLE)
+    SpawnByName% = SpawnEnemy%(DefIndex%(n), x, y)
+END FUNCTION
+
+SUB ReversePattern (i AS INTEGER)
+    DIM k AS INTEGER, v AS INTEGER
+    FOR k = 1 TO En(i).PatSteps
+        v = CVI(MID$(En(i).Pattern, k * 2 - 1, 2))
+        MID$(En(i).Pattern, k * 2 - 1, 2) = MKI$(-v)
+    NEXT
+END SUB
+
+'Wounded enemies run away vertically (the original MakeEnemyEscape)
+SUB SetEscape (i AS INTEGER)
+    En(i).Move = MV_ESCAPE
+    IF En(i).Y > 12 THEN En(i).Pattern = MKI$(-1) ELSE En(i).Pattern = MKI$(1)
+    En(i).PatSteps = 1
+    En(i).PatStep = 1
+    En(i).Reverse = 0
+    En(i).Chase = 0
+    En(i).CanShoot = 0
+END SUB
+
+SUB MorphEnemy (i AS INTEGER, nd AS INTEGER)
+    En(i).DefID = nd
+    En(i).Sprite = Defs(nd).Sprite
+    En(i).W = Sprites(En(i).Sprite).W
+    En(i).H = Sprites(En(i).Sprite).H
+    En(i).Frame = 1
+    En(i).Clr = Defs(nd).Clr
+    En(i).ColorPat = Defs(nd).ColorPat
+    En(i).ColorSteps = Defs(nd).ColorSteps
+    En(i).Pts = Defs(nd).Pts
+    En(i).Speed = Defs(nd).Speed
+    IF Defs(nd).Clr = -3 THEN En(i).Clr = 8
+    En(i).Move = Defs(nd).Move
+    En(i).Pattern = Defs(nd).Pattern
+    En(i).PatSteps = Defs(nd).PatSteps
+    En(i).PatStep = 1
+    En(i).Reverse = Defs(nd).Reverse
+    En(i).Chase = Defs(nd).Chase
+    En(i).CanShoot = Defs(nd).Fire <> FR_NONE
+    IF En(i).Move = MV_ESCAPE THEN SetEscape i
+END SUB
+
+'--- Update ----------------------------------------------------------------
+
+FUNCTION EnemyColor% (i AS INTEGER)
+    DIM c AS INTEGER
+    c = En(i).Clr
+    IF c = -1 THEN
+        c = INT(RND * 14) + 1
+    ELSEIF c = -2 THEN
+        IF En(i).ColorSteps > 0 THEN
+            IF En(i).ColorStep < 1 OR En(i).ColorStep > En(i).ColorSteps THEN En(i).ColorStep = 1
+            c = CVI(MID$(En(i).ColorPat, En(i).ColorStep * 2 - 1, 2))
+        ELSE
+            c = 12
+        END IF
+    END IF
+    EnemyColor% = c
+END FUNCTION
+
+FUNCTION VisibleEnemyCount%
+    DIM i AS INTEGER, n AS INTEGER
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Visible THEN
+            IF En(i).Move <> MV_GATE AND En(i).Move <> MV_LIGHTNING THEN n = n + 1
+        END IF
+    NEXT
+    VisibleEnemyCount% = n
+END FUNCTION
+
+FUNCTION ActiveEnemyCount%
+    DIM i AS INTEGER, n AS INTEGER
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active THEN n = n + 1
+    NEXT
+    ActiveEnemyCount% = n
+END FUNCTION
+
+SUB UpdateEnemies (dt AS SINGLE)
+    DIM i AS INTEGER, doStep AS _BYTE, d AS INTEGER
+    IF Ply.Freeze OR Ply.Dying OR Ply.Recharge THEN EXIT SUB
+    IF Game.ET - Game.LastStepT >= Lvl.StepInterval THEN
+        doStep = -1
+        Game.LastStepT = Game.ET
+    END IF
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active THEN
+            d = En(i).DefID
+            'Animation and color cycling
+            IF Game.ET - En(i).FrameT > Defs(d).FrameRate THEN
+                En(i).FrameT = Game.ET
+                En(i).Frame = En(i).Frame MOD Sprites(En(i).Sprite).Frames + 1
+            END IF
+            IF En(i).Clr = -2 AND (Game.ColorTick MOD 2) = 0 THEN
+                IF En(i).ColorSteps > 0 THEN En(i).ColorStep = En(i).ColorStep MOD En(i).ColorSteps + 1
+            END IF
+            MoveEnemy i, dt, doStep
+            IF En(i).Active = 0 THEN _CONTINUE
+            En(i).Visible = (En(i).X <= 80 AND En(i).X + En(i).W - 1 >= 1 AND En(i).Y <= 25 AND En(i).Y + En(i).H - 1 >= 2)
+            TryEnemyFire i
+        END IF
+    NEXT
+END SUB
+
+SUB MoveEnemy (i AS INTEGER, dt AS SINGLE, doStep AS _BYTE)
+    DIM d AS INTEGER, moveY AS INTEGER, p AS INTEGER, a AS SINGLE, cx AS SINGLE, cy AS SINGLE
+    DIM k AS INTEGER, top AS INTEGER, bot AS INTEGER, target AS SINGLE, removable AS _BYTE
+    DIM ph AS SINGLE, n AS INTEGER, dummy AS INTEGER
+    d = En(i).DefID
+    removable = -1
+    SELECT CASE En(i).Move
+        CASE MV_PATTERN, MV_ESCAPE
+            IF doStep THEN
+                En(i).X = En(i).X - En(i).Speed
+                moveY = CVI(MID$(En(i).Pattern, En(i).PatStep * 2 - 1, 2))
+                IF En(i).Chase AND En(i).X <= Ply.X + 25 THEN
+                    IF En(i).Y < ShipRow! THEN moveY = _CEIL(RND * 3) ELSE moveY = -_CEIL(RND * 3)
+                END IF
+                En(i).PatStep = En(i).PatStep MOD En(i).PatSteps + 1
+                En(i).Y = En(i).Y + moveY
+                IF moveY <> 0 AND Game.Difficulty >= DIFF_NORMAL THEN En(i).X = En(i).X - 1
+                IF En(i).Reverse THEN
+                    IF En(i).Y < 2 THEN En(i).Y = 2: ReversePattern i
+                    IF En(i).Y + (En(i).H - 1) > 24 THEN
+                        En(i).Y = 24 - (En(i).H - 1)
+                        ReversePattern i
+                    END IF
+                    IF _CEIL(RND * En(i).PatSteps) = En(i).PatStep THEN ReversePattern i
+                END IF
+            END IF
+        CASE MV_STRAIGHT
+            En(i).X = En(i).X + En(i).VX * dt
+            En(i).Y = En(i).Y + En(i).VY * dt
+        CASE MV_SINE
+            En(i).X = En(i).X - En(i).Speed * dt
+            En(i).Y = En(i).BaseY + Defs(d).Amp * SIN(En(i).Phase + (Game.ET - En(i).Born) * 6.2832 / Defs(d).Period)
+        CASE MV_DIVE
+            IF En(i).State = 0 THEN
+                En(i).X = En(i).X - En(i).Speed * dt
+                IF En(i).X <= En(i).Param THEN En(i).State = 1
+            ELSE
+                target = SGN(ShipRow! - (En(i).Y + En(i).H / 2)) * Defs(d).VSpeed
+                En(i).VY = En(i).VY + (target - En(i).VY) * Clamp!(3 * dt, 0, 1)
+                En(i).X = En(i).X - En(i).Speed * 1.8 * dt
+                En(i).Y = En(i).Y + En(i).VY * dt
+            END IF
+        CASE MV_HOVER
+            SELECT CASE En(i).State
+                CASE 0
+                    En(i).X = En(i).X - En(i).Speed * dt
+                    IF En(i).X <= En(i).Param THEN En(i).State = 1: En(i).StateT = Game.ET
+                CASE 1
+                    target = ShipRow! - En(i).H / 2
+                    En(i).Y = En(i).Y + SGN(target - En(i).Y) * Defs(d).VSpeed * dt
+                    IF Game.ET - En(i).StateT > 4.5 THEN
+                        En(i).State = 2
+                        IF En(i).Y > 12 THEN En(i).VY = 9 ELSE En(i).VY = -9
+                    END IF
+                CASE 2
+                    En(i).Y = En(i).Y + En(i).VY * dt
+                    En(i).X = En(i).X - En(i).Speed * .5 * dt
+            END SELECT
+        CASE MV_DRIFT
+            En(i).X = En(i).X + En(i).VX * dt
+            En(i).Y = En(i).Y + En(i).VY * dt
+            IF En(i).Y < 2 THEN En(i).Y = 2: En(i).VY = ABS(En(i).VY)
+            IF En(i).Y + En(i).H - 1 > 25 THEN En(i).Y = 26 - En(i).H: En(i).VY = -ABS(En(i).VY)
+        CASE MV_ORBIT
+            removable = 0
+            p = En(i).Parent
+            IF p = 0 THEN KillEnemy i, 0: EXIT SUB
+            IF NOT En(p).Active THEN KillEnemy i, 0: EXIT SUB
+            a = En(i).Phase + Game.ET * En(i).Speed
+            cx = En(p).X + En(p).W / 2
+            cy = En(p).Y + En(p).H / 2
+            En(i).X = cx + COS(a) * Defs(d).Amp * 2 - En(i).W / 2
+            En(i).Y = cy + SIN(a) * Defs(d).Amp - En(i).H / 2
+        CASE MV_FOLLOW
+            removable = 0
+            p = En(i).Parent
+            IF p = 0 THEN KillEnemy i, 0: EXIT SUB
+            IF NOT En(p).Active THEN KillEnemy i, 0: EXIT SUB
+            k = (PathHead - INT(En(i).Param) + PATH_LEN * 4) MOD PATH_LEN
+            En(i).X = PathX(k) - En(i).W / 2
+            En(i).Y = PathY(k) - En(i).H / 2
+        CASE MV_ATTACHED
+            removable = 0
+            p = En(i).Parent
+            IF p = 0 THEN KillEnemy i, 0: EXIT SUB
+            IF NOT En(p).Active THEN KillEnemy i, 0: EXIT SUB
+            En(i).X = En(p).X + En(i).OffX
+            En(i).Y = En(p).Y + En(i).OffY
+        CASE MV_ANCHORED
+            IF Lvl.Terrain <> TER_NONE THEN En(i).X = En(i).X - Lvl.TerSpeed * dt ELSE En(i).X = En(i).X - 8 * dt
+        CASE MV_MIRROR
+            IF En(i).X > En(i).Param THEN En(i).X = En(i).X - En(i).Speed * dt
+            En(i).Y = En(i).Y + Ply.MoveDY / 2
+            IF En(i).Y < 2 THEN En(i).Y = 2
+            IF En(i).Y + En(i).H - 1 > 25 THEN En(i).Y = 26 - En(i).H
+            IF Ply.FiredThisTick AND Game.ET - En(i).StateT > .35 AND En(i).X <= 80 THEN
+                En(i).StateT = Game.ET
+                dummy = EnemyShot%(BK_BEAM, En(i).X - 2, En(i).Y + En(i).H \ 2, -32, 0, i, 12)
+            END IF
+            removable = 0
+        CASE MV_EGG
+            En(i).X = En(i).X - 2 * dt
+            IF Game.ET - En(i).Born > 1.6 THEN
+                IF INT(Game.ET * 10) MOD 2 THEN En(i).FlashT = Game.ET + .05
+            END IF
+            IF Game.ET - En(i).Born > 2.2 THEN
+                dummy = SpawnByName%("LARVA", En(i).X, En(i).Y)
+                En(i).Active = 0
+                EXIT SUB
+            END IF
+        CASE MV_MINE
+            En(i).X = En(i).X - En(i).Speed * dt
+            En(i).Y = En(i).BaseY + .6 * SIN(En(i).Phase + Game.ET * 2)
+            cx = En(i).X + 1 - Ply.X
+            cy = (En(i).Y + 1 - ShipRow!) * 2
+            IF En(i).State = 0 THEN
+                IF cx * cx + cy * cy < 100 THEN
+                    En(i).State = 1
+                    En(i).StateT = Game.ET
+                    PlaySfx SndBeep
+                END IF
+            ELSE
+                IF INT(Game.ET * 12) MOD 2 THEN En(i).Clr = 12 ELSE En(i).Clr = 15
+                IF Game.ET - En(i).StateT > .9 THEN
+                    RingShot En(i).X + 1, En(i).Y + 1, 8, 13, RND, i, 12
+                    AddExplosion En(i).X + 1, En(i).Y + 1, 0
+                    PlaySfx SndExplosion
+                    En(i).Active = 0
+                    EXIT SUB
+                END IF
+            END IF
+        CASE MV_LAYER
+            En(i).X = En(i).X - En(i).Speed * dt
+            IF Game.ET - En(i).StateT > 1.4 AND En(i).X < 76 AND En(i).X > 4 THEN
+                En(i).StateT = Game.ET
+                n = SpawnByName%("MINE", En(i).X + En(i).W \ 2 - 1, En(i).Y + En(i).H)
+            END IF
+        CASE MV_DRILLER
+            IF En(i).State = 0 THEN
+                En(i).X = En(i).X - En(i).Speed * dt
+                IF En(i).X < En(i).Param THEN
+                    En(i).State = 1
+                    En(i).Sprite = Defs(d).Sprite
+                    En(i).W = Sprites(En(i).Sprite).W
+                    En(i).H = Sprites(En(i).Sprite).H
+                    En(i).Frame = 1
+                    FOR k = 1 TO 6
+                        AddParticle En(i).X + 2, En(i).Y + 1, RndRange!(-10, 10), RndRange!(-5, 5), .4
+                    NEXT
+                    PlaySfx SndBeep
+                END IF
+            ELSE
+                target = SGN(ShipRow! - (En(i).Y + 1)) * Defs(d).VSpeed
+                En(i).VY = En(i).VY + (target - En(i).VY) * Clamp!(4 * dt, 0, 1)
+                En(i).X = En(i).X - En(i).Speed * 3 * dt
+                En(i).Y = En(i).Y + En(i).VY * dt
+            END IF
+        CASE MV_GATE
+            IF Lvl.Terrain <> TER_NONE THEN En(i).X = En(i).X - Lvl.TerSpeed * dt ELSE En(i).X = En(i).X - 8 * dt
+            ph = (Game.ET - En(i).Born) - INT((Game.ET - En(i).Born) / 3.2) * 3.2
+            IF ph < 1.2 THEN
+                En(i).State = 1
+            ELSEIF ph > 2.7 THEN
+                En(i).State = 2
+            ELSE
+                En(i).State = 0
+            END IF
+            top = TerrainTopRow%(INT(En(i).X))
+            bot = TerrainBotRow%(INT(En(i).X))
+            En(i).Y = top
+            En(i).H = bot - top + 1
+            IF En(i).H < 1 THEN En(i).H = 1
+        CASE MV_LIGHTNING
+            removable = 0
+            IF En(i).State = 0 THEN
+                IF Game.ET - En(i).Born > 1 THEN
+                    En(i).State = 1
+                    En(i).Param = 0
+                    PlaySfx SndZap
+                    SetFlash 40, 40, 80, .06
+                END IF
+            ELSEIF Game.ET - En(i).Born > 1.35 THEN
+                En(i).Active = 0
+                EXIT SUB
+            END IF
+        CASE MV_JELLY
+            En(i).X = En(i).X - En(i).Speed * dt
+            En(i).Y = En(i).BaseY + Defs(d).Amp * SIN(En(i).Phase + (Game.ET - En(i).Born) * 6.2832 / Defs(d).Period)
+        CASE MV_PHANTOM
+            En(i).X = En(i).X - En(i).Speed * dt
+            En(i).Y = En(i).BaseY + Defs(d).Amp * SIN(En(i).Phase + (Game.ET - En(i).Born) * 6.2832 / Defs(d).Period)
+            IF En(i).State = 0 THEN
+                En(i).Cloaked = -1
+                IF Game.ET - En(i).StateT > 2.4 THEN
+                    En(i).State = 1
+                    En(i).StateT = Game.ET
+                    En(i).Cloaked = 0
+                    IF En(i).Visible THEN
+                        AimedShot En(i).X - 1, En(i).Y + 1, 17, -.1, i, 13
+                        AimedShot En(i).X - 1, En(i).Y + 1, 17, .1, i, 13
+                    END IF
+                END IF
+            ELSE
+                En(i).Cloaked = 0
+                IF Game.ET - En(i).StateT > 1.6 THEN En(i).State = 0: En(i).StateT = Game.ET
+            END IF
+        CASE MV_BOSS
+            removable = 0
+            BossUpdate i, dt
+            IF En(i).Active = 0 THEN EXIT SUB
+    END SELECT
+
+    IF removable THEN
+        IF En(i).X + En(i).W < 1 OR En(i).X > 220 THEN
+            En(i).Active = 0
+        ELSEIF En(i).Move <> MV_DRIFT AND En(i).Move <> MV_GATE AND En(i).Move <> MV_ANCHORED THEN
+            IF En(i).Y + En(i).H < 2 OR En(i).Y > 25 THEN En(i).Active = 0
+        END IF
+    END IF
+END SUB
+
+SUB TryEnemyFire (i AS INTEGER)
+    DIM d AS INTEGER, gap AS SINGLE, mul AS SINGLE
+    d = En(i).DefID
+    IF NOT En(i).CanShoot OR NOT En(i).Visible OR En(i).Cloaked THEN EXIT SUB
+    IF Defs(d).Fire = FR_NONE THEN EXIT SUB
+    IF Game.ET < En(i).NextFire THEN EXIT SUB
+    IF Ply.Dying OR Ply.Recharge OR Lvl.GoalDone THEN EXIT SUB
+    IF En(i).Boss = 0 THEN
+        'Enemies hold fire until you attack first (except on Hard)
+        IF Game.Difficulty <> DIFF_HARD AND NOT Game.WeKilledFirst THEN EXIT SUB
+        SELECT CASE Game.Difficulty
+            CASE DIFF_EASY: gap = .8
+            CASE DIFF_HARD: gap = .4
+            CASE ELSE: gap = .5
+        END SELECT
+        IF Game.ET - Game.LastEnemyShot < gap THEN EXIT SUB
+    END IF
+    IF Defs(d).Fire = FR_ZAP THEN
+        IF ABS(Ply.X - 2 - (En(i).X + En(i).W / 2)) > 5 THEN EXIT SUB
+    END IF
+    'Only shoot at a ship that is in front (to the left) of the shooter
+    IF En(i).X + En(i).W / 2 < Ply.X + 2 AND Defs(d).Fire <> FR_RING8 AND Defs(d).Fire <> FR_ZAP THEN EXIT SUB
+    FireEnemy i
+    Game.LastEnemyShot = Game.ET
+    SELECT CASE Game.Difficulty
+        CASE DIFF_EASY: mul = 1.5
+        CASE DIFF_HARD: mul = .85
+        CASE ELSE: mul = 1
+    END SELECT
+    En(i).NextFire = Game.ET + Defs(d).FireRate * RndRange!(.75, 1.25) * mul
+END SUB
+
+FUNCTION BulletSpeedScale!
+    SELECT CASE Game.Difficulty
+        CASE DIFF_EASY: BulletSpeedScale! = .8
+        CASE DIFF_HARD: BulletSpeedScale! = 1.1
+        CASE ELSE: BulletSpeedScale! = 1
+    END SELECT
+END FUNCTION
+
+SUB FireEnemy (i AS INTEGER)
+    DIM d AS INTEGER, ox AS SINGLE, oy AS SINGLE, bs AS SINGLE, b AS INTEGER, clr AS INTEGER
+    d = En(i).DefID
+    ox = En(i).X - 1
+    oy = En(i).Y + En(i).H \ 2
+    bs = Defs(d).BulletSpeed * BulletSpeedScale!
+    clr = EnemyColor%(i)
+    IF clr < 9 THEN clr = clr + 8
+    IF clr > 15 THEN clr = 12
+    SELECT CASE Defs(d).Fire
+        CASE FR_BEAM
+            b = EnemyShot%(BK_BEAM, En(i).X, oy, -bs, 0, i, clr)
+        CASE FR_AIMED
+            AimedShot ox, oy, bs, 0, i, clr
+        CASE FR_SPREAD3
+            AimedShot ox, oy, bs, -.3, i, clr
+            AimedShot ox, oy, bs, 0, i, clr
+            AimedShot ox, oy, bs, .3, i, clr
+        CASE FR_RING8
+            RingShot En(i).X + En(i).W / 2, En(i).Y + En(i).H / 2, 8, bs, RND, i, clr
+        CASE FR_ZAP
+            b = EnemyShot%(BK_ZAP, En(i).X + En(i).W \ 2, En(i).Y + En(i).H, 0, 0, i, 11)
+            IF b THEN Bul(b).Size = 6
+            b = EnemyShot%(BK_ZAP, En(i).X + En(i).W \ 2, En(i).Y - 6, 0, 0, i, 11)
+            IF b THEN Bul(b).Size = 6
+            PlaySfx SndZap
+        CASE FR_SPORE
+            b = EnemyShot%(BK_SPORE, ox, oy, -6, 0, i, 10)
+        CASE FR_BURST
+            AimedShot ox, oy, bs * .85, -.06, i, clr
+            AimedShot ox, oy, bs, 0, i, clr
+            AimedShot ox, oy, bs * 1.15, .06, i, clr
+    END SELECT
+END SUB
+
+'--- Damage ----------------------------------------------------------------
+
+SUB HitEnemy (i AS INTEGER, dmg AS SINGLE, byPlayer AS _BYTE)
+    DIM d AS INTEGER
+    IF NOT En(i).Active THEN EXIT SUB
+    d = En(i).DefID
+    IF Defs(d).Invuln OR En(i).Invuln THEN EXIT SUB
+    En(i).HP = En(i).HP - dmg
+    En(i).FlashT = Game.ET + .06
+    IF En(i).HP <= 0 THEN
+        KillEnemy i, byPlayer
+        EXIT SUB
+    END IF
+    'Knockback (the original pushed enemies back 5 cells on every hit)
+    SELECT CASE En(i).Move
+        CASE MV_PATTERN, MV_ESCAPE, MV_STRAIGHT, MV_SINE, MV_DIVE, MV_HOVER, MV_DRIFT, MV_JELLY, MV_PHANTOM, MV_LAYER
+            En(i).X = En(i).X + Defs(d).Knock
+    END SELECT
+    IF byPlayer THEN Ply.Score = Ply.Score + 10
+    IF Defs(d).Wounded > 0 THEN
+        MorphEnemy i, Defs(d).Wounded
+        IF byPlayer THEN AddScore En(i).Pts, En(i).X, En(i).Y
+        AddExplosion En(i).X + En(i).W / 2, En(i).Y + En(i).H / 2, 0
+        PlaySfx SndExplosion
+    END IF
+END SUB
+
+SUB KillEnemy (i AS INTEGER, byPlayer AS _BYTE)
+    DIM d AS INTEGER, cx AS SINGLE, cy AS SINGLE, k AS INTEGER, n AS INTEGER, pts AS LONG, p AS INTEGER
+    DIM dummy AS INTEGER
+    IF NOT En(i).Active THEN EXIT SUB
+    d = En(i).DefID
+    cx = En(i).X + En(i).W / 2
+    cy = En(i).Y + En(i).H / 2
+    En(i).Active = 0
+    IF En(i).Move = MV_GATE OR En(i).Move = MV_LIGHTNING THEN EXIT SUB
+
+    IF En(i).Boss > 0 THEN AddExplosion cx, cy, 1 ELSE AddExplosion cx, cy, 0
+    PlaySfx SndExplosion
+
+    IF byPlayer THEN
+        RegisterKillCombo
+        pts = En(i).Pts * ComboMult%
+        AddScore pts, En(i).X, cy
+        Game.WeKilledFirst = -1
+        Lvl.Kills = Lvl.Kills + 1
+    END IF
+
+    SELECT CASE Defs(d).OnDeath
+        CASE OD_SPLIT
+            FOR k = 1 TO Defs(d).DeathCount
+                n = SpawnEnemy%(Defs(d).DeathDef, En(i).X + RND * En(i).W / 2, En(i).Y + (k - 1) * (En(i).H / Defs(d).DeathCount))
+                IF n THEN
+                    En(n).VY = (k - (Defs(d).DeathCount + 1) / 2) * 3 + RndRange!(-.5, .5)
+                    En(n).Pool = 0
+                END IF
+            NEXT
+        CASE OD_SHRAPNEL
+            RingShot cx, cy, 8, 13, RND, 0, 12
+    END SELECT
+
+    IF byPlayer AND Defs(d).DropChance > 0 THEN
+        IF RND * 100 < Defs(d).DropChance THEN dummy = SpawnPickup%(Defs(d).DropKind, cx, cy - 1, -1)
+    END IF
+
+    'Children die with their parent
+    FOR k = 1 TO MAX_EN
+        IF En(k).Active AND En(k).Parent = i THEN KillEnemy k, byPlayer
+    NEXT
+
+    'A vital part takes its parent down with it
+    p = En(i).Parent
+    IF En(i).Boss = 3 AND p > 0 THEN
+        IF En(p).Active THEN KillEnemy p, byPlayer
+    END IF
+
+    IF En(i).Boss = 1 THEN CheckBossDefeated i
+END SUB
+
+'--- Drawing / collision map -------------------------------------------------
+
+SUB DrawEnemies
+    DIM i AS INTEGER, mode AS INTEGER, dx AS SINGLE, dy AS SINGLE, r AS INTEGER, xi AS INTEGER
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active THEN
+            SELECT CASE En(i).Move
+                CASE MV_GATE
+                    xi = INT(En(i).X)
+                    IF xi >= 1 AND xi <= 80 THEN
+                        SELECT CASE En(i).State
+                            CASE 1: IF INT(Game.ET * 20) MOD 2 THEN COLOR 12 ELSE COLOR 14
+                            CASE 2: COLOR 4
+                            CASE ELSE: COLOR 8
+                        END SELECT
+                        FOR r = INT(En(i).Y) TO INT(En(i).Y) + En(i).H - 1
+                            IF r >= 2 AND r <= 25 THEN
+                                IF En(i).State = 0 THEN
+                                    IF r = INT(En(i).Y) OR r = INT(En(i).Y) + En(i).H - 1 THEN _PRINTSTRING (xi, r), CHR$(254)
+                                ELSE
+                                    _PRINTSTRING (xi, r), CHR$(186)
+                                END IF
+                            END IF
+                        NEXT
+                    END IF
+                CASE MV_LIGHTNING
+                    xi = INT(En(i).X)
+                    IF xi >= 1 AND xi <= 80 THEN
+                        FOR r = 2 TO 25
+                            IF En(i).State = 0 THEN
+                                IF INT(Game.ET * 8) MOD 2 THEN COLOR 8 ELSE COLOR 1
+                                IF r MOD 2 THEN _PRINTSTRING (xi, r), CHR$(250)
+                            ELSE
+                                IF RND < .5 THEN COLOR 15 ELSE COLOR 11
+                                IF (r + INT(Game.ET * 30)) MOD 3 = 0 THEN
+                                    _PRINTSTRING (xi, r), "/"
+                                ELSEIF (r + INT(Game.ET * 30)) MOD 3 = 1 THEN
+                                    _PRINTSTRING (xi, r), "\"
+                                ELSE
+                                    _PRINTSTRING (xi, r), CHR$(179)
+                                END IF
+                            END IF
+                        NEXT
+                    END IF
+                CASE ELSE
+                    mode = 0
+                    IF En(i).Cloaked THEN
+                        mode = 3
+                        IF RND < .6 THEN _CONTINUE
+                    ELSEIF Game.ET < En(i).FlashT THEN
+                        mode = 1
+                    ELSEIF Lvl.Fog THEN
+                        dx = En(i).X + En(i).W / 2 - Ply.X
+                        dy = (En(i).Y + En(i).H / 2 - ShipRow!) * 2
+                        IF dx * dx + dy * dy > 22 * 22 THEN mode = 2
+                    END IF
+                    DrawSprite En(i).Sprite, En(i).Frame, INT(En(i).X), INT(En(i).Y), EnemyColor%(i), mode
+            END SELECT
+        END IF
+    NEXT
+END SUB
+
+SUB MapEnemies
+    DIM i AS INTEGER, r AS INTEGER, xi AS INTEGER, code AS INTEGER
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active THEN
+            code = MAP_ENEMY * 1000 + i
+            SELECT CASE En(i).Move
+                CASE MV_GATE
+                    xi = INT(En(i).X)
+                    IF En(i).State = 1 AND xi >= 1 AND xi <= 80 THEN
+                        FOR r = INT(En(i).Y) TO INT(En(i).Y) + En(i).H - 1
+                            IF r >= 2 AND r <= 25 THEN ScreenMap(xi, r) = code
+                        NEXT
+                    END IF
+                CASE MV_LIGHTNING
+                    xi = INT(En(i).X)
+                    IF En(i).State = 1 AND xi >= 1 AND xi <= 80 THEN
+                        FOR r = 2 TO 25
+                            ScreenMap(xi, r) = code
+                        NEXT
+                    END IF
+                CASE ELSE
+                    MapSprite En(i).Sprite, En(i).Frame, INT(En(i).X), INT(En(i).Y), code
+            END SELECT
+        END IF
+    NEXT
+END SUB
+
+SUB ClearEnemies
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_EN
+        En(i).Active = 0
+    NEXT
+END SUB

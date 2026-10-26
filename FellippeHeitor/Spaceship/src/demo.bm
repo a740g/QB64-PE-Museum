@@ -1,0 +1,56 @@
+'Spaceship - attract mode
+'
+'When the title screen sits idle for DEMO_IDLE seconds, the autopilot plays a random
+'chapter for DEMO_LENGTH seconds, then the title comes back. Any key or button ends
+'it early. Only chapters from sectors the player has already reached are shown, and
+'nothing is saved: no high scores, unlocks or settings.
+
+SUB StartDemo
+    DIM pick(1 TO 64) AS INTEGER, n AS INTEGER, i AS INTEGER
+    FOR i = 1 TO ChapterCount
+        IF NOT Chapters(i).Bonus AND Chapters(i).Sector <= Game.Unlocked AND n < UBOUND(pick) THEN
+            n = n + 1
+            pick(n) = i
+        END IF
+    NEXT
+    IF n = 0 THEN
+        Game.IdleT = UINow#
+        EXIT SUB
+    END IF
+    Game.Demo = -1
+    Game.DemoAbort = 0
+    Game.DemoEnd = UINow# + DEMO_LENGTH
+    NewGame pick(INT(RND * n) + 1)
+END SUB
+
+'Called each frame during the demo, right after input is read
+SUB CheckDemoEnd
+    DIM a AS INTEGER
+    IF Game.DemoAbort OR UINow# > Game.DemoEnd OR Game.State <> ST_PLAY THEN
+        Game.Demo = 0
+        Game.DemoAbort = 0
+        Game.Paused = 0
+        Game.IdleT = UINow#
+        'The key that ended the demo must not also act on the title menu
+        KeyHitBuffer = 0
+        EscPressed = 0
+        FOR a = 1 TO A_COUNT
+            InPressed(a) = 0
+        NEXT
+        StopMusic
+        _PALETTECOLOR 0, _RGBA32(0, 0, 0, 0)
+        GoTitle
+    END IF
+END SUB
+
+SUB DrawDemoOverlay
+    Banner 3, "  D E M O  ", 0, 7
+    IF INT(UINow# * 2) MOD 2 = 0 THEN
+        COLOR 15
+        CenterText 4, "PRESS ANY KEY"
+    END IF
+END SUB
+
+FUNCTION MaxD# (a AS DOUBLE, b AS DOUBLE)
+    IF a > b THEN MaxD# = a ELSE MaxD# = b
+END FUNCTION

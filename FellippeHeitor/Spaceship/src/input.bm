@@ -1,0 +1,187 @@
+'Spaceship - input (keyboard + optional gamepad, both active at once)
+
+SUB InitInput
+    DIM i AS INTEGER, n AS INTEGER, d AS STRING
+    ActionName(A_UP) = "UP"
+    ActionName(A_DOWN) = "DOWN"
+    ActionName(A_LEFT) = "LEFT"
+    ActionName(A_RIGHT) = "RIGHT"
+    ActionName(A_FIRE) = "FIRE"
+    ActionName(A_SPECIAL) = "SPECIAL"
+    ActionName(A_SELECT) = "SELECT"
+    ActionName(A_START) = "START"
+
+    PadDevice = 0
+    PadName = ""
+    n = _DEVICES
+    FOR i = 3 TO n
+        d = _DEVICE$(i)
+        IF INSTR(d, "[CONTROLLER]") THEN
+            PadDevice = i
+            PadName = d
+            IF INSTR(PadName, "[[") THEN PadName = MID$(PadName, INSTR(PadName, "[[") + 2)
+            IF INSTR(PadName, "]]") THEN PadName = LEFT$(PadName, INSTR(PadName, "]]") - 1)
+            EXIT FOR
+        END IF
+    NEXT
+END SUB
+
+SUB DefaultBindings
+    KeyBind1(A_UP) = 18432: KeyBind2(A_UP) = 119
+    KeyBind1(A_DOWN) = 20480: KeyBind2(A_DOWN) = 115
+    KeyBind1(A_LEFT) = 19200: KeyBind2(A_LEFT) = 97
+    KeyBind1(A_RIGHT) = 19712: KeyBind2(A_RIGHT) = 100
+    KeyBind1(A_FIRE) = 122: KeyBind2(A_FIRE) = 32
+    KeyBind1(A_SPECIAL) = 120: KeyBind2(A_SPECIAL) = 100304
+    KeyBind1(A_SELECT) = 99: KeyBind2(A_SELECT) = 9
+    KeyBind1(A_START) = 13: KeyBind2(A_START) = 112
+    PadBind(A_UP) = 0
+    PadBind(A_DOWN) = 0
+    PadBind(A_LEFT) = 0
+    PadBind(A_RIGHT) = 0
+    PadBind(A_FIRE) = 1
+    PadBind(A_SPECIAL) = 2
+    PadBind(A_SELECT) = 7
+    PadBind(A_START) = 8
+END SUB
+
+FUNCTION KeyIsDown% (k AS LONG)
+    KeyIsDown% = 0
+    IF k = 0 THEN EXIT FUNCTION
+    IF _KEYDOWN(k) THEN KeyIsDown% = -1: EXIT FUNCTION
+    IF k >= 97 AND k <= 122 THEN
+        IF _KEYDOWN(k - 32) THEN KeyIsDown% = -1
+    ELSEIF k >= 65 AND k <= 90 THEN
+        IF _KEYDOWN(k + 32) THEN KeyIsDown% = -1
+    END IF
+END FUNCTION
+
+SUB PollInput
+    DIM a AS INTEGER, k AS LONG, ax AS SINGLE, ay AS SINGLE, lb AS INTEGER
+
+    KeyHitBuffer = 0
+    EscPressed = 0
+    DO
+        k = _KEYHIT
+        IF k = 0 THEN EXIT DO
+        IF k > 0 THEN
+            IF KeyHitBuffer = 0 THEN KeyHitBuffer = k
+            IF k = 27 THEN EscPressed = -1
+        END IF
+    LOOP
+
+    'Any real key or button counts as activity (and ends the attract-mode demo)
+    IF KeyHitBuffer <> 0 OR AnyRealInput% THEN
+        Game.IdleT = UINow#
+        IF Game.Demo THEN Game.DemoAbort = -1
+    END IF
+
+    'Autotest runs ignore the real keyboard (the hidden window can still get focus)
+    IF Test.Bot THEN
+        KeyHitBuffer = 0
+        EscPressed = 0
+    END IF
+
+    FOR a = 1 TO A_COUNT
+        InPrev(a) = InHeld(a)
+        InHeld(a) = 0
+    NEXT
+
+    IF Test.Bot OR Game.Demo THEN
+        BotInput
+    ELSE
+        FOR a = 1 TO A_COUNT
+            IF KeyIsDown%(KeyBind1(a)) OR KeyIsDown%(KeyBind2(a)) THEN InHeld(a) = -1
+        NEXT
+        IF PadDevice > 0 THEN
+            DO WHILE _DEVICEINPUT(PadDevice): LOOP
+            lb = _LASTBUTTON(PadDevice)
+            FOR a = 1 TO A_COUNT
+                IF PadBind(a) > 0 AND PadBind(a) <= lb THEN
+                    IF _BUTTON(PadBind(a)) THEN InHeld(a) = -1
+                END IF
+            NEXT
+            IF _LASTAXIS(PadDevice) >= 2 THEN
+                ax = _AXIS(1)
+                ay = _AXIS(2)
+                IF ax < -.5 THEN InHeld(A_LEFT) = -1
+                IF ax > .5 THEN InHeld(A_RIGHT) = -1
+                IF ay < -.5 THEN InHeld(A_UP) = -1
+                IF ay > .5 THEN InHeld(A_DOWN) = -1
+            END IF
+        END IF
+    END IF
+
+    FOR a = 1 TO A_COUNT
+        InPressed(a) = InHeld(a) AND NOT InPrev(a)
+    NEXT
+END SUB
+
+'True while any bound key or any gamepad button is down
+FUNCTION AnyRealInput%
+    DIM a AS INTEGER
+    AnyRealInput% = 0
+    FOR a = 1 TO A_COUNT
+        IF KeyIsDown%(KeyBind1(a)) OR KeyIsDown%(KeyBind2(a)) THEN AnyRealInput% = -1: EXIT FUNCTION
+    NEXT
+    IF PadButtonDown% THEN AnyRealInput% = -1
+END FUNCTION
+
+'Menu helpers also accept the fixed keys (arrows, Enter, Space) whatever the bindings
+FUNCTION MenuUp%
+    MenuUp% = InPressed(A_UP) OR KeyHitBuffer = 18432
+END FUNCTION
+
+FUNCTION MenuDown%
+    MenuDown% = InPressed(A_DOWN) OR KeyHitBuffer = 20480
+END FUNCTION
+
+FUNCTION MenuLeft%
+    MenuLeft% = InPressed(A_LEFT) OR KeyHitBuffer = 19200
+END FUNCTION
+
+FUNCTION MenuRight%
+    MenuRight% = InPressed(A_RIGHT) OR KeyHitBuffer = 19712
+END FUNCTION
+
+FUNCTION MenuOK%
+    MenuOK% = InPressed(A_FIRE) OR InPressed(A_START) OR KeyHitBuffer = 13 OR KeyHitBuffer = 32
+END FUNCTION
+
+FUNCTION MenuBack%
+    MenuBack% = EscPressed OR KeyHitBuffer = 8
+END FUNCTION
+
+'Returns a pad button that is currently down (first one found), or 0
+FUNCTION PadButtonDown%
+    DIM i AS INTEGER
+    PadButtonDown% = 0
+    IF PadDevice = 0 THEN EXIT FUNCTION
+    DO WHILE _DEVICEINPUT(PadDevice): LOOP
+    FOR i = 1 TO _LASTBUTTON(PadDevice)
+        IF _BUTTON(i) THEN PadButtonDown% = i: EXIT FUNCTION
+    NEXT
+END FUNCTION
+
+FUNCTION KeyName$ (k AS LONG)
+    SELECT CASE k
+        CASE 0: KeyName$ = "-"
+        CASE 18432: KeyName$ = "UP"
+        CASE 20480: KeyName$ = "DOWN"
+        CASE 19200: KeyName$ = "LEFT"
+        CASE 19712: KeyName$ = "RIGHT"
+        CASE 13: KeyName$ = "ENTER"
+        CASE 32: KeyName$ = "SPACE"
+        CASE 9: KeyName$ = "TAB"
+        CASE 8: KeyName$ = "BACKSPC"
+        CASE 100304: KeyName$ = "L-SHIFT"
+        CASE 100303: KeyName$ = "R-SHIFT"
+        CASE 100306: KeyName$ = "L-CTRL"
+        CASE 100305: KeyName$ = "R-CTRL"
+        CASE 100308: KeyName$ = "L-ALT"
+        CASE 100307: KeyName$ = "R-ALT"
+        CASE 33 TO 126: KeyName$ = UCASE$(CHR$(k))
+        CASE 15104 TO 17408: KeyName$ = "F" + NumStr$((k - 15104) \ 256 + 1)
+        CASE ELSE: KeyName$ = "#" + NumStr$(k)
+    END SELECT
+END FUNCTION

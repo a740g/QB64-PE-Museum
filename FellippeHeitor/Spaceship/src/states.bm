@@ -1,0 +1,794 @@
+'Spaceship - game states (menus, play loop, screens)
+
+SUB RunFrame
+    PollInput
+    IF Game.Demo THEN CheckDemoEnd
+    IF Game.State <> ST_NAMEENTRY AND NOT ControlsWaiting% THEN
+        IF KeyHitBuffer = 109 OR KeyHitBuffer = 77 THEN ToggleMute
+    END IF
+    SELECT CASE Game.State
+        CASE ST_TITLE: TitleFrame
+        CASE ST_OPTIONS: OptionsFrame
+        CASE ST_CONTROLS: ControlsFrame
+        CASE ST_SCORES: ScoresFrame
+        CASE ST_SECTORSEL: SectorSelFrame
+        CASE ST_BRIEFING: BriefingFrame
+        CASE ST_PLAY: PlayFrame
+        CASE ST_TALLY: TallyFrame
+        CASE ST_GAMEOVER: GameOverFrame
+        CASE ST_NAMEENTRY: NameEntryFrame
+        CASE ST_ENDING: EndingFrame
+        CASE ST_ZEN: ZenFrame
+        CASE ST_ZENTALLY: ZenTallyFrame
+    END SELECT
+    IF Test.Active THEN TestHooks
+END SUB
+
+SUB GoState (s AS INTEGER)
+    Game.PrevState = Game.State
+    Game.State = s
+    Game.StateT = UINow#
+    Game.MenuSel = 1
+END SUB
+
+SUB GoTitle
+    GoState ST_TITLE
+    PlaySong SONG_TITLE
+END SUB
+
+'--- Play ------------------------------------------------------------------
+
+SUB NewGame (chapterIdx AS INTEGER)
+    Game.T = 0
+    Game.ET = 0
+    Game.LastStepT = 0
+    Game.WeKilledFirst = 0
+    Game.LastEnemyShot = 0
+    Game.LastLifeT = 0
+    Game.LastEnergyT = 0
+    Game.LastShieldT = 0
+    Game.LastFreezeT = 0
+    Game.LastWeaponT = 0
+    Game.LastBombT = 0
+    Game.LastMissileT = 0
+    Game.LastOverdriveT = 0
+    Game.NextPickupRoll = 0
+    Game.FlashUntil = 0
+    Game.MsgUntil = 0
+    Game.TopMsgUntil = 0
+    Game.TipUntil = 0
+    Game.WarningUntil = 0
+    Game.Paused = 0
+    Game.Acc = 0
+    Game.LastReal = RealNow#
+    Game.NewHigh = 0
+    Game.StartChapter = chapterIdx
+    ResetPlayerForNewGame
+    Game.ChapterIdx = chapterIdx
+    IF chapterIdx = Sectors(Chapters(chapterIdx).Sector).FirstChapter AND NOT Test.Fast AND NOT Game.Demo THEN
+        GoState ST_BRIEFING
+        PlaySong SONG_TITLE
+    ELSE
+        StartChapter chapterIdx
+    END IF
+END SUB
+
+SUB PlayFrame
+    DIM steps AS INTEGER, s AS INTEGER, now AS DOUBLE, a AS INTEGER
+    STATIC carry(1 TO A_COUNT) AS _BYTE
+
+    IF (EscPressed OR InPressed(A_START)) AND NOT Ply.Dying THEN
+        Game.Paused = NOT Game.Paused
+        IF Game.Paused THEN PauseMusic ELSE ResumeMusic
+        Game.LastReal = RealNow#
+    END IF
+    IF Game.Paused THEN
+        IF InPressed(A_SELECT) OR KeyHitBuffer = 113 OR KeyHitBuffer = 81 THEN
+            Game.Paused = 0
+            StopMusic
+            _PALETTECOLOR 0, _RGBA32(0, 0, 0, 0)
+            GoTitle
+            EXIT SUB
+        END IF
+        RenderPlay
+        EXIT SUB
+    END IF
+
+    IF Game.God THEN GodKeys
+
+    IF Test.Fast THEN
+        steps = 8
+    ELSE
+        now = RealNow#
+        Game.Acc = Game.Acc + (now - Game.LastReal)
+        Game.LastReal = now
+        IF Game.Acc > .25 THEN Game.Acc = .25
+        steps = INT(Game.Acc / FIXED_DT)
+        Game.Acc = Game.Acc - steps * FIXED_DT
+    END IF
+
+    FOR a = 1 TO A_COUNT
+        InPressed(a) = InPressed(a) OR carry(a)
+    NEXT
+    FOR s = 1 TO steps
+        'Fast autotests run several ticks per frame: let the bot steer on each one
+        IF s > 1 AND (Test.Bot OR Game.Demo) THEN BotSteer
+        UpdatePlay FIXED_DT, (s = 1)
+        IF Game.State <> ST_PLAY THEN EXIT FOR
+        IF Test.Active THEN
+            IF Test.ShotEvery > 0 AND Game.T >= Test.NextShot THEN
+                Test.NextShot = Game.T + Test.ShotEvery
+                RenderPlay
+                SaveShot "c" + PadNum$(Game.ChapterIdx, 2)
+            END IF
+        END IF
+    NEXT
+    FOR a = 1 TO A_COUNT
+        IF steps = 0 THEN carry(a) = InPressed(a) ELSE carry(a) = 0
+    NEXT
+
+    IF KeyHitBuffer = 15104 THEN ShowDebug = NOT ShowDebug
+    IF Game.State = ST_PLAY AND NOT Test.Fast THEN
+        RenderPlay
+        IF ShowDebug THEN DrawDebug
+    END IF
+END SUB
+
+'F1: frame rate and entity counts
+SUB DrawDebug
+    STATIC frames AS LONG, lastT AS DOUBLE, fps AS INTEGER
+    DIM i AS INTEGER, nb AS INTEGER, nf AS INTEGER
+    frames = frames + 1
+    IF RealNow# - lastT >= 1 THEN fps = frames: frames = 0: lastT = RealNow#
+    FOR i = 1 TO MAX_BUL
+        IF Bul(i).Active THEN nb = nb + 1
+    NEXT
+    FOR i = 1 TO MAX_FX
+        IF FX(i).Active THEN nf = nf + 1
+    NEXT
+    COLOR 10, 0
+    PutText 1, 2, "FPS" + STR$(fps) + "  ENEMIES" + STR$(ActiveEnemyCount%) + "  BULLETS" + STR$(nb) + "  FX" + STR$(nf) + "  T" + STR$(INT(Lvl.T)) + "  CH" + STR$(Game.ChapterIdx) + "  " + RTRIM$(Lvl.File)
+END SUB
+
+SUB UpdatePlay (dt AS SINGLE, firstTick AS _BYTE)
+    Game.T = Game.T + dt
+    IF NOT Ply.Freeze AND NOT Ply.Dying THEN Game.ET = Game.ET + dt
+    Game.ColorTick = Game.ColorTick + 1
+
+    UpdatePlayer dt, firstTick
+    IF Game.State <> ST_PLAY THEN EXIT SUB
+    UpdateStars dt
+    UpdateTerrain dt
+    UpdateLevel dt
+    IF Game.State <> ST_PLAY THEN EXIT SUB
+    UpdateEnemies dt
+    UpdateBullets dt
+    UpdatePickups dt
+    UpdateFX dt
+
+    ERASE ScreenMap
+    MapTerrain
+    MapPickups
+    MapEnemies
+    MapEnemyBullets
+    PlayerBulletHits
+    PlayerCollisions
+END SUB
+
+SUB GodKeys
+    DIM i AS INTEGER
+    SELECT CASE KeyHitBuffer
+        CASE 108, 76 'L: finish the chapter
+            IF NOT Lvl.GoalDone THEN
+                FOR i = 1 TO MAX_EN
+                    IF En(i).Active AND En(i).Boss > 0 THEN KillEnemy i, -1
+                NEXT
+                Lvl.BossQueue = ""
+                Lvl.BossPending = 0
+                Lvl.Started = -1
+                GoalReached
+            END IF
+        CASE 102, 70 'F: freeze
+            Ply.Freeze = -1: Ply.FreezeT = Game.T
+        CASE 119, 87 'W: weapon up
+            IF Ply.Weapon < 4 THEN Ply.Weapon = Ply.Weapon + 1
+        CASE 98, 66 'B: refill specials
+            FOR i = 1 TO SP_COUNT
+                SpecialCount(i) = SpecialMax(i)
+            NEXT
+    END SELECT
+END SUB
+
+'--- Menus -----------------------------------------------------------------
+
+SUB MenuBackground
+    STATIC lastT AS DOUBLE
+    DIM now AS DOUBLE, dt AS SINGLE
+    CLS , 0
+    _PALETTECOLOR 0, _RGBA32(0, 0, 0, 0)
+    now = UINow#
+    dt = now - lastT
+    IF dt > .1 OR dt < 0 THEN dt = .016
+    lastT = now
+    Ply.Freeze = 0
+    Ply.Dying = 0
+    Ply.Recharge = 0
+    'The tally screen keeps the warp-speed stars from the blast-off
+    Ply.MovingRight = (Game.State = ST_TALLY OR Game.State = ST_ZENTALLY)
+    IF Ply.MovingRight THEN
+        Game.StarInterval = Game.StarInterval - .4 * dt
+        IF Game.StarInterval < 0 THEN Game.StarInterval = 0
+    END IF
+    Ply.Energy = 100
+    Game.StarBase = .08
+    UpdateStars dt
+    DrawStars
+END SUB
+
+SUB DrawMenuItem (row AS INTEGER, s AS STRING, selected AS _BYTE, enabled AS _BYTE)
+    IF selected THEN
+        COLOR 0, 7
+        CenterText row, "  " + s + "  "
+        COLOR 14, 0
+        PutText 41 - LEN(s) \ 2 - 5, row, CHR$(16)
+        PutText 41 - LEN(s) \ 2 + LEN(s) + 3, row, CHR$(17)
+    ELSE
+        IF enabled THEN COLOR 7, 0 ELSE COLOR 8, 0
+        CenterText row, "  " + s + "  "
+    END IF
+    COLOR , 0
+END SUB
+
+FUNCTION MenuNav% (count AS INTEGER)
+    MenuNav% = 0
+    IF MenuUp% THEN
+        Game.MenuSel = Game.MenuSel - 1
+        IF Game.MenuSel < 1 THEN Game.MenuSel = count
+        PlaySfx SndMenuMove
+    END IF
+    IF MenuDown% THEN
+        Game.MenuSel = Game.MenuSel + 1
+        IF Game.MenuSel > count THEN Game.MenuSel = 1
+        PlaySfx SndMenuMove
+    END IF
+    IF MenuOK% THEN MenuNav% = -1: PlaySfx SndMenuSelect
+END FUNCTION
+
+SUB TitleFrame
+    DIM items(1 TO 7) AS STRING, i AS INTEGER, n AS INTEGER, fade AS INTEGER
+    MenuBackground
+    fade = INT((UINow# - Game.StateT) * 12) + 1
+    DrawLogo 80, fade
+    COLOR 8
+    CenterText 10, "A  T E X T - M O D E   S P A C E   S H O O T E R"
+    items(1) = "START GAME"
+    items(2) = "SECTOR SELECT"
+    items(3) = "ZEN MODE"
+    items(4) = "OPTIONS"
+    items(5) = "CONTROLS"
+    items(6) = "HIGH SCORES"
+    items(7) = "QUIT"
+    n = 7
+    FOR i = 1 TO n
+        DrawMenuItem 12 + i, items(i), (i = Game.MenuSel), (i <> 2 OR Game.Unlocked > 1)
+    NEXT
+    COLOR 14
+    CenterText 21, "TOP SCORE  " + PadNum$(HighScores(1).Score, 7) + "  " + HighScores(1).Nm
+    COLOR 8
+    CenterText 23, "ARROWS/WASD MOVE  Z/SPACE FIRE  X SPECIAL  C SELECT  ENTER START  M MUTE"
+    CenterText 25, "(C) 2016-2026 FELLIPPE HEITOR  -  MADE WITH QB64"
+
+    IF UINow# - MaxD#(Game.StateT, Game.IdleT) > DEMO_IDLE AND NOT Test.Active THEN
+        StartDemo
+        EXIT SUB
+    END IF
+
+    IF MenuNav%(n) THEN
+        SELECT CASE Game.MenuSel
+            CASE 1: NewGame 1
+            CASE 2
+                IF Game.Unlocked > 1 THEN GoState ST_SECTORSEL
+            CASE 3: StartZen
+            CASE 4: GoState ST_OPTIONS
+            CASE 5: GoState ST_CONTROLS
+            CASE 6: Game.NewHigh = 0: GoState ST_SCORES
+            CASE 7: Game.State = ST_QUIT
+        END SELECT
+    ELSEIF MenuBack% THEN
+        Game.State = ST_QUIT
+    END IF
+END SUB
+
+SUB OptionsFrame
+    DIM s AS STRING, chg AS INTEGER, i AS INTEGER
+    MenuBackground
+    DrawLogo 30, 10
+    COLOR 15
+    CenterText 7, "O P T I O N S"
+    SELECT CASE Game.Difficulty
+        CASE DIFF_EASY: s = "EASY"
+        CASE DIFF_HARD: s = "HARD"
+        CASE ELSE: s = "NORMAL"
+    END SELECT
+    DrawMenuItem 10, "DIFFICULTY   " + CHR$(17) + " " + LEFT$(s + "      ", 6) + " " + CHR$(16), (Game.MenuSel = 1), -1
+    DrawMenuItem 12, "MUSIC VOLUME " + STRING$(Game.MusicVol, 254) + STRING$(10 - Game.MusicVol, 250), (Game.MenuSel = 2), -1
+    DrawMenuItem 14, "SOUND VOLUME " + STRING$(Game.SfxVol, 254) + STRING$(10 - Game.SfxVol, 250), (Game.MenuSel = 3), -1
+    IF Game.Fullscreen THEN s = "ON " ELSE s = "OFF"
+    DrawMenuItem 16, "FULLSCREEN   " + s, (Game.MenuSel = 4), -1
+    DrawMenuItem 18, "BACK", (Game.MenuSel = 5), -1
+    COLOR 8
+    SELECT CASE Game.MenuSel
+        CASE 1
+            SELECT CASE Game.Difficulty
+                CASE DIFF_EASY: CenterText 21, "MORE LIVES, WEAKER ENEMIES. ENEMIES ONLY SHOOT AFTER YOU DO."
+                CASE DIFF_HARD: CenterText 21, "ENEMIES SHOOT ON SIGHT, HIT HARDER AND TAKE MORE DAMAGE."
+                CASE ELSE: CenterText 21, "THE ORIGINAL BALANCE."
+            END SELECT
+        CASE 2, 3: CenterText 21, "LEFT/RIGHT TO ADJUST"
+    END SELECT
+
+    i = MenuNav%(5)
+    chg = 0
+    IF MenuLeft% THEN chg = -1
+    IF MenuRight% THEN chg = 1
+    IF i AND Game.MenuSel <> 5 THEN chg = 1
+    IF chg THEN
+        PlaySfx SndMenuMove
+        SELECT CASE Game.MenuSel
+            CASE 1
+                Game.Difficulty = Game.Difficulty + chg
+                IF Game.Difficulty > DIFF_HARD THEN Game.Difficulty = DIFF_EASY
+                IF Game.Difficulty < DIFF_EASY THEN Game.Difficulty = DIFF_HARD
+            CASE 2
+                Game.MusicVol = Game.MusicVol + chg
+                IF Game.MusicVol < 0 THEN Game.MusicVol = 0
+                IF Game.MusicVol > 10 THEN Game.MusicVol = 10
+                PlaySong CurrentSong
+            CASE 3
+                Game.SfxVol = Game.SfxVol + chg
+                IF Game.SfxVol < 0 THEN Game.SfxVol = 0
+                IF Game.SfxVol > 10 THEN Game.SfxVol = 10
+                PlaySfx SndLaser1
+            CASE 4
+                Game.Fullscreen = NOT Game.Fullscreen
+                Test.Windowed = 0
+                ApplyFullscreen
+        END SELECT
+    END IF
+    IF (i AND Game.MenuSel = 5) OR MenuBack% THEN
+        SaveConfig
+        GoState ST_TITLE
+        Game.MenuSel = 3
+    END IF
+END SUB
+
+SUB ApplyFullscreen
+    IF Test.Active OR Test.Windowed THEN EXIT SUB
+    IF Game.Fullscreen THEN
+        _FULLSCREEN _SQUAREPIXELS , _SMOOTH
+    ELSE
+        _FULLSCREEN _OFF
+    END IF
+END SUB
+
+FUNCTION ControlsWaiting%
+    ControlsWaiting% = (Game.State = ST_CONTROLS AND CtlWaiting > 0)
+END FUNCTION
+
+SUB ControlsFrame
+    STATIC padReady AS _BYTE
+    DIM a AS INTEGER, s AS STRING, b AS INTEGER, row AS INTEGER, k AS LONG, sel AS _BYTE
+    MenuBackground
+    COLOR 15
+    CenterText 3, "C O N T R O L S"
+    COLOR 8
+    IF PadDevice THEN
+        CenterText 5, "CONTROLLER: " + LEFT$(PadName, 50)
+    ELSE
+        CenterText 5, "NO CONTROLLER DETECTED - KEYBOARD ONLY"
+    END IF
+    COLOR 7
+    PutText 18, 7, "ACTION      KEY          ALT KEY      PAD BUTTON"
+    FOR a = 1 TO A_COUNT
+        row = 8 + a
+        sel = (Game.MenuSel = a)
+        IF sel THEN COLOR 0, 7 ELSE COLOR 7, 0
+        IF PadBind(a) > 0 THEN s = NumStr$(PadBind(a)) ELSE s = "AXIS/-"
+        PutText 16, row, " " + LEFT$(ActionName(a) + SPACE$(12), 12) + LEFT$(KeyName$(KeyBind1(a)) + SPACE$(13), 13) + LEFT$(KeyName$(KeyBind2(a)) + SPACE$(13), 13) + LEFT$(s + SPACE$(10), 10) + " "
+        COLOR , 0
+    NEXT
+    DrawMenuItem 18, "RESET TO DEFAULTS", (Game.MenuSel = A_COUNT + 1), -1
+    DrawMenuItem 20, "BACK", (Game.MenuSel = A_COUNT + 2), -1
+
+    IF CtlWaiting > 0 THEN
+        Banner 23, " PRESS A KEY OR PAD BUTTON FOR " + ActionName(CtlWaiting) + " (ESC CANCELS) ", 15, 4
+        IF EscPressed THEN CtlWaiting = 0: EXIT SUB
+        k = KeyHitBuffer
+        IF k > 0 AND k <> 27 THEN
+            KeyBind1(CtlWaiting) = k
+            IF KeyBind2(CtlWaiting) = k THEN KeyBind2(CtlWaiting) = 0
+            CtlWaiting = 0
+            SaveConfig
+            PlaySfx SndMenuSelect
+            EXIT SUB
+        END IF
+        IF PadDevice THEN
+            b = PadButtonDown%
+            IF b = 0 THEN padReady = -1
+            IF b > 0 AND padReady THEN
+                PadBind(CtlWaiting) = b
+                CtlWaiting = 0
+                SaveConfig
+                PlaySfx SndMenuSelect
+            END IF
+        END IF
+        EXIT SUB
+    END IF
+
+    COLOR 8
+    CenterText 23, "SELECT AN ACTION AND PRESS ENTER TO REBIND IT"
+    IF MenuNav%(A_COUNT + 2) THEN
+        SELECT CASE Game.MenuSel
+            CASE 1 TO A_COUNT
+                CtlWaiting = Game.MenuSel
+                padReady = 0
+            CASE A_COUNT + 1
+                DefaultBindings
+                SaveConfig
+            CASE A_COUNT + 2
+                GoState ST_TITLE
+                Game.MenuSel = 4
+        END SELECT
+    ELSEIF MenuBack% THEN
+        GoState ST_TITLE
+        Game.MenuSel = 4
+    END IF
+END SUB
+
+SUB ScoresFrame
+    DIM i AS INTEGER, row AS INTEGER
+    MenuBackground
+    DrawLogo 30, 12
+    COLOR 15
+    CenterText 7, "H I G H   S C O R E S"
+    FOR i = 1 TO 10
+        row = 9 + i
+        IF i = Game.NewHigh THEN
+            IF INT(UINow# * 4) MOD 2 THEN COLOR 14 ELSE COLOR 15
+        ELSE
+            COLOR 7
+        END IF
+        PutText 24, row, LEFT$(NumStr$(i) + ".  ", 4) + HighScores(i).Nm + "    " + PadNum$(HighScores(i).Score, 7) + "    CHAPTER " + NumStr$(HighScores(i).Chapter)
+    NEXT
+    COLOR 8
+    CenterText 23, "PRESS FIRE"
+    IF (MenuOK% OR MenuBack%) AND UINow# - Game.StateT > .3 THEN
+        GoState ST_TITLE
+        Game.MenuSel = 5
+    END IF
+END SUB
+
+SUB SectorSelFrame
+    DIM s AS INTEGER, row AS INTEGER, unl AS _BYTE
+    MenuBackground
+    COLOR 15
+    CenterText 4, "S E C T O R   S E L E C T"
+    FOR s = 1 TO SectorCount
+        row = 6 + s * 2
+        unl = (s <= Game.Unlocked)
+        IF unl THEN
+            DrawMenuItem row, "SECTOR " + NumStr$(s) + ": " + RTRIM$(Sectors(s).Nm), (Game.MenuSel = s), -1
+        ELSE
+            DrawMenuItem row, "SECTOR " + NumStr$(s) + ": LOCKED", (Game.MenuSel = s), 0
+        END IF
+    NEXT
+    DrawMenuItem 8 + SectorCount * 2, "BACK", (Game.MenuSel = SectorCount + 1), -1
+    IF MenuNav%(SectorCount + 1) THEN
+        IF Game.MenuSel = SectorCount + 1 THEN
+            GoState ST_TITLE
+            Game.MenuSel = 2
+        ELSEIF Game.MenuSel <= Game.Unlocked THEN
+            NewGame Sectors(Game.MenuSel).FirstChapter
+        END IF
+    ELSEIF MenuBack% THEN
+        GoState ST_TITLE
+        Game.MenuSel = 2
+    END IF
+END SUB
+
+'--- Briefing ----------------------------------------------------------------
+
+SUB BriefingFrame
+    DIM s AS INTEGER, txt AS STRING, shown AS INTEGER, row AS INTEGER, p AS INTEGER, l AS STRING
+    DIM st AS INTEGER, total AS INTEGER, age AS DOUBLE
+    MenuBackground
+    s = Chapters(Game.ChapterIdx).Sector
+    age = UINow# - Game.StateT
+    COLOR 8
+    CenterText 4, "S E C T O R   " + NumStr$(s)
+    COLOR 14
+    CenterText 6, RTRIM$(Sectors(s).Nm)
+    COLOR 1
+    CenterText 7, STRING$(LEN(RTRIM$(Sectors(s).Nm)) + 4, 196)
+    txt = RTRIM$(Sectors(s).Brief)
+    total = LEN(txt)
+    shown = INT(age * 45)
+    IF Game.MenuSel = 99 THEN shown = total
+    row = 10
+    st = 1
+    DO
+        p = INSTR(st, txt, "|")
+        IF p = 0 THEN EXIT DO
+        l = MID$(txt, st, p - st)
+        IF shown < st THEN EXIT DO
+        IF shown < p THEN l = LEFT$(l, shown - st + 1)
+        COLOR 7
+        CenterText row, l
+        row = row + 1
+        st = p + 1
+    LOOP
+    IF shown >= total THEN
+        IF INT(UINow# * 2) MOD 2 THEN COLOR 15 ELSE COLOR 8
+        CenterText 22, "PRESS FIRE TO LAUNCH"
+    END IF
+    IF MenuOK% THEN
+        IF shown < total THEN
+            Game.MenuSel = 99
+        ELSE
+            PlaySfx SndMenuSelect
+            StartChapter Game.ChapterIdx
+        END IF
+    ELSEIF MenuBack% THEN
+        GoTitle
+    END IF
+END SUB
+
+'--- Chapter tally -------------------------------------------------------------
+
+SUB TallyFrame
+    DIM age AS DOUBLE, acc AS INTEGER, row AS INTEGER, n AS INTEGER, s AS STRING
+    STATIC lastN AS INTEGER
+    MenuBackground
+    age = UINow# - Game.StateT
+    n = INT(age / .45)
+    IF n <> lastN AND n <= 6 THEN PlaySfx SndBeep
+    lastN = n
+    IF Lvl.Bonus THEN
+        Banner 5, " BONUS STAGE COMPLETE ", 15, 1
+    ELSE
+        Banner 5, " CHAPTER " + NumStr$(Lvl.ChapterNo) + " COMPLETE ", 15, 1
+    END IF
+    s = RTRIM$(Lvl.Nm)
+    DO WHILE INSTR(s, "|")
+        MID$(s, INSTR(s, "|"), 1) = " "
+    LOOP
+    COLOR 7
+    CenterText 7, s
+    IF Lvl.Shots > 0 THEN acc = INT(Lvl.Hits / Lvl.Shots * 100) ELSE acc = 0
+    IF acc > 100 THEN acc = 100
+    row = 10
+    IF n >= 1 THEN TallyLine row, "ENEMIES DESTROYED", NumStr$(Lvl.Kills)
+    IF n >= 2 THEN TallyLine row + 2, "ACCURACY", NumStr$(acc) + "%"
+    IF n >= 3 THEN
+        IF Lvl.Bonus THEN
+            TallyLine row + 4, "ITEMS COLLECTED", NumStr$(Lvl.Collected)
+        ELSEIF Lvl.Damage = 0 THEN
+            TallyLine row + 4, "DAMAGE TAKEN", "NONE - FLAWLESS!"
+        ELSE
+            TallyLine row + 4, "DAMAGE TAKEN", NumStr$(Lvl.Damage)
+        END IF
+    END IF
+    IF n >= 4 THEN TallyLine row + 6, "BONUS", "+" + NumStr$(Lvl.TallyBonus)
+    IF n >= 5 THEN TallyLine row + 8, "SCORE", PadNum$(Ply.Score + Lvl.TallyBonus, 7)
+    IF n >= 5 AND Lvl.Bonus AND Lvl.Collected >= 20 THEN
+        COLOR 10
+        CenterText row + 10, "EXTRA SHIP AWARDED!"
+    END IF
+    IF n >= 6 THEN
+        IF INT(UINow# * 2) MOD 2 THEN COLOR 15 ELSE COLOR 8
+        CenterText 23, "PRESS FIRE TO CONTINUE"
+    END IF
+    IF (MenuOK% AND n >= 3) OR age > 12 THEN
+        IF n < 6 AND age <= 12 THEN
+            Game.StateT = UINow# - 6 * .45
+        ELSE
+            Ply.Score = Ply.Score + Lvl.TallyBonus
+            IF Lvl.Bonus AND Lvl.Collected >= 20 THEN Ply.Lives = Ply.Lives + 1: PlaySfx SndExtraLife
+            DO WHILE Ply.Score >= Ply.NextLife
+                Ply.NextLife = Ply.NextLife + 50000
+                Ply.Lives = Ply.Lives + 1
+            LOOP
+            Lvl.TallyBonus = 0
+            lastN = -1
+            NextChapter
+        END IF
+    END IF
+END SUB
+
+SUB TallyLine (row AS INTEGER, label AS STRING, value AS STRING)
+    COLOR 7
+    PutText 22, row, label
+    COLOR 15
+    PutText 58 - LEN(value), row, value
+    COLOR 8
+    PutText 22 + LEN(label) + 1, row, STRING$(58 - LEN(value) - (22 + LEN(label) + 1) - 1, 250)
+END SUB
+
+'--- Game over / continue / name entry --------------------------------------------
+
+SUB GoGameOver
+    GoState ST_GAMEOVER
+    StopMusic
+    Game.NewHigh = ScoreRank%(Ply.Score)
+    Game.MenuSel = 0
+    IF Test.Active THEN LogMsg "Game over. Score" + STR$(Ply.Score)
+END SUB
+
+SUB GameOverFrame
+    DIM age AS DOUBLE, left10 AS INTEGER
+    MenuBackground
+    age = UINow# - Game.StateT
+    'Slides in from the right like the top-bar banners
+    SlideTextAt 11, "               ", 15, 4, 0, age, -1, .4
+    SlideTextAt 12, "   GAME OVER   ", 15, 4, 0, age, -1, .4
+    SlideTextAt 13, "               ", 15, 4, 0, age, -1, .4
+    COLOR 7
+    CenterText 15, "SCORE " + PadNum$(Ply.Score, 7)
+    IF age < 1.5 THEN EXIT SUB
+    'High score entry happens before the continue prompt (continuing resets the score)
+    IF Game.NewHigh > 0 THEN
+        Game.EntryName = "AAA"
+        Game.EntryPos = 1
+        GoState ST_NAMEENTRY
+        Game.PrevState = ST_GAMEOVER
+        EXIT SUB
+    END IF
+    left10 = 10 - INT(age - 1.5)
+    IF left10 < 0 THEN
+        GoTitle
+        EXIT SUB
+    END IF
+    COLOR 15
+    CenterText 18, "CONTINUE?  " + NumStr$(left10)
+    COLOR 8
+    CenterText 20, "FIRE: CONTINUE (SCORE RESETS)    ESC: QUIT"
+    IF MenuOK% THEN
+        ContinueGame
+    ELSEIF MenuBack% THEN
+        GoTitle
+    END IF
+END SUB
+
+SUB ContinueGame
+    DIM i AS INTEGER, c AS INTEGER
+    c = Ply.Continues + 1
+    ResetPlayerForNewGame
+    Ply.Continues = c
+    StartChapter Game.ChapterIdx
+END SUB
+
+SUB NameEntryFrame
+    DIM i AS INTEGER, ch AS STRING, c AS INTEGER, k AS LONG
+    MenuBackground
+    COLOR 14
+    CenterText 7, "NEW HIGH SCORE!"
+    COLOR 15
+    CenterText 9, PadNum$(Ply.Score, 7)
+    COLOR 7
+    CenterText 12, "ENTER YOUR INITIALS"
+    FOR i = 1 TO 3
+        IF i = Game.EntryPos THEN COLOR 0, 7 ELSE COLOR 15, 1
+        PutText 37 + (i - 1) * 3, 15, " " + MID$(Game.EntryName, i, 1) + " "
+    NEXT
+    COLOR 8, 0
+    CenterText 19, "UP/DOWN: LETTER   LEFT/RIGHT: MOVE   FIRE: OK"
+
+    k = KeyHitBuffer
+    ch = MID$(Game.EntryName, Game.EntryPos, 1)
+    c = ASC(ch)
+    IF (k >= 65 AND k <= 90) OR (k >= 97 AND k <= 122) OR (k >= 48 AND k <= 57) THEN
+        MID$(Game.EntryName, Game.EntryPos, 1) = UCASE$(CHR$(k))
+        IF Game.EntryPos < 3 THEN Game.EntryPos = Game.EntryPos + 1
+        EXIT SUB
+    END IF
+    IF MenuUp% THEN
+        c = c + 1
+        IF c > 90 THEN c = 65
+        MID$(Game.EntryName, Game.EntryPos, 1) = CHR$(c)
+    ELSEIF MenuDown% THEN
+        c = c - 1
+        IF c < 65 THEN c = 90
+        MID$(Game.EntryName, Game.EntryPos, 1) = CHR$(c)
+    ELSEIF MenuLeft% OR k = 8 THEN
+        IF Game.EntryPos > 1 THEN Game.EntryPos = Game.EntryPos - 1
+    ELSEIF MenuRight% THEN
+        IF Game.EntryPos < 3 THEN Game.EntryPos = Game.EntryPos + 1
+    ELSEIF MenuOK% OR k = 13 THEN
+        IF Game.EntryPos < 3 AND k <> 13 AND NOT InPressed(A_START) THEN
+            Game.EntryPos = Game.EntryPos + 1
+        ELSE
+            InsertScore Game.NewHigh, Game.EntryName, Ply.Score, Chapters(Game.ChapterIdx).Num
+            PlaySfx SndExtraLife
+            IF Game.PrevState = ST_GAMEOVER THEN
+                c = Game.NewHigh
+                Game.NewHigh = 0
+                GoState ST_GAMEOVER
+                Game.StateT = UINow# - 1.5
+            ELSE
+                GoState ST_SCORES
+            END IF
+        END IF
+    END IF
+END SUB
+
+'--- Ending -------------------------------------------------------------------
+
+SUB EndingFrame
+    DIM lines(1 TO 40) AS STRING, n AS INTEGER, i AS INTEGER, y AS INTEGER, age AS DOUBLE, ofs AS SINGLE
+    MenuBackground
+    RESTORE EndingText
+    n = 0
+    DO
+        n = n + 1
+        READ lines(n)
+        IF lines(n) = "*" THEN n = n - 1: EXIT DO
+    LOOP
+    age = UINow# - Game.StateT
+    ofs = age * 2.2
+    FOR i = 1 TO n
+        y = 20 + (i - 1) * 2 - INT(ofs)
+        IF y >= 2 AND y <= 25 THEN
+            IF lines(i) = "%SCORE" THEN
+                COLOR 15
+                CenterText y, PadNum$(Ply.Score, 7)
+            ELSEIF LEFT$(lines(i), 1) = "#" THEN
+                COLOR 14
+                CenterText y, MID$(lines(i), 2)
+            ELSE
+                COLOR 7
+                CenterText y, lines(i)
+            END IF
+        END IF
+    NEXT
+    IF 20 + (n - 1) * 2 - INT(ofs) < 10 OR ((MenuOK% OR MenuBack%) AND age > 3) THEN
+        Game.NewHigh = ScoreRank%(Ply.Score)
+        IF Game.NewHigh > 0 THEN
+            Game.EntryName = "AAA"
+            Game.EntryPos = 1
+            GoState ST_NAMEENTRY
+            Game.PrevState = ST_ENDING
+        ELSE
+            GoTitle
+        END IF
+        IF Test.Active THEN FinishTest "ending reached"
+    END IF
+    EXIT SUB
+
+    EndingText:
+    DATA "#THE HIVE MIND IS SILENT"
+    DATA ""
+    DATA "ACROSS FIVE SECTORS, THE SWARMS LOSE THEIR WAY."
+    DATA "WITHOUT THE MIND, THEY ARE JUST ANIMALS AGAIN,"
+    DATA "DRIFTING BACK INTO THE DARK."
+    DATA ""
+    DATA "BASE: CAPTAIN... YOU WERE RIGHT ALL ALONG."
+    DATA "BASE: THEY WERE COORDINATED."
+    DATA "CAPTAIN: I'M COMING HOME. AND I'M LOW ON ENERGY."
+    DATA ""
+    DATA "#FINAL SCORE"
+    DATA "%SCORE"
+    DATA ""
+    DATA "SEE YOU, SPACE CAPTAIN."
+    DATA ""
+    DATA ""
+    DATA "#SPACESHIP"
+    DATA "ORIGINAL GAME AND ENGINE (2016)"
+    DATA "FELLIPPE HEITOR"
+    DATA ""
+    DATA "EXPANDED CAMPAIGN EDITION (2026)"
+    DATA ""
+    DATA "MADE WITH QB64 PHOENIX EDITION"
+    DATA ""
+    DATA "#THANK YOU FOR PLAYING"
+    DATA "*"
+END SUB

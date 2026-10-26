@@ -1,0 +1,173 @@
+'Spaceship - general helpers
+
+FUNCTION RealNow#
+    RealNow# = GetUptime / 1000#
+END FUNCTION
+
+'UI clock: real time normally, simulated time in fast autotest runs
+FUNCTION UINow#
+    IF Test.Fast THEN
+        UINow# = Test.Frames * FIXED_DT * 8
+    ELSE
+        UINow# = RealNow#
+    END IF
+END FUNCTION
+
+'Prints text clipped to the 80x25 screen
+SUB PutText (x AS INTEGER, y AS INTEGER, s AS STRING)
+    DIM a AS INTEGER, t AS STRING
+    IF y < 1 OR y > 25 THEN EXIT SUB
+    t = s
+    a = x
+    IF a < 1 THEN
+        IF 1 - a >= LEN(t) THEN EXIT SUB
+        t = MID$(t, 2 - a)
+        a = 1
+    END IF
+    IF a > 80 THEN EXIT SUB
+    IF a + LEN(t) - 1 > 80 THEN t = LEFT$(t, 81 - a)
+    IF LEN(t) THEN _PRINTSTRING (a, y), t
+END SUB
+
+SUB CenterText (y AS INTEGER, s AS STRING)
+    PutText 41 - LEN(s) \ 2, y, s
+END SUB
+
+SUB SetColor (fg AS INTEGER, bg AS INTEGER)
+    IF bg < 0 THEN COLOR fg ELSE COLOR fg, bg
+END SUB
+
+FUNCTION Clamp! (v AS SINGLE, lo AS SINGLE, hi AS SINGLE)
+    IF v < lo THEN
+        Clamp! = lo
+    ELSEIF v > hi THEN
+        Clamp! = hi
+    ELSE
+        Clamp! = v
+    END IF
+END FUNCTION
+
+FUNCTION RndRange! (a AS SINGLE, b AS SINGLE)
+    RndRange! = a + RND * (b - a)
+END FUNCTION
+
+FUNCTION RndInt% (a AS INTEGER, b AS INTEGER)
+    RndInt% = a + INT(RND * (b - a + 1))
+END FUNCTION
+
+FUNCTION MinI% (a AS INTEGER, b AS INTEGER)
+    IF a < b THEN MinI% = a ELSE MinI% = b
+END FUNCTION
+
+FUNCTION MaxI% (a AS INTEGER, b AS INTEGER)
+    IF a > b THEN MaxI% = a ELSE MaxI% = b
+END FUNCTION
+
+'Returns the n-th whitespace separated word (1-based)
+FUNCTION Word$ (s AS STRING, n AS INTEGER)
+    DIM i AS INTEGER, c AS INTEGER, inWord AS _BYTE, st AS INTEGER, ch AS STRING
+    c = 0
+    inWord = 0
+    FOR i = 1 TO LEN(s) + 1
+        IF i <= LEN(s) THEN ch = MID$(s, i, 1) ELSE ch = " "
+        IF ch = " " OR ch = CHR$(9) THEN
+            IF inWord THEN
+                IF c = n THEN Word$ = MID$(s, st, i - st): EXIT FUNCTION
+                inWord = 0
+            END IF
+        ELSE
+            IF inWord = 0 THEN inWord = -1: c = c + 1: st = i
+        END IF
+    NEXT
+    Word$ = ""
+END FUNCTION
+
+'Returns everything from the n-th word onward
+FUNCTION Rest$ (s AS STRING, n AS INTEGER)
+    DIM i AS INTEGER, c AS INTEGER, inWord AS _BYTE, ch AS STRING
+    c = 0
+    inWord = 0
+    FOR i = 1 TO LEN(s)
+        ch = MID$(s, i, 1)
+        IF ch = " " OR ch = CHR$(9) THEN
+            inWord = 0
+        ELSE
+            IF inWord = 0 THEN
+                inWord = -1
+                c = c + 1
+                IF c = n THEN Rest$ = _TRIM$(MID$(s, i)): EXIT FUNCTION
+            END IF
+        END IF
+    NEXT
+    Rest$ = ""
+END FUNCTION
+
+FUNCTION WordCount% (s AS STRING)
+    DIM n AS INTEGER
+    n = 0
+    DO WHILE LEN(Word$(s, n + 1))
+        n = n + 1
+    LOOP
+    WordCount% = n
+END FUNCTION
+
+'Looks for key=value in a line of words; returns "" if not found
+FUNCTION KeyVal$ (s AS STRING, k AS STRING)
+    DIM i AS INTEGER, w AS STRING
+    i = 1
+    DO
+        w = Word$(s, i)
+        IF w = "" THEN EXIT DO
+        IF UCASE$(LEFT$(w, LEN(k) + 1)) = UCASE$(k) + "=" THEN
+            KeyVal$ = MID$(w, LEN(k) + 2)
+            EXIT FUNCTION
+        END IF
+        i = i + 1
+    LOOP
+    KeyVal$ = ""
+END FUNCTION
+
+FUNCTION KeyNum! (s AS STRING, k AS STRING, default AS SINGLE)
+    DIM v AS STRING
+    v = KeyVal$(s, k)
+    IF v = "" THEN KeyNum! = default ELSE KeyNum! = VAL(v)
+END FUNCTION
+
+FUNCTION HexVal% (ch AS STRING)
+    DIM p AS INTEGER
+    p = INSTR("0123456789ABCDEF", UCASE$(ch))
+    IF p = 0 THEN HexVal% = -1 ELSE HexVal% = p - 1
+END FUNCTION
+
+FUNCTION PadNum$ (n AS LONG, digits AS INTEGER)
+    DIM s AS STRING
+    s = LTRIM$(STR$(n))
+    IF LEN(s) < digits THEN s = STRING$(digits - LEN(s), "0") + s
+    PadNum$ = s
+END FUNCTION
+
+FUNCTION NumStr$ (n AS DOUBLE)
+    NumStr$ = LTRIM$(STR$(n))
+END FUNCTION
+
+SUB LogMsg (s AS STRING)
+    DIM fh AS LONG, f AS STRING
+    STATIC count AS LONG
+    count = count + 1
+    IF count > 5000 THEN EXIT SUB
+    f = RTRIM$(Test.LogFile)
+    IF f = "" THEN f = BasePath + "spaceship.log"
+    fh = FREEFILE
+    OPEN f FOR APPEND AS #fh
+    PRINT #fh, USING "######.##"; Game.T;
+    PRINT #fh, " "; s
+    CLOSE #fh
+END SUB
+
+FUNCTION DataPath$ (f AS STRING)
+    DataPath$ = BasePath + "data" + Sep + f
+END FUNCTION
+
+FUNCTION Atan2! (y AS SINGLE, x AS SINGLE)
+    Atan2! = _ATAN2(y, x)
+END FUNCTION

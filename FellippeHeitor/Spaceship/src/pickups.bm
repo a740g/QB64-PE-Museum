@@ -1,0 +1,322 @@
+'Spaceship - pickups (power-ups)
+
+FUNCTION PickupSprite% (kind AS INTEGER)
+    SELECT CASE kind
+        CASE PK_LIFE: PickupSprite% = SpriteID%("P_LIFE")
+        CASE PK_ENERGY: PickupSprite% = SpriteID%("P_ENERGY")
+        CASE PK_SHIELD: PickupSprite% = SpriteID%("P_SHIELD")
+        CASE PK_FREEZE: PickupSprite% = SpriteID%("P_FREEZE")
+        CASE PK_WEAPON: PickupSprite% = SpriteID%("P_WEAPON")
+        CASE PK_BOMB: PickupSprite% = SpriteID%("P_BOMB")
+        CASE PK_MISSILE: PickupSprite% = SpriteID%("P_MISSILE")
+        CASE PK_OVERDRIVE: PickupSprite% = SpriteID%("P_OVERDRIVE")
+        CASE PK_CELL: PickupSprite% = SpriteID%("P_CELL")
+        CASE PK_STAR: PickupSprite% = SpriteID%("P_STAR")
+    END SELECT
+END FUNCTION
+
+FUNCTION PickupKindFromName% (n AS STRING)
+    SELECT CASE UCASE$(n)
+        CASE "LIFE": PickupKindFromName% = PK_LIFE
+        CASE "ENERGY": PickupKindFromName% = PK_ENERGY
+        CASE "SHIELD": PickupKindFromName% = PK_SHIELD
+        CASE "FREEZE": PickupKindFromName% = PK_FREEZE
+        CASE "WEAPON": PickupKindFromName% = PK_WEAPON
+        CASE "BOMB": PickupKindFromName% = PK_BOMB
+        CASE "MISSILE", "MISSILES": PickupKindFromName% = PK_MISSILE
+        CASE "OVERDRIVE": PickupKindFromName% = PK_OVERDRIVE
+        CASE "CELL": PickupKindFromName% = PK_CELL
+        CASE "STAR": PickupKindFromName% = PK_STAR
+        CASE ELSE: PickupKindFromName% = 0
+    END SELECT
+END FUNCTION
+
+FUNCTION SpawnPickup% (kind AS INTEGER, x AS SINGLE, y AS SINGLE, scripted AS _BYTE)
+    DIM i AS INTEGER, h AS INTEGER
+    SpawnPickup% = 0
+    IF kind < 1 OR kind > PK_COUNT THEN EXIT FUNCTION
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active = 0 THEN
+            Pk(i).Active = -1
+            Pk(i).Kind = kind
+            Pk(i).Sprite = PickupSprite%(kind)
+            Pk(i).X = x
+            h = 3
+            IF Pk(i).Sprite THEN h = Sprites(Pk(i).Sprite).H
+            IF y < 0 THEN
+                Pk(i).Y = INT(RND * (24 - h)) + 2
+            ELSE
+                Pk(i).Y = y
+            END IF
+            IF Pk(i).Y < 2 THEN Pk(i).Y = 2
+            IF Pk(i).Y + h - 1 > 25 THEN Pk(i).Y = 26 - h
+            Pk(i).Spent = 0
+            Pk(i).ColorStep = 1
+            Pk(i).Scripted = scripted
+            SELECT CASE kind
+                CASE PK_LIFE
+                    Pk(i).Speed = 5
+                    IF Ply.Size = 1 THEN Pk(i).Clr = 4 ELSE Pk(i).Clr = 2
+                CASE PK_ENERGY: Pk(i).Speed = 20: Pk(i).Clr = 10
+                CASE PK_SHIELD
+                    Pk(i).Speed = 12.5: Pk(i).Clr = -1
+                    PlaySfx SndShieldAppear
+                CASE PK_FREEZE
+                    Pk(i).Speed = 12.5: Pk(i).Clr = -2
+                    PlaySfx SndBlizzard
+                CASE PK_WEAPON: Pk(i).Speed = 9: Pk(i).Clr = 12
+                CASE PK_BOMB: Pk(i).Speed = 9: Pk(i).Clr = 13
+                CASE PK_MISSILE: Pk(i).Speed = 9: Pk(i).Clr = 14
+                CASE PK_OVERDRIVE: Pk(i).Speed = 9: Pk(i).Clr = 10
+                CASE PK_CELL: Pk(i).Speed = 16: Pk(i).Clr = 10
+                CASE PK_STAR: Pk(i).Speed = 16: Pk(i).Clr = 14
+            END SELECT
+            KeepPickupInGap i
+            SpawnPickup% = i
+            EXIT FUNCTION
+        END IF
+    NEXT
+END FUNCTION
+
+'A random power-up the player can use right now, from the kinds unlocked so far
+'(the same unlocks as RollPickup). Falls back to a life when nothing else is useful.
+FUNCTION UsefulPickupKind%
+    DIM k(1 TO 8) AS INTEGER, n AS INTEGER
+    k(1) = PK_LIFE: n = 1
+    IF Ply.Weapon < 4 THEN n = n + 1: k(n) = PK_WEAPON
+    IF NOT Ply.Shield THEN n = n + 1: k(n) = PK_SHIELD
+    IF SpecialCount(SP_FREEZE) < SpecialMax(SP_FREEZE) THEN n = n + 1: k(n) = PK_FREEZE
+    IF Game.ChapterIdx >= 5 AND SpecialCount(SP_BOMB) < SpecialMax(SP_BOMB) THEN n = n + 1: k(n) = PK_BOMB
+    IF Game.ChapterIdx >= 9 AND SpecialCount(SP_MISSILE) < SpecialMax(SP_MISSILE) THEN n = n + 1: k(n) = PK_MISSILE
+    IF Game.ChapterIdx >= 13 AND SpecialCount(SP_OVERDRIVE) < SpecialMax(SP_OVERDRIVE) THEN n = n + 1: k(n) = PK_OVERDRIVE
+    UsefulPickupKind% = k(RndInt%(1, n))
+END FUNCTION
+
+FUNCTION RandomPickupActive%
+    DIM i AS INTEGER
+    RandomPickupActive% = 0
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active AND NOT Pk(i).Scripted THEN RandomPickupActive% = -1: EXIT FUNCTION
+    NEXT
+END FUNCTION
+
+'Rolls a random power-up, following the original game's timing rules
+SUB RollPickup
+    DIM b AS INTEGER, t AS DOUBLE, dummy AS INTEGER, maxRoll AS INTEGER
+    IF Ply.Recharge OR Ply.Dying THEN EXIT SUB
+    IF RandomPickupActive% THEN EXIT SUB
+    t = Game.T
+    'Newer power-ups unlock as the campaign goes on
+    maxRoll = 5
+    IF Game.ChapterIdx >= 5 THEN maxRoll = 6
+    IF Game.ChapterIdx >= 9 THEN maxRoll = 7
+    IF Game.ChapterIdx >= 13 THEN maxRoll = 8
+    b = RndInt%(1, maxRoll)
+    SELECT CASE b
+        CASE 1
+            IF (t - Game.LastLifeT > 60 AND Ply.Size = 2) OR (t - Game.LastLifeT > 15 AND Ply.Size = 1) THEN
+                Game.LastLifeT = t
+                dummy = SpawnPickup%(PK_LIFE, 80, -1, 0)
+            END IF
+        CASE 2
+            IF t - Game.LastEnergyT > 20 OR Ply.Energy < 10 THEN
+                Game.LastEnergyT = t
+                dummy = SpawnPickup%(PK_ENERGY, 80, -1, 0)
+            END IF
+        CASE 3
+            IF t - Game.LastShieldT > 120 AND NOT Ply.Shield THEN
+                Game.LastShieldT = t
+                dummy = SpawnPickup%(PK_SHIELD, 80, -1, 0)
+            END IF
+        CASE 4
+            IF t - Game.LastFreezeT > 90 AND NOT Ply.Freeze AND SpecialCount(SP_FREEZE) < SpecialMax(SP_FREEZE) THEN
+                Game.LastFreezeT = t
+                dummy = SpawnPickup%(PK_FREEZE, 80, -1, 0)
+            END IF
+        CASE 5
+            IF t - Game.LastWeaponT > 45 AND Ply.Weapon < 4 THEN
+                Game.LastWeaponT = t
+                dummy = SpawnPickup%(PK_WEAPON, 80, -1, 0)
+            END IF
+        CASE 6
+            IF t - Game.LastBombT > 100 AND SpecialCount(SP_BOMB) < SpecialMax(SP_BOMB) THEN
+                Game.LastBombT = t
+                dummy = SpawnPickup%(PK_BOMB, 80, -1, 0)
+            END IF
+        CASE 7
+            IF t - Game.LastMissileT > 80 AND SpecialCount(SP_MISSILE) < SpecialMax(SP_MISSILE) THEN
+                Game.LastMissileT = t
+                dummy = SpawnPickup%(PK_MISSILE, 80, -1, 0)
+            END IF
+        CASE 8
+            IF t - Game.LastOverdriveT > 110 AND SpecialCount(SP_OVERDRIVE) < SpecialMax(SP_OVERDRIVE) THEN
+                Game.LastOverdriveT = t
+                dummy = SpawnPickup%(PK_OVERDRIVE, 80, -1, 0)
+            END IF
+    END SELECT
+END SUB
+
+SUB UpdatePickups (dt AS SINGLE)
+    DIM i AS INTEGER, w AS INTEGER
+    IF Ply.Dying THEN EXIT SUB
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active THEN
+            Pk(i).X = Pk(i).X - Pk(i).Speed * dt
+            w = 7
+            IF Pk(i).Sprite THEN w = Sprites(Pk(i).Sprite).W
+            IF Pk(i).X + w < 0 THEN Pk(i).Active = 0
+            KeepPickupInGap i
+            IF Pk(i).Clr = -2 AND (Game.ColorTick MOD 2) = 0 THEN Pk(i).ColorStep = Pk(i).ColorStep MOD 17 + 1
+        END IF
+    NEXT
+END SUB
+
+'Keeps a pickup inside the open space between the terrain walls under it,
+'with a row of margin when there's room, so it can always be collected
+SUB KeepPickupInGap (i AS INTEGER)
+    DIM c AS INTEGER, w AS INTEGER, h AS INTEGER, top AS INTEGER, bot AS INTEGER, t AS INTEGER, b AS INTEGER
+    IF Pk(i).Sprite = 0 THEN EXIT SUB
+    w = Sprites(Pk(i).Sprite).W
+    h = Sprites(Pk(i).Sprite).H
+    top = 2
+    bot = 25
+    FOR c = INT(Pk(i).X) TO INT(Pk(i).X) + w - 1
+        IF c >= 1 AND c <= 81 THEN
+            t = TerrainTopRow%(c)
+            b = TerrainBotRow%(c)
+            IF t > top THEN top = t
+            IF b < bot THEN bot = b
+        END IF
+    NEXT
+    IF top = 2 AND bot = 25 THEN EXIT SUB
+    IF bot - top + 1 >= h + 2 THEN
+        top = top + 1
+        bot = bot - 1
+    END IF
+    IF Pk(i).Y < top THEN Pk(i).Y = top
+    IF Pk(i).Y + h - 1 > bot THEN Pk(i).Y = bot - h + 1
+    IF Pk(i).Y < top THEN Pk(i).Y = top
+END SUB
+
+FUNCTION PickupColor% (i AS INTEGER)
+    DIM c AS INTEGER
+    c = Pk(i).Clr
+    IF Pk(i).Kind = PK_ENERGY AND Pk(i).Spent THEN c = 8
+    IF c = -1 THEN
+        c = INT(RND * 14) + 2
+    ELSEIF c = -2 THEN
+        IF Pk(i).ColorStep MOD 2 = 1 AND Pk(i).ColorStep > 12 THEN c = 3 ELSE c = 9
+    END IF
+    IF Pk(i).Kind = PK_ENERGY AND Game.T - Ply.LastEnergyUp <= .2 AND NOT Pk(i).Spent THEN
+        IF INT(Game.T * 20) MOD 2 THEN c = 9 ELSE c = 10
+    END IF
+    PickupColor% = c
+END FUNCTION
+
+SUB DrawPickups
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active THEN DrawSprite Pk(i).Sprite, 1, INT(Pk(i).X), INT(Pk(i).Y), PickupColor%(i), 0
+    NEXT
+END SUB
+
+SUB MapPickups
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active THEN MapSprite Pk(i).Sprite, 1, INT(Pk(i).X), INT(Pk(i).Y), MAP_PICKUP * 1000 + i
+    NEXT
+END SUB
+
+SUB CollectPickup (i AS INTEGER)
+    DIM sp AS INTEGER, add AS SINGLE, more AS SINGLE
+    IF Pk(i).Active = 0 THEN EXIT SUB
+    SELECT CASE Pk(i).Kind
+        CASE PK_LIFE
+            Pk(i).Active = 0
+            IF Ply.Size = 1 THEN
+                PlaySfx SndShipGrow
+                SetShipSize 2
+                Ply.Energy = Ply.Energy + 5
+                Ply.LastGrow = Game.T
+            ELSE
+                Ply.Lives = Ply.Lives + 1
+                PlaySfx SndExtraLife
+                AddFloatText Ply.X - 2, ShipRow! - 2, "1UP", 10
+            END IF
+        CASE PK_ENERGY
+            IF NOT Pk(i).Spent THEN
+                IF Game.T - Ply.LastEnergyUp > .2 THEN
+                    Ply.LastEnergyUp = Game.T
+                    PlaySfx SndEnergyUp
+                    Ply.Energy = Ply.Energy + 5
+                    IF Ply.Energy >= 100 THEN Ply.Energy = 100: Pk(i).Spent = -1
+                END IF
+            END IF
+        CASE PK_SHIELD
+            PlaySfx SndShieldOn
+            Ply.Shield = -1
+            Ply.ShieldT = Game.T
+            Pk(i).Active = 0
+        CASE PK_FREEZE, PK_BOMB, PK_MISSILE, PK_OVERDRIVE
+            SELECT CASE Pk(i).Kind
+                CASE PK_FREEZE: sp = SP_FREEZE
+                CASE PK_BOMB: sp = SP_BOMB
+                CASE PK_MISSILE: sp = SP_MISSILE
+                CASE PK_OVERDRIVE: sp = SP_OVERDRIVE
+            END SELECT
+            IF SpecialCount(sp) < SpecialMax(sp) THEN
+                SpecialCount(sp) = SpecialCount(sp) + 1
+                PlaySfx SndShieldOn
+                IF SpecialCount(Ply.CurSpecial) = 0 THEN Ply.CurSpecial = sp
+                AddFloatText Pk(i).X, Pk(i).Y - 1, SpecialName(sp), 11
+                Pk(i).Active = 0
+            ELSEIF Pk(i).Kind <> PK_FREEZE THEN
+                AddScore 250, Pk(i).X, Pk(i).Y
+                PlaySfx SndPickup
+                Pk(i).Active = 0
+            END IF
+        CASE PK_WEAPON
+            Pk(i).Active = 0
+            IF Ply.Weapon < 4 THEN
+                Ply.Weapon = Ply.Weapon + 1
+                PlaySfx SndWeaponUp
+                AnnounceWeapon "GUN "
+            ELSE
+                AddScore 500, Ply.X, ShipRow!
+                PlaySfx SndPickup
+            END IF
+        CASE PK_CELL
+            Pk(i).Active = 0
+            Lvl.Collected = Lvl.Collected + 1
+            AddScore 50, Pk(i).X, Pk(i).Y
+            'Fills the gun energy first, then overcharges it past full
+            add = 100 - Ply.Energy
+            IF add > 10 THEN add = 10
+            IF add < 0 THEN add = 0
+            Ply.Energy = Ply.Energy + add
+            more = 10 - add
+            IF more > OVER_MAX - Ply.Over THEN more = OVER_MAX - Ply.Over
+            IF more < 0 THEN more = 0
+            Ply.Over = Ply.Over + more
+            IF add + more >= .5 THEN
+                Ply.LastEnergyUp = Game.T
+                PlaySfx SndEnergyUp
+                AddFloatText Pk(i).X, Pk(i).Y + 1, "+" + NumStr$(INT(add + more + .5)) + " EN", 11
+            ELSE
+                PlaySfx SndPickup
+            END IF
+        CASE PK_STAR
+            Pk(i).Active = 0
+            Lvl.Collected = Lvl.Collected + 1
+            AddScore 200, Pk(i).X, Pk(i).Y
+            PlaySfx SndPickup
+    END SELECT
+END SUB
+
+FUNCTION FirstPickupColor%
+    DIM i AS INTEGER
+    FirstPickupColor% = -99
+    FOR i = 1 TO MAX_PK
+        IF Pk(i).Active AND NOT Pk(i).Scripted THEN FirstPickupColor% = PickupColor%(i): EXIT FUNCTION
+    NEXT
+END FUNCTION

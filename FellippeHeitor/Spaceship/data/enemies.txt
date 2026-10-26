@@ -1,0 +1,73 @@
+; Spaceship enemy definitions
+; One enemy per line:  ENEMY <NAME> key=value ...
+;
+;  sprite / sprite2   sprite names from sprites.txt (sprite2 = disguise for DRILLER)
+;  title              boss name for the health bar (underscores become spaces)
+;  hp, pts            hit points and score
+;  color              0-15, RANDOM, SAUCER (random cycling) or a list like 9,9,3 (cycles)
+;  move               PATTERN STRAIGHT SINE DIVE HOVER DRIFT ORBIT FOLLOW ATTACHED ANCHORED
+;                     MIRROR ESCAPE BOSS EGG MINE LAYER DRILLER GATE LIGHTNING JELLY PHANTOM
+;  speed              cells/second, or cells per step for PATTERN (a range like 1-2 is random)
+;  vspeed, amp, period   vertical speed, sine amplitude (rows) and period (seconds)
+;  pattern, patflip   PATTERN vertical steps; patflip=1 mirrors them for the top half
+;  reverse, chase     PATTERN: bounce at edges / chase the ship (the original kamikazes)
+;  spread             pool spawns appear up to this many cells past the right edge
+;  fire               NONE BEAM AIMED SPREAD3 RING8 ZAP SPORE BURST
+;  firerate, bspeed   seconds between shots, bullet speed
+;  wounded            enemy it turns into when hit but not killed
+;  ondeath            SPLIT:<ENEMY>:<count> or SHRAPNEL
+;  drop               <PICKUP>:<percent>  (LIFE ENERGY SHIELD FREEZE WEAPON BOMB MISSILE OVERDRIVE)
+;  boss               1 boss body, 2 boss part, 3 vital part     ai  boss behavior
+;  invuln, ghost      cannot be damaged / bullets pass through
+;  knock              cells pushed back per hit (the original used 5)
+;  touch              1 = hurts the ship on contact (default)
+;  framerate          seconds per animation frame
+
+; --- Sector 1: the original enemies ----------------------------------------
+ENEMY FIGHTER     sprite=FIGHTER hp=2 pts=50 color=12 move=PATTERN speed=1 pattern=0,0,0,0,0,-1,-1,-1,-1 patflip=1 reverse=1 fire=BEAM firerate=1.2 wounded=FIGHTER_W knock=5
+ENEMY FIGHTER_W   sprite=FIGHTER_W hp=1 pts=25 color=4 move=ESCAPE speed=2 knock=5
+ENEMY SAUCER      sprite=SAUCER hp=2 pts=100 color=SAUCER move=PATTERN speed=1-2 pattern=0,0,0,0,0,-1 patflip=1 reverse=1 fire=BEAM firerate=1.2 wounded=SAUCER_W knock=5
+ENEMY SAUCER_W    sprite=SAUCER hp=1 pts=50 color=8 move=ESCAPE speed=3 knock=5
+ENEMY KAMIKAZE    sprite=FIGHTER_W hp=1 pts=50 color=5 move=PATTERN speed=1 pattern=0,0,-1 patflip=1 reverse=1 chase=1 spread=20 knock=5
+ENEMY AMOEBA      title=SPACE_AMOEBA sprite=AMOEBA hp=180 pts=5000 color=9,9,9,9,9,9,9,9,9,9,9,9,3,9,3,9,3 move=BOSS ai=AMOEBA boss=1
+ENEMY AMOEBA_S    title=SPACE_AMOEBA sprite=AMOEBA_S hp=90 pts=2500 color=10,10,10,10,10,10,10,2,10,2 move=BOSS ai=AMOEBA_S boss=1 fire=AIMED firerate=1.4 bspeed=16
+
+; --- Sector 2: the asteroid belt -----------------------------------------------
+ENEMY ROCK_L      sprite=ROCK_L hp=3 pts=20 color=6 move=DRIFT speed=6-9 vspeed=1.5 ondeath=SPLIT:ROCK_M:2 framerate=.6
+ENEMY ROCK_M      sprite=ROCK_M hp=2 pts=10 color=6 move=DRIFT speed=7-10 vspeed=2 ondeath=SPLIT:ROCK_S:2
+ENEMY ROCK_S      sprite=ROCK_S hp=1 pts=5 color=6 move=DRIFT speed=8-12 vspeed=2.5
+ENEMY MINE        sprite=MINE hp=1 pts=30 color=7 move=MINE speed=6 framerate=.4
+ENEMY MINELAYER   sprite=MINELAYER hp=4 pts=150 color=13 move=LAYER speed=9 drop=BOMB:10 knock=1
+ENEMY DRILLER     sprite=DRILLER sprite2=ROCK_L hp=3 pts=80 color=14 move=DRILLER speed=8 vspeed=6 knock=1 framerate=.15
+ENEMY EGG         sprite=EGG hp=1 pts=20 color=14 move=EGG framerate=.25
+ENEMY LARVA       sprite=LARVA hp=1 pts=10 color=10 move=PATTERN speed=1 pattern=0 reverse=1 chase=1 framerate=.2
+ENEMY ROACH       title=THE_ROACH sprite=ROACH hp=260 pts=8000 color=6 move=BOSS ai=ROACH boss=1 framerate=.15
+
+; --- Sector 3: the ion nebula ----------------------------------------------------
+ENEMY JELLY       sprite=JELLY hp=3 pts=120 color=11 move=JELLY speed=5 amp=3 period=4 fire=ZAP firerate=1.6 knock=1 framerate=.5
+ENEMY PHANTOM     sprite=PHANTOM hp=2 pts=200 color=13 move=PHANTOM speed=7 amp=4 period=5 drop=MISSILE:8
+ENEMY LIGHTNING   sprite=P_STAR hp=1 pts=0 move=LIGHTNING ghost=1 invuln=1
+ENEMY LEV_HEAD    title=NEBULA_LEVIATHAN sprite=LEV_HEAD hp=90 pts=12000 color=13 move=BOSS ai=LEVIATHAN boss=1
+ENEMY LEV_SEG     sprite=LEV_SEG hp=8 pts=300 color=5 move=FOLLOW boss=2 fire=SPORE firerate=14 drop=CELL:40 framerate=.4
+
+; --- Sector 4: the armada --------------------------------------------------------
+ENEMY INTERCEPTOR sprite=INTERCEPTOR hp=1 pts=75 color=9 move=SINE speed=16 amp=3 period=2.5
+ENEMY GUNSHIP     sprite=GUNSHIP hp=6 pts=300 color=7 move=HOVER speed=12 vspeed=4 fire=SPREAD3 firerate=1.4 bspeed=15 drop=WEAPON:15 knock=1
+ENEMY DRONE       sprite=DRONE hp=1 pts=25 color=14 move=STRAIGHT speed=15
+ENEMY CARRIER     title=CARRIER sprite=CARRIER hp=120 pts=4000 color=7 move=BOSS ai=CARRIER boss=1 fire=SPREAD3 firerate=3 bspeed=14
+ENEMY TURRET_B    sprite=TURRET_B hp=3 pts=100 color=7 move=ANCHORED fire=AIMED firerate=2.8 bspeed=12
+ENEMY TURRET_T    sprite=TURRET_T hp=3 pts=100 color=7 move=ANCHORED fire=AIMED firerate=2.8 bspeed=12
+ENEMY GATE        sprite=P_STAR hp=1 pts=0 move=GATE invuln=1
+ENEMY DREAD       title=DREADNOUGHT sprite=DREAD hp=1 pts=15000 color=7 move=BOSS ai=DREAD boss=1 invuln=1
+ENEMY DREAD_TUR   sprite=DREAD_TUR hp=30 pts=800 color=12 move=ATTACHED boss=2 fire=AIMED firerate=1.5 bspeed=15
+ENEMY DREAD_TURB  sprite=DREAD_TURB hp=30 pts=800 color=12 move=ATTACHED boss=2 fire=AIMED firerate=1.5 bspeed=15
+ENEMY DREAD_CORE  sprite=DREAD_CORE hp=120 pts=3000 color=12,12,12,12,4,4,4,4 move=ATTACHED boss=3 fire=RING8 firerate=2.2 bspeed=12 framerate=.2
+
+; --- Sector 5: the hive ------------------------------------------------------------
+ENEMY SPOREPOD    sprite=SPOREPOD hp=4 pts=150 color=13 move=ANCHORED fire=SPORE firerate=3 framerate=.5
+ENEMY HIVE_BRAIN  title=THE_HIVE_MIND sprite=HIVE_BRAIN hp=420 pts=30000 color=13 move=BOSS ai=HIVE boss=1 fire=BURST firerate=2 bspeed=17 framerate=.5
+ENEMY HIVE_CELL   sprite=HIVE_CELL hp=10 pts=200 color=5 move=ORBIT speed=.9 amp=7 boss=2 fire=SPORE firerate=6 framerate=.3
+ENEMY MIRROR      sprite=MIRROR hp=2 pts=500 color=12 move=MIRROR speed=14
+
+; --- Bonus stages ----------------------------------------------------------------------
+ENEMY DEBRIS      sprite=DEBRIS hp=2 pts=25 color=8 move=DRIFT speed=14-20 vspeed=1 framerate=.2

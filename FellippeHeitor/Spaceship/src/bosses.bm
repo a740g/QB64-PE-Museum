@@ -1,0 +1,425 @@
+'Spaceship - bosses
+'Boss field on enemies: 1 = boss body, 2 = boss part (counts toward the health bar),
+'3 = vital part (destroying it destroys its parent).
+
+FUNCTION BossActive%
+    DIM i AS INTEGER
+    BossActive% = 0
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Boss = 1 THEN BossActive% = -1: EXIT FUNCTION
+    NEXT
+END FUNCTION
+
+FUNCTION BossHPFraction!
+    DIM i AS INTEGER, s AS SINGLE
+    IF Game.BossMax <= 0 THEN BossHPFraction! = 0: EXIT FUNCTION
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Boss > 0 THEN
+            IF NOT Defs(En(i).DefID).Invuln AND En(i).HP > 0 THEN s = s + En(i).HP
+        END IF
+    NEXT
+    BossHPFraction! = Clamp!(s / Game.BossMax, 0, 1)
+END FUNCTION
+
+FUNCTION CountChildren% (p AS INTEGER, bossCode AS INTEGER)
+    DIM i AS INTEGER, n AS INTEGER
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Parent = p THEN
+            IF bossCode = 0 OR En(i).Boss = bossCode THEN n = n + 1
+        END IF
+    NEXT
+    CountChildren% = n
+END FUNCTION
+
+FUNCTION SpawnPart% (nm AS STRING, p AS INTEGER, mv AS INTEGER, ofx AS SINGLE, ofy AS SINGLE, prm AS SINGLE)
+    DIM k AS INTEGER
+    k = SpawnByName%(nm, En(p).X + ofx, En(p).Y + ofy)
+    IF k THEN
+        En(k).Parent = p
+        En(k).Move = mv
+        En(k).OffX = ofx
+        En(k).OffY = ofy
+        En(k).Param = prm
+    END IF
+    SpawnPart% = k
+END FUNCTION
+
+'Called from the level script when a boss is due
+SUB SpawnBoss (d AS INTEGER)
+    DIM i AS INTEGER, k AS INTEGER, s AS SINGLE
+    IF d < 1 THEN EXIT SUB
+    i = SpawnEnemy%(d, 82, 13 - Sprites(Defs(d).Sprite).H / 2)
+    IF i = 0 THEN EXIT SUB
+    Game.BossIdx = i
+    Game.BossTitle = Defs(d).Title
+    s = 0
+    FOR k = 1 TO MAX_EN
+        IF En(k).Active AND En(k).Boss > 0 THEN
+            IF NOT Defs(En(k).DefID).Invuln THEN s = s + En(k).MaxHP
+        END IF
+    NEXT
+    Game.BossMax = s
+    Lvl.BossSeen = -1
+    IF Defs(d).AI = AI_HIVE THEN PlaySong SONG_FINAL ELSE PlaySong SONG_BOSS
+    IF Test.Active THEN LogMsg "Boss spawned: " + RTRIM$(Defs(d).Nm)
+END SUB
+
+SUB BossInit (i AS INTEGER)
+    DIM d AS INTEGER, k AS INTEGER, n AS INTEGER
+    d = En(i).DefID
+    En(i).State = 0
+    En(i).Invuln = -1
+    En(i).X = 82
+    SELECT CASE Defs(d).AI
+        CASE AI_AMOEBA
+            En(i).Y = 6
+            En(i).Param = 44
+            En(i).VY = 4
+        CASE AI_AMOEBA_S
+            En(i).State = 1
+            En(i).Invuln = 0
+            En(i).VY = 7
+            En(i).Param = 50
+        CASE AI_ROACH
+            En(i).Y = 6
+            En(i).Param = 48
+            En(i).VY = 5
+        CASE AI_CARRIER
+            En(i).Y = 9
+            En(i).Param = 54
+        CASE AI_LEVIATHAN
+            'Head plus 10 segments that replay its path
+            FOR k = 0 TO PATH_LEN - 1
+                PathX(k) = 120
+                PathY(k) = 13
+            NEXT
+            PathHead = 0
+            FOR k = 1 TO 10
+                n = SpawnPart%("LEV_SEG", i, MV_FOLLOW, 0, 0, k * 6)
+                IF n THEN En(n).X = 130: En(n).Y = 12
+            NEXT
+            En(i).Y = 11
+            En(i).OffX = 0
+        CASE AI_DREAD
+            En(i).Y = 6
+            En(i).Param = 40
+            'Turrets sit on the front half so they can be reached from in front
+            n = SpawnPart%("DREAD_TUR", i, MV_ATTACHED, 9, -2, 0)
+            n = SpawnPart%("DREAD_TUR", i, MV_ATTACHED, 20, -1, 0)
+            n = SpawnPart%("DREAD_TURB", i, MV_ATTACHED, 9, Sprites(En(i).Sprite).H, 0)
+            n = SpawnPart%("DREAD_TURB", i, MV_ATTACHED, 20, Sprites(En(i).Sprite).H - 1, 0)
+            n = SpawnPart%("DREAD_CORE", i, MV_ATTACHED, DREAD_CORE_X, DREAD_CORE_Y, 0)
+            IF n THEN En(n).Invuln = -1: En(n).CanShoot = 0
+        CASE AI_HIVE
+            En(i).Y = 8
+            En(i).Param = 54
+            HiveRing i
+    END SELECT
+END SUB
+
+SUB HiveRing (i AS INTEGER)
+    DIM k AS INTEGER, n AS INTEGER
+    FOR k = 0 TO 7
+        n = SpawnPart%("HIVE_CELL", i, MV_ORBIT, 0, 0, 0)
+        IF n THEN En(n).Phase = k * 6.2832 / 8
+    NEXT
+    En(i).Invuln = -1
+END SUB
+
+SUB BossUpdate (i AS INTEGER, dt AS SINGLE)
+    DIM d AS INTEGER, fr AS SINGLE, k AS INTEGER, n AS INTEGER, t AS SINGLE, cx AS SINGLE, cy AS SINGLE
+    DIM dummy AS INTEGER
+    d = En(i).DefID
+    fr = En(i).HP / En(i).MaxHP
+    SELECT CASE Defs(d).AI
+        CASE AI_AMOEBA
+            IF En(i).State = 0 THEN
+                En(i).X = En(i).X - 12 * dt
+                IF En(i).X <= En(i).Param THEN En(i).State = 1: En(i).Invuln = 0: En(i).StateT = Game.ET
+            ELSE
+                BounceY i, dt, 2, 25 - En(i).H + 1
+                En(i).X = En(i).Param + 6 * SIN((Game.ET - En(i).StateT) * .7)
+                IF Game.ET - En(i).OffX > 1.6 THEN
+                    En(i).OffX = Game.ET
+                    dummy = EnemyShot%(BK_SPORE, En(i).X + 4, En(i).Y + 7, -6, 0, i, 10)
+                END IF
+                IF Game.ET - En(i).OffY > 2.4 THEN
+                    En(i).OffY = Game.ET
+                    dummy = EnemyShot%(BK_BEAM, En(i).X + 3, En(i).Y + 5, -30, 0, i, 11)
+                    dummy = EnemyShot%(BK_BEAM, En(i).X + 2, En(i).Y + 7, -30, 0, i, 11)
+                    dummy = EnemyShot%(BK_BEAM, En(i).X + 3, En(i).Y + 9, -30, 0, i, 11)
+                END IF
+                'At half health it splits in two
+                IF fr <= .5 THEN
+                    FOR k = 0 TO 1
+                        n = SpawnByName%("AMOEBA_S", En(i).X + 8, En(i).Y + k * 7)
+                        IF n THEN
+                            En(n).HP = En(i).HP / 2
+                            En(n).MaxHP = En(i).MaxHP / 2
+                            En(n).X = En(i).X + 8
+                            En(n).Y = En(i).Y + k * 7
+                            IF k = 0 THEN En(n).VY = -7 ELSE En(n).VY = 7
+                            En(n).Param = 40 + k * 14
+                        END IF
+                    NEXT
+                    FOR k = 1 TO 5
+                        AddExplosion En(i).X + RND * En(i).W, En(i).Y + RND * En(i).H, 1
+                    NEXT
+                    PlaySfx SndExplosion
+                    SetFlash 40, 80, 40, .1
+                    ShowMessage "IT'S SPLITTING!", 5, 1.5
+                    En(i).Active = 0
+                END IF
+            END IF
+        CASE AI_AMOEBA_S
+            SELECT CASE En(i).State
+                CASE 1
+                    BounceY i, dt, 2, 25 - En(i).H + 1
+                    En(i).X = En(i).X + (En(i).Param - En(i).X) * Clamp!(2 * dt, 0, 1)
+                    IF Game.ET - En(i).StateT > 5 + RND THEN En(i).State = 2: En(i).StateT = Game.ET
+                CASE 2
+                    En(i).X = En(i).X - 26 * dt
+                    BounceY i, dt, 2, 25 - En(i).H + 1
+                    IF En(i).X <= 12 THEN En(i).State = 3
+                CASE 3
+                    En(i).X = En(i).X + 16 * dt
+                    IF En(i).X >= En(i).Param THEN En(i).State = 1: En(i).StateT = Game.ET
+            END SELECT
+        CASE AI_ROACH
+            SELECT CASE En(i).State
+                CASE 0
+                    En(i).X = En(i).X - 10 * dt
+                    IF En(i).X <= En(i).Param THEN En(i).State = 1: En(i).Invuln = 0: En(i).StateT = Game.ET
+                CASE 1
+                    BounceY i, dt, 2, 25 - En(i).H + 1
+                    En(i).X = En(i).Param + 4 * SIN(Game.ET * .9)
+                    t = 2.4
+                    IF fr < .5 THEN t = 1.6
+                    IF Game.ET - En(i).OffX > t THEN
+                        En(i).OffX = Game.ET
+                        dummy = SpawnByName%("EGG", En(i).X + 2, En(i).Y + 7)
+                    END IF
+                    IF fr < .5 THEN
+                        IF Game.ET - En(i).OffY > 1.3 THEN
+                            En(i).OffY = Game.ET
+                            AimedShot En(i).X + 1, En(i).Y + 7, 18, -.06, i, 14
+                            AimedShot En(i).X + 1, En(i).Y + 7, 20, 0, i, 14
+                            AimedShot En(i).X + 1, En(i).Y + 7, 22, .06, i, 14
+                        END IF
+                        IF Game.ET - En(i).StateT > 7 THEN En(i).State = 2: En(i).StateT = Game.ET
+                    END IF
+                CASE 2
+                    'Telegraph the charge
+                    IF INT(Game.ET * 12) MOD 2 THEN En(i).FlashT = Game.ET + .04
+                    IF Game.ET - En(i).StateT > .7 THEN En(i).State = 3: PlaySfx SndBeep
+                CASE 3
+                    En(i).X = En(i).X - 32 * dt
+                    IF En(i).X <= 6 THEN En(i).State = 4
+                CASE 4
+                    En(i).X = En(i).X + 14 * dt
+                    IF En(i).X >= En(i).Param THEN En(i).State = 1: En(i).StateT = Game.ET
+            END SELECT
+        CASE AI_CARRIER
+            IF En(i).State = 0 THEN
+                En(i).X = En(i).X - 10 * dt
+                IF En(i).X <= En(i).Param THEN En(i).State = 1: En(i).Invuln = 0: En(i).StateT = Game.ET
+            ELSE
+                En(i).Y = 9 + 5 * SIN((Game.ET - En(i).StateT) * .6)
+                IF Game.ET - En(i).OffX > 2.2 THEN
+                    En(i).OffX = Game.ET
+                    FOR k = 0 TO 1
+                        n = SpawnByName%("DRONE", En(i).X, En(i).Y + 2 + k * 2)
+                        IF n THEN En(n).VX = -15: En(n).VY = (k * 2 - 1) * 3
+                    NEXT
+                END IF
+            END IF
+        CASE AI_LEVIATHAN
+            'Surviving segments close ranks so the body stays compact
+            n = 0
+            FOR k = 1 TO MAX_EN
+                IF En(k).Active AND En(k).Parent = i THEN
+                    IF En(k).Move = MV_FOLLOW THEN
+                        n = n + 1
+                        t = n * 6
+                        IF En(k).Param > t THEN En(k).Param = En(k).Param - 20 * dt
+                        IF En(k).Param < t THEN En(k).Param = t
+                    END IF
+                END IF
+            NEXT
+            'The head opens up once only a few segments are left
+            IF En(i).Invuln AND n <= 3 THEN
+                En(i).Invuln = 0
+                SetFlash 80, 0, 80, .15
+                ShowMessage "THE HEAD IS EXPOSED!", 5, 1.5
+            END IF
+            IF En(i).Invuln THEN
+                En(i).OffX = En(i).OffX + dt
+            ELSE
+                En(i).OffX = En(i).OffX + dt * 1.3
+            END IF
+            'Stays on the right side of the screen, out of the player's lane
+            t = En(i).OffX
+            cx = 56 + 14 * SIN(t * .5)
+            cy = 13 + 8 * SIN(t * 1 + .5)
+            k = 45 - (Game.ET - En(i).Born) * 15
+            IF k > 0 THEN cx = cx + k
+            PathHead = (PathHead + 1) MOD PATH_LEN
+            PathX(PathHead) = cx
+            PathY(PathHead) = cy
+            En(i).X = cx - En(i).W / 2
+            En(i).Y = cy - En(i).H / 2
+            IF En(i).X < 60 AND En(i).State = 0 THEN En(i).State = 1
+            IF En(i).State = 1 THEN
+                IF En(i).Invuln THEN
+                    IF Game.ET - En(i).OffY > 3.5 THEN
+                        En(i).OffY = Game.ET
+                        dummy = EnemyShot%(BK_SPORE, En(i).X, En(i).Y + 2, -7, 0, i, 10)
+                    END IF
+                ELSE
+                    IF Game.ET - En(i).OffY > 2.6 THEN
+                        En(i).OffY = Game.ET
+                        RingShot En(i).X + 3, En(i).Y + 2, 8, 12, RND, i, 13
+                    END IF
+                    IF Game.ET - En(i).StateT > 1.4 THEN
+                        En(i).StateT = Game.ET
+                        AimedShot En(i).X, En(i).Y + 2, 18, 0, i, 13
+                    END IF
+                END IF
+            END IF
+        CASE AI_DREAD
+            IF En(i).State = 0 THEN
+                En(i).X = En(i).X - 6 * dt
+                IF En(i).X <= En(i).Param THEN En(i).State = 1: En(i).StateT = Game.ET
+            ELSE
+                En(i).Y = 6 + 1.5 * SIN((Game.ET - En(i).StateT) * .5)
+                IF En(i).OffX = 0 THEN
+                    IF CountChildren%(i, 2) = 0 THEN
+                        En(i).OffX = 1
+                        FOR k = 1 TO MAX_EN
+                            IF En(k).Active AND En(k).Parent = i AND En(k).Boss = 3 THEN
+                                En(k).Invuln = 0
+                                En(k).CanShoot = -1
+                            END IF
+                        NEXT
+                        SetFlash 120, 40, 0, .15
+                        ShowMessage "CORE EXPOSED!", 4, 1.5
+                    END IF
+                END IF
+            END IF
+        CASE AI_HIVE
+            IF En(i).State = 0 THEN
+                En(i).X = En(i).X - 8 * dt
+                IF En(i).X <= En(i).Param THEN En(i).State = 1: En(i).StateT = Game.ET
+            ELSE
+                En(i).X = En(i).Param + 4 * SIN((Game.ET - En(i).StateT) * .4)
+                En(i).Y = 8 + 2.5 * SIN((Game.ET - En(i).StateT) * .7)
+                n = CountChildren%(i, 2)
+                IF n = 0 THEN
+                    IF En(i).Invuln THEN
+                        En(i).Invuln = 0
+                        En(i).OffX = Game.ET
+                        ShowMessage "THE MIND IS EXPOSED!", 5, 1.5
+                    ELSEIF Game.ET - En(i).OffX > 9 THEN
+                        HiveRing i
+                    END IF
+                END IF
+                IF fr < .66 THEN
+                    IF Game.ET - En(i).OffY > 10 AND CountByName%("MIRROR") < 2 THEN
+                        En(i).OffY = Game.ET
+                        n = SpawnByName%("MIRROR", 82, ShipRow! - 2)
+                        ShowMessage "IT'S COPYING YOU!", 4, 1.2
+                    END IF
+                END IF
+                IF fr < .33 THEN
+                    IF Game.ET - En(i).StateT > 0 AND Game.ET - En(i).Phase > 1.2 THEN
+                        En(i).Phase = Game.ET
+                        RingShot En(i).X + 8, En(i).Y + 4, 12, 12, Game.ET, i, 13
+                    END IF
+                END IF
+            END IF
+    END SELECT
+END SUB
+
+'After the player dies, bosses that were charging into the player's side go back to theirs
+SUB BossesRetreat
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Boss = 1 THEN
+            SELECT CASE Defs(En(i).DefID).AI
+                CASE AI_ROACH, AI_AMOEBA_S
+                    IF En(i).State >= 1 THEN
+                        En(i).State = 1
+                        En(i).StateT = Game.ET
+                        En(i).X = En(i).Param
+                    END IF
+            END SELECT
+        END IF
+    NEXT
+END SUB
+
+SUB BounceY (i AS INTEGER, dt AS SINGLE, top AS SINGLE, bot AS SINGLE)
+    IF En(i).VY = 0 THEN En(i).VY = 4
+    En(i).Y = En(i).Y + En(i).VY * dt
+    IF En(i).Y < top THEN En(i).Y = top: En(i).VY = ABS(En(i).VY)
+    IF En(i).Y > bot THEN En(i).Y = bot: En(i).VY = -ABS(En(i).VY)
+END SUB
+
+FUNCTION CountByName% (n AS STRING)
+    DIM i AS INTEGER, c AS INTEGER, d AS INTEGER
+    d = DefIndex%(n)
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).DefID = d THEN c = c + 1
+    NEXT
+    CountByName% = c
+END FUNCTION
+
+SUB CheckBossDefeated (i AS INTEGER)
+    DIM k AS INTEGER
+    FOR k = 1 TO MAX_EN
+        IF En(k).Active AND En(k).Boss = 1 THEN EXIT SUB
+    NEXT
+    Game.BossDeadT = Game.T
+    Game.BossX = En(i).X
+    Game.BossY = En(i).Y
+    Game.BossW = En(i).W
+    Game.BossH = En(i).H
+    FOR k = 1 TO MAX_EN
+        IF En(k).Active AND En(k).Boss >= 2 THEN KillEnemy k, 0
+    NEXT
+    'Minions die with their boss
+    FOR k = 1 TO MAX_EN
+        IF En(k).Active THEN
+            SELECT CASE RTRIM$(Defs(En(k).DefID).Nm)
+                CASE "EGG", "LARVA", "DRONE", "MIRROR": KillEnemy k, 0
+            END SELECT
+        END IF
+    NEXT
+    FOR k = 1 TO MAX_BUL
+        IF Bul(k).Owner = 2 THEN Bul(k).Active = 0
+    NEXT
+    PlaySfx SndBossDeath
+    'Silence while it blows up; UpdateBossDeath brings in calmer music after
+    StopMusic
+    CurrentSong = 0
+    SetFlash 255, 255, 255, .25
+    IF Test.Active THEN LogMsg "Boss defeated: " + RTRIM$(Defs(En(i).DefID).Nm)
+END SUB
+
+'True from a boss's death until the music comes back (calm track or the next boss)
+FUNCTION BossSilence%
+    BossSilence% = (Game.BossDeadT > 0 AND CurrentSong = 0 AND NOT BossActive%)
+END FUNCTION
+
+'Chain of explosions after a boss dies
+SUB UpdateBossDeath (dt AS SINGLE)
+    IF Game.BossDeadT <= 0 THEN EXIT SUB
+    IF Game.T - Game.BossDeadT < 2 THEN
+        IF RND < dt * 12 THEN
+            AddExplosion Game.BossX + RND * Game.BossW, Game.BossY + RND * Game.BossH, 1
+            IF RND < .4 THEN PlaySfx SndExplosion
+        END IF
+    ELSEIF Game.T - Game.BossDeadT > 2.8 AND CurrentSong = 0 THEN
+        'Explosions are over: calm music, unless another boss is on its way
+        IF NOT BossActive% AND Lvl.BossPending = 0 AND LEN(_TRIM$(Lvl.BossQueue)) = 0 THEN PlaySong SONG_ZEN
+    END IF
+END SUB

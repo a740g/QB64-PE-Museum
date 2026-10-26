@@ -1,0 +1,335 @@
+'Spaceship - bullets (player and enemy)
+
+SUB UpdateBullets (dt AS SINGLE)
+    DIM i AS INTEGER, age AS SINGLE, t AS INTEGER, s AS SINGLE, tx AS SINGLE, ty AS SINGLE
+    DIM vx AS SINGLE, vy AS SINGLE, l AS SINGLE, k AS SINGLE
+    FOR i = 1 TO MAX_BUL
+        IF Bul(i).Active THEN
+            IF Bul(i).Owner = 1 THEN
+                age = Game.T - Bul(i).Born
+                IF age > Bul(i).Life THEN Bul(i).Active = 0: _CONTINUE
+                SELECT CASE Bul(i).Kind
+                    CASE BK_LASER
+                        Bul(i).X = Bul(i).X + Bul(i).DX * dt
+                        IF Bul(i).X > 80 THEN Bul(i).Active = 0
+                    CASE BK_DIAG
+                        Bul(i).X = Bul(i).X + Bul(i).DX * dt
+                        Bul(i).Y = Bul(i).Y + Bul(i).DY * dt
+                        IF Bul(i).X > 80 OR Bul(i).Y < 2 OR Bul(i).Y >= 26 THEN Bul(i).Active = 0
+                    CASE BK_MISSILE
+                        t = Bul(i).Target
+                        IF t > 0 THEN
+                            IF NOT En(t).Active OR NOT En(t).Visible THEN t = 0
+                        END IF
+                        IF t = 0 THEN t = NearestTarget%(Bul(i).X, Bul(i).Y)
+                        Bul(i).Target = t
+                        s = 8 + age * 40
+                        IF s > 32 THEN s = 32
+                        IF t > 0 THEN
+                            tx = En(t).X + En(t).W / 2 - Bul(i).X
+                            ty = (En(t).Y + En(t).H / 2 - Bul(i).Y) * 2
+                        ELSE
+                            tx = 1
+                            ty = 0
+                        END IF
+                        l = SQR(tx * tx + ty * ty)
+                        IF l < .001 THEN l = 1
+                        vx = tx / l * s
+                        vy = ty / l * s / 2
+                        k = 6 * dt
+                        IF k > 1 THEN k = 1
+                        Bul(i).DX = Bul(i).DX + (vx - Bul(i).DX) * k
+                        Bul(i).DY = Bul(i).DY + (vy - Bul(i).DY) * k
+                        Bul(i).X = Bul(i).X + Bul(i).DX * dt
+                        Bul(i).Y = Bul(i).Y + Bul(i).DY * dt
+                        IF Bul(i).X > 82 OR Bul(i).X < -1 OR Bul(i).Y < 1 OR Bul(i).Y > 27 THEN Bul(i).Active = 0
+                END SELECT
+            ELSE
+                IF Ply.Freeze THEN _CONTINUE
+                age = Game.ET - Bul(i).Born
+                IF age > Bul(i).Life THEN Bul(i).Active = 0: _CONTINUE
+                SELECT CASE Bul(i).Kind
+                    CASE BK_BEAM
+                        Bul(i).X = Bul(i).X + Bul(i).DX * dt
+                        IF Bul(i).X + Bul(i).Size < 1 THEN Bul(i).Active = 0
+                    CASE BK_SHOT
+                        Bul(i).X = Bul(i).X + Bul(i).DX * dt
+                        Bul(i).Y = Bul(i).Y + Bul(i).DY * dt
+                    CASE BK_SPORE
+                        'Spores home in only while they are still in front of the ship,
+                        'and never turn back once they've passed it
+                        IF Bul(i).X > Ply.X + 1 THEN
+                            tx = Ply.X - 2 - Bul(i).X
+                            ty = (ShipRow! - Bul(i).Y) * 2
+                            l = SQR(tx * tx + ty * ty)
+                            IF l < .001 THEN l = 1
+                            s = 9
+                            k = .9 * dt
+                            Bul(i).DX = Bul(i).DX + (tx / l * s - Bul(i).DX) * k
+                            Bul(i).DY = Bul(i).DY + (ty / l * s / 2 - Bul(i).DY) * k
+                        END IF
+                        IF Bul(i).DX > -5 THEN Bul(i).DX = -5
+                        Bul(i).X = Bul(i).X + Bul(i).DX * dt
+                        Bul(i).Y = Bul(i).Y + Bul(i).DY * dt
+                    CASE BK_ZAP
+                        'stationary column, just expires
+                END SELECT
+                IF Bul(i).Kind <> BK_ZAP THEN
+                    IF Bul(i).X < -3 OR Bul(i).X > 84 OR Bul(i).Y < 1 OR Bul(i).Y > 27 THEN Bul(i).Active = 0
+                END IF
+            END IF
+        END IF
+    NEXT
+END SUB
+
+FUNCTION NearestTarget% (x AS SINGLE, y AS SINGLE)
+    DIM i AS INTEGER, best AS INTEGER, bd AS SINGLE, d AS SINGLE, dx AS SINGLE, dy AS SINGLE
+    best = 0
+    bd = 1E+09
+    FOR i = 1 TO MAX_EN
+        IF En(i).Active AND En(i).Visible AND NOT En(i).Invuln AND NOT En(i).Cloaked THEN
+            IF NOT Defs(En(i).DefID).Invuln AND NOT Defs(En(i).DefID).Ghost THEN
+                dx = En(i).X + En(i).W / 2 - x
+                dy = (En(i).Y + En(i).H / 2 - y) * 2
+                IF dx > -4 THEN
+                    d = dx * dx + dy * dy
+                    IF d < bd THEN bd = d: best = i
+                END IF
+            END IF
+        END IF
+    NEXT
+    NearestTarget% = best
+END FUNCTION
+
+'Spawns an enemy bullet. dx/dy in cells per second.
+FUNCTION EnemyShot% (kind AS INTEGER, x AS SINGLE, y AS SINGLE, dx AS SINGLE, dy AS SINGLE, src AS INTEGER, clr AS INTEGER)
+    DIM b AS INTEGER
+    EnemyShot% = 0
+    IF kind = BK_SPORE AND x < Ply.X + 2 THEN EXIT FUNCTION
+    b = FreeBullet%
+    IF b = 0 THEN EXIT FUNCTION
+    Bul(b).Active = -1
+    Bul(b).Owner = 2
+    Bul(b).Kind = kind
+    Bul(b).X = x
+    Bul(b).Y = y
+    Bul(b).DX = dx
+    Bul(b).DY = dy
+    Bul(b).Src = src
+    Bul(b).Clr = clr
+    Bul(b).Born = Game.ET
+    Bul(b).Size = 1
+    Bul(b).Damage = 1
+    SELECT CASE kind
+        CASE BK_BEAM: Bul(b).Life = .8: Bul(b).Size = 2: Bul(b).Ch = CHR$(220)
+        CASE BK_SHOT: Bul(b).Life = 6: Bul(b).Ch = CHR$(7)
+        CASE BK_SPORE: Bul(b).Life = 5: Bul(b).Ch = CHR$(9)
+        CASE BK_ZAP: Bul(b).Life = .45: Bul(b).Ch = CHR$(186)
+    END SELECT
+    EnemyShot% = b
+END FUNCTION
+
+'Aimed shot from (x, y) toward the ship, speed in cells/s (rows count double)
+SUB AimedShot (x AS SINGLE, y AS SINGLE, speed AS SINGLE, angleOfs AS SINGLE, src AS INTEGER, clr AS INTEGER)
+    DIM tx AS SINGLE, ty AS SINGLE, a AS SINGLE, dummy AS INTEGER
+    tx = Ply.X - 2 - x
+    ty = (ShipRow! - y) * 2
+    'Aimed fire only goes forward (leftward): no shots at a ship that is behind the shooter
+    IF tx > -2 THEN EXIT SUB
+    a = _ATAN2(ty, tx) + angleOfs
+    'Keep the angle within 60 degrees of straight left
+    IF a > 0 AND a < 2.094 THEN a = 2.094
+    IF a < 0 AND a > -2.094 THEN a = -2.094
+    dummy = EnemyShot%(BK_SHOT, x, y, COS(a) * speed, SIN(a) * speed / 2, src, clr)
+END SUB
+
+SUB RingShot (x AS SINGLE, y AS SINGLE, n AS INTEGER, speed AS SINGLE, rot AS SINGLE, src AS INTEGER, clr AS INTEGER)
+    DIM k AS INTEGER, a AS SINGLE, dummy AS INTEGER
+    FOR k = 0 TO n - 1
+        a = rot + k * 6.28318 / n
+        dummy = EnemyShot%(BK_SHOT, x, y, COS(a) * speed, SIN(a) * speed / 2, src, clr)
+    NEXT
+END SUB
+
+SUB DrawBullets
+    DIM i AS INTEGER, l AS INTEGER, age AS SINGLE, xx AS INTEGER, yy AS INTEGER, stp AS INTEGER
+    DIM clr AS INTEGER, s AS INTEGER
+    FOR i = 1 TO MAX_BUL
+        IF Bul(i).Active THEN
+            yy = INT(Bul(i).Y)
+            xx = INT(Bul(i).X)
+            IF Bul(i).Owner = 1 THEN
+                age = Game.T - Bul(i).Born
+                SELECT CASE Bul(i).Kind
+                    CASE BK_LASER
+                        IF age < .1 THEN
+                            clr = 15
+                        ELSEIF age < .2 THEN
+                            clr = 14
+                        ELSEIF age > .5 THEN
+                            clr = 1
+                        ELSE
+                            clr = SHIP_COLOR - 8
+                        END IF
+                        IF Bul(i).Pierce THEN
+                            IF age < .5 THEN clr = 11
+                        END IF
+                        COLOR clr
+                        IF yy >= 2 AND yy <= 25 THEN
+                            FOR l = 0 TO Bul(i).Size - 1
+                                IF xx + l >= 1 AND xx + l <= 80 THEN _PRINTSTRING (xx + l, yy), Bul(i).Ch
+                            NEXT
+                        END IF
+                    CASE BK_DIAG
+                        stp = INT(age * 16) + 1
+                        IF stp > 8 THEN stp = 8
+                        IF stp < 3 THEN COLOR 15 ELSE COLOR 14
+                        IF xx >= 1 AND xx <= 80 AND yy >= 2 AND yy <= 25 THEN _PRINTSTRING (xx, yy), MID$(BoomChars, stp, 1)
+                    CASE BK_MISSILE
+                        COLOR 8
+                        IF xx - 1 >= 1 AND xx - 1 <= 80 AND yy >= 2 AND yy <= 25 THEN _PRINTSTRING (xx - 1, yy), CHR$(250)
+                        COLOR 14
+                        IF xx >= 1 AND xx <= 80 AND yy >= 2 AND yy <= 25 THEN _PRINTSTRING (xx, yy), Bul(i).Ch
+                END SELECT
+            ELSE
+                age = Game.ET - Bul(i).Born
+                clr = Bul(i).Clr
+                SELECT CASE Bul(i).Kind
+                    CASE BK_BEAM
+                        s = Bul(i).Src
+                        IF s > 0 THEN
+                            IF En(s).Active THEN clr = EnemyColor%(s)
+                        END IF
+                        IF age > .5 THEN clr = 1
+                        COLOR clr
+                        IF yy >= 2 AND yy <= 25 THEN
+                            FOR l = 0 TO Bul(i).Size
+                                IF xx + l >= 1 AND xx + l <= 80 THEN _PRINTSTRING (xx + l, yy), Bul(i).Ch
+                            NEXT
+                        END IF
+                    CASE BK_SHOT
+                        COLOR clr
+                        IF xx >= 1 AND xx <= 80 AND yy >= 2 AND yy <= 25 THEN _PRINTSTRING (xx, yy), Bul(i).Ch
+                    CASE BK_SPORE
+                        IF INT(Game.ET * 8) MOD 2 THEN COLOR 10 ELSE COLOR 2
+                        IF xx >= 1 AND xx <= 80 AND yy >= 2 AND yy <= 25 THEN _PRINTSTRING (xx, yy), Bul(i).Ch
+                    CASE BK_ZAP
+                        IF INT(Game.ET * 30) MOD 2 THEN COLOR 15 ELSE COLOR 11
+                        FOR l = 0 TO Bul(i).Size - 1
+                            IF xx >= 1 AND xx <= 80 AND yy + l >= 2 AND yy + l <= 25 THEN _PRINTSTRING (xx, yy + l), Bul(i).Ch
+                        NEXT
+                END SELECT
+            END IF
+        END IF
+    NEXT
+END SUB
+
+SUB MapEnemyBullets
+    DIM i AS INTEGER, l AS INTEGER, xx AS INTEGER, yy AS INTEGER, code AS INTEGER
+    FOR i = 1 TO MAX_BUL
+        IF Bul(i).Active AND Bul(i).Owner = 2 THEN
+            code = MAP_EBULLET * 1000 + i
+            xx = INT(Bul(i).X)
+            yy = INT(Bul(i).Y)
+            SELECT CASE Bul(i).Kind
+                CASE BK_BEAM
+                    IF yy >= 2 AND yy <= 25 THEN
+                        FOR l = 0 TO Bul(i).Size
+                            IF xx + l >= 1 AND xx + l <= 80 THEN
+                                IF ScreenMap(xx + l, yy) = 0 THEN ScreenMap(xx + l, yy) = code
+                            END IF
+                        NEXT
+                    END IF
+                CASE BK_ZAP
+                    IF Game.ET - Bul(i).Born > .12 THEN
+                        FOR l = 0 TO Bul(i).Size - 1
+                            IF xx >= 1 AND xx <= 80 AND yy + l >= 2 AND yy + l <= 25 THEN
+                                IF ScreenMap(xx, yy + l) = 0 THEN ScreenMap(xx, yy + l) = code
+                            END IF
+                        NEXT
+                    END IF
+                CASE ELSE
+                    IF xx >= 1 AND xx <= 80 AND yy >= 2 AND yy <= 25 THEN
+                        IF ScreenMap(xx, yy) = 0 THEN ScreenMap(xx, yy) = code
+                    END IF
+            END SELECT
+        END IF
+    NEXT
+END SUB
+
+'Player bullets against the collision map
+SUB PlayerBulletHits
+    DIM i AS INTEGER, l AS INTEGER, x1 AS INTEGER, x2 AS INTEGER, yy AS INTEGER, cx AS INTEGER
+    DIM code AS INTEGER, kind AS INTEGER, idx AS INTEGER, e AS INTEGER, d AS INTEGER, done AS _BYTE
+    FOR i = 1 TO MAX_BUL
+        IF Bul(i).Active AND Bul(i).Owner = 1 THEN
+            yy = INT(Bul(i).Y)
+            x1 = INT(Bul(i).X)
+            IF Bul(i).Kind = BK_LASER THEN x2 = x1 + Bul(i).Size - 1 ELSE x2 = x1
+            IF yy < 2 OR yy > 25 THEN _CONTINUE
+            done = 0
+            FOR cx = x1 TO x2
+                IF cx >= 1 AND cx <= 80 THEN
+                    code = ScreenMap(cx, yy)
+                    IF code > 0 THEN
+                        kind = code \ 1000
+                        idx = code MOD 1000
+                        SELECT CASE kind
+                            CASE MAP_ENEMY
+                                e = idx
+                                IF En(e).Active THEN
+                                    d = En(e).DefID
+                                    IF Defs(d).Ghost OR En(e).Cloaked THEN
+                                        'passes through
+                                    ELSEIF Bul(i).Pierce AND Bul(i).LastHit = e THEN
+                                        'already hit this one
+                                    ELSEIF Defs(d).Invuln OR En(e).Invuln THEN
+                                        AddParticle cx, yy, RndRange!(-12, -4), RndRange!(-4, 4), .25
+                                        Bul(i).Active = 0
+                                        done = -1
+                                    ELSE
+                                        IF Bul(i).LastHit = 0 THEN Lvl.Hits = Lvl.Hits + 1
+                                        HitEnemy e, Bul(i).Damage, -1
+                                        IF Bul(i).Pierce THEN
+                                            Bul(i).LastHit = e
+                                        ELSE
+                                            Bul(i).Active = 0
+                                            done = -1
+                                        END IF
+                                    END IF
+                                END IF
+                            CASE MAP_EBULLET
+                                IF Bul(idx).Active AND Bul(idx).Kind <> BK_ZAP THEN
+                                    Bul(idx).Active = 0
+                                    AddParticle cx, yy, RndRange!(-6, 6), RndRange!(-3, 3), .25
+                                END IF
+                            CASE MAP_PICKUP
+                                IF Game.Difficulty = DIFF_HARD AND Bul(i).Kind = BK_LASER AND NOT Pk(idx).Scripted THEN
+                                    IF Pk(idx).Active THEN
+                                        Pk(idx).Active = 0
+                                        AddExplosion cx, yy, 0
+                                        AddScore 50, cx, yy
+                                        PlaySfx SndExplosion
+                                        Bul(i).Active = 0
+                                        done = -1
+                                    END IF
+                                END IF
+                            CASE MAP_TERRAIN
+                                AddParticle cx, yy, RndRange!(-8, -2), RndRange!(-3, 3), .2
+                                Bul(i).Active = 0
+                                done = -1
+                        END SELECT
+                    END IF
+                END IF
+                IF done THEN EXIT FOR
+            NEXT
+        END IF
+    NEXT
+END SUB
+
+SUB ClearBullets
+    DIM i AS INTEGER
+    FOR i = 1 TO MAX_BUL
+        Bul(i).Active = 0
+    NEXT
+END SUB

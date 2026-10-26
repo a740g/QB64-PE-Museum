@@ -1,0 +1,62 @@
+; Spaceship zen mode map.
+;
+; The map is a tall column of areas. Fly to the top or bottom of the screen and keep
+; going to scroll into the next one; its name fades in as you arrive. Every area loops
+; through its own scenery, so there is always something passing by wherever you are.
+;
+; AREA <from> <to> <name>
+;   from, to  the view positions this area covers, in rows (one screen is 24 rows).
+;             Negative is up. You start at 0.
+;
+; SCENE <gap> <sprite> <depth> <color> <row>      (belongs to the AREA above it)
+;   gap     seconds (at cruising speed) after the area's previous scene
+;   sprite  any sprite from sprites.txt
+;   depth   0 to 1: how close it is. Far things (0.1) crawl past and barely shift
+;           when you climb or dive, so they can be seen from neighbouring areas too.
+;           Near things (0.8) rush by and slide past quickly.
+;   color   0-15, used wherever the sprite has no color of its own
+;   row     where it shows on screen while the view is inside its area (2 top, 25 bottom)
+
+AREA -120 -72 DEEP SPACE
+SCENE 4  ZEN_GALAXY  .35  13 8
+SCENE 9  ZEN_COMET   .85  11 16
+SCENE 8  BG_NEBULA   .4   9  5
+SCENE 10 ZEN_GALAXY  .3   11 15
+SCENE 7  ZEN_COMET   .9   15 7
+
+AREA -72 -24 THE NEBULA
+SCENE 3  BG_NEBULA   .45  13 6
+SCENE 5  BG_NEBULA   .6   5  17
+SCENE 6  BG_NEBULA   .35  9  11
+SCENE 8  ZEN_COMET   .8   13 20
+SCENE 5  BG_NEBULA   .55  13 3
+
+AREA -24 24 OUTER RIM
+SCENE 3  BG_PLANET   .35  3  9
+SCENE 8  ZEN_SAT     .6   7  18
+SCENE 9  ZEN_STATION .45  7  4
+SCENE 7  BG_ROCKS    .55  8  19
+SCENE 10 ZEN_MOON    .4   7  12
+SCENE 7  ZEN_SAT     .7   7  6
+
+AREA 24 72 RING WORLD
+SCENE 2  ZEN_RINGED  .35  6  8
+SCENE 8  ZEN_MOON    .5   7  17
+SCENE 7  ZEN_SAT     .7   7  5
+SCENE 9  ZEN_MOON    .4   8  4
+SCENE 6  BG_ROCKS    .6   6  20
+
+AREA 72 120 ASTEROID BELT
+SCENE 2  BG_ROCKS    .5   6  6
+SCENE 3  BG_ROCKS    .7   8  15
+SCENE 3  BG_ROCKS    .4   6  21
+SCENE 4  BG_ARMADA   .45  8  10
+SCENE 3  BG_ROCKS    .8   8  3
+SCENE 3  BG_ROCKS    .55  6  18
+
+AREA 120 168 THE HIVE
+SCENE 3  BG_HIVE     .45  5  7
+SCENE 6  BG_HIVE     .65  13 18
+SCENE 7  BG_NEBULA   .4   5  12
+SCENE 5  BG_HIVE     .55  4  3
+SCENE 8  BG_HIVE     .75  13 14
